@@ -218,7 +218,7 @@ const PRICE=25.00;
 const BANKS=[
  {id:'bofa',name:'BofA',color:'#0A3E6E',rating:'Buy',tp:33,upside:0.32,irr:0.125,irrTxt:'12,5% real',equity:23474,edgeEq:9419,edgeEv:9419,method:'SOTP via DCF · Ke real 10%',base:'12m',conf:'Equity research — verificar licença'},
  {id:'bbi',name:'Bradesco BBI',color:'#CC092F',rating:'Outperform',tp:37,upside:0.48,irr:0.183,irrTxt:'18,3% @ preço / 10,9% @ TP',equity:26616,edgeEq:12416,edgeEv:13430,method:'DCF/SOTP · Ke 10% LDCs, 12% Edge · g 2,5%',base:'YE26',conf:'Uso exclusivo Lorinvest'},
- {id:'itau',name:'Itaú BBA',color:'#EC7000',rating:'Outperform',tp:35,upside:0.40,irr:0.147,irrTxt:'14,7% (12,0% só dist.)',equity:24934,edgeEq:8797,edgeEv:9397,method:'SOTP/DCF · Ke 10% dist., 12% Edge · g 2,5%',base:'YE26',conf:'Confidencial'},
+ {id:'itau',name:'Itaú BBA',color:'#EC7000',rating:'Outperform',tp:35,upside:0.40,irr:0.147,irrTxt:'14,7% (12,0% só dist.)',equity:24887,edgeEq:8745,edgeEv:9345,method:'SOTP/DCF · Ke 10% dist., 12% Edge · g 2,5%',base:'YE26 (Brent corrigido)',conf:'Confidencial'},
  {id:'btg',name:'BTG Pactual',color:'#12294F',rating:'Buy',tp:38,upside:0.521,irr:0.135,irrTxt:'13,5% real',equity:27086,edgeEq:9212,edgeEv:11730,method:'SOTP/FCFF · WACC real 6,4% discos / 6,8% Edge',base:'12m',conf:'Não reproduzir/redistribuir'},
  {id:'citi',name:'Citi',color:'#056DAE',rating:'Buy',tp:38,upside:0.521,irr:0.16,irrTxt:'16,0% real',equity:26866,edgeEq:10296,edgeEv:10296,method:'SOTP/FCFF · Ke real 10% dist. / 12% Edge',base:'YE26',conf:'© Citigroup — não redistribuir'},
 ];
@@ -264,7 +264,7 @@ const bMap={};BANKS.forEach(b=>bMap[b.id]=b);
 const SOTP={
  bofa:{comgas:11759,edge:9419,ldcs:4433,holding:-2137,netdebt:0},
  bbi:{comgas:12191,edge:12416,ldcs:3626,holding:-1617,netdebt:0},
- itau:{comgas:14933,edge:8797,ldcs:2946,holding:-1742,netdebt:0},
+ itau:{comgas:14933,edge:8745,ldcs:2946,holding:-1737,netdebt:0},
  btg:{comgas:16686,edge:9212,ldcs:4783,holding:-3596,netdebt:0},
  citi:{comgas:23279,edge:10296,ldcs:5426,holding:-1062,netdebt:-11073},
 };
@@ -280,7 +280,7 @@ const DY={bofa:[0.068,0.077],bbi:[0.065,0.081],itau:[0.061,0.070],btg:[0.053,0.0
 const EDGEM={
  bofa:{ev:9419,eqProxy:true,nd:'n/d',eb:[800,850,900],ni:null,eqEdge:null},
  bbi:{ev:13430,nd:781,eb:[953,1281,1817],ni:null,eqEdge:null},
- itau:{ev:9397,nd:600,eb:[799,897,1434],ni:[210,235,588],eqEdge:8797},
+ itau:{ev:9345,nd:600,eb:[799,897,1434],ni:[210,235,588],eqEdge:8745},
  btg:{ev:11730,nd:2519,eb:[808,1194,1638],ni:[241,526,833],eqEdge:9212},
  citi:{ev:10296,nd:'consol.',eb:[852,1230,1839],ni:null,eqEdge:null},
 };
@@ -919,7 +919,7 @@ function renderSOTP(){
     <div class="lead">Cada banco constrói o equity value da Compass somando o valor de cada ativo. Selecione o banco para ver a <b>ponte (waterfall)</b>: as barras positivas somam valor e as negativas (Holding e, no Citi, a dívida líquida) subtraem, chegando ao equity total à direita.</div>
     ${subBar('sotp',BANKS.map(b=>b.name))}
     ${bridges}
-    <div class="note"><b>Atenção à base:</b> BofA, Bradesco BBI, Itaú e BTG reportam o valor de cada ativo <b>já líquido de dívida</b> (equity). O <b>Citi</b> reporta os ativos em <b>EV</b> e deduz a dívida líquida numa linha única — por isso os blocos de Comgás/Edge do Citi aparecem maiores, mas o total reconcilia. Pelo modelo do <b>Itaú</b>, a Edge vale R$8,8bn de equity (EV R$9,4bn, dívida líquida de só R$0,6bn) — em linha com os pares; é a barra de \"Outras LDCs\" do Itaú (R$2,9bn) que é a menor do grupo.</div>
+    <div class="note"><b>Atenção à base:</b> BofA, Bradesco BBI, Itaú e BTG reportam o valor de cada ativo <b>já líquido de dívida</b> (equity). O <b>Citi</b> reporta os ativos em <b>EV</b> e deduz a dívida líquida numa linha única — por isso os blocos de Comgás/Edge do Citi aparecem maiores, mas o total reconcilia. Pelo modelo do <b>Itaú</b> (com o Brent já corrigido), a Edge vale R$8,7bn de equity (EV R$9,3bn, dívida líquida de só R$0,6bn) — em linha com os pares; é a barra de \"Outras LDCs\" do Itaú (R$2,9bn) que é a menor do grupo.</div>
   </div>
   <div class="card"><h2>SOTP por banco (equity value, R$ mn)</h2>
     <div class="twrap"><table><thead><tr><th class="l">Banco</th><th>Comgás</th><th>Edge</th><th>Outras LDCs</th><th>Holding</th><th>Dívida líq.</th><th>Equity value</th><th>PT</th></tr></thead><tbody>${rows}</tbody></table></div>
@@ -1076,17 +1076,27 @@ var MITAU={
  m_comgas:0.48, v_comgas:2.0, m_free:0.20, v_free:6.25, m_lng:0.80, v_lng:3.8,
  m_bio:0.50, v_bio:0.40, m_th:0.12, v_th:5.0, th_disp:0.08, m_thd:0.50,
  gasPct:0.10, trspF:216, trspO:77.5, cap27:650, cap28:500, cap29:500, cap30:50, cap31:52,
- dAR:41.7761, dInv:3.8508, dAP:-54.0836,
+ dAR:41.7761, dInv:3.8508, dAP:54.0836,
  beta:1.3, rf:0.04, ep:0.055, cr:0.0301, lti:0.0172, kd:0.1504167, tax:0.34, ew:0.7701411, g:0.04,
  c_ev:23748.68, c_nd:10646.51, c_dv:1965.97, c_wi:0.991, x_ev:4743.01, x_nd:390.99, x_dv:287.97, x_wi:0.63495,
- h_ev:-2227.43, h_nd:-485.44, h_dv:0, h_wi:1, e_nd:600.02, e_dv:0, e_wi:1
+ h_ev:-2222.3, h_nd:-485.44, h_dv:0, h_wi:1, e_nd:600.02, e_dv:0, e_wi:1
 };
 var MITAU_BASE=JSON.parse(JSON.stringify(MITAU));
 var _days=[365,365,366,365,365,365,366,365,365,365];
 var _fx=[5.1093,5.2583,5.3771,5.4542,5.534,5.615,5.6971,5.7805,5.8651,5.9509];
 var _ipca=[0.0539,0.0454,0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.04];
 var _cpi=[0.0376,0.0269,0.0249,0.025,0.025,0.025,0.025,0.025,0.025,0.025];
-var _conv=26.8081; var _brent=[null,85.288,87.42,89.606,91.846,94.142,96.496,98.908,101.381,103.915];
+var _conv=26.8081; var _brent=[null,79.583,70.00,71.75,73.544,75.382,77.267,79.199,81.179,83.208]; // Brent US$/bbl 2026(base)–2035 · referência CORRIGIDA na planilha (ano real, sem defasagem) = mesma série da Comgás
+/* ===== Indexadores macro — curvas de referência (2026–2035, base Compass_Jun26) =====
+   Fonte: aba 'Marketing & Services (Edge)' (drivers, linhas 4–11) e 'Gas Distribution (Comgás)' (linhas 4–8).
+   _days,_fx,_ipca,_cpi,_conv,_brent acima ALIMENTAM o DCF da Edge ao vivo (mitauComputeEdge).
+   As arrays abaixo são de DOCUMENTAÇÃO/verificação (aba "Indexadores"): Selic não entra no FCFF (unlevered);
+   Comgás entra na SOTP como EV fixo, mas seus drivers ficam registrados aqui. */
+var _selic=[0.1427,0.1306,0.1171,0.1163,0.1163,0.1163,0.1163,0.1163,0.1163,0.1163];        // Selic eop; flat 11,63% de 2029
+var _cpiIndex=[1.0376,1.0655,1.0921,1.1194,1.1474,1.1761,1.2055,1.2356,1.2665,1.2982];      // CPI Index (base YE2025=1) = Π(1+CPI)
+var _brentComgas=[87.49,79.58,70.00,71.75,73.54,75.38,77.27,79.20,81.18,83.21];             // Brent do modelo Comgás (US$/bbl); vale de 2028 e +2,5%/a
+var _inflComgas=[1.0539,1.1018,1.1458,1.1917,1.2393,1.2889,1.3405,1.3941,1.4498,1.5078];    // Inflation index Comgás (base YE2025=1) = Π(1+IPCA)
+var _MACYRS=[2026,2027,2028,2029,2030,2031,2032,2033,2034,2035];
 var _EBIT0=595.5716652,_FCFF0=399.8650564,_opex0=-195.78376197,_ppe0=3799.83316;
 var _recv0=501.80,_inv0=46.25,_pay0=548.04;
 function _cpifac(i){var f=1;for(var k=2;k<=i;k++)f*=(1+_cpi[k]);return f;}
@@ -1097,13 +1107,18 @@ function _vBio(y,t){return y<=2030?0.15+(y-2026)*(t-0.15)/4:t;}
 function _vThFix(y,t){return y<=2030?0+(y-2026)*(t-0)/4:t;}
 function mitauComputeEdge(P){
   var yrs=[],gp=[],ebit=[],ebitda=[],fcff=[];
+  var VK=['comgas','free','lng','bio','thF','thV'];
+  var vol={},mrg={},gpv={};VK.forEach(function(k){vol[k]=[];mrg[k]=[];gpv[k]=[];});
+  var totVolA=[],gasA=[],fsruA=[],omA=[],cogsA=[],netRevA=[],tradingA=[],opexA=[];
   var ke=P.rf+P.beta*(P.ep+P.cr)+P.lti, wacc=ke*P.ew+P.kd*(1-P.tax)*(1-P.ew);
   var capex=[172.522,P.cap27,P.cap28,P.cap29,P.cap30,P.cap31];
   for(var k=6;k<10;k++)capex.push(capex[k-1]*1.04);
   var opexP=_opex0, ppeP=_ppe0, recvP=_recv0, invP=_inv0, payP=_pay0;
   for(var i=0;i<10;i++){
     var y=2026+i; yrs.push(y);
-    if(i===0){ gp.push(null); ebit.push(_EBIT0); ebitda.push(798.8835); fcff.push(_FCFF0); continue; }
+    if(i===0){ gp.push(null); ebit.push(_EBIT0); ebitda.push(798.8835); fcff.push(_FCFF0);
+      VK.forEach(function(k){vol[k].push(null);mrg[k].push(null);gpv[k].push(null);});
+      totVolA.push(null);gasA.push(null);fsruA.push(null);omA.push(null);cogsA.push(null);netRevA.push(null);tradingA.push(null);opexA.push(null); continue; }
     var cf=_cpifac(i);
     var mC=P.m_comgas*cf,mF=P.m_free*cf,mL=P.m_lng*cf,mB=P.m_bio*cf,mT=P.m_th*cf,mTD=P.m_thd*cf;
     var vC=P.v_comgas, vF=_vFree(y,P.v_free), vL=_vLNG(y,P.v_lng), vB=_vBio(y,P.v_bio), vTf=_vThFix(y,P.v_th), vTv=P.th_disp*vTf;
@@ -1116,14 +1131,53 @@ function mitauComputeEdge(P){
     var totvol=vC+vF+vL+vB+vTf+vTv, trspF=P.trspF*_ipcafac(i), trspO=P.trspO*_ipcafac(i);
     var gascost=_brent[i]*P.gasPct, cashCOGS=-gascost*_fx[i]*totvol*d/_conv-(trspF+trspO);
     var netrev=G-cashCOGS, cogs=cashCOGS;
-    var recv=P.dAR*netrev/360, inv=P.dInv*netrev/360, pay=P.dAP*cogs/360;
+    var recv=P.dAR*netrev/360, inv=P.dInv*netrev/360, pay=-P.dAP*cogs/360;
     var dWC=-(recv-recvP)-(inv-invP)+(pay-payP); recvP=recv;invP=inv;payP=pay;
     var capexDCF=(y==2035)?-daPos:-capex[i], F=nopat+daPos+dWC+capexDCF;
     gp.push(G); ebit.push(EBIT); ebitda.push(EBIT+daPos); fcff.push(F);
+    vol.comgas.push(vC);mrg.comgas.push(mC);gpv.comgas.push(vC*d*mC);
+    vol.free.push(vF);mrg.free.push(mF);gpv.free.push(vF*d*mF);
+    vol.lng.push(vL);mrg.lng.push(mL);gpv.lng.push(vL*d*mL);
+    vol.bio.push(vB);mrg.bio.push(mB);gpv.bio.push(vB*d*mB);
+    vol.thF.push(vTf);mrg.thF.push(mT);gpv.thF.push(vTf*d*mT);
+    vol.thV.push(vTv);mrg.thV.push(mTD);gpv.thV.push(vTv*d*mTD);
+    totVolA.push(totvol);gasA.push(-gascost*_fx[i]*totvol*d/_conv);fsruA.push(-trspF);omA.push(-trspO);cogsA.push(cashCOGS);netRevA.push(netrev);tradingA.push(other);opexA.push(op);
   }
   var TV=fcff[9]*(1+P.g)/(wacc-P.g), pvcf=0; for(var j=0;j<10;j++)pvcf+=fcff[j]/Math.pow(1+wacc,j);
   var pvtv=TV/Math.pow(1+wacc,10), FV=pvcf+pvtv, eq=FV-P.e_nd+P.e_dv;
-  return {yrs:yrs,gp:gp,ebit:ebit,ebitda:ebitda,fcff:fcff,ke:ke,wacc:wacc,tv:TV,pvcf:pvcf,pvtv:pvtv,fv:FV,equity:eq};
+  return {yrs:yrs,gp:gp,ebit:ebit,ebitda:ebitda,fcff:fcff,ke:ke,wacc:wacc,tv:TV,pvcf:pvcf,pvtv:pvtv,fv:FV,equity:eq,vol:vol,mrg:mrg,gpv:gpv,totVol:totVolA,gasCost:gasA,fsru:fsruA,om:omA,cashcogs:cogsA,netrev:netRevA,trading:tradingA,opex:opexA};
+}
+/* ===== Comgás — DCF regulado ao vivo (RAB / FCFF + Terminal RAB) ===== */
+var _cgYears=[2026,2027,2028,2029,2030,2031,2032,2033,2034,2035,2036,2037,2038,2039,2040,2041,2042,2043,2044,2045,2046,2047,2048,2049];
+var _cgFcff=[248.6769,536.145,467.081,1021.6134,1014.1639,1278.2817,1366.654,1455.2869,1544.3904,1949.7079,2101.247,2208.4028,2317.4359,2428.552,2901.7341,3087.7788,3223.9797,3363.7831,3507.414,6275.7333,6390.0518,6479.3557,6580.4287,6693.0176]; // linha 271 (R$ mn)
+var _cgVol=[4257.7,4290.1,4322.6,4355.0,4388.2,4421.6,4455.3,4489.2,4523.4,4557.9,4592.6,4627.5,4662.8,4698.3,4734.1,4770.1,4806.5,4843.1,4880.0,4898.5,4917.2,4935.9,4954.7,4973.6]; // Vol Ex-TPP (mn m³)
+var _cgMargin=[1.071,1.1123,1.1492,1.1872,1.2368,1.2778,1.3202,1.3639,1.4091,1.5764,1.6287,1.6827,1.7384,1.796,1.9884,2.0543,2.1224,2.1927,2.2654,2.4775,2.5596,2.6444,2.732,2.8226]; // Permitted Margin (R$/m³)
+var _cgOpexP=[150.2946,150.6863,147.7824,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663,145.9663]; // OpEx (BRL/'000 m³)
+var _cgCogsP=[-0.8874,-0.8072,-0.71,-0.7277,-0.7459,-0.7646,-0.7837,-0.8033,-0.8234,-0.8439,-0.8608,-0.878,-0.8956,-0.9135,-0.9318,-0.9504,-0.9694,-0.9888,-1.0086,-1.0288,-1.0493,-1.0703,-1.0917,-1.1136]; // COGS/m³ (R$/m³, gás pass-through)
+var _cgCapex=[1842,2107,2275,1894,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,1000,1000,1000,1000,1000]; // Capex T (R$ mn)
+var _cgRab=[14655.3,15562.3,16541.1,17047.4,17617.0,18186.7,18756.5,19326.4,19896.3,20423.8,20951.4,21479.1,22006.8,22534.6,23027.0,23519.4,24011.9,24504.5,24997.1,24459.3,23921.5,23383.8,22846.1,22308.4]; // BRRL / RAB (R$ mn)
+var _cgFX=0.00686, _cgWCper=1.89, _cgConstrPct=0.5596; // Factor X, ∆WC/'000 m³, construção %Capex
+var _cgWcBase=_cgVol.map(function(v){return v?_cgWCper*v/1000:0;}); // proxy do fluxo-base de ∆WC (R$ mn)
+var CG={beta:1.0, kd:0.11881, we:0.35, marg:1.0, fx:0.00686, vol:1.0, opex:1.0, capex:1.0, wc:1.0, term:1.0};
+var CG_BASE=JSON.parse(JSON.stringify(CG));
+function _cgWacc(P){var ke=0.04+0.055*P.beta+0.0301+0.0172; return {ke:ke, wacc:ke*P.we+P.kd*(1-0.34)*(1-P.we)};} // Ke: β só sobre o ERP
+var _cgWaccBase=_cgWacc(CG_BASE).wacc;
+var _cgN=_cgFcff.length;
+var _cgPvfBase=0; for(var _cgi=1;_cgi<_cgN;_cgi++)_cgPvfBase+=_cgFcff[_cgi]/Math.pow(1+_cgWaccBase,_cgi);
+var _cgTermNom=(23748.68-_cgPvfBase)*Math.pow(1+_cgWaccBase,_cgN-1); // terminal nominal calibrado p/ EV base = 23.748,68
+function comgasCompute(P){
+  var W=_cgWacc(P), wacc=W.wacc;
+  var fcffL=[_cgFcff[0]];
+  for(var i=1;i<_cgN;i++){
+    var mb=_cgMargin[i], vb=_cgVol[i];
+    var fxAdj=Math.pow((1.04-P.fx)/(1.04-_cgFX),i);
+    var ml=mb*P.marg*fxAdj, vl=vb*P.vol, oxl=_cgOpexP[i]*P.opex;
+    var dRev=ml*vl-mb*vb, dOpex=(oxl*vl-_cgOpexP[i]*vb)/1000, dCapex=_cgCapex[i]*(P.capex-1), dWc=_cgWcBase[i]*(P.wc-1);
+    fcffL.push(_cgFcff[i]+(dRev-dOpex)*0.66-dCapex-dWc);
+  }
+  var pvf=0; for(var j=1;j<_cgN;j++)pvf+=fcffL[j]/Math.pow(1+wacc,j);
+  var termPV=_cgTermNom*P.term/Math.pow(1+wacc,_cgN-1);
+  return {ke:W.ke, wacc:wacc, fcff:fcffL, pvfcff:pvf, termPV:termPV, ev:pvf+termPV};
 }
 function mitauSOTP(P,fv){
   var seg=[['Comgás',P.c_ev,P.c_nd,P.c_dv,P.c_wi],['Gas Distribution (Ex-Comgás)',P.x_ev,P.x_nd,P.x_dv,P.x_wi],
@@ -1140,31 +1194,41 @@ var _FMT={r2:function(v){return _mf(v,2);},r1:function(v){return _mf(v,1);},pct:
 var MITAU_SLD=[];
 function mitauSet(k,v){var n=parseFloat(String(v).replace(',','.'));MITAU[k]=isNaN(n)?0:n;mitauUpdate();}
 function mitauReset(){MITAU=JSON.parse(JSON.stringify(MITAU_BASE));renderModel();}
+var CG_SLD=[];
+function comgasSet(k,v){var n=parseFloat(String(v).replace(',','.'));CG[k]=isNaN(n)?0:n;mitauUpdate();}
+function comgasReset(){CG=JSON.parse(JSON.stringify(CG_BASE));renderModel();}
+function _cs(key,mn,mx,st,label,fmt){CG_SLD.push({key:key,fmt:fmt});
+  return '<div class="mrow"><label><span>'+label+'</span><span class="mval" id="cv_'+key+'">'+_FMT[fmt](CG[key])+'</span></label>'+
+    '<input type="range" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+CG[key]+'" oninput="comgasSet(\''+key+'\',this.value)"></div>';}
 /* ---- Output table cell format ---- */
 function _fcell(v,lab){
   if(v==null)return '<td class="z">—</td>';
+  if(typeof v==='number'&&Math.abs(v)<1e-9)return '<td class="z">—</td>';
   if(/Yield|IRR/.test(lab))return '<td>'+_mp(v,1)+'</td>';
   if(/EV\/EBITDA|P\/E|EV\/RAB|EBITDA$/.test(lab)&&/EV\/EBITDA|P\/E|EV\/RAB|Net Debt \/ EBITDA/.test(lab))return '<td>'+v.toFixed(2).replace('.',',')+'x</td>';
-  if(/Share Price|Unitary Margin|Volumes|Net Debt \/ EBITDA/.test(lab)){var suf=/Net Debt \/ EBITDA/.test(lab)?'x':'';return '<td>'+v.toFixed(2).replace('.',',')+suf+'</td>';}
-  var neg=v<0?' class="neg"':''; return '<td'+neg+'>'+_mf(v,0)+'</td>';
+  if(/Share Price|Unitary Margin|Volumes|Net Debt \/ EBITDA/.test(lab)){var suf=/Net Debt \/ EBITDA/.test(lab)?'x':'';var ng0=v<0;var s0=Math.abs(v).toFixed(2).replace('.',',')+suf;return '<td'+(ng0?' class="neg"':'')+'>'+(ng0?'('+s0+')':s0)+'</td>';}
+  var neg=v<0; var s=_mf(Math.abs(v),0); return '<td'+(neg?' class="neg"':'')+'>'+(neg?'('+s+')':s)+'</td>';
 }
-function mtbl(title,rows,note){
-  var ys=MOUT.years;
+function mtbl(title,rows,note,ncol){
+  var ys=ncol?MOUT.years.slice(0,ncol):MOUT.years;
   var head='<tr><th class="l">'+title+'</th>'+ys.map(function(y){return '<th>'+y+'</th>';}).join('')+'</tr>';
   var body=rows.map(function(r){var bold=/^\(=\)|EBITDA|Net Income|Gross Profit|Free Cash Flow|Total|Enterprise Value|Net Debt$/.test(r[0]);
-    return '<tr'+(bold?' class="b"':'')+'><td class="l">'+r[0]+'</td>'+r[1].map(function(v){return _fcell(v,r[0]);}).join('')+'</tr>';}).join('');
+    var vals=ncol?r[1].slice(0,ncol):r[1];
+    return '<tr'+(bold?' class="b"':'')+'><td class="l">'+r[0]+'</td>'+vals.map(function(v){return _fcell(v,r[0]);}).join('')+'</tr>';}).join('');
   return '<div class="card"><div class="mtwrap"><table class="mtbl"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+(note?'<div class="note">'+note+'</div>':'')+'</div>';
 }
 function _fcfeRows(names){return MOUT.consol_fcfe.filter(function(r){return names.indexOf(r[0])>=0;});}
 /* ---- live update ---- */
 function mitauUpdate(){
   MITAU_SLD.forEach(function(s){var el=document.getElementById('mv_'+s.key);if(el)el.textContent=_FMT[s.fmt](MITAU[s.key]);});
+  CG_SLD.forEach(function(s){var el=document.getElementById('cv_'+s.key);if(el)el.textContent=_FMT[s.fmt](CG[s.key]);});
+  var CGr=comgasCompute(CG); MITAU.c_ev=CGr.ev;
   var E=mitauComputeEdge(MITAU), S=mitauSOTP(MITAU,E.fv);
   var kc=function(cap,val,cls,sub){return '<div class="mkpi '+cls+'"><div class="cap">'+cap+'</div><div class="val">'+val+'</div><div class="sub">'+sub+'</div></div>';};
   var kel=document.getElementById('mitau-kpi');
   if(kel)kel.innerHTML=kc('Preço-alvo YE26','R$'+_mf(S.tp,0),'k-red','ROUND(equity/ações)')+kc('Upside',_mp(S.upside,1),'k-sage','vs. R$'+_mf(S.cur,2))+
     kc('Equity total','R$'+_mf(S.totEq,0)+' mn','k-slate','soma das partes')+kc('EV total','R$'+_mf(S.totEv,0)+' mn','k-stone','enterprise value')+
-    kc('EV da Edge','R$'+_mf(E.fv,0)+' mn','k-teal','DCF ao vivo')+kc('WACC Edge',_mp(E.wacc,2),'k-stone','Ke '+_mp(E.ke,2));
+    kc('EV da Edge','R$'+_mf(E.fv,0)+' mn','k-teal','via DCF')+kc('WACC Edge',_mp(E.wacc,2),'k-stone','Ke '+_mp(E.ke,2));
   var eel=document.getElementById('mitau-ekpi');
   if(eel)eel.innerHTML=kc('EV da Edge','R$'+_mf(E.fv,0)+' mn','k-teal','Firm value (DCF)')+kc('Equity da Edge','R$'+_mf(E.equity,0)+' mn','k-slate','EV − dív. líq.')+
     kc('Ke (BRL)',_mp(E.ke,2),'k-stone','custo de equity')+kc('WACC (BRL)',_mp(E.wacc,2),'k-stone','custo de capital')+
@@ -1178,12 +1242,96 @@ function mitauUpdate(){
   segK('mitau-kc',MITAU.c_ev,MITAU.c_nd,MITAU.c_dv,MITAU.c_wi,16341.52);
   segK('mitau-kx',MITAU.x_ev,MITAU.x_nd,MITAU.x_dv,MITAU.x_wi,2703.43);
   segK('mitau-kh',MITAU.h_ev,MITAU.h_nd,MITAU.h_dv,MITAU.h_wi,0);
+  var cel=document.getElementById('mitau-comgas');
+  if(cel){
+    var C=CGr;
+    var kc2=function(cap,val,cls,sub){return '<div class="mkpi '+cls+'"><div class="cap">'+cap+'</div><div class="val">'+val+'</div><div class="sub">'+sub+'</div></div>';};
+    var _cgRabRef=16341.52;
+    var _cgEb26=((MOUT.comgas_is.find(function(x){return x[0]==='EBITDA';})||[0,[]])[1][2])||3887.32;
+    var _cgEq=(C.ev-MITAU.c_nd+MITAU.c_dv)*MITAU.c_wi;
+    var khtml=
+      kc2('Enterprise Value','R$'+_mf(C.ev,0)+' mn','k-red','FCFF + Terminal RAB')+
+      kc2('Dívida líquida','R$'+_mf(MITAU.c_nd,0)+' mn','k-stone','2026')+
+      kc2('Equity Value','R$'+_mf(_cgEq,0)+' mn','k-teal','(EV − dív. + div.) × WI')+
+      kc2('EV/RAB',(C.ev/_cgRabRef).toFixed(2).replace('.',',')+'x','k-sage','RAB R$'+_mf(_cgRabRef,0)+' mn')+
+      kc2('EV/EBITDA 2026E',(C.ev/_cgEb26).toFixed(2).replace('.',',')+'x','k-sage','EBITDA R$'+_mf(_cgEb26,0)+' mn')+
+      kc2('WACC',_mp(C.wacc,2),'k-slate','Ke '+_mp(C.ke,2));
+    var cy=_cgYears.map(function(y){return '<th>'+y+'</th>';}).join('');
+    var f0=function(v){if(v==null||(typeof v==='number'&&Math.abs(v)<0.5))return '—';var s=_mf(Math.abs(v),0);return v<0?'('+s+')':s;};
+    var f2=function(v){return v==null?'—':_mf(v,2);};
+    function crow(lbl,arr,fmt,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="l">'+lbl+'</td>'+arr.map(function(v){var neg=(typeof v==='number'&&v<0)?' class="neg"':'';return '<td'+neg+'>'+fmt(v)+'</td>';}).join('')+'</tr>';}
+    var df=_cgYears.map(function(y,i){return Math.pow(1+C.wacc,i);});
+    var dcf=C.fcff.map(function(f,i){return i===0?null:f/df[i];});
+    var ctbl='<div class="mtwrap"><table class="mtbl"><thead><tr><th class="l">Comgás — FCFF & DCF (R$ mn)</th>'+cy+'</tr></thead><tbody>'+
+      crow('BRRL / RAB',_cgRab,f0,'b')+
+      crow('Volume Ex-TPP (mn m³)',_cgVol,f2)+
+      crow('Permitted Margin (R$/m³)',_cgMargin,f2)+
+      crow('FCFF',C.fcff,f0,'b')+
+      crow('Fator de desconto',df,f2)+
+      crow('DCF (FCFF ÷ fator)',dcf,f0,'tot')+
+      '</tbody></table></div>'+
+      '<div class="note"><b>EV = Σ DCF (2027–2049) + PV do Terminal RAB</b> = R$'+_mf(C.pvfcff,0)+' + R$'+_mf(C.termPV,0)+' = <b>R$'+_mf(C.ev,0)+' mn</b>. O FCFF de 2026 fica de fora (data-base YE26). Desconto por <b>fator cumulativo</b> à WACC de mercado; o Ke usa β só sobre o ERP (β·ERP + rf + risco-país + inflação). O Terminal RAB é a base de ativos regulatória de 2049 trazida a valor presente — <b>não é Gordon</b>. As premissas operacionais (margem, Factor X, volume, OpEx/m³, CapEx, ∆WC) entram como sensibilidade de 1ª ordem sobre o FCFF-base do modelo; o WACC recalcula o desconto exatamente. Volume/margem/RAB exibidos são a base do modelo. Base reconcilia com a planilha (EV R$23.749 mn).</div>';
+    var ckel=document.getElementById('mitau-cgkpi'); if(ckel)ckel.innerHTML=khtml;
+    cel.innerHTML=ctbl;
+  }
   var cols=E.yrs.map(function(y){return '<th>'+y+'</th>';}).join('');
   function rowE(lbl,arr,b){return '<tr'+(b?' class="b"':'')+'><td class="l">'+lbl+'</td>'+arr.map(function(v){return '<td>'+(v==null?'—':_mf(v,0))+'</td>';}).join('')+'</tr>';}
   var tel=document.getElementById('mitau-edge');
-  if(tel)tel.innerHTML='<div class="mtwrap"><table class="mtbl"><thead><tr><th class="l">Edge — DCF ao vivo (R$ mn)</th>'+cols+'</tr></thead><tbody>'+
+  if(tel)tel.innerHTML='<div class="mtwrap"><table class="mtbl"><thead><tr><th class="l">Edge — DCF (R$ mn)</th>'+cols+'</tr></thead><tbody>'+
     rowE('Gross profit',E.gp)+rowE('EBIT',E.ebit)+rowE('EBITDA',E.ebitda,true)+rowE('FCFF',E.fcff,true)+'</tbody></table></div>'+
     '<div class="note">PV dos fluxos R$'+_mf(E.pvcf,0)+' mn + PV da perpetuidade R$'+_mf(E.pvtv,0)+' mn (g '+_mp(MITAU.g,1)+') = <b>Firm Value R$'+_mf(E.fv,0)+' mn</b> · WACC '+_mp(E.wacc,2)+'.</div>';
+  var vte=document.getElementById('mitau-edgevert');
+  if(vte){
+    var vcols=E.yrs.map(function(y){return '<th>'+y+'</th>';}).join('');
+    var fV=function(v){return (v==null||(typeof v==='number'&&Math.abs(v)<1e-9))?'—':_mf(v,2);};
+    var fR=function(v){if(v==null||(typeof v==='number'&&Math.abs(v)<0.5))return '—';var s=_mf(Math.abs(v),0);return v<0?'('+s+')':s;};
+    function vrow(lbl,arr,fmt,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="l">'+lbl+'</td>'+arr.map(function(v){var neg=(typeof v==='number'&&v<0)?' class="neg"':'';return '<td'+neg+'>'+fmt(v)+'</td>';}).join('')+'</tr>';}
+    var VL=[['comgas','On-Grid (Comgás)'],['free','On-grid (Free market)'],['lng','LNG B2B'],['bio','Biomethane'],['thF','Thermal — volume fixo'],['thV','Thermal — volume variável (dispatch)']];
+    var vbody='';
+    VL.forEach(function(vk){
+      vbody+=vrow('<b>'+vk[1]+'</b> · Volume (MMm³/d)',E.vol[vk[0]],fV)+
+        vrow('&nbsp;&nbsp;&nbsp;Margem bruta (R$/m³)',E.mrg[vk[0]],fV)+
+        vrow('&nbsp;&nbsp;&nbsp;Lucro bruto (R$ mn)',E.gpv[vk[0]],fR,'b');
+    });
+    vbody+=vrow('= Lucro bruto consolidado (R$ mn)',E.gp,fR,'tot')+
+      vrow('Trading revenues → Other op. (R$ mn)',E.trading,fR);
+    vte.innerHTML='<div class="mtwrap"><table class="mtbl"><thead><tr><th class="l">Lucro bruto por vertical</th>'+vcols+'</tr></thead><tbody>'+vbody+'</tbody></table></div>'+
+      '<div class="note">Cada margem bruta = <b>Volume (MMm³/d) × Dias × Margem (R$/m³)</b>; a soma reconcilia o <b>lucro bruto consolidado</b>. Margens crescem com CPI; volumes seguem a rampa até 2030. O <b>Trading</b> não tem volume/margem — entra como <i>Other operational revenues</i> (15 × FX, até 2032; ½ em 2033). 2026 = base (realizados, sem quebra por vertical); a abertura do Cash COGS está na DRE abaixo.</div>';
+  }
+  var dre=document.getElementById('mitau-edgedre');
+  if(dre){
+    var dcols=E.yrs.map(function(y){return '<th>'+y+'</th>';}).join('');
+    var gV=function(v){return (v==null||(typeof v==='number'&&Math.abs(v)<1e-9))?'—':_mf(v,2);};
+    var gD=function(v){if(v==null||(typeof v==='number'&&Math.abs(v)<0.5))return '—';var s=_mf(Math.abs(v),0);return v<0?'('+s+')':s;};
+    function grow(lbl,arr,fmt,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="l">'+lbl+'</td>'+arr.map(function(v){var neg=(typeof v==='number'&&v<0)?' class="neg"':'';return '<td'+neg+'>'+fmt(v)+'</td>';}).join('')+'</tr>';}
+    function mR(tbl,name){var r=tbl.find(function(x){return x[0]===name;});return r?r[1].slice(2,12):[];}
+    var eis=MOUT.edge_is;
+    function corr(name,eng){var m=mR(eis,name);return [m[0]].concat(eng.slice(1));}
+    var volA=mR(MOUT.edge_metrics,'Volumes (MM m³/day)');
+    var cogsM=mR(eis,'COGS');
+    var gasA=[cogsM[0]].concat(E.gasCost.slice(1));
+    var fsruA=[null].concat(E.fsru.slice(1));
+    var omA=[null].concat(E.om.slice(1));
+    var sep='<tr><td class="l" style="padding:2px 9px"></td>'+E.yrs.map(function(){return '<td></td>';}).join('')+'</tr>';
+    var body=grow('Volume total (MMm³/d)',volA,gV,'b')+sep+
+      grow('Net Operating Revenue',corr('Net Operating Revenue',E.netrev),gD,'b')+
+      grow('Cash COGS',corr('COGS',E.cashcogs),gD,'b')+
+      grow('&nbsp;&nbsp;&nbsp;Custo do gás',gasA,gD)+
+      grow('&nbsp;&nbsp;&nbsp;TRSP FSRU — leasing &amp; O&amp;M',fsruA,gD)+
+      grow('&nbsp;&nbsp;&nbsp;TRSP O&amp;M',omA,gD)+
+      grow('Gross Profit',mR(eis,'Gross Profit'),gD,'b')+
+      grow('Opex',mR(eis,'Opex'),gD)+
+      grow('Other operational revenues (expenses)',mR(eis,'Other operational revenues (expenses)'),gD)+
+      grow('EBIT',mR(eis,'EBIT'),gD,'b')+
+      grow('D&amp;A',mR(eis,'D&A'),gD)+
+      grow('EBITDA',mR(eis,'EBITDA'),gD,'tot')+
+      grow('Financial results, net',mR(eis,'Financial results, net'),gD)+
+      grow('EBT',mR(eis,'EBT'),gD,'b')+
+      grow('Income and Social Contribution Taxes',mR(eis,'Income and Social Contribution Taxes'),gD)+
+      grow('Net Income (Loss)',mR(eis,'Net Income (Loss)'),gD,'b');
+    dre.innerHTML='<div class="mtwrap"><table class="mtbl"><thead><tr><th class="l">Edge — DRE (R$ mn, 100% WI)</th>'+dcols+'</tr></thead><tbody>'+body+'</tbody></table></div>'+
+      '<div class="note"><b>Volume</b> abre a DRE (linha separada). O <b>Cash COGS</b> aparece decomposto em custo do gás + TRSP FSRU + TRSP O&amp;M; <b>Net Operating Revenue = Lucro bruto + |Cash COGS|</b>. Com o <b>Brent corrigido</b>, a Receita 2027 passa de R$5.826 mn para <b>R$5.510 mn</b> e o COGS de (5.026) para <b>(4.709)</b>; de Gross Profit para baixo nada muda. 2026 = base realizada.</div>';
+  }
   var sr=S.rows.map(function(r){var live=r.n.indexOf('Edge')>=0;
     return '<tr'+(live?' style="background:#FBF3F2"':'')+'><td class="l"><b>'+r.n+'</b></td><td>'+(live?'<b>'+_mf(r.ev,0)+'</b>':_mf(r.ev,0))+'</td><td>'+_mf(r.nd,0)+'</td><td>'+_mf(r.dv,0)+'</td><td>'+_mp(r.wi,1)+'</td><td><b>'+_mf(r.eq,0)+'</b></td></tr>';}).join('');
   var sel=document.getElementById('mitau-sotp');
@@ -1200,41 +1348,83 @@ function mitauUpdate(){
 function _ms(key,mn,mx,st,label,fmt){MITAU_SLD.push({key:key,fmt:fmt});
   return '<div class="mrow"><label><span>'+label+'</span><span class="mval" id="mv_'+key+'">'+_FMT[fmt](MITAU[key])+'</span></label>'+
     '<input type="range" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+MITAU[key]+'" oninput="mitauSet(\''+key+'\',this.value)"></div>';}
+/* ===== Documentação/verificação dos indexadores macro ===== */
+function macroDocHTML(){
+  var Y=_MACYRS;
+  var pctf=function(v){return v==null?'—':_mp(v,2);};
+  var r1=function(v){return v==null?'—':_mf(v,1);};
+  var r2=function(v){return v==null?'—':_mf(v,2);};
+  var r4=function(v){return v==null?'—':_mf(v,4);};
+  var i0=function(v){return v==null?'—':_mf(v,0);};
+  var convArr=Y.map(function(){return _conv;});
+  // [label, array(2026-35), fmt, comportamento/estabilização, onde entra]
+  var idx=[
+   ['Days (dias/ano)',_days,i0,'ciclo bissexto — 366 em 2028/2032','Cash COGS (anualiza o custo do gás)'],
+   ['BRL FX Rate (R$/US$)',_fx,r2,'sobe ~1,5%/a; não estabiliza','Cash COGS (gás em US$) · receita de trading (15×FX)'],
+   ['Brent (US$/bbl)',_brentComgas,r1,'vale em 2028 (US$70); +2,5%/a depois','Custo do gás — Edge e Comgás (mesma série)'],
+   ['IPCA (a.a.)',_ipca,pctf,'flat 4,00% a partir de 2028','OpEx e TRSP (Edge) · tarifa/RAB (Comgás)'],
+   ['CPI EUA (a.a.)',_cpi,pctf,'flat 2,50% a partir de 2029','Margem bruta por segmento (Edge)'],
+   ['CPI Index (base YE25=1)',_cpiIndex,r4,'acumula CPI (2,5%/a)','Escalada das margens, base 2027 (Edge)'],
+   ['Selic (eop)',_selic,pctf,'flat 11,63% a partir de 2029','Resultado financeiro — fora do FCFF'],
+   ['Conversion MM BTU→m³',convArr,r4,'constante 26,8081','Cash COGS (conversão de unidade)'],
+   ['Inflation index (base YE25=1)',_inflComgas,r4,'acumula IPCA; sobe até 2049','Tarifa e RAB regulada (Comgás)']
+  ];
+  function tbl(rows){
+    var head='<tr><th class="l">Indexador</th>'+Y.map(function(y){return '<th>'+y+'</th>';}).join('')+'<th class="l">Comportamento / estabilização</th><th class="l">Onde entra (linha de projeção)</th></tr>';
+    var body=rows.map(function(r){
+      return '<tr><td class="l"><b>'+r[0]+'</b></td>'+r[1].map(function(v){return '<td>'+r[2](v)+'</td>';}).join('')+'<td class="l" style="font-size:11px">'+r[3]+'</td><td class="l" style="font-size:11px">'+r[4]+'</td></tr>';
+    }).join('');
+    return '<div class="mtwrap"><table class="mtbl"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  }
+  return '<div class="card"><h2>Indexadores macro — curvas e ligação com as projeções</h2>'+
+    '<div class="lead">Verificação, numa única tabela, dos indexadores que governam o modelo. As curvas alimentam o <b>DCF da Edge</b>; a <b>Comgás</b> entra na soma das partes como <b>EV fixo</b>, mas usa os mesmos indexadores (Brent, IPCA, Selic e o Inflation index acumulado). Granularidade: a planilha traz os drivers <b>trimestrais até 4T26</b> e projeta em base <b>anual de 2026 a 2035</b> — é a curva anual que o motor usa; cada série muda nos primeiros anos e depois fica <b>flat</b> (ou cresce a taxa fixa) até o fim.</div>'+
+    '<div class="warn">Motor da Edge validado contra a planilha (Firm Value R$9.345 mn · erro &lt;0,01%). <b>Todos os indexadores que entram no FCFF conferem</b> — Days, FX, Brent, IPCA, CPI/CPI Index e Conversion.</div></div>'+
+    '<div class="card"><h2>Indexadores macro do modelo</h2>'+tbl(idx)+
+    '<div class="note"><b>Cash COGS</b> = − (Brent × 10%) × <b>FX</b> × Volumes × <b>Days</b> ÷ <b>Conversion</b> − (TRSP FSRU + TRSP O&amp;M). <b>OpEx</b> e <b>TRSP</b> crescem com <b>IPCA</b>; as <b>margens</b> por segmento crescem com <b>CPI</b>; a <b>Selic</b> só afeta o resultado financeiro (abaixo do FCFF), por isso não move o Firm Value. <b>Brent, IPCA e Selic são compartilhados</b> entre Edge e Comgás — após a correção, o Brent é a mesma série. A variante <b>Inflation index (ref 2024)</b> é o mesmo índice rebaseado a YE2024. A Comgás entra na SOTP como EV fixo (slider "Comgás — EV").</div>'+
+    '<div class="warn"><b>Correção aplicada:</b> a linha de gás da Edge referenciava o Brent da aba \'Oil Products Forecast\' com defasagem de +9 anos (o gás de 2027 usava o Brent nominal de 2036, ~US$85/bbl). A referência foi <b>corrigida na planilha</b> — agora usa o Brent do ano real (2027 ≈ US$80; vale de US$70 em 2028; +2,5%/a depois). Efeito no valuation: Firm Value da Edge R$9.397 mn → <b>R$9.345 mn</b>; equity total R$24.934 mn → R$24.887 mn; preço-alvo <b>mantém-se em R$35</b>. O HTML já reflete a curva corrigida.</div></div>';
+}
 function renderModel(){
-  MITAU_SLD=[];
+  MITAU_SLD=[]; CG_SLD=[];
   var prem='<h3 class="msub">Edge — margem 2027 (R$/m³)</h3>'+
     _ms('m_comgas',0.2,0.8,0.01,'On-Grid (Comgás)','r2')+_ms('m_free',0.1,0.4,0.005,'Mercado livre','r2')+_ms('m_lng',0.4,1.2,0.01,'LNG B2B','r2')+_ms('m_bio',0.3,1.4,0.01,'Biometano','r2')+_ms('m_th',0.05,0.3,0.005,'Térmica','r2')+
     '<h3 class="msub">Edge — volume-alvo 2030 (mn m³/d)</h3>'+
     _ms('v_comgas',1,4,0.1,'On-Grid (Comgás)','r1')+_ms('v_free',3,10,0.1,'Mercado livre','r1')+_ms('v_lng',1,6,0.1,'LNG B2B','r1')+_ms('v_bio',0.2,1,0.05,'Biometano','r1')+_ms('v_th',2,8,0.25,'Térmica','r1')+
     '<h3 class="msub">Edge — custos</h3>'+_ms('gasPct',0.05,0.2,0.005,'Gás como % Brent','pct')+_ms('trspF',150,300,5,'TRSP: FSRU','i')+_ms('trspO',50,120,2.5,'TRSP: O&M','r1')+_ms('th_disp',0.02,0.2,0.01,'Térmica dispatch','pct')+
     '<h3 class="msub">Edge — capex (R$ mn)</h3>'+_ms('cap27',300,900,25,'2027','i')+_ms('cap28',200,800,25,'2028','i')+_ms('cap29',200,800,25,'2029','i')+_ms('cap30',0,300,10,'2030','i')+_ms('cap31',0,300,10,'2031','i')+
-    '<h3 class="msub">Capital de giro (dias)</h3>'+_ms('dAR',20,60,1,'Recebíveis','r1')+_ms('dInv',0,10,0.5,'Estoque','r1')+_ms('dAP',-80,-20,1,'Fornecedores','r1')+
+    '<h3 class="msub">Capital de giro (dias)</h3>'+_ms('dAR',20,60,1,'Recebíveis','r1')+_ms('dInv',0,10,0.5,'Estoque','r1')+_ms('dAP',20,80,1,'Fornecedores','r1')+
     '<h3 class="msub">Custo de capital</h3>'+_ms('beta',0.8,1.8,0.05,'Beta','r2')+_ms('rf',0.02,0.07,0.0025,'Risk free','pct')+_ms('ep',0.03,0.08,0.0025,'ERP','pct')+_ms('cr',0.01,0.06,0.0025,'Risco-país','pct')+_ms('lti',0,0.04,0.002,'Inflação LP','pct')+_ms('kd',0.08,0.22,0.005,'Kd','pct')+_ms('tax',0.2,0.4,0.01,'Imposto','pct')+_ms('ew',0.5,1,0.01,'Peso equity','pct')+_ms('g',0,0.06,0.0025,'g perpetuidade','pct')+
-    '<h3 class="msub">SOTP — outros segmentos</h3>'+_ms('c_ev',15000,32000,100,'Comgás — EV','i')+_ms('c_nd',6000,14000,100,'Comgás — dív. líq.','i')+_ms('x_ev',3000,7000,50,'Ex-Comgás — EV','i')+_ms('h_ev',-4000,0,50,'Holding — EV','i')+_ms('e_nd',0,2500,25,'Edge — dív. líq.','i');
+    '<h3 class="msub">Comgás — WACC (β · Kd · estrutura)</h3>'+_cs('beta',0.6,1.6,0.05,'Beta','r2')+_cs('kd',0.08,0.16,0.0025,'Kd','pct')+_cs('we',0.2,0.6,0.01,'Peso equity','pct')+
+    '<h3 class="msub">Comgás — operacional (× base)</h3>'+_cs('marg',0.85,1.15,0.01,'Margem permitida','r2')+_cs('fx',0,0.02,0.0005,'Factor X','pct')+_cs('vol',0.9,1.1,0.01,'Volume Ex-TPP','r2')+_cs('opex',0.85,1.15,0.01,'OpEx/m³','r2')+_cs('capex',0.7,1.3,0.02,'CapEx','r2')+_cs('wc',0,2,0.05,'∆WC','r2')+_cs('term',0.85,1.15,0.01,'RAB terminal','r2')+
+    '<h3 class="msub">SOTP — outros segmentos</h3>'+_ms('c_nd',6000,14000,100,'Comgás — dív. líq.','i')+_ms('x_ev',3000,7000,50,'Ex-Comgás — EV','i')+_ms('h_ev',-4000,0,50,'Holding — EV','i')+_ms('e_nd',0,2500,25,'Edge — dív. líq.','i');
 
   // panes (Output)
   var pCons='<div id="mitau-kpi" class="mkpis"></div>'+
-    '<div class="card"><h2>Ponte da soma das partes → equity (ao vivo)</h2><div class="lead">Waterfall do equity value por segmento: parte da <b>Comgás</b>, soma <b>Ex-Comgás</b> e <b>Edge</b> (esta vinda do DCF ao vivo) e subtrai a <b>Holding</b>, chegando ao <b>equity total</b> (barra escura). Recalcula ao vivo conforme as premissas ao lado.</div><div id="mitau-bridge"></div></div>'+
-    '<div class="card"><h2>Soma das partes → preço-alvo (ao vivo)</h2><div id="mitau-sotp"></div></div>'+
+    '<div class="card"><h2>Ponte da soma das partes → equity</h2><div class="lead">Waterfall do equity value por segmento: parte da <b>Comgás</b>, soma <b>Ex-Comgás</b> e <b>Edge</b> (esta vinda do DCF) e subtrai a <b>Holding</b>, chegando ao <b>equity total</b> (barra escura). Recalcula conforme as premissas ao lado.</div><div id="mitau-bridge"></div></div>'+
+    '<div class="card"><h2>Soma das partes → preço-alvo</h2><div id="mitau-sotp"></div></div>'+
     mtbl('Demonstração de Resultado (R$ mn, 100% WI)',MOUT.consol_is,'Base do modelo Itaú BBA (Compass_Jun26). Consolidado 100% working interest.')+
     mtbl('Balanço Patrimonial (R$ mn, 100% WI)',MOUT.consol_bs)+
     mtbl('Perfil de dívida',MOUT.consol_debt)+
     mtbl('Fluxo de Caixa (R$ mn, stake Compass)',MOUT.consol_cf)+
     mtbl('Valuation / Múltiplos',MOUT.consol_val,'Preço de referência R$24,99 · EV, múltiplos e TIR conforme o modelo.')+
     mtbl('FCFE por segmento (R$ mn, stake Compass)',MOUT.consol_fcfe);
-  var pComgas='<div id="mitau-kc" class="mkpis"></div>'+mtbl('Comgás — Demonstração de Resultado (R$ mn, 100% WI)',MOUT.comgas_is)+mtbl('Comgás — Fluxo de Caixa (R$ mn)',MOUT.comgas_cf,'Ativo-núcleo regulado (concessão SP).');
+  var pComgas='<div id="mitau-cgkpi" class="mkpis"></div>'+
+    '<div class="card"><h2>Comgás — DCF regulado</h2><div class="lead">Valuation por <b>FCFF descontado + Terminal RAB</b>. As premissas ao lado (WACC via β/Kd/estrutura, margem permitida, Factor X, volume Ex-TPP, OpEx/m³, CapEx, ∆WC, RAB terminal) recalculam o EV, que alimenta a soma das partes. <button class="mbtn" onclick="comgasReset()">↺ Restaurar base Comgás</button></div><div id="mitau-comgas"></div></div>'+
+    mtbl('Comgás — Demonstração de Resultado (R$ mn, 100% WI)',MOUT.comgas_is)+
+    mtbl('Comgás — Fluxo de Caixa (R$ mn)',MOUT.comgas_cf,'Ativo-núcleo regulado (concessão SP).');
   var pLDC='<div id="mitau-kx" class="mkpis"></div>'+mtbl('Outras LDCs — FCFE por distribuidora (R$ mn, stake Compass)',_fcfeRows(['Compagás','Necta','Sulgás']),'A aba Output detalha as demais distribuidoras via FCFE (na quebra do consolidado). Compagás, Necta e Sulgás compõem o bloco "Gas Distribution (Ex-Comgás)" do SOTP.');
   var pEdge='<div id="mitau-ekpi" class="mkpis"></div>'+
-    '<div class="card"><h2>Edge — projeção e DCF (ao vivo)</h2><div id="mitau-edge"></div></div>'+
-    mtbl('Edge — Demonstração de Resultado (R$ mn, 100% WI)',MOUT.edge_is,'Base do modelo. A projeção DCF acima recalcula ao vivo com as premissas.')+
-    mtbl('Edge — Fluxo de Caixa (R$ mn)',MOUT.edge_cf)+mtbl('Edge — métricas operacionais',MOUT.edge_metrics);
+    '<div class="card"><h2>Edge — projeção e DCF</h2><div id="mitau-edge"></div></div>'+
+    '<div class="card"><h2>Lucro bruto por vertical</h2><div class="lead">Volume (MMm³/d), margem bruta (R$/m³) e lucro bruto (R$ mn) por vertical — On-Grid (Comgás), On-grid (Free market), LNG B2B, Biomethane e Thermal (volume fixo e variável) — mais o Trading (Other op.). Recalcula com as premissas ao lado.</div><div id="mitau-edgevert"></div></div>'+
+    '<div class="card"><h2>Edge — Demonstração de Resultado (R$ mn, 100% WI)</h2><div class="lead">Formato DRE padrão: <b>Volume</b> (linha inicial), depois Receita → Cash COGS (aberto em custo do gás, TRSP FSRU e TRSP O&amp;M) → Lucro bruto. Com o <b>Brent corrigido</b>, recalcula com as premissas.</div><div id="mitau-edgedre"></div></div>'+
+    mtbl('Edge — Fluxo de Caixa (R$ mn)',MOUT.edge_cf,null,12)+mtbl('Edge — métricas operacionais',MOUT.edge_metrics,null,12);
   var pHold='<div id="mitau-kh" class="mkpis"></div>'+mtbl('Holding (Corporate) — FCFE (R$ mn, stake Compass)',_fcfeRows(['Holding']),'A Holding concentra custos corporativos e resultado financeiro não alocado. No SOTP entra com EV de R$'+_mf(-(-MITAU.h_ev),0)+' mn (ver painel de premissas).');
 
-  var bar=subBar('mv',['Consolidado','Comgás','Outras LDCs','Edge','Holding (Corporate)']);
+  var pMacro=macroDocHTML();
+  var bar=subBar('mv',['Consolidado','Comgás','Outras LDCs','Edge','Holding (Corporate)','Indexadores']);
   document.getElementById('p-model').innerHTML=
    '<div class="card"><h2>Modelo Itaú BBA — verticais e valuation</h2>'+
-   '<div class="lead">Reprodução das tabelas da aba <b>Output</b> do modelo do Itaú BBA (Compass_Jun26), organizadas por vertical. O painel de <b>premissas</b> (à esquerda, fixo em todas as sub-abas) alimenta o <b>DCF da Edge</b> e o <b>SOTP → preço-alvo</b>, que recalculam ao vivo; as demais tabelas são a base do modelo.</div>'+
-   '<div class="warn">Uso interno Lorinvest. Motor da Edge validado contra a planilha (Firm Value R$9.397 mn · preço-alvo R$35 · erro &lt;0,01%). <button class="mbtn" onclick="mitauReset()">↺ Restaurar base Itaú</button></div></div>'+
+   '<div class="lead">Reprodução das tabelas da aba <b>Output</b> do modelo do Itaú BBA (Compass_Jun26), organizadas por vertical. O painel de <b>premissas</b> (à esquerda, fixo em todas as sub-abas) alimenta o <b>DCF da Edge</b> e o <b>SOTP → preço-alvo</b>, que recalculam com as premissas; as demais tabelas são a base do modelo.</div>'+
+   '<div class="warn">Uso interno Lorinvest. Motor da Edge validado contra a planilha (Firm Value R$9.345 mn · preço-alvo R$35 · erro &lt;0,01%) — já com a <b>referência de Brent corrigida</b>. <button class="mbtn" onclick="mitauReset()">↺ Restaurar base Itaú</button></div></div>'+
    '<div class="mscen2">'+
      '<section class="card mprem"><h2>Premissas</h2>'+prem+'</section>'+
      '<div class="mout2">'+bar+
@@ -1243,6 +1433,7 @@ function renderModel(){
        '<div id="mvp2" class="subpane" style="display:none">'+pLDC+'</div>'+
        '<div id="mvp3" class="subpane" style="display:none">'+pEdge+'</div>'+
        '<div id="mvp4" class="subpane" style="display:none">'+pHold+'</div>'+
+       '<div id="mvp5" class="subpane" style="display:none">'+pMacro+'</div>'+
      '</div>'+
    '</div>';
   mitauUpdate();
