@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejamento Norsul — To Do 23/06/2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* brand palette */
+    --accent:#002D5C; --accent2:#28477E; --accent3:#EF7622; --orange:#C55A17;
+    --green:#77A28A; --accent4:#A8D2BB; --gray:#7F7F7F; --teal-dark:#5A9B87;
+    /* semantic */
+    --high:var(--accent3); --med:var(--accent2); --low:var(--green);
+    --mile:var(--teal-dark); --today:var(--orange);
+    /* light theme (default) */
+    --bg:#eef1f6; --panel:#ffffff; --panel2:#f1f5f9; --line:#dce3ec;
+    --txt:#152238; --muted:#5e6b7e; --chip:#eef2f7;
+    --we-shade:rgba(0,45,92,.045); --shadow:0 1px 3px rgba(16,33,64,.08);
+    --sidebar-from:#002D5C; --sidebar-to:#013a76; --sidebar-txt:#cdd9ea; --sidebar-mut:#8aa2c2;
+    --font:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  [data-theme="dark"]{
+    --bg:#0f1419; --panel:#171f2b; --panel2:#1e2937; --line:#2a3645;
+    --txt:#e6edf3; --muted:#8b9bb0; --chip:#22303f;
+    --we-shade:rgba(255,255,255,.03); --shadow:none;
+    --sidebar-from:#021d3a; --sidebar-to:#04284f; --sidebar-txt:#b9c8dc; --sidebar-mut:#6f86a4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;
+    -webkit-font-smoothing:antialiased;display:flex;min-height:100vh}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{width:264px;flex:none;background:linear-gradient(170deg,var(--sidebar-from),var(--sidebar-to));
+    color:var(--sidebar-txt);display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;height:100vh;
+    z-index:60;transition:transform .26s ease;overflow-y:auto}
+  .sidebar.closed{transform:translateX(-100%)}
+  .brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .brand .logo{font-weight:800;font-size:17px;color:#fff;letter-spacing:-.3px;display:flex;align-items:center;gap:9px}
+  .brand .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--accent3);display:flex;
+    align-items:center;justify-content:center;font-size:13px;color:#fff}
+  .brand .tag{font-size:11px;color:var(--sidebar-mut);margin-top:6px}
+  nav{padding:12px 12px 24px;flex:1}
+  .nav-group{margin-top:16px}
+  .nav-group h4{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    color:var(--sidebar-mut);padding:0 10px 7px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;cursor:pointer;
+    color:var(--sidebar-txt);text-decoration:none;font-size:13.5px;border-left:3px solid transparent;transition:.15s}
+  .nav-item:hover{background:rgba(255,255,255,.07)}
+  .nav-item.active{background:rgba(255,255,255,.11);border-left-color:var(--accent3);color:#fff;font-weight:600}
+  .nav-code{width:30px;height:24px;flex:none;border-radius:6px;background:rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+  .nav-item.active .nav-code{background:var(--accent3);color:#fff}
+  .nav-item .dotp{width:8px;height:8px;border-radius:50%;flex:none;margin-left:auto}
+
+  /* ---------- Main ---------- */
+  .main{flex:1;min-width:0;margin-left:264px;display:flex;flex-direction:column;transition:margin .26s ease}
+  body.nav-collapsed .main{margin-left:0}
+  .topbar{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--line);
+    padding:12px 22px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+  .icon-btn{width:38px;height:38px;border:1px solid var(--line);background:var(--panel);border-radius:9px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txt);font-size:16px;transition:.15s}
+  .icon-btn:hover{background:var(--panel2);border-color:var(--accent2)}
+  .topbar .ttl{font-weight:700;font-size:15px}
+  .topbar .ttl small{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+  .topbar .spacer{flex:1}
+  .content{padding:24px 26px 60px;max-width:1180px;width:100%}
+
+  .badge{display:inline-block;background:var(--chip);color:var(--muted);font-size:11px;
+    padding:3px 9px;border-radius:20px;margin:4px 6px 0 0;border:1px solid var(--line)}
+  .note{background:rgba(239,118,34,.08);border:1px solid rgba(239,118,34,.28);border-radius:10px;
+    padding:12px 14px;font-size:12.5px;color:var(--orange);margin:16px 0 22px}
+  [data-theme="dark"] .note{color:#f6b483}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow)}
+  .stat .n{font-size:26px;font-weight:800}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .stat.high .n{color:var(--high)} .stat.med .n{color:var(--med)} .stat.acc .n{color:var(--accent)}
+  [data-theme="dark"] .stat.acc .n{color:#5a8fd6}
+
+  .section-title{font-size:15px;font-weight:700;margin:30px 0 13px;display:flex;align-items:center;gap:9px;
+    scroll-margin-top:74px}
+  .section-title::before{content:"";width:4px;height:17px;background:var(--accent3);border-radius:2px}
+
+  /* ---------- Gantt ---------- */
+  .gantt{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .g-views{display:flex;gap:6px;align-items:center;margin-bottom:13px;flex-wrap:wrap}
+  .g-view{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:11.5px;
+    font-weight:600;padding:5px 13px;border-radius:7px;cursor:pointer;transition:.15s}
+  .g-view:hover{color:var(--txt);border-color:var(--accent2)}
+  .g-view.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .g-range{font-size:11px;color:var(--muted);margin-left:auto}
+  .g-sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+  .g-level{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:11.5px;
+    font-weight:600;padding:5px 13px;border-radius:7px;cursor:pointer;transition:.15s}
+  .g-level:hover{color:var(--txt);border-color:var(--accent2)}
+  .g-level.on{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+  .g-grouprow{background:var(--panel2)}
+  .g-grouprow .g-label{font-weight:700;color:var(--txt)}
+  .g-label{overflow:hidden;min-width:0}
+  .g-label .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .g-label.sub{font-size:11px;color:var(--muted);padding-left:8px}
+  .g-track.sm{height:30px}
+  .g-bar.sub{height:14px;top:12px;border-radius:4px}
+  .g-bar.pj{height:7px;top:15px;opacity:.4;border-radius:3px}
+  .g-scroll{overflow-x:auto}
+  .g-inner{min-width:880px}
+  .g-head{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--line)}
+  .g-axis{display:flex;flex-direction:column;min-width:0}
+  .g-bands{display:grid;gap:2px;margin-bottom:2px}
+  .g-band{font-size:11px;font-weight:700;text-align:center;padding:5px 2px;color:#fff;border-radius:5px;
+    white-space:nowrap;overflow:hidden}
+  .g-units{display:grid}
+  .g-unit{font-size:9.5px;color:var(--muted);text-align:center;padding:3px 0 5px;border-left:1px solid var(--line);
+    overflow:hidden;white-space:nowrap}
+  .g-unit b{display:block;font-size:11.5px;color:var(--txt);font-weight:700}
+  .g-unit.we{background:var(--we-shade);color:var(--gray)}
+  .gantt-grid{display:block}
+  .g-row{display:grid;grid-template-columns:230px 1fr;align-items:center;border-top:1px solid var(--line)}
+  .g-row:first-child{border-top:none}
+  .g-label{font-size:12.5px;padding:9px 10px 9px 0;display:flex;align-items:center;gap:8px}
+  .g-dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .g-track{position:relative;height:38px}
+  .g-days{display:grid;position:absolute;inset:0}
+  .g-day{border-left:1px solid var(--line)}
+  .g-day.we{background:var(--we-shade)}
+  .g-bar{position:absolute;top:8px;height:22px;border-radius:6px;display:flex;align-items:center;
+    justify-content:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;
+    overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+  .g-mile{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--mile);z-index:2}
+  .g-mlabel{position:absolute;top:9px;transform:translateX(-50%);background:var(--mile);color:#fff;
+    font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;z-index:4}
+  .g-today{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--today);z-index:3}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px;font-size:11.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .lg-box{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+  /* ---------- Filters ---------- */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
+  .filt{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:12px;
+    padding:6px 13px;border-radius:20px;cursor:pointer;transition:.15s}
+  .filt:hover{color:var(--txt);border-color:var(--accent2)}
+  .filt.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+
+  /* ---------- Project cards ---------- */
+  .proj{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden;
+    box-shadow:var(--shadow);scroll-margin-top:74px}
+  .proj-head{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;border-left:4px solid var(--line)}
+  .proj-head:hover{background:var(--panel2)}
+  .proj.p-high .proj-head{border-left-color:var(--high)}
+  .proj.p-med .proj-head{border-left-color:var(--med)}
+  .proj.p-low .proj-head{border-left-color:var(--low)}
+  .proj-code{font-size:10.5px;font-weight:700;background:var(--chip);color:var(--muted);
+    padding:4px 7px;border-radius:6px;border:1px solid var(--line);flex:none;margin-top:1px}
+  .proj-title{font-size:15px;font-weight:700}
+  .proj-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
+  .pill.high{background:rgba(239,118,34,.16);color:var(--orange)}
+  .pill.med{background:rgba(40,71,126,.14);color:var(--accent2)}
+  .pill.low{background:rgba(119,162,138,.20);color:var(--teal-dark)}
+  [data-theme="dark"] .pill.high{color:#f6a463} [data-theme="dark"] .pill.med{color:#7ea3df}
+  [data-theme="dark"] .pill.low{color:var(--accent4)}
+  .prog{height:5px;background:var(--panel2);border-radius:3px;margin-top:8px;overflow:hidden}
+  .prog i{display:block;height:100%;background:var(--accent3);border-radius:3px;transition:.3s}
+  .caret{color:var(--muted);font-size:12px;transition:.2s;user-select:none;margin-top:2px}
+  .proj.open .caret{transform:rotate(90deg)}
+  .tasks{display:none;border-top:1px solid var(--line);padding:6px 16px 14px}
+  .proj.open .tasks{display:block}
+  .t-group{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+    color:var(--accent2);margin:14px 0 2px;padding-top:8px;border-top:1px dashed var(--line)}
+  [data-theme="dark"] .t-group{color:#7ea3df}
+  .t-group:first-child{border-top:none;padding-top:2px;margin-top:6px}
+  .task{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--panel2);align-items:flex-start}
+  .task:last-child{border-bottom:none}
+  .cb{width:18px;height:18px;border:2px solid var(--line);border-radius:5px;flex:none;margin-top:1px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .cb:hover{border-color:var(--accent3)}
+  .cb.ck{background:var(--teal-dark);border-color:var(--teal-dark)}
+  .cb.ck::after{content:"\2713";color:#fff;font-size:12px;font-weight:700}
+  .t-body{flex:1}
+  .t-name{font-size:13.5px}
+  .task.ck .t-name{text-decoration:line-through;color:var(--muted)}
+  .t-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:5px;background:var(--chip);
+    color:var(--muted);margin-right:5px;border:1px solid var(--line)}
+  .tag.due{color:var(--orange);border-color:rgba(197,90,23,.3)}
+  .tag.gate{color:var(--accent2);border-color:rgba(40,71,126,.35)}
+  [data-theme="dark"] .tag.due{color:#f6a463} [data-theme="dark"] .tag.gate{color:#7ea3df}
+
+  footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+
+  /* ---------- Overlay & responsive ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(8,18,33,.5);z-index:55;opacity:0;visibility:hidden;
+    transition:.26s}
+  body.nav-open-mobile .overlay{opacity:1;visibility:visible}
+  @media(max-width:900px){
+    .main{margin-left:0}
+    .sidebar{transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.35)}
+    body.nav-open-mobile .sidebar{transform:translateX(0)}
+    .content{padding:18px 16px 50px}
+    .topbar{padding:11px 16px}
+  }
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo"><span class="mark">L</span> Lorinvest</div>
+    <div class="tag">Research</div>
+  </div>
+  <nav id="nav"></nav>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <button class="icon-btn" id="toggle" title="Abrir/fechar menu">☰</button>
+    <div class="ttl">Planejamento de Projetos &amp; To-Do</div>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="theme" title="Alternar tema claro/escuro">🌙</button>
+  </div>
+
+  <div class="content">
+    <div style="margin-top:2px">
+      <span class="badge">6 frentes</span>
+      <span class="badge">Norsul · 3 análises simultâneas</span>
+      <span class="badge">Apresentação Novas Águas (Conselho de Administração Norsul): sex 26</span>
+    </div>
+
+
+    <div class="section-title" id="resumo">Visão geral</div>
+    <div class="stats" id="stats"></div>
+
+    <div class="section-title" id="cronograma">Cronograma (Gantt)</div>
+    <div class="gantt">
+      <div class="g-views">
+        <span class="g-view on" data-view="day">Dia</span>
+        <span class="g-view" data-view="week">Semana</span>
+        <span class="g-view" data-view="month">Mês</span>
+        <span class="g-sep"></span>
+        <span class="g-level on" data-level="project">Por projeto</span>
+        <span class="g-level" data-level="subtask">Por sub-tarefa</span>
+        <span class="g-range" id="grange"></span>
+      </div>
+      <div class="g-scroll">
+        <div class="g-inner" id="ginner">
+          <div class="g-head"><div class="g-corner"></div>
+            <div class="g-axis"><div class="g-bands" id="gbands"></div><div class="g-units" id="gunits"></div></div>
+          </div>
+          <div class="gantt-grid" id="gantt"></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="lg-box" style="background:var(--high)"></i> Alta</span>
+        <span><i class="lg-box" style="background:var(--med)"></i> Média</span>
+        <span><i class="lg-box" style="background:var(--low)"></i> Baixa / monitorar</span>
+        <span><i class="lg-box" style="background:var(--mile)"></i> Marco / reunião</span>
+        <span><i class="lg-box" style="background:var(--today);width:3px;border-radius:0"></i> Hoje (23/06)</span>
+      </div>
+    </div>
+
+    <div class="section-title" id="projetos">Projetos &amp; sub-tarefas</div>
+    <div class="filters" id="filters"></div>
+    <div id="projects"></div>
+
+    <footer>
+      Seu progresso (tarefas marcadas, seções abertas, tema e visão do cronograma) é salvo automaticamente neste navegador.
+    </footer>
+  </div>
+</div>
+
+<script>
+// ---------- Timeline ----------
+const START=new Date(2026,5,22), END=new Date(2026,6,3), TODAY=new Date(2026,5,23);
+const DAYMS=864e5, totalDays=Math.round((END-START)/DAYMS)+1;
+const dayIdx=d=>Math.round((d-START)/DAYMS);
+const wd=['dom','seg','ter','qua','qui','sex','sáb'];
+
+// ---------- Data ----------
+const projects=[
+  { id:'arco', code:'NA', name:'Norsul | Novas Águas', prio:'high',
+    gStart:'2026-06-22', gEnd:'2026-06-26',
+    meta:'Semana 22–26/jun · modelo Norsul (19/jun) auditado via framework ROIC · achados no memo + Assumptions table v2 · modelagem: Ilhéu (apoio Pedro, William, Yuri) · ESCOPO: apenas Fase 1',
+    tasks:[
+      {grp:'Estrutura geral & stakeholders', n:'Briefing com o gestor sobre estrutura e racional do modelo', s:'Entender como a Norsul está raciocinando antes de aprofundar', tags:['hoje cedo']},
+      {grp:'Estrutura geral & stakeholders', n:'Mapear premissas e racional do modelo (foco Fase 1)', s:'Cadeia ETC → Comboios → TUP (mesma carga 1,25 Mt grãos + 0,40 Mt fertilizante de retorno); plateau Fase 1 = 1,65 Mt. Resultado salvo: VPL R$98,5 M / TIR 37,7% / Ke 22,1%', tags:['só Fase 1']},
+      {grp:'Estrutura geral & stakeholders', n:'Mapear todos os stakeholders e como o projeto se encaixa', s:'Norsul, ONNO, TGA e sócios, BASA, Arcelor/offtakers, MOL (possível sócia equity), Conselho de Administração Norsul'},
+      {grp:'Estrutura geral & stakeholders', n:'Mapear as alternativas (make-vs-buy) de cada elo e da estrutura', s:'ETC: capacidade ociosa da ONNO vs. terminal próprio vs. outro terminal de terceiros (com haircut de fila). Comboios: comprar a TGA vs. afretar/arrendar frota de terceiros. Boias: greenfield próprio (Capex BASA) vs. amarração de terceiros (Plano B). Estrutura: equity só Norsul vs. entrada da MOL; financiamento BASA/FMM vs. alternativas. Modal: hidrovia vs. caminhão até porto vs. rival fluvial (Hidrovias do Brasil, Cianport). Avaliar cada opção por VPL/risco e registrar o BATNA'},
+
+      {grp:'Premissas de mercado & narrativa', n:'Ancorar a tarifa total ~R$112/t (ETC 29 / TGA 49 / Boia 34)', ref:'3_Operacional PRC.05 (R$128,4/t HBSA real); 2_Mercado §2.7 (T01/N01/E04)', s:'Hoje é estimativa/alavanca, não ancorada em fonte pública. Confirmar origem (cotação IM faz gross-up de impostos? Dúvida #9) e o piso/teto vs. curva de custo modal', tags:['alavanca']},
+      {grp:'Premissas de mercado & narrativa', n:'Quantificar a vantagem de custo hidrovia vs. caminhão', ref:'2_Mercado §2.7.7–2.7.8 (custo por corredor, spread AS–AN, margem de manobra)', s:'Construir a curva de custo modal (NBA-categoria) — sem ela a tarifa fica como premissa solta e a vantagem competitiva não está provada'},
+      {grp:'Premissas de mercado & narrativa', n:'Modelar compressão de tarifa no fade (reação competitiva)', cap:'4/5. capacidade e gargalo dos rivais (Cianport, Unitapajós, Cargill)',ref:'Hipóteses H5.2 (corte defensivo HBSA); 2_Mercado N02 (Cianport)', s:'Tarifa real ~constante por ~25 anos é otimista para corredor replicável; rodar cenário com entrada de Hidrovias do Brasil / Cianport', tags:['crítico']},
+      {grp:'Premissas de mercado & narrativa', n:'Checar a rampa de 1 ano (2027→2028) contra base rates', cap:'4. utilização e CAGR L5Y por player; Database (4.270 movimentos)',ref:'3_Operacional CAP.HIST (histórico 5,4–7,7 Mt/ano, 2021–24)', s:'Subir de 0,85 para 1,65 Mt em um ano é agressivo para greenfield logístico — comparar com ramp-up de terminais/hidrovias análogos'},
+      {grp:'Premissas de mercado & narrativa', n:'Modelar o haircut de calado/seca do Tapajós', cap:'1/3. dias op. 320/290/240; seca 2023–24 → 26,8 Mt (−17%)',s:'Nível do rio em Itaituba limita payload e cycle time; as secas de 2021/2023/2024 e o climate drift tornaram o tail risk uma base rate — entra como haircut de disponibilidade (R-V), não como prêmio de WACC', ref:'3_Operacional REAL.01–03, REAL.09; Hipóteses H2.8', tags:['R-V']},
+      {grp:'Premissas de mercado & narrativa', n:'Mapear a competição modal futura: Ferrogrão e Rumo Norte', s:'Corredores concorrentes que atacam o moat do Arco Norte; tratar como árvore regulatória probabilística (decisão STF 21/05/2026) e opção real, não como certeza', ref:'2_Mercado MKT.FRG.*; Hipóteses H5.3/H5.4; Cenários MKT.FRG.02', tags:['@reacao']},
+      {grp:'Premissas de mercado & narrativa', n:'Mapear utilização e folga de capacidade dos nós do Arco Norte', s:'Nós-chave já operam quase cheios (ETC Miritituba ~86%, TUP HBSA ~102%) — a pouca folga sustenta a tese de capturar volume com capacidade nova; mapear onde há espaço real', cap:'4. Capacidade por nó (utilização por player e por porto)', tags:['@conc']},
+
+      {grp:'Custo & rentabilidade operacional', n:'Auditar a estrutura de custo e a alavancagem operacional', ref:'3_Operacional §3.d (CST.01–06; margem EBITDA ~51%)', s:'Folha M-V/M-F da Camada I: posição na curva de custo modal (quem é o produtor marginal), peso do variável (lease R$/t + diesel) vs. fixo, e o risco @oplev de tripulação abaixo do padrão Norsul (Dúvida #4/#27)', tags:['M-V/M-F']},
+
+      {grp:'Sub-projeto ETC (terminal)', n:'Avaliar capacidade da ONNO + haircut de disponibilidade', cap:'4. Capacidade por nó (ETC Miritituba 17,7 Mt, util ~86%)',ref:'3_Operacional REAL.01–03 (calado/seca); 2_Mercado MKT.CAP', s:'ONNO tem capacidade ociosa, mas há outro offtaker com prioridade na fila — rodar cenário com disponibilidade reduzida (haircut de volume), hoje ausente', tags:['crítico']},
+      {grp:'Sub-projeto ETC (terminal)', n:'Rodar o teste MIN(nós) da cadeia', cap:'5. Gargalo binding — MIN(ETC, Frota, TUP); HBSA = ETC 6,2 Mt; sistema 19,6 Mt',ref:'3_Operacional CAP.ID01 = MIN(Miritituba, frota, Vila do Conde)', s:'Gargalo do sistema (ETC × comboios × boias × terminal) e folga sobre 1,65/2,8 Mt — cruzar com Capacidade_Efetiva_Arco_Norte.xlsx'},
+      {grp:'Sub-projeto ETC (terminal)', n:'Corrigir subsídio cruzado ETC × Comboios', s:'ETC roda margem −11% (tarifa ~R$29 não cobre custo); reprecificar ETC para ≥ break-even reduz o preço/NCI pago aos sócios da TGA sem mudar o consolidado — ganho econômico, não cosmético', tags:['crítico']},
+      {grp:'Sub-projeto ETC (terminal)', n:'Reconciliar capacidade declarada vs. bottom-up (frota × viagens × payload)', s:'O modelo de capacidade mostra declarada 38,7 vs. calculada 32,4 Mt no Arco Norte (−16%); aplicar a mesma reconciliação física à ETC ONNO e aos comboios para não superdimensionar o volume', cap:'2. Cálculo bottom-up; 3. Sumário (32,4 calc vs 38,7 decl)', tags:['crítico']},
+
+      {grp:'Sub-projeto Comboios (TGA)', n:'Modelar a compra da TGA', s:'TGA tem dívida alta e gera AFRMM para amortizá-la — avaliar a aquisição', tags:['crítico']},
+      {grp:'Sub-projeto Comboios (TGA)', n:'Validar o backhaul de fertilizantes (retorno 0,40 Mt)', s:'Receita complementar de retorno Santarém→Miritituba; importação de fertilizante por Santarém projetada a ~9 Mt (2025) — pode mudar a viabilidade da perna de volta', ref:'2_Mercado MKT.FERT.MT; Hipóteses H1.7; Dados a Coletar D05'},
+      {grp:'Sub-projeto Comboios (TGA)', n:'Benchmarkar payload, velocidade e cycle time dos comboios', s:'Validar as premissas operacionais dos comboios (payload por barcaça dependente do calado, velocidade ~7 km/h média ponderada, tempo portuário ~2,5 dias/viagem) contra o modelo de capacidade do Arco Norte', cap:'1. Premissas (velocidade/dias/payload); 2. Cálculo bottom-up'},
+      {grp:'Sub-projeto Comboios (TGA)', n:'Validar o múltiplo e o crédito da TGA', ref:'5_Estrutura_Risco EST.05 (venda cabotagem→Norsul: EV R$715 mi)', s:'EV/EBITDA esperado (TGA_NS r342) e Dívida Líquida/EBITDA (r343) estão em branco — múltiplo pago e alavancagem não validados; due diligence de crédito da contraparte (limpar gravames antes da integralização)', tags:['crítico','em branco']},
+      {grp:'Sub-projeto Comboios (TGA)', n:'Estruturar arrendamento + 10% dos sócios da TGA na SPE', s:'Contrato de arrendamento dos comboios; sócios da TGA ganham 10% do Projeto (SPE só comboios)'},
+      {grp:'Sub-projeto Comboios (TGA)', n:'Modelar o "aporte" gradual dos comboios na SPE', s:'Conforme paga dívidas e libera gravames, os comboios vão sendo aportados no projeto'},
+      {grp:'Sub-projeto Comboios (TGA)', n:'Valorar a opção de compra dos sócios em 2030/31 como opção real', s:'Hoje está modelada como desembolso fixo; tratar como opção real / earnout e avaliar gatilhos', tags:['opção 2030/31']},
+
+      {grp:'Sub-projeto Boias (greenfield)', n:'Modelar greenfield das boias com Capex financiado pela BASA', s:'Banco da Amazônia financia ~70% do Capex (carência + SAC) — conferir aderência às cartas-condição (Ajustes #1/#40)'},
+      {grp:'Sub-projeto Boias (greenfield)', n:'Plano B: capacidade de terceiros se não inaugurar a tempo', s:'Risco de cronograma (greenfield) — mapear uso de capacidade de terceiros como contingência; hoje ausente do modelo'},
+
+      {grp:'Tributos & benefícios fiscais', n:'Confirmar PIS/Cofins = 0 para grãos', s:'Exige ADE documental e cliente comprovadamente exportador em todas as etapas; senão há tributo adicional não modelado (Ajuste #16; To-do #11)', tags:['crítico']},
+      {grp:'Tributos & benefícios fiscais', n:'Definir ISS (5% vs 2%) e ICMS (crédito presumido vs. débito/crédito)', s:'ISS pode cair para 2% no refino (To-do #3); modelo de crédito de ICMS 19% PA×PA ainda em aberto (Dúvida #11/#34)'},
+      {grp:'Tributos & benefícios fiscais', n:'Validar a base do AFRMM (bruto vs. líquido)', ref:'5_Estrutura_Risco CC.06 (AFRMM R$15,0 mi + SUDAM R$22,8 mi, 2024)', s:'~13% do EBITDA da TGA, calendarizado sobre o valor bruto gerado sem dedução de IR/CS/PIS/Cofins; se a base correta for líquida, há superavaliação (Dúvida #5/#28)', tags:['crítico']},
+      {grp:'Tributos & benefícios fiscais', n:'Testar realização dos créditos tributários acumulados', s:'Crescem para R$26 M+ sem compensação (linha = 0 após 2028) — verificar se são monetizáveis ou viram ativo morto inflando o resultado'},
+      {grp:'Tributos & benefícios fiscais', n:'Avaliar upside SUDAM / Reidi / Reporto', s:'Capex hoje está com todos os impostos (conservador); o upside depende da abertura da composição de custos do Capex (To-do #6; Ajuste #17)'},
+
+      {grp:'Macro, WACC & consistência', n:'Validar as premissas Macro (bucket 1): IPCA e diesel', ref:'1_Macro MAC.01/02/04/06/07 (câmbio, diesel, IPCA, soja, BPI)', s:'IPCA indexa tarifas e a perpetuidade (g nominal); diesel move o custo variável e parte da tarifa ETC. Corrigir a projeção de IPCA que só vai até 2028 — é a raiz do bug de câmbio', tags:['bucket Macro']},
+      {grp:'Macro, WACC & consistência', n:'Resolver a inconsistência de Ke (22,1% vs 18,8%)', s:'Dashboard desconta o FCFE a 22,1% (hardcode D96=H99), mas a aba WACC calcula 18,8%; Ajuste #47 não foi efetivado — resolver e documentar', tags:['crítico']},
+      {grp:'Macro, WACC & consistência', n:'Calibrar beta e usar estrutura-alvo de capital', ref:'5_Estrutura_Risco CC.04 (β unlev 0,95); CC.07 (Ke real 15%); CC.08 (D/(D+E) 60%)', s:'Beta desalavancado 0,71 (Damodaran) vs. 1,05 do peer HB/Hidrovias; beta alavancado 2,10 vem de D/E 2,97x (Capex inicial) — usar estrutura-alvo, não a do desembolso'},
+      {grp:'Macro, WACC & consistência', n:'Corrigir o bug de câmbio (FX 2029+)', s:'Fórmula aponta para $AM$21 (célula vazia) → BRL aprecia indevidamente (5,73 em 2028 → 3,54 em 2049), contra o método e a aba WACC; expõe dívida TGA em USD e Capex importado', tags:['bug']},
+      {grp:'Macro, WACC & consistência', n:'Limpar o #REF! em WACC!D42', s:'Custo de dívida da ETC contém #REF! mascarado por IFERROR(...,0); impacto nulo hoje (ETC sem dívida), mas é erro a corrigir'},
+      {grp:'Macro, WACC & consistência', n:'Investigar o EBT que não fecha (Check!C145 = False)', s:'A própria aba de checagem sinaliza EBT não batendo; agregados EBITDA/Net income/CAPEX/Debt batem — isolar o item de OPEX que não fecha'},
+
+      {grp:'Crescimento & Fase 2', n:'Tratar a Fase 2 como decisão separada (switch D104)', ref:'2_Mercado funil → 2,988 Mt (TAM 311 / SAM 57,6 / SOM 16,1 / contestável 11,4 / captura 26,2%)', s:'Fase 1 = VPL R$98,5 M / 37,7%; incluir a Fase 2 (2,8 Mt em 2033, capex de frota) reduz para R$78,8 M / 31,5% — ROIIC < WACC. Recomendar a Fase 1 pelos próprios méritos e rever capex/timing da expansão à parte', tags:['crítico','só Fase 1']},
+
+      {grp:'Caixa, break-even & standalone', n:'Calcular o break-even de volume (Dashboard!C163)', s:'Célula em branco; a sensibilidade Volume×Tarifa já mostra que vol −20% e tarifa −20% leva o VPL a ≈ −R$61 M', tags:['em branco']},
+      {grp:'Caixa, break-even & standalone', n:'Calcular o Max Pag TGA @ −20% de volume (C165)', s:'Célula em branco — teto a pagar pela TGA num downside de volume', tags:['em branco']},
+      {grp:'Caixa, break-even & standalone', n:'Calcular TIR / Equity Value standalone por elo', s:'Linhas de CORP/ETC/TGA/Boias todas em branco — responder "cada elo se paga sozinho?" (ETC −11%, CORP puro custo; quem paga são Comboios e Boias)', tags:['crítico','em branco']},
+      {grp:'Caixa, break-even & standalone', n:'Dimensionar o aporte de equity no pior cenário', s:'Vale de caixa acumulado afunda a −R$74,5 M em 2030 (Fase 1); é o número-chave da lição Norcoast (asset-light) e ainda falta', tags:['crítico']},
+      {grp:'Caixa, break-even & standalone', n:'Construir visão mensal do ano de pico (2030)', s:'Modelo é anual e mascara o pico/vale intra-ano da safra (2T–3T) e o timing do AFRMM — subdimensiona capital de giro e dívida de curto prazo', tags:['crítico']},
+      {grp:'Caixa, break-even & standalone', n:'Mapear a estrutura de offtake: take-or-pay, mix e concentração', s:'A cláusula take-or-pay protege a receita no downside (liga ao break-even); concentração de clientes e calendário de expiração de contratos são risco @conc na durabilidade do volume', ref:'3_Operacional REAL.07/08/10/11/12', tags:['@conc']},
+
+      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Classificar cada premissa por Evidence Standards [F/I/A/E]', ref:'premissas já rotuladas (Morfologia EXO/END·OBS/INF/ASS) + aba Convenção Morfológica', s:'Fato / Inferência / Assunção / Estimativa — nunca apresentar assunção como fato; hoje volume, tarifa e curva de custo são estimativas/alavancas, não fatos', tags:['evidência']},
+      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Atribuir confidence + threshold-de-reversão às assunções materiais', ref:'Hipóteses (colunas Sinal/Confidência) + Cenários', s:'Para cada [A] que move o valor (tarifa, volume, base do AFRMM, PIS/Cofins = 0): "X% de confiança; abaixo de Y, o VPL fica negativo" — sem threshold, a análise é decorativa', tags:['crítico']},
+      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Verificar contrapartes nominadas vs. fonte primária', ref:'Dados a Coletar D01–D22 + FR HBSA 2025', s:'TGA, ONNO, BASA, Hidrovias do Brasil, MOL — confirmar contra Formulário de Referência / fato relevante antes de fixar a premissa (disciplina de fonte + compliance)', tags:['confidencial']},
+      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Construir ranges pessimista/base/otimista + tornado + stress test', ref:'Cenários (16 primitivas materiais; bandas pess/base/otim)', s:'Cada primitiva material com 3 cenários; tornado das mais sensíveis; stress composto de duas variáveis correlacionadas (volume × tarifa) — hoje só há uma sensibilidade pontual'},
+      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Rodar o teste de coerência Damodaran 3P', ref:'Coerência C1–C11 (3P + cross-checks logística)', s:'Crescimento exige reinvestimento (ROIIC), margem alta atrai concorrência (fade), realização não vai a 100% (disponibilidade/uptime) — confirmar que as premissas conversam'},
+
+      {grp:'Apresentação', n:'Fechar o memo de IC (modo A) com recomendação Enter/Pass', s:'Síntese pela ROIC-tree + tese-investimento: decisão de entrada (Enter/Pass) e o vetor de assunções [A] materiais com seus thresholds-de-reversão', tags:['memo IC']},
+      {grp:'Apresentação', n:'Mapear a rota de saída precificável (5–7 anos)', s:'Fecha o arco da tese: compradores estratégicos (traders integradores), M&A logístico ativo e janela de IPO/follow-on', ref:'Hipóteses H6.1–H6.3', tags:['Modo C']},
+      {grp:'Apresentação', n:'Reunião sex 26/jun — apresentar projeto e modelo ao Conselho de Administração Norsul', s:'Apresentação do Projeto Novas Águas ao Conselho — gated pela conclusão da auditoria', tags:['sex 26','gate']},
+      {grp:'Apresentação', n:'Avaliar a MOL como possível sócia no equity', s:'MOL pode entrar no equity do projeto — considerar na estrutura societária (cascata/diluição) e na narrativa'}
+    ]},
+  { id:'dharma', code:'DH', name:'Dharma | Consultoria', prio:'high',
+    gStart:'2026-06-23', gEnd:'2026-06-26',
+    meta:'Benchmarks (pedido rápido p/ hoje) + teste da ferramenta (>20 ajustes enviados) · enviar ao pessoal da Dharma',
+    tasks:[
+      {grp:'Benchmarks de overview', n:'Selecionar ~3 benchmarks de análise/overview já feitos', s:'Overviews com finances, histórico da empresa, etc.', tags:['hoje']},
+      {grp:'Benchmarks de overview', n:'Enviar os benchmarks ao pessoal da Dharma', s:'Compartilhar internamente — validar confidencialidade do conteúdo', tags:['hoje']},
+      {grp:'Teste da ferramenta', n:'Confirmar conclusão dos >20 ajustes', s:'Gestor fez deep dive e mandou os pontos; equipe deve ter terminado ontem'},
+      {grp:'Teste da ferramenta', n:'Re-testar e validar a ferramenta', s:'Garantir que os ajustes foram aplicados corretamente'},
+      {grp:'Teste da ferramenta', n:'Rodar um teste-piloto com Arco Norte (~30 min)', s:'Caso já estudado — usar para criticar a ferramenta', tags:['opcional']},
+      {grp:'Teste da ferramenta', n:'Enviar feedback à equipe Dharma', s:'Consolidar observações do teste'}
+    ]},
+  { id:'elcano', code:'EL', name:'Norsul | Elcano', prio:'med',
+    gStart:'2026-06-29', gEnd:'2026-07-03',
+    meta:'Cabotagem Brasil apenas · infopack já enviado · restrito a André e Diegues',
+    tasks:[
+      {n:'Ler o infopack (cabotagem Brasil apenas)', s:'Material enviado — entender escopo e oportunidade'},
+      {n:'Levantar quais documentos adicionais são necessários', s:'Listar o que falta para montar o modelo'},
+      {n:'Montar o modelo', s:'Construir a modelagem da operação de cabotagem'},
+      {n:'Manter alinhamento restrito (André e Diegues)', s:'Informação sensível — apenas André e Diegues estão a par; tratar com confidencialidade', tags:['confidencial']}
+    ]},
+  { id:'marazul', code:'MA', name:'Norsul | Mar Azul', prio:'low',
+    gStart:'2026-06-30', gEnd:'2026-07-03',
+    meta:'Novas análises de engenharia em curso · modelo previsto até 30/jun · Arcelor pode pedir mais capacidade',
+    tasks:[
+      {n:'Acompanhar as novas análises de engenharia', s:'Inputs de engenharia alimentam o modelo'},
+      {n:'Receber e analisar o modelo', s:'Envio previsto até 30/jun — preparar capacidade para não acumular', tags:['até 30/jun']},
+      {n:'Mapear cenário de capacidade adicional da Arcelor', s:'Arcelor pode pedir mais capacidade no futuro — considerar na flexibilidade do projeto'}
+    ]}
+];
+const milestones=[{d:'2026-06-26',label:'Novas Águas'}];
+const prioColor={high:'var(--high)',med:'var(--med)',low:'var(--low)'};
+const prioLabel={high:'Alta',med:'Média',low:'Baixa'};
+
+// ---------- Sidebar nav ----------
+const navEl=document.getElementById('nav');
+function navItem(target,code,label,dotColor){
+  return `<a class="nav-item" data-target="${target}"><span class="nav-code">${code}</span>
+    <span style="flex:1">${label}</span>${dotColor?`<span class="dotp" style="background:${dotColor}"></span>`:''}</a>`;
+}
+let navHTML=`<div class="nav-group"><h4>Geral</h4>
+  ${navItem('resumo','◆','Visão geral')}
+  ${navItem('cronograma','▦','Cronograma')}</div>`;
+[['high','Prioridade alta'],['med','Prioridade média'],['low','Monitorar']].forEach(([pr,lbl])=>{
+  const items=projects.filter(p=>p.prio===pr);
+  if(!items.length)return;
+  navHTML+=`<div class="nav-group"><h4>${lbl}</h4>`+
+    items.map(p=>navItem('proj-'+p.id,p.code,p.name.split(' — ')[0],prioColor[p.prio])).join('')+`</div>`;
+});
+navEl.innerHTML=navHTML;
+
+// ---------- Stats ----------
+let totalTasks=0; projects.forEach(p=>totalTasks+=p.tasks.length);
+const highCount=projects.filter(p=>p.prio==='high').length;
+const dueToday=projects.filter(p=>p.gStart==='2026-06-23').length;
+document.getElementById('stats').innerHTML=`
+  <div class="stat acc"><div class="n">${projects.length}</div><div class="l">Frentes ativas</div></div>
+  <div class="stat"><div class="n">${totalTasks}</div><div class="l">Sub-tarefas</div></div>
+  <div class="stat high"><div class="n">${highCount}</div><div class="l">Prioridade alta</div></div>
+  <div class="stat med"><div class="n">${dueToday}</div><div class="l">Começam hoje</div></div>
+  <div class="stat acc"><div class="n">1</div><div class="l">Reunião (sex)</div></div>`;
+
+// ---------- Gantt (multi-zoom: dia / semana / mês) ----------
+const MFULL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const bandPalette=['var(--accent2)','var(--accent3)','var(--teal-dark)','var(--accent)','var(--green)'];
+const d0=s=>new Date(s+'T00:00:00');
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const startOfWeek=d=>{const x=new Date(d);x.setHours(0,0,0,0);return addD(x,-((x.getDay()+6)%7));};
+const isoWeek=d=>{const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()-((x.getUTCDay()+6)%7)+3);const f=new Date(Date.UTC(x.getUTCFullYear(),0,4));return 1+Math.round(((x-f)/864e5-3+((f.getUTCDay()+6)%7))/7);};
+const fmtD=d=>d.getDate()+'/'+(d.getMonth()+1);
+
+const RANGE0=new Date(Math.min(...projects.map(p=>+d0(p.gStart))));
+const RANGE1=addD(new Date(Math.max(...projects.map(p=>+d0(p.gEnd)))),1); // fim exclusivo
+
+const ginner=document.getElementById('ginner'), gbands=document.getElementById('gbands');
+const gunits=document.getElementById('gunits'), gantt=document.getElementById('gantt'), grange=document.getElementById('grange');
+
+const STORE='norsulPlanV1';
+let saved={}; try{saved=JSON.parse(localStorage.getItem(STORE))||{}}catch(e){}
+let gMode=saved.gMode||'day', gLevel=saved.gLevel||'project';
+function persist(){try{localStorage.setItem(STORE,JSON.stringify({state,theme:document.documentElement.getAttribute('data-theme')||'light',gMode,gLevel}))}catch(e){}}
+function buildAxis(mode){
+  let aStart,aEnd,cols=[],colMin;
+  if(mode==='day'){
+    aStart=new Date(RANGE0); aEnd=new Date(RANGE1); colMin=38;
+    for(let d=new Date(aStart);d<aEnd;d=addD(d,1)){
+      const we=d.getDay()===0||d.getDay()===6;
+      cols.push({unit:String(d.getDate()),sub:wd[d.getDay()],we,band:'m'+d.getMonth(),bandLabel:MFULL[d.getMonth()]+' '+d.getFullYear(),days:1});
+    }
+  } else if(mode==='week'){
+    aStart=startOfWeek(RANGE0); aEnd=addD(startOfWeek(addD(RANGE1,-1)),7); colMin=104;
+    for(let d=new Date(aStart);d<aEnd;d=addD(d,7)){
+      const th=addD(d,3);
+      cols.push({unit:'Sem '+isoWeek(d),sub:fmtD(d)+'–'+fmtD(addD(d,6)),we:false,band:'m'+th.getMonth(),bandLabel:MFULL[th.getMonth()]+' '+th.getFullYear(),days:7});
+    }
+  } else {
+    aStart=new Date(RANGE0.getFullYear(),RANGE0.getMonth(),1);
+    const le=addD(RANGE1,-1); aEnd=new Date(le.getFullYear(),le.getMonth()+1,1); colMin=132;
+    for(let d=new Date(aStart);d<aEnd;d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+      const nd=new Date(d.getFullYear(),d.getMonth()+1,1), days=Math.round((nd-d)/864e5), q=Math.floor(d.getMonth()/3)+1;
+      cols.push({unit:MFULL[d.getMonth()],sub:String(d.getFullYear()),we:false,band:'q'+q+d.getFullYear(),bandLabel:'Q'+q+' '+d.getFullYear(),days});
+    }
+  }
+  return {aStart,aEnd,cols,colMin};
+}
+
+function buildGantt(){
+  const mode=gMode;
+  const {aStart,aEnd,cols,colMin}=buildAxis(mode);
+  const totMs=aEnd-aStart;
+  const pos=ms=>Math.max(0,Math.min(100,(ms-aStart)/totMs*100));
+  const fr=cols.map(c=>c.days+'fr').join(' ');
+  ginner.style.minWidth=(230+cols.length*colMin)+'px';
+
+  // bands (mescla colunas consecutivas do mesmo grupo)
+  const bands=[];
+  cols.forEach(c=>{const last=bands[bands.length-1]; if(last&&last.key===c.band)last.days+=c.days; else bands.push({key:c.band,label:c.bandLabel,days:c.days});});
+  gbands.style.gridTemplateColumns=bands.map(b=>b.days+'fr').join(' ');
+  gbands.innerHTML=bands.map((b,i)=>`<div class="g-band" style="background:${bandPalette[i%bandPalette.length]}">${b.label}</div>`).join('');
+
+  gunits.style.gridTemplateColumns=fr;
+  gunits.innerHTML=cols.map(c=>`<div class="g-unit${c.we?' we':''}"><b>${c.unit}</b>${c.sub}</div>`).join('');
+
+  const gridCols=cols.map(c=>`<div class="g-day${c.we?' we':''}"></div>`).join('');
+  const todayX=pos(TODAY.getTime()+DAYMS/2);
+
+  gantt.innerHTML='';
+  const todayLine=todayX>0&&todayX<100?`<div class="g-today" style="left:${todayX}%"></div>`:'';
+  const grid=`<div class="g-days" style="grid-template-columns:${fr}">${gridCols}</div>`;
+  if(gLevel==='project'){
+    projects.forEach(p=>{
+      const bs=+d0(p.gStart), be=+addD(d0(p.gEnd),1);
+      const left=pos(bs), width=Math.max(1.4,pos(be)-left);
+      const label=width>16?p.tasks.length+' tarefas':width>6?p.tasks.length+'t':'';
+      const row=document.createElement('div'); row.className='g-row';
+      row.innerHTML=`
+        <div class="g-label"><span class="g-dot" style="background:${prioColor[p.prio]}"></span><span class="nm">${p.name.split(' — ')[0]}</span></div>
+        <div class="g-track">${grid}${todayLine}
+          <div class="g-bar" style="left:${left}%;width:${width}%;background:${prioColor[p.prio]}">${label}</div>
+        </div>`;
+      gantt.appendChild(row);
+    });
+  } else {
+    projects.forEach(p=>{
+      const ps=+d0(p.gStart), pe=+addD(d0(p.gEnd),1);
+      const pl=pos(ps), pw=Math.max(1.4,pos(pe)-pl);
+      const head=document.createElement('div'); head.className='g-row g-grouprow';
+      head.innerHTML=`
+        <div class="g-label"><span class="proj-code" style="margin:0 2px 0 0">${p.code}</span><span class="nm">${p.name.split(' — ')[0]}</span></div>
+        <div class="g-track sm">${grid}${todayLine}
+          <div class="g-bar pj" style="left:${pl}%;width:${pw}%;background:${prioColor[p.prio]}"></div>
+        </div>`;
+      gantt.appendChild(head);
+      const N=p.tasks.length, seg=(pe-ps)/N;
+      p.tasks.forEach((t,i)=>{
+        const s=ps+i*seg, e=ps+(i+1)*seg;
+        const left=pos(s), width=Math.max(1.2,pos(e)-left);
+        const row=document.createElement('div'); row.className='g-row';
+        row.innerHTML=`
+          <div class="g-label sub"><span class="nm">${t.n}</span></div>
+          <div class="g-track sm">${grid}${todayLine}
+            <div class="g-bar sub" style="left:${left}%;width:${width}%;background:${prioColor[p.prio]}"></div>
+          </div>`;
+        gantt.appendChild(row);
+      });
+    });
+  }
+
+  const mrow=document.createElement('div'); mrow.className='g-row';
+  const mhtml=milestones.map(m=>{const x=pos(d0(m.d).getTime()+DAYMS/2);return `<div class="g-mile" style="left:${x}%"></div><div class="g-mlabel" style="left:${x}%">${m.label}</div>`;}).join('');
+  mrow.innerHTML=`<div class="g-label" style="color:var(--mile);font-weight:600">★ Marcos / reuniões</div>
+    <div class="g-track"><div class="g-days" style="grid-template-columns:${fr}">${gridCols}</div>${mhtml}</div>`;
+  gantt.appendChild(mrow);
+
+  grange.textContent=fmtD(aStart)+' → '+fmtD(addD(aEnd,-1))+' · '+cols.length+(mode==='day'?' dias':mode==='week'?' semanas':' meses')+(gLevel==='subtask'?' · sub-tarefas':'');
+}
+document.querySelectorAll('.g-view').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.g-view').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); gMode=b.dataset.view; buildGantt(); persist();
+});
+document.querySelectorAll('.g-level').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.g-level').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); gLevel=b.dataset.level; buildGantt(); persist();
+});
+document.querySelectorAll('.g-view').forEach(x=>x.classList.toggle('on',x.dataset.view===gMode));
+document.querySelectorAll('.g-level').forEach(x=>x.classList.toggle('on',x.dataset.level===gLevel));
+buildGantt();
+
+// ---------- Filters + projects ----------
+let filter='all';
+const fc=document.getElementById('filters');
+[['all','Todos'],['high','Alta'],['med','Média'],['low','Baixa']].forEach(([k,lbl])=>{
+  const b=document.createElement('div'); b.className='filt'+(k==='all'?' on':''); b.textContent=lbl;
+  b.onclick=()=>{filter=k;document.querySelectorAll('.filt').forEach(x=>x.classList.remove('on'));b.classList.add('on');render();};
+  fc.appendChild(b);
+});
+const wrap=document.getElementById('projects');
+const state=saved.state||{};
+function render(){
+  wrap.innerHTML='';
+  projects.filter(p=>filter==='all'||p.prio===filter).forEach(p=>{
+    const done=(state[p.id]||[]).filter(Boolean).length;
+    const pct=Math.round(done/p.tasks.length*100);
+    const card=document.createElement('div');
+    card.className='proj p-'+p.prio+(state['open_'+p.id]?' open':''); card.id='proj-'+p.id;
+    let th='', lastGrp=null;
+    p.tasks.forEach((t,i)=>{
+      if(t.grp&&t.grp!==lastGrp){th+=`<div class="t-group">${t.grp}</div>`;lastGrp=t.grp;}
+      const ck=(state[p.id]||[])[i];
+      const tags=(t.tags||[]).map(tg=>{let cls='tag';if(/sex|qui|hoje|fim|30|23|24/.test(tg))cls+=' due';if(/gate/.test(tg))cls+=' gate';return `<span class="${cls}">${tg}</span>`;}).join('');
+      th+=`<div class="task${ck?' ck':''}">
+        <div class="cb${ck?' ck':''}" data-p="${p.id}" data-i="${i}"></div>
+        <div class="t-body"><div class="t-name">${t.n}</div><div class="t-sub">${tags}${t.s}${t.ref?` <span class="tag gate">Guidance · ${t.ref}</span>`:''}${t.cap?` <span class="tag due">Capacidade · ${t.cap}</span>`:''}</div></div></div>`;
+    });
+    card.innerHTML=`
+      <div class="proj-head" data-toggle="${p.id}">
+        <span class="proj-code">${p.code}</span>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span class="proj-title">${p.name}</span>
+            <span class="pill ${p.prio}">${prioLabel[p.prio]}</span>
+          </div>
+          <div class="proj-meta">${p.meta}</div>
+          <div class="prog"><i style="width:${pct}%"></i></div>
+        </div>
+        <span class="caret">▶</span>
+      </div>
+      <div class="tasks">${th}</div>`;
+    wrap.appendChild(card);
+  });
+  document.querySelectorAll('[data-toggle]').forEach(h=>h.onclick=e=>{
+    if(e.target.classList.contains('cb'))return;
+    const id=h.dataset.toggle; state['open_'+id]=!state['open_'+id]; persist(); render();
+  });
+  document.querySelectorAll('.cb').forEach(cb=>cb.onclick=e=>{
+    e.stopPropagation();
+    const id=cb.dataset.p,i=+cb.dataset.i;
+    state[id]=state[id]||[]; state[id][i]=!state[id][i]; persist(); render();
+  });
+}
+
+// ---------- Sidebar behaviour ----------
+const body=document.body, sidebar=document.getElementById('sidebar'), overlay=document.getElementById('overlay');
+const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
+function openMobile(){body.classList.add('nav-open-mobile');}
+function closeMobile(){body.classList.remove('nav-open-mobile');}
+document.getElementById('toggle').onclick=()=>{
+  if(isMobile()){ body.classList.contains('nav-open-mobile')?closeMobile():openMobile(); }
+  else{ body.classList.toggle('nav-collapsed'); sidebar.classList.toggle('closed'); }
+};
+overlay.onclick=closeMobile;
+
+// nav click → scroll + active
+function bindNav(){
+  document.querySelectorAll('.nav-item').forEach(a=>a.onclick=()=>{
+    const id=a.dataset.target;
+    if(id.startsWith('proj-')){ filter='all'; document.querySelectorAll('.filt').forEach(x=>x.classList.toggle('on',x.textContent==='Todos')); render(); }
+    setTimeout(()=>{const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});},40);
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    if(isMobile())closeMobile();
+  });
+}
+
+// ---------- scroll-spy ----------
+const spyIds=['resumo','cronograma',...projects.map(p=>'proj-'+p.id)];
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    const id=e.target.id;
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.target===id));
+  }});
+},{rootMargin:'-30% 0px -60% 0px'});
+function observeProjects(){spyIds.forEach(id=>{const el=document.getElementById(id);if(el)obs.observe(el);});}
+
+const baseRender=render;
+render=function(){ baseRender(); observeProjects(); };
+
+render();
+bindNav();
+observeProjects();
+
+// ---------- Theme ----------
+const themeBtn=document.getElementById('theme');
+function setTheme(t){
+  if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');themeBtn.textContent='☀️';}
+  else{document.documentElement.removeAttribute('data-theme');themeBtn.textContent='🌙';}
+}
+themeBtn.onclick=()=>{setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');persist();};
+setTheme(saved.theme||'light');
+</script>
+</body>
+</html>

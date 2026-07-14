@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitividade de produtos substitutos — GNLink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F9; --card:#FFFFFF; --ink:#13202E; --muted:#5C6B7A;
+  --accent:#3D4A5C; --accent2:#55677C; --accent3:#E23A2E; --orange:#C55A17;
+  --green:#2E7D4F; --line:#E2E7EE; --neg:#B23A3A; --chip:#EDF1F6;
+  --slate:#3D4A5C; --red:#E23A2E;
+  --shadow:0 1px 2px rgba(19,32,46,.05),0 4px 14px rgba(19,32,46,.06);
+  --hh:66px;
+  /* slider */
+  --track:#E2E7EE; --thumb:#E23A2E; --fill:#E23A2E;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.45;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== Header (padrão Compass) ===== */
+header{position:sticky;top:0;z-index:50;background:#fff;color:var(--accent);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(35,39,42,.05)}
+header::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--slate),var(--accent2) 55%,var(--red))}
+.hwrap{max-width:1680px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.logo img{height:34px;width:auto;display:block;border-radius:6px}
+.hsep{width:1px;height:26px;background:var(--line)}
+.htitle{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+.hsub{font-size:10.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.hspace{flex:1}
+.conf{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--red);border:1px solid rgba(226,58,46,.4);border-radius:6px;padding:4px 9px;background:rgba(226,58,46,.07);white-space:nowrap}
+
+/* ===== Main / cards ===== */
+main{max-width:1680px;margin:0 auto;padding:18px 22px 44px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:17px 19px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h2{font-size:14.5px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card .cap{font-size:12.5px;line-height:1.5;color:#46566A;margin-bottom:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lead-cap{font-size:12.5px;line-height:1.55;color:#46566A;margin:0 2px 14px}
+
+/* ===== Modelo (padrão Compass · mscen2) ===== */
+.mscen2{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+@media(min-width:1080px){
+  .mscen2{grid-template-columns:300px 1fr}
+  .mscen2 .mprem{position:sticky;top:calc(var(--hh) + 10px);max-height:calc(100vh - var(--hh) - 24px);overflow-y:auto}
+}
+.mprem{scrollbar-width:thin;scrollbar-color:rgba(92,107,122,.3) transparent}
+.mprem::-webkit-scrollbar{width:7px}
+.mprem::-webkit-scrollbar-thumb{background:rgba(92,107,122,.28);border-radius:999px}
+.mprem h2{font-size:15px}
+.mout2{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+/* Premissas: grupos + campos */
+.section{margin-bottom:6px}
+.section h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:16px 0 9px;font-weight:700;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.section:first-child h3{margin-top:4px}
+.field{margin-bottom:9px}
+.field label{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:600;color:#42505F;margin-bottom:4px;gap:8px}
+.field label .val{color:var(--accent3);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.field .hint{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.35}
+
+/* Sliders finos (accent vermelho, estilo Compass) */
+.field input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;
+  background:linear-gradient(to right,var(--fill) 0%,var(--fill) 0%,var(--track) 0%,var(--track) 100%);outline:none}
+.field input[type=range]::-webkit-slider-runnable-track{height:5px;background:transparent;border-radius:999px}
+.field input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:999px;
+  background:var(--thumb);border:2px solid #fff;box-shadow:0 1px 2px rgba(19,32,46,.3);margin-top:-4px;cursor:pointer}
+.field input[type=range]::-moz-range-track{height:5px;background:var(--track);border-radius:999px}
+.field input[type=range]::-moz-range-progress{height:5px;background:var(--fill);border-radius:999px}
+.field input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:999px;background:var(--thumb);border:2px solid #fff;box-shadow:0 1px 2px rgba(19,32,46,.3)}
+
+.mbtn{border:1px solid var(--accent3);background:#fff;color:var(--accent3);font-weight:700;font-size:11px;padding:4px 11px;border-radius:6px;cursor:pointer}
+.mbtn:hover{background:var(--accent3);color:#fff}
+
+.toast{font-size:11.5px;padding:8px 11px;border-radius:8px;border:1px solid var(--line);background:#F7F9FC;color:var(--muted);display:none;margin-bottom:10px}
+.toast.show{display:block}
+.toast.warn{border-color:rgba(197,90,23,.35);background:#FBF0E6;color:#8A4A12}
+.toast.bad{border-color:rgba(226,58,46,.35);background:#FBECEA;color:#991b1b}
+
+/* ===== KPI tiles (padrão Compass · mkpi) ===== */
+.mkpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.mkpi{border-radius:12px;padding:12px 14px;border:1px solid rgba(0,0,0,.04)}
+.mkpi .cap{font-size:10.5px;font-weight:700;letter-spacing:.03em;color:#5A6675;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0}
+.mkpi .val{font-size:20px;font-weight:800;letter-spacing:-.4px;margin-top:4px;color:var(--ink)}
+.mkpi .sub{font-size:10px;color:#6B7787;margin-top:3px;line-height:1.4}
+.mkpi.k-slate{background:#EAF0F6}.mkpi.k-teal{background:#E4EEEC}.mkpi.k-red{background:#FBECEA}
+.mkpi.k-sage{background:#E7EEE3}.mkpi.k-stone{background:#EAEDF2}.mkpi.k-amber{background:#FBF0E6}
+.mkpi.k-red .val{color:var(--accent3)}
+
+.fuelCard{transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.fuelCard:hover{transform:translateY(-1px)}
+.fuelCard.best{border-color:rgba(46,125,79,.55);box-shadow:0 0 0 3px rgba(46,125,79,.14)}
+.fuelCard.best .badge{border-color:rgba(46,125,79,.5);background:#E7EEE3;color:var(--green)}
+
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);white-space:nowrap}
+
+/* ===== Fuel cards (comparativo rápido) ===== */
+.fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.fcard{position:relative;border-radius:12px;padding:13px 14px 12px;border:1px solid var(--line);background:#fff;display:flex;flex-direction:column;gap:7px;transition:transform .12s,box-shadow .12s,border-color .12s}
+.fcard:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.fcard.best{border-color:rgba(46,125,79,.5);box-shadow:0 0 0 3px rgba(46,125,79,.13)}
+.fcard-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fcard-name{font-size:12.5px;font-weight:700;color:var(--ink)}
+.fcard-name small{font-weight:600;color:var(--muted);font-size:11px}
+.rankpill{font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:#F1F4F8;color:var(--muted)}
+.fcard.best .rankpill{border-color:rgba(46,125,79,.4);background:#E7EEE3;color:var(--green)}
+.fcard-total{font-size:21px;font-weight:800;letter-spacing:-.4px;color:var(--ink);line-height:1}
+.fcard-delta{font-size:11px;font-weight:700;color:var(--muted)}
+.fcard-delta.is-best{color:var(--green)}
+.fbar{height:6px;border-radius:999px;background:#EEF2F7;overflow:hidden}
+.fbar-fill{display:block;height:100%;width:0;border-radius:999px;background:var(--accent2);transition:width .35s ease}
+.fcard.best .fbar-fill{background:var(--green)}
+.fmetrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1px}
+.fmetric{display:flex;flex-direction:column;gap:1px}
+.fmetric b{font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+.fmetric span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+
+/* ===== Tabela de indiferença ===== */
+.itbl td:first-child,.itbl th:first-child{min-width:88px}
+.folga{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;display:inline-block}
+.folga.pos{background:#E7EEE3;color:var(--green)}
+.folga.neg{background:#FBECEA;color:var(--accent3)}
+
+/* ===== Checagens & dimensionamento ===== */
+.chk-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2px 0 8px}
+.chk-title.mt{margin-top:15px}
+.chk{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:8px;margin-bottom:6px}
+.chk .ico{flex:none;font-weight:800}
+.chk-ok{background:#E7EEE3;color:#1E6B41}
+.chk-warn{background:#FBF0E6;color:#8A4A12}
+.statrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:1px dashed var(--line)}
+.statrow:last-child{border-bottom:none}
+.statrow .lb{font-size:11.5px;color:#42505F}
+.statrow .vl{font-size:12.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.statrow .vl small{font-weight:500;color:var(--muted);font-size:10.5px;margin-left:6px}
+
+.mono{font-variant-numeric:tabular-nums lining-nums;font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:12px;color:#46566A;line-height:1.45;margin:0}
+.twoCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.list{margin:8px 0 0;padding-left:18px;color:#46566A;font-size:12px;line-height:1.45}
+.list li{margin-bottom:3px}
+
+/* ===== Tabela (padrão Compass · mtbl) ===== */
+.mtwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.mtwrap::-webkit-scrollbar{height:6px}
+.mtwrap::-webkit-scrollbar-thumb{background:rgba(92,107,122,.28);border-radius:999px}
+.mtbl{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap;min-width:100%;width:100%}
+.mtbl th,.mtbl td{padding:7px 10px;text-align:right;border-bottom:1px solid #EEF2F6}
+.mtbl thead th{position:sticky;top:0;background:#EEF2F7;color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.04em;text-transform:uppercase;z-index:2}
+.mtbl th:first-child,.mtbl td:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1;font-weight:600;min-width:150px;box-shadow:1px 0 0 #E2E8EF}
+.mtbl thead th:first-child{z-index:3;background:#EEF2F7}
+.mtbl tbody tr:nth-child(even) td{background:#FAFBFD}
+.mtbl tbody tr:nth-child(even) td:first-child{background:#FAFBFD}
+.mtbl tbody tr:hover td,.mtbl tbody tr:hover td:first-child{background:#F7FAFC}
+.mtbl tbody tr.bestRow td,.mtbl tbody tr.bestRow td:first-child{background:#EAF3EC}
+.mtbl tbody tr.bestRow:hover td,.mtbl tbody tr.bestRow:hover td:first-child{background:#E3EFE6}
+.mtbl td .subline{display:block;margin-top:2px;font-size:10px;color:var(--muted);white-space:normal;font-weight:400}
+.mtbl td.col-total,.mtbl thead th.col-total{background:#EEF3F9;font-weight:700;color:var(--ink)}
+.mtbl td.col-norm,.mtbl thead th.col-norm{background:#F7F9FC}
+.mtbl tbody tr:nth-child(even) td.col-total{background:#E9F0F7}
+.mtbl tbody tr:hover td.col-total{background:#E4EDF6}
+.mtbl tbody tr.bestRow td.col-total{background:#DCEAE1}
+.mtbl tbody tr.bestRow td.col-norm{background:#E7F0EA}
+.trank{display:inline-block;min-width:18px;font-size:10px;font-weight:800;color:var(--muted)}
+.mtbl tbody tr.bestRow .trank{color:var(--green)}
+
+/* ===== Comparativo por combustível (cards + barra de composição) ===== */
+.cost-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:2px 0 12px}
+.cost-legend span{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);font-weight:600}
+.cost-legend i{width:11px;height:11px;border-radius:3px;flex:none}
+.fuelrows{display:flex;flex-direction:column;gap:10px}
+.frow{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fff;transition:box-shadow .12s,border-color .12s}
+.frow:hover{box-shadow:var(--shadow)}
+.frow.best{border-color:rgba(46,125,79,.5);box-shadow:0 0 0 3px rgba(46,125,79,.10);background:#FCFEFD}
+.frow-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.frow-id{display:flex;align-items:baseline;gap:9px;min-width:0}
+.frow-rank{font-size:11px;font-weight:800;color:var(--muted);flex:none}
+.frow.best .frow-rank{color:var(--green)}
+.frow-name{font-size:14.5px;font-weight:700;color:var(--ink)}
+.frow-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--green);background:#E7EEE3;border:1px solid rgba(46,125,79,.35);border-radius:999px;padding:2px 7px;margin-left:2px}
+.frow-figs{display:flex;gap:20px}
+.fig{display:flex;flex-direction:column;text-align:right;gap:1px}
+.fig b{font-size:14px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.fig small{font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.frow.best .fig-total b{color:var(--green)}
+.cost-bar{margin:12px 0 9px;height:15px;border-radius:8px;background:#F1F4F8}
+.cost-fill{display:flex;height:100%;border-radius:8px;overflow:hidden;min-width:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);transition:width .35s ease}
+.cost-fill .seg{height:100%;min-width:2px;cursor:default;transition:filter .1s}
+.cost-fill .seg:hover{filter:brightness(1.12)}
+.frow-meta{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.frow-meta b{color:#42505F;font-weight:600}
+@media(max-width:620px){.frow-top{flex-direction:column;gap:8px}.frow-figs{gap:16px;width:100%;justify-content:space-between}.fig{text-align:left}}
+
+/* ===== Gráfico ===== */
+.chartCard h2{margin-bottom:12px}
+canvas{width:100% !important;height:340px !important}
+
+/* ===== Footer ===== */
+footer{max-width:1680px;margin:0 auto;padding:16px 22px 30px;color:var(--muted);font-size:11px;line-height:1.5}
+footer strong{color:var(--ink)}
+
+@media(max-width:980px){.mkpis{grid-template-columns:repeat(2,1fr)}.row2,.twoCols{grid-template-columns:1fr}}
+@media(max-width:760px){.hwrap{padding:10px 14px}main{padding:14px}.mkpis{grid-template-columns:1fr}canvas{height:280px !important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="logo"><img src="../../../logos/gnlink-logo.jpg" alt="GNLink"></div>
+    <span class="hsep"></span>
+    <div>
+      <div class="htitle">Competitividade de produtos substitutos</div>
+      <div class="hsub">GNLink · Comercial · GN vs. GLP, óleo &amp; lenha</div>
+    </div>
+    <div class="hspace"></div>
+    <span class="conf">CONFIDENCIAL · USO INTERNO LORINVEST</span>
+  </div>
+</header>
+
+<main>
+  <div class="lead-cap">
+    Comparador de custo mensal de energia térmica na indústria — GNL (gás natural), GLP, óleo combustível e lenha —
+    normalizado por energia útil (base 30 dias/mês, formatos pt-BR). Ajuste as premissas à esquerda; as saídas recalculam em tempo real.
+  </div>
+
+  <div class="mscen2">
+    <!-- ===== Premissas ===== -->
+    <div class="mprem card">
+      <h2>Premissas do cenário <button class="mbtn" id="resetBtn" title="Voltar todas as premissas para o default">Resetar defaults</button></h2>
+      <div class="cap" style="margin-bottom:10px">kcal/MMBtu = <b class="mono" id="kcalConst">251.996,14</b> · base 30 dias/mês</div>
+      <div class="toast" id="toast"></div>
+      <div id="inputsContainer"></div>
+    </div>
+
+    <!-- ===== Saídas ===== -->
+    <div class="mout2">
+      <!-- Contexto -->
+      <div class="mkpis">
+        <div class="mkpi k-slate">
+          <div class="cap">Melhor opção</div>
+          <div class="val" id="bestFuelBadge" style="font-size:15px">—</div>
+          <div class="sub">Menor custo total mensal</div>
+        </div>
+        <div class="mkpi k-teal">
+          <div class="cap">Energia útil (base GN)</div>
+          <div class="val"><span class="mono" id="out_energia_util_mmbtu_d">—</span></div>
+          <div class="sub">MMBtu/d</div>
+        </div>
+        <div class="mkpi k-stone">
+          <div class="cap">Consumo GN</div>
+          <div class="val"><span class="mono" id="out_cons_gn_m3_d">—</span></div>
+          <div class="sub">m³/d · ajustado pela eficiência</div>
+        </div>
+        <div class="mkpi k-sage">
+          <div class="cap">USD/BRL</div>
+          <div class="val"><span class="mono" id="out_fx">—</span></div>
+          <div class="sub">Energia elétrica <span class="mono" id="out_elec">—</span> R$/kWh · Demanda GN base <span class="mono" id="out_demanda_gn">—</span> m³/d</div>
+        </div>
+      </div>
+
+      <!-- Cards por combustível -->
+      <div class="fgrid">
+        <div class="fcard" id="card_gn">
+          <div class="fcard-head"><span class="fcard-name">GN <small>(GNL)</small></span><span class="rankpill" id="rank_gn">—</span></div>
+          <div class="fcard-total" id="total_gn">—</div>
+          <div class="fcard-delta" id="delta_gn">—</div>
+          <div class="fbar"><i class="fbar-fill" id="bar_gn"></i></div>
+          <div class="fmetrics">
+            <div class="fmetric"><b class="mono" id="unit_gn_us">—</b><span>US$/MMBtu útil</span></div>
+            <div class="fmetric"><b class="mono" id="unit_gn_r_unit">—</b><span>R$/m³ total</span></div>
+          </div>
+        </div>
+        <div class="fcard" id="card_glp">
+          <div class="fcard-head"><span class="fcard-name">GLP</span><span class="rankpill" id="rank_glp">—</span></div>
+          <div class="fcard-total" id="total_glp">—</div>
+          <div class="fcard-delta" id="delta_glp">—</div>
+          <div class="fbar"><i class="fbar-fill" id="bar_glp"></i></div>
+          <div class="fmetrics">
+            <div class="fmetric"><b class="mono" id="unit_glp_us">—</b><span>US$/MMBtu útil</span></div>
+            <div class="fmetric"><b class="mono" id="unit_glp_r_unit">—</b><span>R$/kg total</span></div>
+          </div>
+        </div>
+        <div class="fcard" id="card_oc">
+          <div class="fcard-head"><span class="fcard-name">Óleo <small>comb.</small></span><span class="rankpill" id="rank_oc">—</span></div>
+          <div class="fcard-total" id="total_oc">—</div>
+          <div class="fcard-delta" id="delta_oc">—</div>
+          <div class="fbar"><i class="fbar-fill" id="bar_oc"></i></div>
+          <div class="fmetrics">
+            <div class="fmetric"><b class="mono" id="unit_oc_us">—</b><span>US$/MMBtu útil</span></div>
+            <div class="fmetric"><b class="mono" id="unit_oc_r_unit">—</b><span>R$/kg total</span></div>
+          </div>
+        </div>
+        <div class="fcard" id="card_lenha">
+          <div class="fcard-head"><span class="fcard-name">Lenha</span><span class="rankpill" id="rank_lenha">—</span></div>
+          <div class="fcard-total" id="total_lenha">—</div>
+          <div class="fcard-delta" id="delta_lenha">—</div>
+          <div class="fbar"><i class="fbar-fill" id="bar_lenha"></i></div>
+          <div class="fmetrics">
+            <div class="fmetric"><b class="mono" id="unit_lenha_us">—</b><span>US$/MMBtu útil</span></div>
+            <div class="fmetric"><b class="mono" id="unit_lenha_r_unit">—</b><span>R$/kg total</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indiferença + observações -->
+      <div class="row2">
+        <div class="card">
+          <h2>Preço de indiferença do GN</h2>
+          <div class="cap">Preço-teto do GN combustível que iguala o custo total ao da alternativa (demais custos do GN fixos). <b>Folga</b> = quanto o GN pode subir vs. o preço atual (<b class="mono" id="gn_price_ref">—</b> R$/m³) antes de perder a competitividade.</div>
+          <div class="mtwrap">
+            <table class="mtbl itbl">
+              <thead><tr><th>Alternativa</th><th>R$/m³</th><th>US$/MMBtu</th><th>Folga vs. atual</th></tr></thead>
+              <tbody>
+                <tr><td>GLP</td><td class="mono" id="indif_glp_r_m3">—</td><td class="mono" id="indif_glp_us_mmbtu">—</td><td><span class="folga" id="indif_glp_head">—</span></td></tr>
+                <tr><td>Óleo</td><td class="mono" id="indif_oc_r_m3">—</td><td class="mono" id="indif_oc_us_mmbtu">—</td><td><span class="folga" id="indif_oc_head">—</span></td></tr>
+                <tr><td>Lenha</td><td class="mono" id="indif_lenha_r_m3">—</td><td class="mono" id="indif_lenha_us_mmbtu">—</td><td><span class="folga" id="indif_lenha_head">—</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Observações &amp; checagens</h2>
+          <div class="chk-title">Alertas de premissa</div>
+          <div id="warnings"></div>
+          <div class="chk-title mt">Dimensionamento estimado</div>
+          <div id="infoList"></div>
+        </div>
+      </div>
+
+      <!-- Comparativo por combustível -->
+      <div class="card">
+        <h2>Comparativo por combustível</h2>
+        <div class="cap">Cada barra é proporcional ao <b>custo total mensal</b> (mais curta = mais barato) e segmentada pela composição de custo. Passe o mouse sobre um segmento para ver o valor de cada componente.</div>
+        <div class="cost-legend">
+          <span><i style="background:#3D4A5C"></i>Fuel</span>
+          <span><i style="background:#4E8385"></i>Pessoal</span>
+          <span><i style="background:#6B8299"></i>Logística</span>
+          <span><i style="background:#2E7D4F"></i>Energia</span>
+          <span><i style="background:#C55A17"></i>Manutenção</span>
+          <span><i style="background:#55677C"></i>Extras</span>
+          <span><i style="background:#E23A2E"></i>CapEx</span>
+        </div>
+        <div class="fuelrows" id="fuelRows"></div>
+      </div>
+
+      <!-- Gráfico -->
+      <div class="card chartCard">
+        <h2>Decomposição do custo mensal</h2>
+        <canvas id="stackChart"></canvas>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <strong>Mecânica implementada.</strong>
+  (i) A energia útil requerida é ancorada em <span class="mono">Demanda GN base</span> e <span class="mono">PCS GN</span>; consumos equivalentes usam <span class="mono">PCS</span> e <span class="mono">Eficiência</span> de cada alternativa.
+  (ii) Preços em US$/MMBtu são convertidos para unidade de compra (R$/m³, R$/kg, R$/t) via <span class="mono">kcal/MMBtu</span> e o PCS do combustível.
+  (iii) “Custo unitário (útil)” = <span class="mono">Total mensal / Energia útil mensal (MMBtu)</span>.
+  (iv) Eficiências ≤ 0% ou &gt; 100% são travadas/corrigidas automaticamente.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    const DIAS_MES = 30;
+    const KCAL_PER_MMBTU = 251996.14;
+
+    const fmtBRL = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits: 0 });
+    const fmtBRL2 = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits: 2 });
+    const fmtNum0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+    const fmtNum1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+    const fmtNum2 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+    const fmtNum3 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 });
+
+    function brl(v){ return fmtBRL.format(isFinite(v)? v : 0); }
+    function brl2(v){ return fmtBRL2.format(isFinite(v)? v : 0); }
+    function num0(v){ return fmtNum0.format(isFinite(v)? v : 0); }
+    function num1(v){ return fmtNum1.format(isFinite(v)? v : 0); }
+    function num2(v){ return fmtNum2.format(isFinite(v)? v : 0); }
+    function num3(v){ return fmtNum3.format(isFinite(v)? v : 0); }
+
+    const inputConfig = [
+      {
+        title: "A. Premissas macro",
+        items: [
+          { id:"fx", label:"USD/BRL", unit:"R$/US$", min:3.0, max:7.0, step:0.01, def:5.50, fmt:"num2" },
+          { id:"preco_eletric", label:"Preço energia elétrica", unit:"R$/kWh", min:0.10, max:1.50, step:0.01, def:0.40, fmt:"num2" },
+          { id:"pcs_gn_default", label:"PCS Default do GN", unit:"kcal/m³", min:1000, max:15000, step:100, def:9400, fmt:"num0",
+            hint:"PCS usado para calcular a energia útil requerida a partir da 'Demanda GN base'. Independente do 'PCS GN' usado nos cálculos de consumo." },
+          { id:"demanda_gn_base", label:"Demanda GN base", unit:"m³/d", min:1000, max:100000, step:100, def:20000, fmt:"num0" }
+        ]
+      },
+      {
+        title: "B. Propriedades energéticas e eficiência",
+        items: [
+          { id:"pcs_gn", label:"PCS GN", unit:"kcal/m³", min:1000, max:15000, step:100, def:9400, fmt:"num0" },
+          { id:"eff_gn", label:"Eficiência GN", unit:"%", min:0, max:100, step:1, def:97, kind:"eff", fmt:"num0" },
+
+          { id:"pcs_glp", label:"PCS GLP", unit:"kcal/kg", min:1000, max:15000, step:100, def:11500, fmt:"num0" },
+          { id:"eff_glp", label:"Eficiência GLP", unit:"%", min:0, max:100, step:1, def:90, kind:"eff", fmt:"num0" },
+
+          { id:"pcs_oc", label:"PCS Óleo combustível", unit:"kcal/kg", min:1000, max:15000, step:100, def:9800, fmt:"num0" },
+          { id:"eff_oc", label:"Eficiência Óleo", unit:"%", min:0, max:100, step:1, def:85, kind:"eff", fmt:"num0" },
+          { id:"dens_oc", label:"Densidade do óleo", unit:"kg/L", min:0.00, max:1.10, step:0.01, def:0.97, fmt:"num2" },
+
+          { id:"pcs_lenha", label:"PCS Lenha", unit:"kcal/kg", min:1000, max:15000, step:100, def:3200, fmt:"num0" },
+          { id:"eff_lenha", label:"Eficiência Lenha", unit:"%", min:0, max:100, step:1, def:70, kind:"eff", fmt:"num0" },
+          { id:"dens_lenha", label:"Densidade aparente lenha", unit:"kg/m³", min:100, max:1000, step:10, def:400, fmt:"num0" }
+        ]
+      },
+      {
+        title: "C. Preços dos combustíveis",
+        items: [
+          { id:"preco_gnl_usd", label:"Preço GNL", unit:"US$/MMBtu", min:2, max:40, step:0.1, def:21.0, fmt:"num1" },
+          { id:"preco_glp_usd", label:"Preço GLP", unit:"US$/MMBtu", min:2, max:40, step:0.1, def:22.5, fmt:"num1" },
+          { id:"preco_oc_usd", label:"Preço Óleo combustível", unit:"US$/MMBtu", min:2, max:40, step:0.1, def:19.1, fmt:"num1" },
+          { id:"preco_lenha_usd", label:"Preço Lenha", unit:"US$/MMBtu", min:1, max:25, step:0.1, def:6.5, fmt:"num1" }
+        ]
+      },
+      {
+        title: "D. Opex / logística / manutenção",
+        items: [
+          { id:"custo_fte", label:"Custo FTE mensal", unit:"R$/mês", min:3000, max:20000, step:100, def:8000, fmt:"num0" },
+          { id:"custo_caminhao", label:"Custo por caminhão", unit:"R$/descarga", min:0, max:1000, step:10, def:200, fmt:"num0" },
+
+          { id:"kwh_gn", label:"Energia elétrica – GN", unit:"kWh/d", min:0, max:5000, step:10, def:100, fmt:"num0" },
+          { id:"kwh_glp", label:"Energia elétrica – GLP", unit:"kWh/d", min:0, max:5000, step:10, def:200, fmt:"num0" },
+          { id:"kwh_oc", label:"Energia elétrica – Óleo", unit:"kWh/d", min:0, max:5000, step:10, def:600, fmt:"num0" },
+          { id:"kwh_lenha", label:"Energia elétrica – Lenha", unit:"kWh/d", min:0, max:10000, step:10, def:1440, fmt:"num0" },
+
+          { id:"fte_gn", label:"Colaboradores – GN", unit:"FTE", min:0, max:20, step:0.1, def:0.5, fmt:"num1" },
+          { id:"fte_glp", label:"Colaboradores – GLP", unit:"FTE", min:0, max:20, step:0.1, def:1.5, fmt:"num1" },
+          { id:"fte_oc", label:"Colaboradores – Óleo", unit:"FTE", min:0, max:20, step:0.1, def:3.0, fmt:"num1" },
+          { id:"fte_lenha", label:"Colaboradores – Lenha", unit:"FTE", min:0, max:30, step:0.1, def:6.0, fmt:"num1" },
+
+          { id:"manut_gn", label:"Manutenção – GN", unit:"R$/dia", min:0, max:5000, step:10, def:100, fmt:"num0" },
+          { id:"manut_glp", label:"Manutenção – GLP", unit:"R$/dia", min:0, max:5000, step:10, def:300, fmt:"num0" },
+          { id:"manut_oc", label:"Manutenção – Óleo", unit:"R$/dia", min:0, max:5000, step:10, def:500, fmt:"num0" },
+          { id:"manut_lenha", label:"Manutenção – Lenha", unit:"R$/dia", min:0, max:10000, step:10, def:2000, fmt:"num0" }
+        ]
+      },
+      {
+        title: "D2. Custos específicos",
+        items: [
+          { id:"regas_gn", label:"GN | Locação Regás", unit:"R$/m³", min:0, max:1.00, step:0.001, def:0.08, fmt:"num3" },
+          { id:"vap_glp", label:"GLP | Vaporização", unit:"R$/kg", min:0, max:1.00, step:0.001, def:0.04, fmt:"num3",
+            hint:"Nesta versão, a tarifa de vaporização é aplicada sobre kg de GLP consumidos (kg/d × dias), conforme a lógica descrita." },
+          { id:"penalty_oc", label:"Óleo | Penalty aquecimento", unit:"%", min:0, max:20, step:0.5, def:1.0, fmt:"num1" },
+
+          { id:"cinzas_pct", label:"Lenha | Cinzas", unit:"% do peso", min:0, max:10, step:0.1, def:1.5, fmt:"num1" },
+          { id:"custo_cinzas", label:"Lenha | Custo descarte cinzas", unit:"R$/t", min:0, max:500, step:10, def:150, fmt:"num0" },
+          { id:"estoque_dias", label:"Lenha | Estoque desejado", unit:"dias", min:0, max:30, step:1, def:3, fmt:"num0" },
+          { id:"altura_pilha", label:"Lenha | Altura pilha", unit:"m", min:1, max:8, step:0.1, def:3, fmt:"num1" }
+        ]
+      },
+      {
+        title: "E. Caminhões (capacidade por descarga)",
+        items: [
+          { id:"cap_gn", label:"Capacidade caminhão – GN", unit:"m³/dia-eq", min:5000, max:60000, step:500, def:34000, fmt:"num0" },
+          { id:"cap_glp", label:"Capacidade caminhão – GLP", unit:"kg", min:5000, max:60000, step:500, def:28000, fmt:"num0" },
+          { id:"cap_oc", label:"Capacidade caminhão – Óleo", unit:"t", min:5, max:60, step:1, def:30, fmt:"num0" },
+          { id:"cap_lenha", label:"Capacidade caminhão – Lenha", unit:"t", min:5, max:60, step:1, def:27, fmt:"num0" }
+        ]
+      },
+      {
+        title: "F. CapEx mensal (opcional)",
+        items: [
+          { id:"capex_gn", label:"CapEx mensal – GN", unit:"R$/mês", min:0, max:500000, step:1000, def:0, fmt:"num0",
+            hint:"Não estava listado nas premissas originais, mas aparece como output desejado. Default = 0 (edite se quiser)." },
+          { id:"capex_glp", label:"CapEx mensal – GLP", unit:"R$/mês", min:0, max:500000, step:1000, def:0, fmt:"num0" },
+          { id:"capex_oc", label:"CapEx mensal – Óleo", unit:"R$/mês", min:0, max:500000, step:1000, def:0, fmt:"num0" },
+          { id:"capex_lenha", label:"CapEx mensal – Lenha", unit:"R$/mês", min:0, max:800000, step:1000, def:0, fmt:"num0" }
+        ]
+      }
+    ];
+
+    function formatVal(v, fmt){
+      if(!isFinite(v)) return "—";
+      if(fmt === "num0") return num0(v);
+      if(fmt === "num1") return num1(v);
+      if(fmt === "num2") return num2(v);
+      if(fmt === "num3") return num3(v);
+      return num2(v);
+    }
+
+    // aplica o “filled track” do slider (WebKit)
+    function paintRange(el){
+      const min = Number(el.min);
+      const max = Number(el.max);
+      const v = Number(el.value);
+      const pct = (max > min) ? ((v - min) / (max - min)) * 100 : 0;
+      el.style.background = `linear-gradient(to right, var(--fill) 0%, var(--fill) ${pct}%, var(--track) ${pct}%, var(--track) 100%)`;
+    }
+
+    function makeField(item){
+      const wrap = document.createElement('div');
+      wrap.className = 'field';
+
+      const lbl = document.createElement('label');
+      lbl.innerHTML = `
+        <span>${item.label}</span>
+        <span class="val" id="${item.id}__val">${formatVal(item.def, item.fmt)} ${item.unit}</span>
+      `;
+
+      const range = document.createElement('input');
+      range.type = 'range';
+      range.min = item.min;
+      range.max = item.max;
+      range.step = item.step;
+      range.value = item.def;
+      range.id = item.id;
+
+      wrap.appendChild(lbl);
+      wrap.appendChild(range);
+
+      if(item.hint){
+        const hint = document.createElement('div');
+        hint.className = 'hint';
+        hint.textContent = item.hint;
+        wrap.appendChild(hint);
+      }
+
+      paintRange(range);
+
+      range.addEventListener('input', () => {
+        if(item.kind === "eff") validateEfficiencyRange(range);
+
+        // Se o PCS Default do GN mudou, recalcular a demanda GN base mantendo a energia útil constante
+        if(item.id === "pcs_gn_default"){
+          const demandaEl = document.getElementById('demanda_gn_base');
+          // Usar o lastPcs armazenado, ou se não existir, usar o valor padrão do PCS Default
+          let pcsAnterior = parseFloat(demandaEl.dataset.lastPcsDefault);
+          if(!pcsAnterior || pcsAnterior <= 0){
+            const pcsDefaultItem = findItem('pcs_gn_default');
+            pcsAnterior = pcsDefaultItem ? pcsDefaultItem.def : item.def;
+            demandaEl.dataset.lastPcsDefault = pcsAnterior;
+          }
+          const pcsAtual = parseFloat(range.value);
+
+          if(pcsAnterior > 0 && pcsAtual > 0 && pcsAnterior !== pcsAtual){
+            // Energia útil requerida = demandaBase_anterior * pcsAnterior
+            // Nova demandaBase = energiaUtil / pcsAtual (para manter a energia útil constante)
+            const demandaAtual = parseFloat(demandaEl.value);
+            const energiaUtil = demandaAtual * pcsAnterior;
+            const novaDemanda = energiaUtil / pcsAtual;
+
+            // Atualizar o campo demanda_gn_base
+            const demandaItem = findItem('demanda_gn_base');
+            const novaDemandaLimitada = Math.max(demandaItem.min, Math.min(demandaItem.max, novaDemanda));
+            demandaEl.value = novaDemandaLimitada;
+            document.getElementById('demanda_gn_base__val').textContent = `${formatVal(novaDemandaLimitada, demandaItem.fmt)} ${demandaItem.unit}`;
+            paintRange(demandaEl);
+          }
+
+          // Sempre atualizar o lastPcsDefault para o PCS Default atual
+          demandaEl.dataset.lastPcsDefault = pcsAtual;
+        }
+
+        // Se a demanda GN base foi alterada diretamente, atualizar o lastPcsDefault para o PCS Default atual
+        // Isso garante que quando o PCS Default mudar depois, use o PCS correto para recalcular
+        if(item.id === "demanda_gn_base"){
+          const pcsDefaultEl = document.getElementById('pcs_gn_default');
+          if(pcsDefaultEl){
+            const pcsAtual = parseFloat(pcsDefaultEl.value);
+            range.dataset.lastPcsDefault = pcsAtual;
+          }
+        }
+
+        document.getElementById(item.id + "__val").textContent = `${formatVal(parseFloat(range.value), item.fmt)} ${item.unit}`;
+        paintRange(range);
+        scheduleUpdate();
+      });
+
+      return wrap;
+    }
+
+    function buildInputs(){
+      const container = document.getElementById('inputsContainer');
+      container.innerHTML = '';
+      inputConfig.forEach(section => {
+        const box = document.createElement('div');
+        box.className = 'section';
+        const h = document.createElement('h3');
+        h.textContent = section.title;
+        box.appendChild(h);
+
+        section.items.forEach(item => box.appendChild(makeField(item)));
+        container.appendChild(box);
+      });
+
+      // Inicializar lastPcsDefault para o campo demanda_gn_base após todos os campos serem criados
+      const pcsDefaultItem = findItem('pcs_gn_default');
+      const demandaEl = document.getElementById('demanda_gn_base');
+      if(pcsDefaultItem && demandaEl){
+        demandaEl.dataset.lastPcsDefault = pcsDefaultItem.def;
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg, type="warn"){
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show ' + (type === "bad" ? "bad" : "warn");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = 'toast'; }, 2600);
+    }
+
+    function findItem(id){
+      for(const s of inputConfig) for(const it of s.items) if(it.id === id) return it;
+      return null;
+    }
+
+    function validateEfficiencyRange(rangeEl){
+      const v = parseFloat(rangeEl.value);
+      if(!isFinite(v)) return;
+      const it = findItem(rangeEl.id);
+      if(v <= 0){
+        rangeEl.value = 1;
+        document.getElementById(rangeEl.id + "__val").textContent = `${formatVal(1, it?.fmt)} ${it?.unit ?? "%"}`;
+        paintRange(rangeEl);
+        showToast(`Eficiência deve ser > 0%. Ajustei ${rangeEl.id} para 1%.`, "bad");
+      } else if(v > 100){
+        rangeEl.value = 100;
+        document.getElementById(rangeEl.id + "__val").textContent = `${formatVal(100, it?.fmt)} ${it?.unit ?? "%"}`;
+        paintRange(rangeEl);
+        showToast(`Eficiência não pode exceder 100%. Ajustei ${rangeEl.id} para 100%.`, "bad");
+      }
+    }
+
+    function val(id){ return parseFloat(document.getElementById(id).value); }
+
+    function compute(){
+      const fx = val('fx');
+      const precoElec = val('preco_eletric');
+      const demandaBase = val('demanda_gn_base');
+      const pcsGNDefault = val('pcs_gn_default'); // PCS usado para calcular energia útil a partir da demanda base
+
+      const pcsGN = val('pcs_gn'); // PCS usado nos cálculos de consumo e preços
+      const effGN = val('eff_gn') / 100;
+
+      const pcsGLP = val('pcs_glp');
+      const effGLP = val('eff_glp') / 100;
+
+      const pcsOC = val('pcs_oc');
+      const effOC = val('eff_oc') / 100;
+      const densOC = val('dens_oc');
+
+      const pcsLenha = val('pcs_lenha');
+      const effLenha = val('eff_lenha') / 100;
+      const densLenha = val('dens_lenha');
+
+      const precoGNL_USD = val('preco_gnl_usd');
+      const precoGLP_USD = val('preco_glp_usd');
+      const precoOC_USD = val('preco_oc_usd');
+      const precoLenha_USD = val('preco_lenha_usd');
+
+      const custoFTE = val('custo_fte');
+      const custoCaminhao = val('custo_caminhao');
+
+      const kwhGN = val('kwh_gn');
+      const kwhGLP = val('kwh_glp');
+      const kwhOC = val('kwh_oc');
+      const kwhLenha = val('kwh_lenha');
+
+      const fteGN = val('fte_gn');
+      const fteGLP = val('fte_glp');
+      const fteOC = val('fte_oc');
+      const fteLenha = val('fte_lenha');
+
+      const manutGN = val('manut_gn');
+      const manutGLP = val('manut_glp');
+      const manutOC = val('manut_oc');
+      const manutLenha = val('manut_lenha');
+
+      const regas = val('regas_gn');
+      const vap = val('vap_glp');
+      const penaltyOC = val('penalty_oc') / 100;
+
+      const cinzasPct = val('cinzas_pct') / 100;
+      const custoCinzas = val('custo_cinzas');
+      const estoqueDias = val('estoque_dias');
+      const alturaPilha = val('altura_pilha');
+
+      const capGN = val('cap_gn');
+      const capGLP = val('cap_glp');
+      const capOC = val('cap_oc');
+      const capLenha = val('cap_lenha');
+
+      const capexGN = val('capex_gn');
+      const capexGLP = val('capex_glp');
+      const capexOC = val('capex_oc');
+      const capexLenha = val('capex_lenha');
+
+      const mmbtuPorM3_GN = pcsGN / KCAL_PER_MMBTU;
+      const m3PorMMBtu_GN = 1 / mmbtuPorM3_GN;
+
+      // LÓGICA: "Demanda GN Base" é hierarquicamente superior
+      // Quando o usuário define "Demanda GN Base" = X m³/d, isso define a energia útil requerida
+      // baseada no PCS Default: energiaUtil = X * PCS_Default
+      // Quando o PCS Default muda, o sistema recalcula automaticamente o volume (Demanda GN Base)
+      // para manter a energia útil constante: novaDemanda = energiaUtil / PCS_Default_novo
+      //
+      // Energia útil requerida = demandaBase (m³/d) * PCS Default (kcal/m³)
+      // Nota: pcsGNDefault é independente de pcsGN (usado nos cálculos de consumo)
+      const energiaUtil_kcal_d = demandaBase * pcsGNDefault;
+
+      // Consumo de GN necessário para fornecer a energia útil requerida
+      // Considera o PCS GN atual (que pode ser diferente do PCS Default) e a eficiência
+      // Quando o PCS GN muda, o consumo muda automaticamente para manter a energia útil constante
+      const consumoGN_m3_d = (pcsGN > 0 && effGN > 0) ? (energiaUtil_kcal_d / (pcsGN * effGN)) : 0;
+      const energiaUtil_MMBtu_d = consumoGN_m3_d / m3PorMMBtu_GN;
+
+      const energiaUtil_MMBtuUtil_d = energiaUtil_kcal_d / KCAL_PER_MMBTU;
+      const energiaUtil_MMBtuUtil_mes = energiaUtil_MMBtuUtil_d * DIAS_MES;
+
+      const glp_t_d = energiaUtil_kcal_d / (pcsGLP * effGLP) / 1000;
+      const glp_kg_d = glp_t_d * 1000;
+
+      const oc_t_d = energiaUtil_kcal_d / (pcsOC * effOC) / 1000;
+      const oc_kg_d = oc_t_d * 1000;
+      const oc_m3_d = (densOC > 0) ? (oc_kg_d / (densOC * 1000)) : 0;
+
+      const lenha_t_d = energiaUtil_kcal_d / (pcsLenha * effLenha) / 1000;
+      const lenha_kg_d = lenha_t_d * 1000;
+      const lenha_m3_d = (densLenha > 0) ? (lenha_kg_d / densLenha) : 0;
+
+      const camGN_mes = (capGN > 0) ? ((consumoGN_m3_d * DIAS_MES) / capGN) : 0;
+      const camGLP_mes = (capGLP > 0) ? ((glp_kg_d * DIAS_MES) / capGLP) : 0;
+      const camOC_mes = (capOC > 0) ? ((oc_t_d * DIAS_MES) / capOC) : 0;
+      const camLenha_mes = (capLenha > 0) ? ((lenha_t_d * DIAS_MES) / capLenha) : 0;
+
+      const estocOC_m3 = oc_m3_d * estoqueDias;
+      const estocLenha_m3 = lenha_m3_d * estoqueDias;
+      const areaPatio_m2 = (alturaPilha > 0) ? (estocLenha_m3 / alturaPilha) : 0;
+
+      const precoGN_R_m3 = precoGNL_USD * fx / m3PorMMBtu_GN;
+
+      const kgPorMMBtu_GLP = KCAL_PER_MMBTU / pcsGLP;
+      const precoGLP_R_kg = precoGLP_USD * fx / kgPorMMBtu_GLP;
+
+      const kgPorMMBtu_OC = KCAL_PER_MMBTU / pcsOC;
+      const precoOC_R_kg = precoOC_USD * fx / kgPorMMBtu_OC;
+
+      const tPorMMBtu_Lenha = (KCAL_PER_MMBTU / pcsLenha) / 1000;
+      const precoLenha_R_t = precoLenha_USD * fx / tPorMMBtu_Lenha;
+
+      const fuelGN = consumoGN_m3_d * DIAS_MES * precoGN_R_m3;
+      const fuelGLP = glp_kg_d * DIAS_MES * precoGLP_R_kg;
+      const fuelOC = oc_kg_d * DIAS_MES * precoOC_R_kg;
+      const fuelLenha = lenha_t_d * DIAS_MES * precoLenha_R_t;
+
+      const pessoalGN = fteGN * custoFTE;
+      const pessoalGLP = fteGLP * custoFTE;
+      const pessoalOC = fteOC * custoFTE;
+      const pessoalLenha = fteLenha * custoFTE;
+
+      const logGN = camGN_mes * custoCaminhao;
+      const logGLP = camGLP_mes * custoCaminhao;
+      const logOC = camOC_mes * custoCaminhao;
+      const logLenha = camLenha_mes * custoCaminhao;
+
+      const enGN = kwhGN * precoElec * DIAS_MES;
+      const enGLP = kwhGLP * precoElec * DIAS_MES;
+      const enOC = kwhOC * precoElec * DIAS_MES;
+      const enLenha = kwhLenha * precoElec * DIAS_MES;
+
+      const manGN = manutGN * DIAS_MES;
+      const manGLP = manutGLP * DIAS_MES;
+      const manOC = manutOC * DIAS_MES;
+      const manLenha = manutLenha * DIAS_MES;
+
+      const extraGN = consumoGN_m3_d * DIAS_MES * regas;
+      const extraGLP = glp_kg_d * DIAS_MES * vap;
+      const extraOC = fuelOC * penaltyOC;
+      const extraLenha = (lenha_t_d * DIAS_MES * cinzasPct) * custoCinzas;
+
+      const outrosGN = pessoalGN + logGN + enGN + manGN + extraGN;
+      const outrosGLP = pessoalGLP + logGLP + enGLP + manGLP + extraGLP;
+      const outrosOC = pessoalOC + logOC + enOC + manOC + extraOC;
+      const outrosLenha = pessoalLenha + logLenha + enLenha + manLenha + extraLenha;
+
+      const totalGN = fuelGN + outrosGN + capexGN;
+      const totalGLP = fuelGLP + outrosGLP + capexGLP;
+      const totalOC = fuelOC + outrosOC + capexOC;
+      const totalLenha = fuelLenha + outrosLenha + capexLenha;
+
+      const items = {
+        GN: {fuel:fuelGN, pessoal:pessoalGN, log:logGN, energia:enGN, manut:manGN, extras:extraGN, capex:capexGN, outros:outrosGN, total:totalGN},
+        GLP: {fuel:fuelGLP, pessoal:pessoalGLP, log:logGLP, energia:enGLP, manut:manGLP, extras:extraGLP, capex:capexGLP, outros:outrosGLP, total:totalGLP},
+        OC: {fuel:fuelOC, pessoal:pessoalOC, log:logOC, energia:enOC, manut:manOC, extras:extraOC, capex:capexOC, outros:outrosOC, total:totalOC},
+        LENHA: {fuel:fuelLenha, pessoal:pessoalLenha, log:logLenha, energia:enLenha, manut:manLenha, extras:extraLenha, capex:capexLenha, outros:outrosLenha, total:totalLenha},
+      };
+
+      const gnOutrosTotal = outrosGN + capexGN;
+      function indif(totalAlt){
+        const denom = (DIAS_MES * consumoGN_m3_d);
+        const r_m3 = denom > 0 ? ((totalAlt - gnOutrosTotal) / denom) : 0;
+        const us_mmbtu = (fx > 0) ? ((r_m3 / fx) * m3PorMMBtu_GN) : 0;
+        return { r_m3, us_mmbtu };
+      }
+
+      function unitEnergy(total){
+        const r_mmbtu = energiaUtil_MMBtuUtil_mes > 0 ? total / energiaUtil_MMBtuUtil_mes : 0;
+        const us_mmbtu = fx > 0 ? r_mmbtu / fx : 0;
+        return { r_mmbtu, us_mmbtu };
+      }
+
+      function unitPhysical(total, q_d){
+        const denom = q_d * DIAS_MES;
+        return denom > 0 ? total / denom : 0;
+      }
+
+      const unit = {
+        GN: { ...unitEnergy(totalGN), r_unit: unitPhysical(totalGN, consumoGN_m3_d) },
+        GLP: { ...unitEnergy(totalGLP), r_unit: unitPhysical(totalGLP, glp_kg_d) },
+        OC: { ...unitEnergy(totalOC), r_unit: unitPhysical(totalOC, oc_kg_d) },
+        LENHA: { ...unitEnergy(totalLenha), r_unit: unitPhysical(totalLenha, lenha_kg_d) },
+      };
+
+      return {
+        inputs: {fx, precoElec, demandaBase, pcsGN, pcsGLP, pcsOC, pcsLenha, densOC, densLenha},
+        util: {energiaUtil_MMBtuUtil_d, energiaUtil_MMBtuUtil_mes, m3PorMMBtu_GN, energiaUtil_MMBtu_d},
+        cons: {consumoGN_m3_d, glp_kg_d, oc_kg_d, lenha_t_d, lenha_kg_d, oc_m3_d, lenha_m3_d},
+        trucks: {camGN_mes, camGLP_mes, camOC_mes, camLenha_mes},
+        stock: {estocOC_m3, estocLenha_m3, areaPatio_m2},
+        prices: {precoGN_R_m3, precoGLP_R_kg, precoOC_R_kg, precoLenha_R_t},
+        items,
+        indif: {GLP:indif(totalGLP), OC:indif(totalOC), LENHA:indif(totalLenha)},
+        unit
+      };
+    }
+
+    let stackChart = null;
+    function initCharts(){
+      // Cohesão visual com o painel: fonte e paleta do design system
+      Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+      Chart.defaults.color = '#5C6B7A';
+      const palette = ['#3D4A5C', '#4E8385', '#6B8299', '#2E7D4F', '#C55A17', '#55677C', '#E23A2E'];
+      const ctx = document.getElementById('stackChart');
+      stackChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['GN', 'GLP', 'Óleo', 'Lenha'],
+          datasets: [
+            { label:'Fuel', data:[0,0,0,0], stack:'s', backgroundColor:palette[0], borderRadius:3, borderSkipped:false },
+            { label:'Pessoal', data:[0,0,0,0], stack:'s', backgroundColor:palette[1], borderRadius:3, borderSkipped:false },
+            { label:'Logística', data:[0,0,0,0], stack:'s', backgroundColor:palette[2], borderRadius:3, borderSkipped:false },
+            { label:'Energia', data:[0,0,0,0], stack:'s', backgroundColor:palette[3], borderRadius:3, borderSkipped:false },
+            { label:'Manutenção', data:[0,0,0,0], stack:'s', backgroundColor:palette[4], borderRadius:3, borderSkipped:false },
+            { label:'Extras', data:[0,0,0,0], stack:'s', backgroundColor:palette[5], borderRadius:3, borderSkipped:false },
+            { label:'CapEx', data:[0,0,0,0], stack:'s', backgroundColor:palette[6], borderRadius:3, borderSkipped:false },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position:'bottom', labels:{ usePointStyle:true, pointStyle:'rectRounded', boxWidth:9, boxHeight:9, padding:14 } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${brl2(ctx.parsed.y)}` } }
+          },
+          scales: {
+            x: { stacked:true, grid:{ display:false }, border:{ color:'#E2E7EE' } },
+            y: { stacked:true, grid:{ color:'#EEF2F7' }, border:{ display:false }, ticks: { callback: (v) => fmtBRL.format(v) } }
+          }
+        }
+      });
+    }
+
+    function setText(id, value){ document.getElementById(id).textContent = value; }
+
+    function computeRanking(items){
+      const arr = [
+        ['GN', items.GN.total],
+        ['GLP', items.GLP.total],
+        ['OC', items.OC.total],
+        ['LENHA', items.LENHA.total]
+      ].sort((a,b)=>a[1]-b[1]);
+      const rank = {};
+      arr.forEach((d,i)=> rank[d[0]] = i+1);
+      return {rank, bestKey: arr[0][0]};
+    }
+
+    function priceUnitText(model, key){
+      const p = model.prices;
+      if(key === 'GN') return `${brl2(p.precoGN_R_m3)}/m³`;
+      if(key === 'GLP') return `${brl2(p.precoGLP_R_kg)}/kg`;
+      if(key === 'OC') return `${brl2(p.precoOC_R_kg)}/kg`;
+      if(key === 'LENHA') return `${brl2(p.precoLenha_R_t)}/t`;
+      return '—';
+    }
+
+    const COST_COMPS = [
+      ['fuel', 'Fuel', '#3D4A5C'],
+      ['pessoal', 'Pessoal', '#4E8385'],
+      ['log', 'Logística', '#6B8299'],
+      ['energia', 'Energia', '#2E7D4F'],
+      ['manut', 'Manutenção', '#C55A17'],
+      ['extras', 'Extras', '#55677C'],
+      ['capex', 'CapEx', '#E23A2E'],
+    ];
+
+    function updateTable(model, bestKey, ranking){
+      const host = document.getElementById('fuelRows');
+      host.innerHTML = '';
+
+      const rows = [
+        {key:'GN', name:'GN (GNL)', cons: () => `${num0(model.cons.consumoGN_m3_d)} m³/d`, cam: model.trucks.camGN_mes },
+        {key:'GLP', name:'GLP', cons: () => `${num0(model.cons.glp_kg_d)} kg/d`, cam: model.trucks.camGLP_mes },
+        {key:'OC', name:'Óleo combustível', cons: () => `${num0(model.cons.oc_kg_d)} kg/d`, cam: model.trucks.camOC_mes },
+        {key:'LENHA', name:'Lenha', cons: () => `${num2(model.cons.lenha_t_d)} t/d`, cam: model.trucks.camLenha_mes },
+      ];
+
+      const maxTotal = Math.max(...rows.map(r => model.items[r.key].total)) || 1;
+
+      rows.forEach(r => {
+        const it = model.items[r.key];
+        const uc = model.unit[r.key];
+        const isBest = r.key === bestKey;
+
+        const segs = COST_COMPS.map(([k, label, color]) => {
+          const v = it[k] || 0;
+          if(v <= 0) return '';
+          const share = it.total > 0 ? Math.round(v / it.total * 100) : 0;
+          return `<span class="seg" style="flex:${v};background:${color}" title="${label}: ${brl2(v)} (${share}%)"></span>`;
+        }).join('');
+
+        const fillPct = maxTotal > 0 ? (it.total / maxTotal * 100) : 0;
+        const bestBadge = isBest ? '<span class="frow-badge">menor custo</span>' : '';
+
+        const row = document.createElement('div');
+        row.className = 'frow' + (isBest ? ' best' : '');
+        row.innerHTML = `
+          <div class="frow-top">
+            <div class="frow-id">
+              <span class="frow-rank">${ranking[r.key]}º</span>
+              <span class="frow-name">${r.name}</span>${bestBadge}
+            </div>
+            <div class="frow-figs">
+              <div class="fig fig-total"><b>${brl2(it.total)}</b><small>Total / mês</small></div>
+              <div class="fig"><b>${brl2(uc.r_mmbtu)}</b><small>R$/MMBtu útil</small></div>
+              <div class="fig"><b>${num2(uc.us_mmbtu)}</b><small>US$/MMBtu útil</small></div>
+            </div>
+          </div>
+          <div class="cost-bar"><div class="cost-fill" style="width:${fillPct}%">${segs}</div></div>
+          <div class="frow-meta">Consumo <b>${r.cons()}</b> · preço <b>${priceUnitText(model, r.key)}</b> · <b>${num2(r.cam)}</b> caminhões/mês</div>
+        `;
+        host.appendChild(row);
+      });
+    }
+
+    function updateCharts(model){
+      const it = model.items;
+      stackChart.data.datasets[0].data = [it.GN.fuel, it.GLP.fuel, it.OC.fuel, it.LENHA.fuel];
+      stackChart.data.datasets[1].data = [it.GN.pessoal, it.GLP.pessoal, it.OC.pessoal, it.LENHA.pessoal];
+      stackChart.data.datasets[2].data = [it.GN.log, it.GLP.log, it.OC.log, it.LENHA.log];
+      stackChart.data.datasets[3].data = [it.GN.energia, it.GLP.energia, it.OC.energia, it.LENHA.energia];
+      stackChart.data.datasets[4].data = [it.GN.manut, it.GLP.manut, it.OC.manut, it.LENHA.manut];
+      stackChart.data.datasets[5].data = [it.GN.extras, it.GLP.extras, it.OC.extras, it.LENHA.extras];
+      stackChart.data.datasets[6].data = [it.GN.capex, it.GLP.capex, it.OC.capex, it.LENHA.capex];
+      stackChart.update();
+    }
+
+    function updateWarnings(model){
+      const w = [];
+      const info = [];
+      const {pcsGN, pcsGLP, pcsOC, pcsLenha, densOC, densLenha} = model.inputs;
+
+      if(pcsGN < 8000 || pcsGN > 12000) w.push("PCS GN fora da faixa típica (~8.000–12.000 kcal/m³).");
+      if(pcsGLP < 10000 || pcsGLP > 13000) w.push("PCS GLP fora da faixa típica (~10.000–13.000 kcal/kg).");
+      if(pcsOC < 9000 || pcsOC > 11000) w.push("PCS Óleo fora da faixa típica (~9.000–11.000 kcal/kg).");
+      if(pcsLenha < 2500 || pcsLenha > 4500) w.push("PCS Lenha fora da faixa típica (~2.500–4.500 kcal/kg).");
+
+      if(densOC <= 0) w.push("Densidade do óleo ≤ 0: conversão kg→m³ fica inválida (zerei m³/d e estocagem de óleo).");
+      if(densLenha <= 0) w.push("Densidade da lenha ≤ 0: conversão kg→m³ fica inválida (zerei m³/d, estocagem e área de pátio).");
+
+      const dias = num0(val('estoque_dias'));
+      info.push(['Estocagem de óleo', `${num1(model.stock.estocOC_m3)} m³`, `${dias} dias`]);
+      info.push(['Estocagem de lenha', `${num1(model.stock.estocLenha_m3)} m³`, `${dias} dias`]);
+      info.push(['Área de pátio (lenha)', `${num0(model.stock.areaPatio_m2)} m²`, `pilha ${num1(val('altura_pilha'))} m`]);
+
+      const warnEl = document.getElementById('warnings');
+      warnEl.innerHTML = w.length
+        ? w.map(t => `<div class="chk chk-warn"><span class="ico">⚠</span><span>${t}</span></div>`).join('')
+        : `<div class="chk chk-ok"><span class="ico">✓</span><span>Sem alertas — premissas dentro das faixas típicas.</span></div>`;
+
+      document.getElementById('infoList').innerHTML = info.map(
+        ([l, v, n]) => `<div class="statrow"><span class="lb">${l}</span><span class="vl">${v}<small>${n}</small></span></div>`
+      ).join('');
+    }
+
+    function updateCards(model, ranking, bestKey){
+      setText('out_energia_util_mmbtu_d', num2(model.util.energiaUtil_MMBtuUtil_d));
+      setText('out_cons_gn_m3_d', num0(model.cons.consumoGN_m3_d));
+      setText('out_fx', num2(model.inputs.fx));
+      setText('out_elec', num2(model.inputs.precoElec));
+      setText('out_demanda_gn', num0(model.inputs.demandaBase));
+
+      const it = model.items;
+      setText('total_gn', brl(it.GN.total));
+      setText('total_glp', brl(it.GLP.total));
+      setText('total_oc', brl(it.OC.total));
+      setText('total_lenha', brl(it.LENHA.total));
+
+      const u = model.unit;
+      setText('unit_gn_us', num2(u.GN.us_mmbtu));
+      setText('unit_gn_r_unit', brl2(u.GN.r_unit));
+      setText('unit_glp_us', num2(u.GLP.us_mmbtu));
+      setText('unit_glp_r_unit', brl2(u.GLP.r_unit));
+      setText('unit_oc_us', num2(u.OC.us_mmbtu));
+      setText('unit_oc_r_unit', brl2(u.OC.r_unit));
+      setText('unit_lenha_us', num2(u.LENHA.us_mmbtu));
+      setText('unit_lenha_r_unit', brl2(u.LENHA.r_unit));
+
+      setText('rank_gn', `${ranking.GN}º`);
+      setText('rank_glp', `${ranking.GLP}º`);
+      setText('rank_oc', `${ranking.OC}º`);
+      setText('rank_lenha', `${ranking.LENHA}º`);
+
+      const mapCard = {GN:'card_gn', GLP:'card_glp', OC:'card_oc', LENHA:'card_lenha'};
+      Object.values(mapCard).forEach(id => document.getElementById(id).classList.remove('best'));
+      document.getElementById(mapCard[bestKey]).classList.add('best');
+
+      const bestLabel = bestKey === 'GN' ? 'Mais barato: GN' :
+                        bestKey === 'GLP' ? 'Mais barato: GLP' :
+                        bestKey === 'OC' ? 'Mais barato: Óleo' : 'Mais barato: Lenha';
+      setText('bestFuelBadge', bestLabel);
+
+      // Barras de custo relativo + delta vs. melhor
+      const totals = { gn: it.GN.total, glp: it.GLP.total, oc: it.OC.total, lenha: it.LENHA.total };
+      const maxT = Math.max(...Object.values(totals));
+      const minT = Math.min(...Object.values(totals));
+      Object.keys(totals).forEach(k => {
+        const t = totals[k];
+        const bar = document.getElementById('bar_' + k);
+        if(bar) bar.style.width = (maxT > 0 ? (t / maxT * 100) : 0) + '%';
+        const d = document.getElementById('delta_' + k);
+        if(d){
+          if(t <= minT){ d.textContent = '✓ menor custo'; d.className = 'fcard-delta is-best'; }
+          else { const pct = minT > 0 ? Math.round((t / minT - 1) * 100) : 0; d.textContent = '+' + pct + '% vs. melhor'; d.className = 'fcard-delta'; }
+        }
+      });
+
+      // Preço de indiferença: referência e folga vs. preço atual do GN
+      const gnPrice = model.prices.precoGN_R_m3;
+      setText('gn_price_ref', brl2(gnPrice));
+      [['glp', model.indif.GLP.r_m3], ['oc', model.indif.OC.r_m3], ['lenha', model.indif.LENHA.r_m3]].forEach(([k, r]) => {
+        const el = document.getElementById('indif_' + k + '_head');
+        if(el){
+          const pct = gnPrice > 0 ? (r / gnPrice - 1) * 100 : 0;
+          el.textContent = (pct >= 0 ? '+' : '−') + num0(Math.abs(pct)) + '%';
+          el.className = 'folga ' + (pct >= 0 ? 'pos' : 'neg');
+        }
+      });
+
+      setText('indif_glp_r_m3', brl2(model.indif.GLP.r_m3));
+      setText('indif_glp_us_mmbtu', num2(model.indif.GLP.us_mmbtu));
+      setText('indif_oc_r_m3', brl2(model.indif.OC.r_m3));
+      setText('indif_oc_us_mmbtu', num2(model.indif.OC.us_mmbtu));
+      setText('indif_lenha_r_m3', brl2(model.indif.LENHA.r_m3));
+      setText('indif_lenha_us_mmbtu', num2(model.indif.LENHA.us_mmbtu));
+    }
+
+    let raf = null;
+    function scheduleUpdate(){
+      if(raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(updateAll);
+    }
+
+    function updateAll(){
+      const model = compute();
+      const {rank, bestKey} = computeRanking(model.items);
+      updateCards(model, rank, bestKey);
+      updateTable(model, bestKey, rank);
+      updateCharts(model);
+      updateWarnings(model);
+    }
+
+    function resetDefaults(){
+      inputConfig.forEach(section => {
+        section.items.forEach(item => {
+          const el = document.getElementById(item.id);
+          if(el) el.value = item.def;
+          const valEl = document.getElementById(item.id + "__val");
+          if(valEl) valEl.textContent = `${formatVal(item.def, item.fmt)} ${item.unit}`;
+          if(el) paintRange(el);
+        });
+      });
+      showToast("Premissas resetadas para os defaults.", "warn");
+      scheduleUpdate();
+    }
+
+    buildInputs();
+    initCharts();
+    document.getElementById('resetBtn').addEventListener('click', resetDefaults);
+    scheduleUpdate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+﻿Nome;MMm3d;Classificação;Município;UF;Situação;Proprietário;Entrada;Fonte;FID;x;y
+Rota SE - AL;20;Indicativo;Barra dos Coqueiros;SE;Indicativo; ;0;PIPE 2019 - Rota Sergipe-Alagoas B;1;-36.937634601999946;-10.821022547999974
+Açu;12;Indicativo;São João da Barra;RJ;Indicativo; ;0;PIPE 2019 - Rotas 5a e 6b;2;-41.023671340999954;-21.845319613999948
+Itaguaí;20;Indicativo;Itaguaí;RJ;Indicativo; ;0;PIPE 2019 - Rota 4b;3;-43.81212600199996;-22.898909255999968
+Cubatão;20;Indicativo;Cubatão;SP;Indicativo; ;0;PIPE 2019 - Rota 4a;4;-46.44518716699997;-23.929715287999954
+Porto Central;12;Indicativo;Presidente Kennedy;RJ;Indicativo; ;0;PIPE 2019 - Rotas 6a;5;-40.96582664399995;-21.24580442499996
+Porto Imetame;12;Indicativo;Aracruz;ES;Indicativo; ;0;PIPE 2019 - Rota Espirito Santo-Mucuri A;6;-40.081205876999945;-19.859432239999933
+3R Potiguar;5.7;Existente;Guamaré;RN;Em operação;3R Petroleum;1985;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;7;-36.380001128999936;-5.1381911089999335
+Candeias;2.9;Existente;Candeias;BA;Fora de operação;Petrobras;1972;Autorização ANP revogada em 2022;8;-38.57067637999995;-12.667668360999926
+Caraguatatuba;20;Existente;Caraguatatuba;SP;Em operação;Petrobras;2011;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;9;-45.49922639099998;-23.653498044999935
+Cacimbas;18.1;Existente;Linhares;ES;Em operação;Petrobras;2008;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;10;-39.75948860799997;-19.45999087499996
+Cabiúnas;24.6;Existente;Macaé;RJ;Em operação;Petrobras;1987;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;11;-41.71975922299998;-22.285409587999936
+Atalaia;3;Existente;Aracaju;SE;Fora de operação;Petrobras;1981;Autorização ANP revogada em 2021;12;-37.065483590999975;-10.999732680999955
+RPBC;2.5;Existente;Cubatão;SP;Fora de operação;Petrobras;1993;Autorização ANP revogada em 2023;13;-46.42441495799994;-23.867445069999974
+Urucu;12.2;Existente;Coari;AM;Em operação;Petrobras;1993;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;14;-65.29830569999996;-4.866609059999973
+Sul Capixaba;2.5;Existente;Anchieta;ES;Em operação;;2010;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;15;-40.62096825599997;-20.791805213999965
+Lubnor;0.3;Existente;Fortaleza;CE;Em operação;Petrobras;1987;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;16;-38.47226035299997;-3.7164177739999786
+Origem Energia;1.8;Existente;Pilar;AL;Em operação;Petrobras;2003;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;17;-35.904584419999935;-9.607693994999977
+Reduc;5;Existente;Duque de Caxias;RJ;Em operação;Petrobras;1983;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;18;-43.26770671899993;-22.71612953099998
+Estação Vandemir Ferreira;6;Existente;São Francisco do Conde;BA;Em operação;Petrobras;2007;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;19;-38.56450777499998;-12.661222158999976
+Catu;2;Existente;Pojuca;BA;Em operação;;2022;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;20;-38.343441833999975;-12.394217487999981
+Alvopetro;0.5;Existente;Mata de São João;BA;Em operação;Alvopetro;2020;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;21;-38.29329267099996;-12.512583161999942
+Tepor;12;Indicativo;Macaé;RJ;Indicativo; ;0;PIPE 2019 - Rota 5b;22;-41.744943956999975;-22.295946250999975
+Eneva;8.4;Existente;Santo Antônio dos Lopes;MA;Em operação;Eneva;2013;https://eneva.com.br/nossos-negocios   Acesso em agosto de 2024;23;-44.483529973999964;-4.562613788999954
+GA Solimões;2.7;Indicativo;Coari;AM;Indicativo; ;0;PIPE 2021;24;-65.29865067499998;-4.8657578819999685
+GNA Solimões;1.6;Indicativo;Coari;AM;Indicativo; ;0;PIPE 2021;25;-65.30268139399993;-4.867376940999975
+GNA Parnaiba;2.0;Indicativo;Santo Antônio dos Lopes;MA;Indicativo; ;0;PIPE 2021;26;-44.48336151899997;-4.576972090999959
+GA Pré-sal Santos tie back 1 e 2;7.2;Indicativo;Itaboraí;RJ;Indicativo; ;0;PIPE 2021;27;-42.860293249999984;-22.655837016999953
+GA Água Ultra Profunda Campos;0.2;Indicativo;Macaé;RJ;Indicativo; ;0;PIPE 2021;28;-41.72492205699996;-22.292066403999968
+GA e GNA Mar Costeiro Camamu-Almada;7.2;Indicativo;Candeias;BA;Indicativo; ;0;PIPE 2021;29;-38.56894584299994;-12.68111958299994
+GA Água GNA Água Ultra  Profunda;3.1;Indicativo;Linhares;ES;Indicativo; ;0;PIPE 2021;30;-39.76279534899993;-19.465324368999973
+Bacalhau-RPBC;5;Indicativo;Cubatão;SP;Indicativo; ;0;PIPE 2023;31;-46.416711662999944;-23.874770490999936
+Bacalhau-Merluza;5;Indicativo;Cubatão;SP;Indicativo; ;0;PIPE 2023;32;-46.41351366799995;-23.86706738299995
+Bacalhau-Mexilhão;5;Indicativo;Caraguatatuba;SP;Indicativo; ;0;PIPE 2023;33;-45.46558165599998;-23.631610301999956
+Gato do Mato-Mexilhão;8.5;Indicativo;Caraguatatuba;SP;Indicativo; ;0;PIPE 2023;34;-45.525544072999935;-23.67729595299994
+Tucano Sul-Quererá;3;Indicativo;Sátiro Dias;BA;Indicativo; ;0;PIPE 2023;35;-38.677629457999956;-11.54456474899996
+Foz do Amazonas-Calçoene;20;Indicativo;Calçoene;AP;Indicativo; ;0;PIPE 2023;36;-50.781161133999944;2.3781768350000334
+Complexo Boaventura;21;Existente;Itaborai;RJ;Em operação; ;2025;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;37;-42.850262104999956;-22.650388374999977
+Petrorecôncavo;0.4;Existente;São Roque;BA;Em operação;Petrorecôncavo;2024;Anuário Estatístico Brasileiro do Petróleo, Gás Natural e Biocombustíveis 2025;38;-38.30152978199993;-12.512179018999973
+Miranga;0.9;Previsto;Miranga;BA;Previsto;PetroReconcavo;2028;https://petroreconcavo.com.br/petroreconcavo-avanca-em-compra-de-50-de-infraestrutura-de-escoamento-e-processamento-de-gas-no-rio-grande-do-norte/;40;-38.36694568199994;-12.41602814099997
+Capixaba Energia (Imetame Lagoa Parda);1,9;Existente;Linhares;ES;Fora de operação;Enp;1983;https://enpbr.com/midstream/ (janeiro 2025) ;41;-39.83183973699994;-19.61368912599994

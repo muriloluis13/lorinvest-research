@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Windows scripts / helpers
+*.bat
+
+# Confidential deal documents (do not commit)
+*.pdf
+*.xlsx
+gnlink/bbog-model/*.pdf
+gnlink/bbog-model/*.xlsx
+
+# OS files
+Thumbs.db
+.DS_Store

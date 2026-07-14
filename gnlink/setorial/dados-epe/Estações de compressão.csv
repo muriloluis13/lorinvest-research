@@ -1,0 +1,57 @@
+﻿Nome;Município;UF;Transportadora;Classificação;Fonte;MMm3d;FID;x;y
+Corumbá;Corumbá;MS;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;102;-57.51389679899995;-19.41839368899997
+Miranda;Miranda;MS;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;103;-56.72002793699994;-20.12120931299995
+Anastácio;Anastácio;MS;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;104;-55.724129388999984;-20.51524428099998
+Campo Grande;Campo Grande;MS;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;7.9;105;-54.74361680699997;-20.608691970999928
+Ribas do Rio Pardo;Ribas do Rio Pardo;MS;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;106;-53.546721238999964;-20.71894305099994
+Três Lagoas;Três Lagoas;MS;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;107;-52.33269895899997;-20.891710140999976
+Mirandópolis;Mirandópolis;SP;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;108;-51.16536682999998;-21.184517615999937
+Penapólis;Penápolis;SP;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;7.9;109;-50.107046854999965;-21.50400089599998
+Iacanga;Iacanga;SP;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;111;-49.02358977099993;-21.815882495999972
+São Carlos;São Carlos;SP;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;112;-47.94504712799994;-22.06168116999993
+Paulinia;Paulínia;SP;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;15.5;113;-47.12944608299995;-22.716687237999963
+Capão-Bonito;Capão Bonito;SP;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;7.9;114;-48.485701121999966;-23.94739411599994
+Araucária;Araucária;PR;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;1.3;115;-49.37320831799997;-25.576544414999944
+Biguaçu;Biguaçu;SC;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;3.2;116;-48.70946751499997;-27.497219150999967
+Siderópolis;Siderópolis;SC;TBG;Existente;Transportadora Brasileira Gasoduto Bolívia-Brasil ;1.4;118;-49.40201346499998;-28.605696749999936
+Catu;Catu;BA;TAG;Existente;Transportadora Associada de Gás S.A. ;20;119;-40.74909999999994;-20.811177999999927
+Piuma;Piuma;ES;TAG;Existente;Transportadora Associada de Gás S.A.  ;21;120;-40.74909999999994;-20.811177999999927
+Aracruz;Aracruz;ES;TAG;Existente;Transportadora Associada de Gás S.A.  ;20;121;-40.18172499999997;-19.802591999999947
+Prado;Prado ;BA;TAG;Existente;Transportadora Associada de Gás S.A. ;;122;-39.555349999999976;-17.294213999999954
+Juarana;Coari;AM;TAG;Existente;Transportadora Associada de Gás S.A. ;;125;-64.15312799999998;-4.37520799999993
+Coari;Coari;AM;TAG;Existente;Transportadora Associada de Gás S.A. ;;126;-63.16406399999994;-3.950066999999933
+SCOMP Aracati;Aracati;CE;TAG;Existente;Transportadora Associada de Gás S.A. ;;127;-37.89709199999993;-4.534049999999979
+SCOMP Macaiba;Macaiba;RN;TAG;Existente;Transportadora Associada de Gás S.A. ;;128;-35.38818299999997;-5.904452999999933
+SCOMP Santa Rita;Santa Rita;PB;TAG;Existente;Transportadora Associada de Gás S.A. ;;130;-35.00771899999995;-7.186971999999969
+SCOMP Catu;Pojuca;BA;TAG;Existente;Transportadora Associada de Gás S.A. ;;131;-38.351530999999966;-12.389524999999935
+SCOMP Pilar;Pilar;AL;TAG;Existente;Transportadora Associada de Gás S.A. ;;132;-35.90750799999995;-9.601893999999959
+Vale do Paraiba (Arapei);Arapei;SP;NTS;Existente;Nova Transportadora do Sudeste ;;136;-44.38128265299997;-22.605481733999966
+Campos Eliseos;Duque de Caxias;RJ;NTS;Existente;Nova Transportadora do Sudeste ;;137;-43.29978832099994;-22.63103428499994
+ESMAN;Santos Dumont ;SP;NTS;Existente;Nova Transportadora do Sudeste ;;138;-43.572668086999954;-21.366151242999933
+SCOMP Congonhas;São Bras do Suacui;MG;NTS;Existente;Nova Transportadora do Sudeste ;;139;-43.931675138999935;-20.617816368999968
+Taubate;Taubate;SP;NTS;Existente;Nova Transportadora do Sudeste ;;140;-45.573338827999976;-23.095512578999944
+Guararema;Guararema;SP;NTS;Existente;Nova Transportadora do Sudeste ;;141;-45.976961838999955;-23.458546490999936
+Biguaçu ampliação;Biguaçu;SC;TBG;Previsto;PDE 2024-2034;;142;-48.70951488299994;-27.49652000699996
+Japeri;Japeri;RJ;NTS;Previsto;https://www.ntsbrasil.com/;12.5;143;-43.61327523399996;-22.641784258999962
+Itajuípe;Itajuípe;BA;TAG;Previsto;PNIIGB (setembro/2025);3;144;-39.404438495999955;-14.66681432699994
+Araucária ampliação;Araucária;PR;TBG;Previsto;PDE 2024-2034;;145;-49.373604513999965;-25.577537038999935
+Piracaia;Piracaia;RJ;NTS;Indicativo;Nova Transportadora do Sudeste ;;146;-46.349367505999965;-23.08888755499993
+Campos Eliseos ampliação;Duque de Caxias;RJ;NTS;Previsto;Nova Transportadora do Sudeste  ;;147;-43.23270007999997;-22.657041470999957
+Taubate ampliação;Taubate;SP;NTS;Previsto;Nova Transportadora do Sudeste ;;148;-45.47136669699995;-23.04298825999996
+Vale do Paraíba ampliação;Arapei;SP;NTS;Previsto;Nova Transportadora do Sudeste ;;149;-44.26876221599997;-22.592724605999933
+Alegrete;Alegrete;RS;Estudo EPE;Indicativo;PIG 2024;15;150;-55.821178293999935;-29.860437685999955
+Cacequi;Cacequi;RS;Estudo EPE;Indicativo;PIG 2024;15;151;-54.79344666399999;-29.898340318999942
+Restinga Seca;Restinga Seca;RS;Estudo EPE;Indicativo;PIG 2024;15;153;-53.38796758899997;-29.865671714999962
+Divina Pastora;Divina Pastora;SE;Estudo EPE;Indicativo;PIG 2022;;154;-37.161506594999935;-10.70190650099994
+Mossoró;Mossoró;RN;Estudo EPE;Indicativo;PIG 2022;;155;-37.18507326499997;-5.2268899809999425
+Uberaba;Uberaba;MG;Estudo EPE;Indicativo;PIG 2019;;156;-47.93311596399997;-19.847103558999947
+Groaíras;Groaíras;CE;Estudo EPE;Indicativo;PIG 2020;;157;-40.38907757299995;-3.8536243949999403
+Piripiri;Piripiri;PI;Estudo EPE;Indicativo;PIG 2020;;158;-41.73159553099998;-4.290798038999981
+Porecatu;Porecatu;PR;Estudo EPE;Indicativo;PIG 2020;;159;-51.371785424999985;-22.699612617999946
+Laranjeiras do Sul;Laranjeiras do Sul;PR;Estudo EPE;Indicativo;PIG 2020;;160;-52.36914276599998;-25.430681962999984
+Ibiporã;Ibiporã;PR;Estudo EPE;Indicativo;PIG 2020;;161;-51.07164878499998;-23.226318318999972
+Guarapuava;Guarapuava;PR;Estudo EPE;Indicativo;PIG 2020;;162;-51.50397246599994;-25.31180702699993
+Itaperuna;Itaperuna;RJ;Estudo EPE;Indicativo;PIG 2020;;165;-41.85490941499995;-21.19108880999994
+Paragominas;Paragominas;PA;Estudo EPE;Indicativo;PIG 2020;;166;-47.705472750999945;-3.1436044099999663
+Marajá do Sena;Marajá do Sena;MA;Estudo EPE;Indicativo;PIG 2020;;167;-45.57133633999996;-4.767290826999954
+Miranga;Miranga;BA;Estudo EPE;Existente;;;168;-38.19264139599994;-12.348051701999964
