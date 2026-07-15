@@ -439,13 +439,6 @@
       display: inline-block;
     }
 
-    .section-subtitle {
-      font-size: 12.5px;
-      color: var(--muted);
-      line-height: 1.5;
-      margin-top: 6px;
-    }
-
     /* ===== Grids ===== */
 
     .grid-bento {
@@ -882,6 +875,33 @@
       font-weight: 700;
     }
 
+    /* O <select> é gerado por JS e só entra em cena no mobile */
+    .company-select { display: none; }
+
+    @media (max-width: 640px) {
+      .company-selector {
+        background: none;
+        border: none;
+        padding: 0;
+        gap: 0;
+      }
+
+      .company-selector-pills { display: none; }
+
+      .company-select {
+        display: block;
+        width: 100%;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        background: #E7EBF0;
+        border: 1px solid rgba(19, 32, 46, 0.05);
+        border-radius: 10px;
+        padding: 9px 10px;
+      }
+    }
+
     /* ===== Responsivo ===== */
 
     @media (max-width: 860px) {
@@ -1071,6 +1091,14 @@
   </style>
 </head>
 <body>
+  <script>
+    // No mobile a barra lateral flutua sobre o conteúdo: começa fechada.
+    // Roda aqui, antes de o <aside> ser parseado, para não piscar aberta.
+    if (window.matchMedia("(max-width: 860px)").matches) {
+      document.body.classList.add("snav-collapsed");
+    }
+  </script>
+
   <!-- Sprite de ícones das empresas (referenciado pelas pílulas do seletor) -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
@@ -1275,9 +1303,6 @@
           <div class="section-title-row">
             <div>
               <div class="section-title">Visão Geral da Área</div>
-              <div class="section-subtitle">
-                Três painéis da área: o panorama das investidas, o organograma societário do grupo e o to-do tracker (em configuração).
-              </div>
             </div>
           </div>
 
@@ -1335,7 +1360,7 @@
             .pan-note{font-size:9.5px;font-weight:700;color:var(--accent-2);background:var(--chip);border-radius:999px;padding:1px 6px;margin-left:3px;cursor:help;white-space:nowrap}
             .pan-row dd{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
             .pan-row dd.pan-hl{color:var(--accent-3)}
-            .pan-unit{font-size:11px;color:var(--muted);margin:2px 0 14px}
+            .pan-unit{font-size:11px;color:var(--muted);margin:16px 0 2px}
 
             /* Mobile: sem o painel da empresa, card mais baixo — mantém logo, nome e métricas.
                O seletor precisa citar .pan-media.pan-todo também: media query não soma
@@ -1359,7 +1384,6 @@
           </div>
 
           <div class="ov-panel active" data-ovp="panorama">
-            <div class="pan-unit">Valores em milhares de reais, conforme os painéis oficiais (atualizados em 08/06/2026). O <b>% Lorinvest</b> corresponde à participação da Lorinvest (Hankoe FIP ou Dyna FIP) e o <b>Aporte Lorinvest</b> aos Aportes Líquidos. Cards marcados como “números de exemplo” aguardam os valores corretos.</div>
             <div class="pan-grid">
 
               <article class="pan-card" data-company="Akron" role="button" tabindex="0" aria-label="Abrir Akron na aba Empresas">
@@ -1546,6 +1570,8 @@
               </article>
 
             </div>
+
+            <div class="pan-unit">Valores em milhares de reais, conforme os painéis oficiais (atualizados em 08/06/2026). O <b>% Lorinvest</b> corresponde à participação da Lorinvest (Hankoe FIP ou Dyna FIP) e o <b>Aporte Lorinvest</b> aos Aportes Líquidos. Cards marcados como “números de exemplo” aguardam os valores corretos.</div>
           </div>
 
           <div class="ov-panel" data-ovp="org">
@@ -1702,9 +1728,6 @@
           <div class="section-title-row">
             <div>
               <div class="section-title">Portfólio</div>
-              <div class="section-subtitle">
-                Visão consolidada e por empresa: KPIs, riscos, valuation e principais temas para IC e Conselhos.
-              </div>
             </div>
           </div>
 
@@ -2624,9 +2647,6 @@
           <div class="section-title-row">
             <div>
               <div class="section-title">Setores &amp; Macro</div>
-              <div class="section-subtitle">
-                Teses setoriais, drivers macro e impacto direto no portfólio do fundo.
-              </div>
             </div>
           </div>
 
@@ -2759,10 +2779,6 @@
               <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
             </div>
           </div>
-
-              <div class="section-subtitle">
-                Pipeline de project/investment memos, estudos especiais e decisões de alocação de capital.
-              </div>
             </div>
           </div>
 
@@ -2864,10 +2880,6 @@
               <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
             </div>
           </div>
-
-              <div class="section-subtitle">
-                Linha do tempo da tese de cada investida, equity story e preparação de desinvestimento.
-              </div>
             </div>
           </div>
 
@@ -2907,9 +2919,6 @@
           <div class="section-title-row">
             <div>
               <div class="section-title">Base de Conhecimento</div>
-              <div class="section-subtitle">
-                Repositório de playbooks, notas técnicas e documentos de referência da área.
-              </div>
             </div>
           </div>
           <div class="row-full">
@@ -2927,9 +2936,6 @@
           <div class="section-title-row">
             <div>
               <div class="section-title">Ferramentas Interativas</div>
-              <div class="section-subtitle">
-                Modelos, calculadoras e dashboards interativos da área de Research.
-              </div>
             </div>
           </div>
           <div class="row-full">
@@ -3012,6 +3018,33 @@
             pills.forEach(function(x){ x.classList.toggle("active", x === pill); });
           });
         });
+
+        // No mobile as 13 pílulas ocupam três linhas: ali entra um <select> nativo.
+        // Ele é gerado a partir das próprias pílulas para não existir uma segunda
+        // lista de empresas a manter em sincronia.
+        const select = document.createElement("select");
+        select.className = "company-select";
+        select.setAttribute("aria-label", "Empresa selecionada");
+        pills.forEach(function(pill){
+          const opt = document.createElement("option");
+          opt.value = opt.textContent = pill.getAttribute("data-company");
+          opt.selected = pill.classList.contains("active");
+          select.appendChild(opt);
+        });
+        // Delega para a pílula: a lógica de seleção continua num lugar só
+        select.addEventListener("change", function(){
+          pills.forEach(function(p){
+            if (p.getAttribute("data-company") === select.value) p.click();
+          });
+        });
+        // Mantém o select em dia quando a pílula é acionada por outro caminho
+        // (ex.: clique num card do Panorama)
+        pills.forEach(function(pill){
+          pill.addEventListener("click", function(){
+            select.value = pill.getAttribute("data-company");
+          });
+        });
+        sel.appendChild(select);
       });
     })();
   </script>
