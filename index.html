@@ -772,10 +772,10 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 4px;
-      background: #EEF2F7;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 4px;
+      background: #E7EBF0;
+      border: 1px solid rgba(19, 32, 46, 0.05);
+      border-radius: 999px;
+      padding: 5px;
       margin: 8px 0 14px;
       max-width: 100%;
       width: 100%;
@@ -789,47 +789,59 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       flex: 1 1 100%;
-      gap: 8px 4px;
+      gap: 3px;
     }
 
+    /* Separadores e quebras fixas não fazem parte do segmented control */
     .company-sep {
-      color: rgba(92, 107, 122, 0.30);
-      font-weight: 400;
-      font-size: 12px;
-      align-self: center;
-      user-select: none;
-      pointer-events: none;
+      display: none;
     }
 
     .company-break {
-      flex-basis: 100%;
-      width: 100%;
-      height: 0;
+      display: none;
     }
 
     .company-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       border: none;
       background: none;
       font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-      padding: 7px 18px;
-      border-radius: 7px;
+      font-weight: 600;
+      color: #5C6B7A;
+      padding: 8px 16px;
+      border-radius: 999px;
       white-space: nowrap;
       cursor: pointer;
-      transition: background 0.12s, color 0.12s;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
     }
+
+    .company-ic {
+      width: 16px;
+      height: 16px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.75;
+    }
+
+    .company-pill.active .company-ic { opacity: 1; }
 
     .company-pill:hover:not(.active) {
       color: var(--accent-1);
+      background: rgba(255, 255, 255, 0.5);
     }
 
     .company-pill.active {
       background: #fff;
-      color: var(--accent-1);
-      box-shadow: var(--shadow-soft);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(19, 32, 46, 0.14), 0 0 0 0.5px rgba(19, 32, 46, 0.04);
       font-weight: 700;
     }
 
@@ -987,6 +999,107 @@
   </style>
 </head>
 <body>
+  <!-- Sprite de ícones das empresas (referenciado pelas pílulas do seletor) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- Akron — gestora de recursos / financeiro -->
+      <symbol id="ic-akron" viewBox="0 0 24 24">
+        <path d="M3 17.5 9 11l3.5 3.5L20.5 6"/>
+        <path d="M15 6h5.5v5.5"/>
+      </symbol>
+      <!-- Bioren — painel -->
+      <symbol id="ic-bioren" viewBox="0 0 24 24">
+        <path d="M3.2 15 5.4 6.6A1.5 1.5 0 0 1 6.85 5.5h10.3A1.5 1.5 0 0 1 18.6 6.6L20.8 15z"/>
+        <path d="M12 5.5V15"/>
+        <path d="M4.3 10.5h15.4"/>
+        <path d="M12 15v4"/>
+        <path d="M8.5 19h7"/>
+      </symbol>
+      <!-- Eindom — hotel -->
+      <symbol id="ic-eindom" viewBox="0 0 24 24">
+        <path d="M2.5 5v14"/>
+        <path d="M2.5 9.5h17a2 2 0 0 1 2 2V19"/>
+        <path d="M2.5 16.5h19"/>
+        <path d="M6.5 9.5v7"/>
+      </symbol>
+      <!-- Eldry — hospital -->
+      <symbol id="ic-eldry" viewBox="0 0 24 24">
+        <path d="M4.5 20.5V5a1.8 1.8 0 0 1 1.8-1.8h11.4A1.8 1.8 0 0 1 19.5 5v15.5"/>
+        <path d="M2.5 20.5h19"/>
+        <path d="M12 7.5v6"/>
+        <path d="M9 10.5h6"/>
+      </symbol>
+      <!-- GBS Storage — gasoduto -->
+      <symbol id="ic-gbs" viewBox="0 0 24 24">
+        <path d="M2.5 14h4.5"/>
+        <path d="M17 14h4.5"/>
+        <rect x="7" y="10.5" width="10" height="7" rx="1.2"/>
+        <path d="M12 10.5V6"/>
+        <path d="M9 6h6"/>
+      </symbol>
+      <!-- GNLink — caminhão de gás -->
+      <symbol id="ic-gnlink" viewBox="0 0 24 24">
+        <rect x="1.5" y="7" width="12.5" height="7.5" rx="3.75"/>
+        <path d="M14 14.5V8.5h3.3l3.2 3.7v2.3"/>
+        <path d="M1.5 14.5v2.2h1.8"/>
+        <path d="M8.8 16.7h6.4"/>
+        <path d="M20.5 14.5v2.2h-1"/>
+        <circle cx="6" cy="16.7" r="1.9"/>
+        <circle cx="17.3" cy="16.7" r="1.9"/>
+      </symbol>
+      <!-- New Wave — mineração -->
+      <symbol id="ic-newwave" viewBox="0 0 24 24">
+        <path d="M3.5 10.5h17l-2.2 6.5H5.7z"/>
+        <circle cx="8" cy="19.5" r="1.7"/>
+        <circle cx="16" cy="19.5" r="1.7"/>
+        <circle cx="9.8" cy="7.8" r="1.5"/>
+        <circle cx="14.4" cy="7.2" r="2"/>
+      </symbol>
+      <!-- Norcoast — navio conteiner -->
+      <symbol id="ic-norcoast" viewBox="0 0 24 24">
+        <path d="M2.5 13.5h19l-2.3 5H4.8z"/>
+        <rect x="5.5" y="9" width="4.2" height="4.5"/>
+        <rect x="10.5" y="9" width="4.2" height="4.5"/>
+        <rect x="8" y="4.5" width="4.2" height="4.5"/>
+        <path d="M17.5 6v7.5"/>
+      </symbol>
+      <!-- Norflor — eucalipto -->
+      <symbol id="ic-norflor" viewBox="0 0 24 24">
+        <path d="M12 21.5v-5"/>
+        <path d="M12 16.5c-3 0-5.4-2.2-5.4-5.4 0-4 2.4-8.6 5.4-8.6s5.4 4.6 5.4 8.6c0 3.2-2.4 5.4-5.4 5.4z"/>
+      </symbol>
+      <!-- Norsul — navio graneleiro -->
+      <symbol id="ic-norsul" viewBox="0 0 24 24">
+        <path d="M2.5 13.5h19l-2.3 5H4.8z"/>
+        <path d="M5.5 13.5V10h9.5v3.5"/>
+        <path d="M17.8 13.5V4.5"/>
+        <path d="M17.8 6.2 21 8.5"/>
+      </symbol>
+      <!-- Sileto — cimento / silo -->
+      <symbol id="ic-sileto" viewBox="0 0 24 24">
+        <path d="M6 20.5V10a6 6 0 0 1 12 0v10.5"/>
+        <path d="M3.5 20.5h17"/>
+        <path d="M6 13.5h12"/>
+        <path d="M6 17h12"/>
+      </symbol>
+      <!-- Target Bank — caminhão -->
+      <symbol id="ic-target" viewBox="0 0 24 24">
+        <path d="M14 17.5V6.5a1.8 1.8 0 0 0-1.8-1.8H3.8A1.8 1.8 0 0 0 2 6.5v10a1 1 0 0 0 1 1h1.6"/>
+        <path d="M15.1 17.5H8.9"/>
+        <path d="M19.4 17.5H21a1 1 0 0 0 1-1v-3.3a1 1 0 0 0-.22-.62L18.3 8.2a1 1 0 0 0-.78-.37H14"/>
+        <circle cx="17" cy="17.5" r="1.9"/>
+        <circle cx="7" cy="17.5" r="1.9"/>
+      </symbol>
+      <!-- Tree+ — eucalipto -->
+      <symbol id="ic-treeplus" viewBox="0 0 24 24">
+        <path d="M10.5 21.5v-4.5"/>
+        <path d="M10.5 17c-2.8 0-5-2-5-5 0-3.7 2.2-8 5-8s5 4.3 5 8c0 3-2.2 5-5 5z"/>
+        <path d="M19.5 3.5v4.5"/>
+        <path d="M17.25 5.75h4.5"/>
+      </symbol>
+    </defs>
+  </svg>
+
   <!-- Header full-width (estilo Compass) -->
   <header class="app-header">
     <div class="hwrap">
@@ -1035,7 +1148,7 @@
             <div>
               <div class="section-title">Visão Geral da Área</div>
               <div class="section-subtitle">
-                Dois painéis da área: o organograma societário do grupo e o to-do tracker (em configuração).
+                Três painéis da área: o panorama das investidas, o organograma societário do grupo e o to-do tracker (em configuração).
               </div>
             </div>
           </div>
@@ -1069,14 +1182,230 @@
             .org-node.brh{background:#2E6B41}
             .org-node.lite{background:#7FA98A}
             .org-dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#F2C200;border:1px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+
+            /* ===== Panorama — cards das investidas ===== */
+            .pan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:18px}
+            .pan-card{background:var(--bg-card);border:1px solid var(--line);border-radius:20px;padding:10px;box-shadow:var(--shadow-soft);display:flex;flex-direction:column;transition:box-shadow .18s,transform .18s}
+            .pan-card:hover{box-shadow:0 2px 6px rgba(19,32,46,.08),0 10px 26px rgba(19,32,46,.10);transform:translateY(-2px)}
+            .pan-media{border-radius:14px;overflow:hidden;aspect-ratio:16/10;background:var(--chip)}
+            .pan-media img{width:100%;height:100%;object-fit:cover;display:block}
+            /* Placeholder para investidas sem painel/logo disponível */
+            .pan-media.pan-todo{display:grid;place-items:center;background:linear-gradient(140deg,#EEF2F7,#DDE4EC)}
+            .pan-media.pan-todo svg{width:64px;height:64px;fill:none;stroke:#8C9BAB;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+            .pan-head{display:flex;align-items:flex-end;gap:12px;padding:0 6px;margin-top:-26px;position:relative;z-index:1}
+            .pan-logo{width:56px;height:56px;border-radius:16px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 9px rgba(19,32,46,.18);display:grid;place-items:center;overflow:hidden;flex:none}
+            .pan-logo img{width:100%;height:100%;object-fit:contain;padding:6px}
+            .pan-logo svg{width:26px;height:26px;fill:none;stroke:#8C9BAB;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+            .pan-name{font-size:16.5px;font-weight:700;color:var(--ink);line-height:1.2;padding-bottom:4px}
+            .pan-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+            .pan-flag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-warning);background:#FDF0E6;border:1px solid #F6DCC6;border-radius:999px;padding:1px 7px}
+            .pan-flag.pan-ex{color:var(--muted);background:var(--chip);border-color:var(--line)}
+            .pan-metrics{margin-top:14px;border-top:1px solid var(--line);padding:11px 6px 3px;display:flex;flex-direction:column;gap:7px}
+            .pan-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12.5px}
+            .pan-row dt{color:var(--muted)}
+            .pan-note{font-size:9.5px;font-weight:700;color:var(--accent-2);background:var(--chip);border-radius:999px;padding:1px 6px;margin-left:3px;cursor:help;white-space:nowrap}
+            .pan-row dd{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+            .pan-row dd.pan-hl{color:var(--accent-3)}
+            .pan-unit{font-size:11px;color:var(--muted);margin:2px 0 14px}
           </style>
 
           <div class="ov-tabs">
-            <button class="ov-tab active" type="button" data-ov="org">Organograma Societário</button>
+            <button class="ov-tab active" type="button" data-ov="panorama">Panorama</button>
+            <button class="ov-tab" type="button" data-ov="org">Organograma Societário</button>
             <button class="ov-tab" type="button" data-ov="todo">To-Do Tracker</button>
           </div>
 
-          <div class="ov-panel active" data-ovp="org">
+          <div class="ov-panel active" data-ovp="panorama">
+            <div class="pan-unit">Valores em milhares de reais, conforme os painéis oficiais (atualizados em 08/06/2026). O <b>% Lorinvest</b> corresponde à participação da Lorinvest (Hankoe FIP ou Dyna FIP) e o <b>Aporte Lorinvest</b> aos Aportes Líquidos. Cards marcados como “números de exemplo” aguardam os valores corretos.</div>
+            <div class="pan-grid">
+
+              <article class="pan-card">
+                <div class="pan-media pan-todo"><svg aria-hidden="true"><use href="#ic-akron"/></svg></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><svg aria-hidden="true"><use href="#ic-akron"/></svg></span>
+                  <div><div class="pan-name">Akron</div><div class="pan-flags"><span class="pan-flag">Logo e painel pendentes</span><span class="pan-flag pan-ex">Números de exemplo</span></div></div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>12.400,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>14.050,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>20.410,0</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Bioren%20painel.jpg" alt="Painel Bioren" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/bioren-logo.jpg" alt="Logo Bioren" loading="lazy"></span>
+                  <div class="pan-name">Bioren</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">77,8%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>25.017,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>27.118,3</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>34.914,1</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Eindom%20painel.jpg" alt="Painel Eindom" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/eindom-logo.jpg" alt="Logo Eindom" loading="lazy"></span>
+                  <div class="pan-name">Eindom</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>113.349,5</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>133.986,3</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>216.817,7</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media pan-todo"><svg aria-hidden="true"><use href="#ic-eldry"/></svg></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><svg aria-hidden="true"><use href="#ic-eldry"/></svg></span>
+                  <div><div class="pan-name">Eldry</div><div class="pan-flags"><span class="pan-flag">Logo e painel pendentes</span></div></div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">92,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>165.000,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>181.628,7</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>221.457,1</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/GBS%20painel.jpg" alt="Painel GBS Storage" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/gbs-logo.jpg" alt="Logo GBS Storage" loading="lazy"></span>
+                  <div class="pan-name">GBS Storage</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>91.140,5</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>105.613,3</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>163.211,8</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/GNLink%20painel.jpg" alt="Painel GNLink" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/gnlink-logo.jpg" alt="Logo GNLink" loading="lazy"></span>
+                  <div class="pan-name">GNLink</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">64,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>98.385,7</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>111.483,8</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>161.933,6</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Newwave%20painel.jpg" alt="Painel New Wave" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/new-wave-logo.jpg" alt="Logo New Wave" loading="lazy"></span>
+                  <div class="pan-name">New Wave</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">78,4%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>144.319,9</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>168.345,8</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>266.986,4</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media pan-todo"><svg aria-hidden="true"><use href="#ic-norcoast"/></svg></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><svg aria-hidden="true"><use href="#ic-norcoast"/></svg></span>
+                  <div><div class="pan-name">Norcoast</div><div class="pan-flags"><span class="pan-flag">Logo e painel pendentes</span><span class="pan-flag pan-ex">Números de exemplo</span></div></div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">40,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>22.800,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>25.840,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>37.530,0</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Painel%20Norflor.png" alt="Painel Norflor" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/Norflor-logo.png" alt="Logo Norflor" loading="lazy"></span>
+                  <div class="pan-name">Norflor</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest <span class="pan-note" title="Negativo: os desinvestimentos já efetuados superam os aportes.">desinvestido</span></dt><dd>-65.566,6</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>-49.282,3</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>-101.564,7</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Norsul2%20painel.jpg" alt="Painel Norsul" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/norsul-logo.jpg" alt="Logo Norsul" loading="lazy"></span>
+                  <div class="pan-name">Norsul</div>
+                </div>
+                <!-- Painel da Norsul não traz aportes/IPCA; usa os KPIs próprios dela (valuation) -->
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest <span class="pan-note" title="Participação indireta via Lorentzen; o painel da Norsul não tem fatia do Hankoe FIP.">via Lorentzen</span></dt><dd class="pan-hl">76,8%</dd></div>
+                  <div class="pan-row"><dt>Valor Hankoe</dt><dd>1.547.592,3</dd></div>
+                  <div class="pan-row"><dt>Valuation Múltiplo</dt><dd>1.320.216,9</dd></div>
+                  <div class="pan-row"><dt>Valor Hankoe — Lorentzen (%)</dt><dd>1.189.123,5</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Sileto%20painel.jpg" alt="Painel Sileto" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/Sileto-logo.PNG" alt="Logo Sileto" loading="lazy"></span>
+                  <div class="pan-name">Sileto</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest <span class="pan-note" title="Fatia do Dyna FIP. Demais acionistas: Crystall 51,6% e Fundo Nunki 8,4%.">via Dyna</span></dt><dd class="pan-hl">40,0%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest <span class="pan-note" title="No painel da Sileto a métrica é rotulada &quot;Aporte Total&quot;, não &quot;Aportes Líquidos&quot;.">aporte total</span></dt><dd>74.648,6</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>82.335,3</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>111.364,0</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Painel%20Target.png" alt="Painel Target Bank" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/target-bank-logo.png" alt="Logo Target Bank" loading="lazy"></span>
+                  <div class="pan-name">Target Bank</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">92,3%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>96.139,8</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>110.458,1</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>229.779,2</dd></div>
+                </dl>
+              </article>
+
+              <article class="pan-card">
+                <div class="pan-media"><img src="logos/paineis/Painel%20Norflor.png" alt="Painel Tree+ (painel da Norflor)" loading="lazy"></div>
+                <div class="pan-head">
+                  <span class="pan-logo"><img src="logos/tree-logo.png" alt="Logo Tree+" loading="lazy"></span>
+                  <div class="pan-name">Tree+</div>
+                </div>
+                <dl class="pan-metrics">
+                  <div class="pan-row"><dt>% Lorinvest <span class="pan-note" title="Skog FIP – Multiestratégia: Hankoe 25,1%, Ti17 FIM 25,0%, Zest 25,0%, Mercuria 25,0%. Lorinvest é a gestora do fundo.">quotista</span></dt><dd class="pan-hl">25,1%</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>62.327,0</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>67.842,2</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>87.184,7</dd></div>
+                </dl>
+              </article>
+
+            </div>
+          </div>
+
+          <div class="ov-panel" data-ovp="org">
           <div class="card">
             <div class="card-header">
               <div class="card-title">Organograma Societário — Grupo Lorinvest</div>
@@ -1320,31 +1649,31 @@
           <div class="company-selector">
             <span class="company-selector-label">Empresa selecionada:</span>
             <div class="company-selector-pills">
-              <button class="company-pill" type="button" data-company="Akron">Akron</button>
+              <button class="company-pill" type="button" data-company="Akron"><svg class="company-ic" aria-hidden="true"><use href="#ic-akron"/></svg>Akron</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Bioren">Bioren</button>
+              <button class="company-pill" type="button" data-company="Bioren"><svg class="company-ic" aria-hidden="true"><use href="#ic-bioren"/></svg>Bioren</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eindom">Eindom</button>
+              <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eldry">Eldry</button>
+              <button class="company-pill" type="button" data-company="Eldry"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Eldry</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="GBS Storage">GBS Storage</button>
+              <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
               <span class="company-sep">|</span>
-              <button class="company-pill active" type="button" data-company="GNLink">GNLink</button>
+              <button class="company-pill active" type="button" data-company="GNLink"><svg class="company-ic" aria-hidden="true"><use href="#ic-gnlink"/></svg>GNLink</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="New Wave">New Wave</button>
+              <button class="company-pill" type="button" data-company="New Wave"><svg class="company-ic" aria-hidden="true"><use href="#ic-newwave"/></svg>New Wave</button>
               <span class="company-break"></span>
-              <button class="company-pill" type="button" data-company="Norcoast">Norcoast</button>
+              <button class="company-pill" type="button" data-company="Norcoast"><svg class="company-ic" aria-hidden="true"><use href="#ic-norcoast"/></svg>Norcoast</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norflor">Norflor</button>
+              <button class="company-pill" type="button" data-company="Norflor"><svg class="company-ic" aria-hidden="true"><use href="#ic-norflor"/></svg>Norflor</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norsul">Norsul</button>
+              <button class="company-pill" type="button" data-company="Norsul"><svg class="company-ic" aria-hidden="true"><use href="#ic-norsul"/></svg>Norsul</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Sileto">Sileto</button>
+              <button class="company-pill" type="button" data-company="Sileto"><svg class="company-ic" aria-hidden="true"><use href="#ic-sileto"/></svg>Sileto</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Target Bank">Target Bank</button>
+              <button class="company-pill" type="button" data-company="Target Bank"><svg class="company-ic" aria-hidden="true"><use href="#ic-target"/></svg>Target Bank</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Tree+">Tree+</button>
+              <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
             </div>
           </div>
 
@@ -2262,31 +2591,31 @@
           <div class="company-selector">
             <span class="company-selector-label">Empresa selecionada:</span>
             <div class="company-selector-pills">
-              <button class="company-pill" type="button" data-company="Akron">Akron</button>
+              <button class="company-pill" type="button" data-company="Akron"><svg class="company-ic" aria-hidden="true"><use href="#ic-akron"/></svg>Akron</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Bioren">Bioren</button>
+              <button class="company-pill" type="button" data-company="Bioren"><svg class="company-ic" aria-hidden="true"><use href="#ic-bioren"/></svg>Bioren</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eindom">Eindom</button>
+              <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eldry">Eldry</button>
+              <button class="company-pill" type="button" data-company="Eldry"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Eldry</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="GBS Storage">GBS Storage</button>
+              <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
               <span class="company-sep">|</span>
-              <button class="company-pill active" type="button" data-company="GNLink">GNLink</button>
+              <button class="company-pill active" type="button" data-company="GNLink"><svg class="company-ic" aria-hidden="true"><use href="#ic-gnlink"/></svg>GNLink</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="New Wave">New Wave</button>
+              <button class="company-pill" type="button" data-company="New Wave"><svg class="company-ic" aria-hidden="true"><use href="#ic-newwave"/></svg>New Wave</button>
               <span class="company-break"></span>
-              <button class="company-pill" type="button" data-company="Norcoast">Norcoast</button>
+              <button class="company-pill" type="button" data-company="Norcoast"><svg class="company-ic" aria-hidden="true"><use href="#ic-norcoast"/></svg>Norcoast</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norflor">Norflor</button>
+              <button class="company-pill" type="button" data-company="Norflor"><svg class="company-ic" aria-hidden="true"><use href="#ic-norflor"/></svg>Norflor</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norsul">Norsul</button>
+              <button class="company-pill" type="button" data-company="Norsul"><svg class="company-ic" aria-hidden="true"><use href="#ic-norsul"/></svg>Norsul</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Sileto">Sileto</button>
+              <button class="company-pill" type="button" data-company="Sileto"><svg class="company-ic" aria-hidden="true"><use href="#ic-sileto"/></svg>Sileto</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Target Bank">Target Bank</button>
+              <button class="company-pill" type="button" data-company="Target Bank"><svg class="company-ic" aria-hidden="true"><use href="#ic-target"/></svg>Target Bank</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Tree+">Tree+</button>
+              <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
             </div>
           </div>
 
@@ -2367,31 +2696,31 @@
           <div class="company-selector">
             <span class="company-selector-label">Empresa selecionada:</span>
             <div class="company-selector-pills">
-              <button class="company-pill" type="button" data-company="Akron">Akron</button>
+              <button class="company-pill" type="button" data-company="Akron"><svg class="company-ic" aria-hidden="true"><use href="#ic-akron"/></svg>Akron</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Bioren">Bioren</button>
+              <button class="company-pill" type="button" data-company="Bioren"><svg class="company-ic" aria-hidden="true"><use href="#ic-bioren"/></svg>Bioren</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eindom">Eindom</button>
+              <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eldry">Eldry</button>
+              <button class="company-pill" type="button" data-company="Eldry"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Eldry</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="GBS Storage">GBS Storage</button>
+              <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
               <span class="company-sep">|</span>
-              <button class="company-pill active" type="button" data-company="GNLink">GNLink</button>
+              <button class="company-pill active" type="button" data-company="GNLink"><svg class="company-ic" aria-hidden="true"><use href="#ic-gnlink"/></svg>GNLink</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="New Wave">New Wave</button>
+              <button class="company-pill" type="button" data-company="New Wave"><svg class="company-ic" aria-hidden="true"><use href="#ic-newwave"/></svg>New Wave</button>
               <span class="company-break"></span>
-              <button class="company-pill" type="button" data-company="Norcoast">Norcoast</button>
+              <button class="company-pill" type="button" data-company="Norcoast"><svg class="company-ic" aria-hidden="true"><use href="#ic-norcoast"/></svg>Norcoast</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norflor">Norflor</button>
+              <button class="company-pill" type="button" data-company="Norflor"><svg class="company-ic" aria-hidden="true"><use href="#ic-norflor"/></svg>Norflor</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norsul">Norsul</button>
+              <button class="company-pill" type="button" data-company="Norsul"><svg class="company-ic" aria-hidden="true"><use href="#ic-norsul"/></svg>Norsul</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Sileto">Sileto</button>
+              <button class="company-pill" type="button" data-company="Sileto"><svg class="company-ic" aria-hidden="true"><use href="#ic-sileto"/></svg>Sileto</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Target Bank">Target Bank</button>
+              <button class="company-pill" type="button" data-company="Target Bank"><svg class="company-ic" aria-hidden="true"><use href="#ic-target"/></svg>Target Bank</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Tree+">Tree+</button>
+              <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
             </div>
           </div>
 
