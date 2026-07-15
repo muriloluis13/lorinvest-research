@@ -2961,6 +2961,11 @@
           const t = this.getAttribute("data-section-target");
           navButtons.forEach(function(b){ b.classList.toggle("active", b === btn); });
           sections.forEach(function(s){ s.classList.toggle("active", s.id === "section-" + t); });
+          // No mobile a barra flutua sobre o conteúdo: fecha ao navegar, senão
+          // ela continua cobrindo a aba que acabou de ser aberta.
+          if (window.matchMedia("(max-width: 860px)").matches) {
+            document.body.classList.add("snav-collapsed");
+          }
         });
       });
 
