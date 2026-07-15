@@ -810,7 +810,8 @@
       gap: 4px;
       background: #E7EBF0;
       border: 1px solid rgba(19, 32, 46, 0.05);
-      border-radius: 999px;
+      /* 999px vira um estádio quando as pílulas quebram em várias linhas */
+      border-radius: 14px;
       padding: 5px;
       margin: 8px 0 14px;
       max-width: 100%;
@@ -928,7 +929,10 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: url("logos/paineis/BlankMap-World_gray.svg") no-repeat center / cover;
+      /* 10% puxa o corte para o oeste: enquadra as Américas quando a caixa é
+         estreita (celular). No desktop o mapa cabe na largura e a posição
+         horizontal não tem efeito — cover só corta na vertical ali. */
+      background: url("logos/paineis/BlankMap-World_gray.svg") no-repeat 10% center / cover;
       opacity: 0.32;
       pointer-events: none;
     }
@@ -1052,7 +1056,11 @@
       .toolbar { flex-direction: column; align-items: flex-start; }
       .grid-3, .row-3 { grid-template-columns: minmax(0, 1fr); }
       .hsub { display: none; }
-      .emp-head-side { border-left: none; padding-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+      /* O flex-wrap sozinho não empilha: .emp-head-main tem flex:1/min-width:0 e
+         encolhe até sumir em vez de quebrar linha, enquanto o side segura 210px.
+         Forçar a coluna é o que faz esta regra de borda abaixo valer de fato. */
+      .emp-header { flex-direction: column; gap: 14px; padding: 15px 16px; }
+      .emp-head-side { border-left: none; padding-left: 0; border-top: 1px solid var(--line); padding-top: 12px; min-width: 0; width: 100%; }
     }
 
     @keyframes fadeIn {
