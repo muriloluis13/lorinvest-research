@@ -2929,56 +2929,126 @@
 
           </div>
           <div class="emp-panel" data-emp="operacional">
-          <div class="row-2">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Visão Geral da Operação</div>
+            <!-- ===== Oferta GNL — capacidade por planta (CI GNLink Dez/25 — slide 5) ===== -->
+            <style>
+              .op-plants{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:2px 0 4px}
+              .op-plant{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg-card)}
+              .op-plant-top{padding:10px 14px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:8px}
+              .op-plant.bb .op-plant-top{background:#6B8299}
+              .op-plant.ita .op-plant-top{background:#C55A17}
+              .op-plant.assu .op-plant-top{background:#2E7D4F}
+              .op-plant-top .nm{font-size:13px;font-weight:800}
+              .op-plant-top .rg{font-size:9px;font-weight:800;background:rgba(255,255,255,.22);padding:2px 8px;border-radius:99px;letter-spacing:.04em}
+              .op-plant-body{padding:12px 14px}
+              .op-cap{font-size:23px;font-weight:800;letter-spacing:-.6px;color:var(--ink);line-height:1}
+              .op-cap small{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0}
+              .op-r{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;border-top:1px solid #eef1f5;padding:6px 0 0;margin-top:6px}
+              .op-r .l{color:var(--muted)}
+              .op-r .val{font-weight:700;color:var(--accent-1);text-align:right}
+              .op-r .val.hl{color:var(--accent-3)}
+              /* ramp chart (reutilizado em Operacional e Comercial) */
+              .rmp-plot{display:flex;align-items:flex-end;gap:6px;height:190px;padding-top:20px;border-bottom:2px solid var(--line)}
+              .rmp-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+              .rmp-cap{text-align:center;font-size:9px;font-weight:800;color:var(--accent-1);margin-bottom:3px}
+              .rmp-stack{display:flex;flex-direction:column-reverse;width:100%;border-radius:4px 4px 0 0;overflow:hidden}
+              .rmp-seg{flex-basis:0;min-height:0;width:100%}
+              .rmp-seg.bb{background:#6B8299}.rmp-seg.ita{background:#C55A17}.rmp-seg.assu{background:#2E7D4F}
+              .rmp-x{display:flex;gap:6px;margin-top:5px}
+              .rmp-x span{flex:1;text-align:center;font-size:9px;color:var(--muted);min-width:0}
+              .rmp-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:11px 0 2px;font-size:11.5px;color:var(--muted)}
+              .rmp-legend span{display:inline-flex;align-items:center;gap:6px}
+              .rmp-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+              @media(max-width:720px){.op-plants{grid-template-columns:1fr}.rmp-x span,.rmp-cap{font-size:8px}}
+            </style>
+
+            <div class="section-title" style="margin:2px 0 6px;">Oferta GNL — capacidade por planta</div>
+
+            <div class="op-plants">
+              <div class="op-plant bb">
+                <div class="op-plant-top"><span class="nm">Barra Bonita</span><span class="rg">PR</span></div>
+                <div class="op-plant-body">
+                  <div class="op-cap">39.580 <small>m³/dia</small></div>
+                  <div class="op-r"><span class="l">Início operacional</span><span class="val">Em operação</span></div>
+                  <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Jan/26</span></div>
+                  <div class="op-r"><span class="l">Máquinas</span><span class="val">2 novas + 1 usada</span></div>
+                </div>
               </div>
-              <div class="card-body">
-                <p>
-                  A GNLink atua como operadora de gasodutos de transporte e ramais dedicados, conectando pontos de suprimento
-                  (gasodutos troncais e terminais de LNG) a clusters industriais e distribuidoras locais de gás.
-                </p>
-                <ul class="list">
-                  <li><span class="bullet">•</span><span>Fluxo básico: Suprimento → Compressão → Transporte em gasoduto tronco → Ramais industriais → Ponto de entrega.</span></li>
-                  <li><span class="bullet">•</span><span>Modelo de receita predominantemente contratada (ship-or-pay) com contratos de longo prazo (10–15 anos).</span></li>
-                  <li><span class="bullet">•</span><span>Principais riscos operacionais: integridade de dutos, indisponibilidade de suprimento e atrasos em licenças.</span></li>
-                </ul>
-                <div class="placeholder-chart">
-                  Fluxograma simplificado: Entrada de gás (supridores) → Estação de compressão → Gasoduto Tronco → Estações de entrega →
-                  Ramais industriais / distribuidoras → Consumidores finais.
+              <div class="op-plant ita">
+                <div class="op-plant-top"><span class="nm">Itabuna</span><span class="rg">BA</span></div>
+                <div class="op-plant-body">
+                  <div class="op-cap">85.232 <small>m³/dia</small></div>
+                  <div class="op-r"><span class="l">Início operacional</span><span class="val">Em operação</span></div>
+                  <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Mai/26</span></div>
+                  <div class="op-r"><span class="l">Máquinas</span><span class="val">4 novas</span></div>
+                </div>
+              </div>
+              <div class="op-plant assu">
+                <div class="op-plant-top"><span class="nm">Assú</span><span class="rg">RN</span></div>
+                <div class="op-plant-body">
+                  <div class="op-cap">72.688 <small>m³/dia</small></div>
+                  <div class="op-r"><span class="l">Início operacional</span><span class="val">Fev/26</span></div>
+                  <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Fev/26</span></div>
+                  <div class="op-r"><span class="l">Máquinas</span><span class="val">2 novas + 2 usadas</span></div>
                 </div>
               </div>
             </div>
-            <div class="card">
+
+            <div class="card" style="margin-top:14px;margin-bottom:14px">
               <div class="card-header">
-                <div class="card-title">Ativos Principais</div>
+                <div class="card-title">Ramp-up da oferta — empilhado por planta</div>
+                <span class="tag">% da capacidade plena · 197.500 m³/dia</span>
+              </div>
+              <div class="card-body">
+                <div class="rmp-plot">
+                  <div class="rmp-col"><span class="rmp-cap">42%</span><div class="rmp-stack" style="height:41.6%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:42616"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">78%</span><div class="rmp-stack" style="height:78.4%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:42616"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">78%</span><div class="rmp-stack" style="height:78.4%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:42616"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">78%</span><div class="rmp-stack" style="height:78.4%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:42616"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580"></i><i class="rmp-seg ita" style="flex-grow:85232"></i><i class="rmp-seg assu" style="flex-grow:72688"></i></div></div>
+                </div>
+                <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
+                <div class="rmp-legend">
+                  <span><i style="background:#6B8299"></i>Barra Bonita (PR)</span>
+                  <span><i style="background:#C55A17"></i>Itabuna (BA)</span>
+                  <span><i style="background:#2E7D4F"></i>Assú (RN)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header">
+                <div class="card-title">Oferta GNL mensal — 2026</div>
+                <span class="tag">m³/dia</span>
               </div>
               <div class="card-body">
                 <div class="table-scroll">
-                <table class="placeholder-table">
-                  <thead>
-                    <tr>
-                      <th>Ativo</th>
-                      <th>Tipo</th>
-                      <th>Capacidade</th>
-                      <th>Local</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Gasoduto Tronco Leste</td><td>Gasoduto 18"</td><td>7,0 MMm³/dia</td><td>110 km – Corredor Industrial</td></tr>
-                    <tr><td>Ramal Industrial Sul</td><td>Ramal 12"</td><td>2,5 MMm³/dia</td><td>Complexo Petroquímico</td></tr>
-                    <tr><td>Ramal Norte II (em construção)</td><td>Ramal 16"</td><td>3,0 MMm³/dia</td><td>Polo Siderúrgico</td></tr>
-                    <tr><td>Estações de Compressão</td><td>3 unidades</td><td>—</td><td>Ao longo do Tronco</td></tr>
-                  </tbody>
-                </table>
+                  <table class="placeholder-table">
+                    <thead>
+                      <tr><th>Planta</th><th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Barra Bonita (PR)</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td></tr>
+                      <tr><td>Itabuna (BA)</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td></tr>
+                      <tr><td>Assú (RN)</td><td>—</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td></tr>
+                      <tr style="font-weight:800"><td>Total</td><td>82.196</td><td>154.884</td><td>154.884</td><td>154.884</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td></tr>
+                    </tbody>
+                  </table>
                 </div>
-                <p class="card-note">
-                  ➜ Inclusão de idade média, capex histórico e necessidades de reforço pode ser feita em colunas adicionais.
+                <p class="card-note" style="margin-top:12px">
+                  <b>Máquinas por planta:</b> Assú — 2 novas + 2 usadas (72.688); Itabuna — 4 novas (85.232); Barra Bonita — 2 novas + 1 usada (potencial 56.701).<br>
+                  <b>Notas:</b> partida de Assú em fev/26 (prazo legal da ANP); capacidade plena de Itabuna com a 2ª fase da Energia Coelba (mai/26); 3ª máquina usada de Barra Bonita não considerada (negociação Tradener e disponibilidade de energia — pode rodar com gerador) e infra pronta para +1 máquina nova (pedido não colocado na Galileo); volume adicional de GNC Purga de 14.400 m³/dia por planta.<br>
+                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 5).
                 </p>
               </div>
             </div>
-          </div>
+
           </div>
           <div class="emp-panel" data-emp="comercial">
 
@@ -3145,6 +3215,56 @@
                   <b>(4)</b> 46 clientes foram indicados pela COPA para a GNLink prospectar, sendo metade do volume em SP. &nbsp;
                   <b>(5)</b> 70 clientes acima de 100 ton/mês na lista da GNLink, sendo apenas 16 na lista da COPA enviada à GNLink.<br>
                   Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 4).
+                </p>
+              </div>
+            </div>
+
+            <!-- ===== Demanda GNL por planta (CI GNLink Dez/25 — slide 5) ===== -->
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header">
+                <div class="card-title">Demanda GNL por planta — ramp-up 2026</div>
+                <span class="tag">m³/dia · topo = total (mil)</span>
+              </div>
+              <div class="card-body">
+                <div class="rmp-plot">
+                  <div class="rmp-col"><span class="rmp-cap">34</span><div class="rmp-stack" style="height:17.4%"><i class="rmp-seg ita" style="flex-grow:14625"></i><i class="rmp-seg assu" style="flex-grow:19740"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">61</span><div class="rmp-stack" style="height:31.0%"><i class="rmp-seg bb" style="flex-grow:34300"></i><i class="rmp-seg ita" style="flex-grow:14625"></i><i class="rmp-seg assu" style="flex-grow:12247"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">92</span><div class="rmp-stack" style="height:46.4%"><i class="rmp-seg bb" style="flex-grow:32000"></i><i class="rmp-seg ita" style="flex-grow:33625"></i><i class="rmp-seg assu" style="flex-grow:26000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">97</span><div class="rmp-stack" style="height:48.9%"><i class="rmp-seg bb" style="flex-grow:32000"></i><i class="rmp-seg ita" style="flex-grow:33625"></i><i class="rmp-seg assu" style="flex-grow:31000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">115</span><div class="rmp-stack" style="height:58.0%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:33625"></i><i class="rmp-seg assu" style="flex-grow:38000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">130</span><div class="rmp-stack" style="height:65.6%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:46625"></i><i class="rmp-seg assu" style="flex-grow:40000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">131</span><div class="rmp-stack" style="height:66.1%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:46625"></i><i class="rmp-seg assu" style="flex-grow:41000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">168</span><div class="rmp-stack" style="height:84.9%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:56625"></i><i class="rmp-seg assu" style="flex-grow:68000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">174</span><div class="rmp-stack" style="height:87.9%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:56625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:59625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:59625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
+                  <div class="rmp-col"><span class="rmp-cap">180</span><div class="rmp-stack" style="height:91.0%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:62625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
+                </div>
+                <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
+                <div class="rmp-legend">
+                  <span><i style="background:#6B8299"></i>Barra Bonita (PR)</span>
+                  <span><i style="background:#C55A17"></i>Itabuna (BA)</span>
+                  <span><i style="background:#2E7D4F"></i>Assú (RN)</span>
+                  <span style="margin-left:auto">Escala: 197.500 m³/dia (capacidade plena)</span>
+                </div>
+
+                <div class="table-scroll" style="margin-top:14px">
+                  <table class="placeholder-table">
+                    <thead>
+                      <tr><th>Planta</th><th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Barra Bonita (PR)</td><td>—</td><td>34.300</td><td>32.000</td><td>32.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td></tr>
+                      <tr><td>Itabuna (BA)</td><td>14.625</td><td>14.625</td><td>33.625</td><td>33.625</td><td>33.625</td><td>46.625</td><td>46.625</td><td>56.625</td><td>56.625</td><td>59.625</td><td>59.625</td><td>62.625</td></tr>
+                      <tr><td>Assú (RN)</td><td>19.740</td><td>12.247</td><td>26.000</td><td>31.000</td><td>38.000</td><td>40.000</td><td>41.000</td><td>68.000</td><td>74.000</td><td>74.000</td><td>74.000</td><td>74.000</td></tr>
+                      <tr style="font-weight:800"><td>Total</td><td>34.365</td><td>61.172</td><td>91.625</td><td>96.625</td><td>114.625</td><td>129.625</td><td>130.625</td><td>167.625</td><td>173.625</td><td>176.625</td><td>176.625</td><td>179.625</td></tr>
+                      <tr><td>% Ocupação</td><td>42%</td><td>39%</td><td>59%</td><td>62%</td><td>58%</td><td>66%</td><td>66%</td><td>85%</td><td>88%</td><td>89%</td><td>89%</td><td>91%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="card-note" style="margin-top:12px">
+                  % Ocupação = demanda ÷ oferta do mês. Atinge 91% da capacidade plena das 3 plantas em dez/26.<br>
+                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 5).
                 </p>
               </div>
             </div>
