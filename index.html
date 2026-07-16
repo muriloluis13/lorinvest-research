@@ -2981,6 +2981,157 @@
           </div>
           </div>
           <div class="emp-panel" data-emp="comercial">
+
+            <!-- ===== Funil Comercial (CI GNLink Dez/25 — slide 4) ===== -->
+            <style>
+              .fun-note{font-size:12.5px;color:var(--muted);margin:2px 0 16px}
+              .fun-note b{color:var(--accent-3);font-weight:700}
+              .fun{display:flex;flex-direction:column;gap:9px;margin:4px 0 2px}
+              .fun-row{display:grid;grid-template-columns:190px 1fr;align-items:center;gap:14px}
+              .fun-name{font-size:12px;font-weight:700;color:var(--ink);text-align:right;line-height:1.25}
+              .fun-track{display:flex;align-items:center;gap:10px;min-width:0}
+              .fun-bar{height:34px;border-radius:7px;min-width:8px;box-shadow:0 1px 2px rgba(19,32,46,.14);flex:none}
+              .fun-val{font-size:15px;font-weight:800;color:var(--accent-1);letter-spacing:-.3px;white-space:nowrap}
+              .fun-val small{font-size:11px;font-weight:600;color:var(--muted)}
+              .fun-s1{background:#90A4B8}.fun-s2{background:#6E8CA6}.fun-s3{background:#4F7B8C}.fun-s4{background:#C55A17}.fun-s5{background:#2E7D4F}
+              .bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+              .bd-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:2px solid var(--line);padding-bottom:5px;margin-bottom:2px}
+              .bd-head .t{font-size:12.5px;font-weight:800;color:var(--ink)}
+              .bd-head .n{font-size:13px;font-weight:800;color:var(--accent-1)}
+              .bd-plant{font-size:10.5px;font-weight:800;color:var(--accent-2);text-transform:uppercase;letter-spacing:.05em;margin:11px 0 3px}
+              .bd-line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;padding:3.5px 0;border-bottom:1px dashed var(--line)}
+              .bd-line .c{color:var(--ink)}
+              .bd-line .v{font-weight:700;color:var(--accent-1);white-space:nowrap}
+              .bd-reg{font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;margin-left:7px;vertical-align:middle;letter-spacing:.03em}
+              .bd-reg.ne{background:#EAF0F6;color:#4F7B8C}.bd-reg.sul{background:#E7EEE3;color:#2E7D4F}
+              .occ-bar{height:7px;border-radius:99px;background:#dfe5ec;overflow:hidden;margin-top:9px}
+              .occ-bar i{display:block;height:100%;border-radius:99px;background:var(--accent-3)}
+              .fun-foot{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.6}
+              .fun-foot b{color:var(--accent-1);font-weight:700}
+              @media(max-width:720px){.bd-grid{grid-template-columns:1fr}.fun-row{grid-template-columns:120px 1fr;gap:10px}.fun-name{font-size:11px}}
+            </style>
+
+            <div class="section-title" style="margin:2px 0 6px;">Funil comercial</div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header">
+                <div class="card-title">Funil comercial — consolidado</div>
+                <span class="tag">valores em m³/dia</span>
+              </div>
+              <div class="card-body">
+                <p class="fun-note">Da demanda total mapeada até os contratos assinados. <b>Mais de R$ 1 bilhão</b> em contratos já assinados.</p>
+                <div class="fun">
+                  <div class="fun-row"><div class="fun-name">Mercado mapeado</div><div class="fun-track"><div class="fun-bar fun-s1" style="width:100%"></div><span class="fun-val">1.673.638</span></div></div>
+                  <div class="fun-row"><div class="fun-name">Em prospecção</div><div class="fun-track"><div class="fun-bar fun-s2" style="width:65.7%"></div><span class="fun-val">1.099.537</span></div></div>
+                  <div class="fun-row"><div class="fun-name">Em negociação</div><div class="fun-track"><div class="fun-bar fun-s3" style="width:16.4%"></div><span class="fun-val">275.000</span></div></div>
+                  <div class="fun-row"><div class="fun-name">Negociações contratuais</div><div class="fun-track"><div class="fun-bar fun-s4" style="width:5.8%"></div><span class="fun-val">96.500</span></div></div>
+                  <div class="fun-row"><div class="fun-name">Contratos assinados</div><div class="fun-track"><div class="fun-bar fun-s5" style="width:7.9%"></div><span class="fun-val">56.865 – 132.175</span></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Abertura por cliente / planta -->
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header">
+                <div class="card-title">Abertura por cliente e planta</div>
+                <span class="tag">m³/dia</span>
+              </div>
+              <div class="card-body">
+                <div class="bd-grid">
+                  <div>
+                    <div class="bd-head"><span class="t">Em negociação</span><span class="n">275.000</span></div>
+                    <div class="bd-plant">Assú</div>
+                    <div class="bd-line"><span class="c">Lactalis<span class="bd-reg ne">NE</span></span><span class="v">6.000</span></div>
+                    <div class="bd-line"><span class="c">Master Boi<span class="bd-reg ne">NE</span></span><span class="v">5.000</span></div>
+                    <div class="bd-plant">Itabuna</div>
+                    <div class="bd-line"><span class="c">Ibar<span class="bd-reg ne">NE</span></span><span class="v">13.000</span></div>
+                    <div class="bd-line"><span class="c">PBIO<span class="bd-reg ne">NE</span></span><span class="v">10.000</span></div>
+                    <div class="bd-line"><span class="c">Vanadium<span class="bd-reg ne">NE</span></span><span class="v">9.000</span></div>
+                    <div class="bd-line"><span class="c">Bahiagás (BRU)<span class="bd-reg ne">NE</span></span><span class="v">127.000</span></div>
+                    <div class="bd-plant">Barra Bonita</div>
+                    <div class="bd-line"><span class="c">Mosaic<span class="bd-reg sul">SUL</span></span><span class="v">85.000</span></div>
+                    <div class="bd-line"><span class="c">SCGás / Parati<span class="bd-reg sul">SUL</span></span><span class="v">20.000</span></div>
+                  </div>
+                  <div>
+                    <div class="bd-head"><span class="t">Negociações contratuais</span><span class="n">96.500</span></div>
+                    <div class="bd-plant">Assú</div>
+                    <div class="bd-line"><span class="c">Copergás (Trindade)<span class="bd-reg ne">NE</span></span><span class="v">30.000</span></div>
+                    <div class="bd-line"><span class="c">PetroReconcavo<span class="bd-reg ne">NE</span></span><span class="v">10.000</span></div>
+                    <div class="bd-plant">Itabuna</div>
+                    <div class="bd-line"><span class="c">Nexa<span class="bd-reg ne">NE</span></span><span class="v">10.000</span></div>
+                    <div class="bd-plant">Barra Bonita</div>
+                    <div class="bd-line"><span class="c">Compagás (Lapa)<span class="bd-reg sul">SUL</span></span><span class="v">20.000</span></div>
+                    <div class="bd-line"><span class="c">Alcast<span class="bd-reg sul">SUL</span></span><span class="v">20.000</span></div>
+                    <div class="bd-line"><span class="c">Dallon <small style="color:var(--muted)">GNCp</small><span class="bd-reg sul">SUL</span></span><span class="v">6.500</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contratos assinados -->
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header">
+                <div class="card-title">Contratos assinados</div>
+                <span class="tag">preço net · reajustado desde a data-base</span>
+              </div>
+              <div class="card-body">
+                <div class="table-scroll">
+                  <table class="placeholder-table">
+                    <thead>
+                      <tr>
+                        <th>Cliente</th>
+                        <th>Assinatura</th>
+                        <th>Início forn.</th>
+                        <th>Prazo</th>
+                        <th>Término</th>
+                        <th>Produto</th>
+                        <th>Volume (m³/dia)</th>
+                        <th>Preço net (R$/m³)</th>
+                        <th>Planta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>CEGÁS</td><td>28/10/2025</td><td>03/11/2025</td><td>5 anos</td><td>28/10/2030</td><td>GNL</td><td>18.740 – 50.000</td><td>3,3041</td><td>Assú</td></tr>
+                      <tr><td>BAHIAGÁS</td><td>04/11/2025</td><td>—</td><td>10 anos</td><td>31/12/2035</td><td>GNL</td><td>3.125 – 25.175</td><td>3,6359</td><td>Itabuna</td></tr>
+                      <tr><td>PETROBAHIA</td><td>05/10/2023</td><td>06/06/2025</td><td>10 anos</td><td>06/06/2030</td><td>GNL</td><td>18.000 – 40.000</td><td>4,0780</td><td>Itabuna</td></tr>
+                      <tr><td>PETYAN</td><td>04/07/2025</td><td>06/11/2025</td><td>10 meses</td><td>04/05/2026</td><td>GNL</td><td>12.000</td><td>3,3099</td><td>Itabuna</td></tr>
+                      <tr><td>REITERLOG</td><td>12/02/2025</td><td>19/02/2025</td><td>90 dias</td><td>12/05/2025</td><td>GNCp</td><td>3.000</td><td>2,2000</td><td>Barra Bonita</td></tr>
+                      <tr><td>RODOPRINCIPE</td><td>06/08/2025</td><td>23/07/2025</td><td>120 dias</td><td>04/12/2025</td><td>GNCp</td><td>2.000</td><td>3,2017</td><td>Barra Bonita</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="kpi-grid" style="margin-top:14px">
+                  <div class="kpi-tile k-teal">
+                    <div class="k">Assú · cap. GNL</div>
+                    <div class="v">72.688</div>
+                    <div class="s">Ocupação GNL <b>69%</b></div>
+                    <div class="occ-bar"><i style="width:69%"></i></div>
+                  </div>
+                  <div class="kpi-tile k-sage">
+                    <div class="k">Itabuna · cap. GNL</div>
+                    <div class="v">85.232</div>
+                    <div class="s">Ocupação GNL <b>91%</b></div>
+                    <div class="occ-bar"><i style="width:91%"></i></div>
+                  </div>
+                  <div class="kpi-tile k-stone">
+                    <div class="k">Barra Bonita · cap. GNL</div>
+                    <div class="v">39.580</div>
+                    <div class="s">Ocupação GNL <b>0%</b></div>
+                    <div class="occ-bar"><i style="width:0%"></i></div>
+                  </div>
+                </div>
+
+                <p class="fun-foot" style="margin-top:14px">
+                  <b>(1)</b> Mais de R$ 1 bilhão em contratos assinados. &nbsp;
+                  <b>(2)</b> Preço atual considera reajustes aplicados desde a data-base do contrato. &nbsp;
+                  <b>(3)</b> 264 clientes foram passados para a COPA prospectar. &nbsp;
+                  <b>(4)</b> 46 clientes foram indicados pela COPA para a GNLink prospectar, sendo metade do volume em SP. &nbsp;
+                  <b>(5)</b> 70 clientes acima de 100 ton/mês na lista da GNLink, sendo apenas 16 na lista da COPA enviada à GNLink.<br>
+                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 4).
+                </p>
+              </div>
+            </div>
+
           <div class="row-2">
             <div class="card">
               <div class="card-header">
