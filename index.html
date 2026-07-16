@@ -2993,15 +2993,29 @@
               .fun-bar{height:34px;border-radius:7px;min-width:170px;padding:0 14px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(19,32,46,.14);flex:none}
               .fun-val{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap}
               .fun-s1{background:#90A4B8}.fun-s2{background:#6E8CA6}.fun-s3{background:#4F7B8C}.fun-s4{background:#C55A17}.fun-s5{background:#2E7D4F}
-              .bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-              .bd-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:2px solid var(--line);padding-bottom:5px;margin-bottom:2px}
-              .bd-head .t{font-size:12.5px;font-weight:800;color:var(--ink)}
-              .bd-head .n{font-size:13px;font-weight:800;color:var(--accent-1)}
-              .bd-plant{font-size:10.5px;font-weight:800;color:var(--accent-2);text-transform:uppercase;letter-spacing:.05em;margin:11px 0 3px}
-              .bd-line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;padding:3.5px 0;border-bottom:1px dashed var(--line)}
-              .bd-line .c{color:var(--ink)}
-              .bd-line .v{font-weight:700;color:var(--accent-1);white-space:nowrap}
-              .bd-reg{font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;margin-left:7px;vertical-align:middle;letter-spacing:.03em}
+              .bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+              .bd-col{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg-card)}
+              .bd-col-head{padding:11px 15px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#fff}
+              .bd-col.neg .bd-col-head{background:#4F7B8C}
+              .bd-col.ctr .bd-col-head{background:#C55A17}
+              .bd-col-head .t{font-size:12px;font-weight:800;letter-spacing:.01em}
+              .bd-col-head .n{font-size:15px;font-weight:800;letter-spacing:-.3px;white-space:nowrap}
+              .bd-col-head .n small{font-size:9.5px;font-weight:600;opacity:.85;margin-left:3px}
+              .bd-col-body{padding:3px 15px 12px}
+              .bd-plant2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:13px 0 5px}
+              .bd-plant2 .pl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-2)}
+              .bd-plant2 .sub{font-size:10.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+              .bd-cli{padding:6px 0}
+              .bd-cli + .bd-cli{border-top:1px solid #eef1f5}
+              .bd-cli-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+              .bd-cli-name{font-size:12px;color:var(--ink);font-weight:600;display:flex;align-items:center}
+              .bd-cli-name small{opacity:.6;margin-left:4px;font-weight:600}
+              .bd-cli-val{font-size:12.5px;font-weight:800;color:var(--accent-1);white-space:nowrap;font-variant-numeric:tabular-nums}
+              .bd-cli-bar{height:5px;border-radius:99px;background:#e9edf2;margin-top:5px;overflow:hidden}
+              .bd-cli-bar i{display:block;height:100%;border-radius:99px}
+              .bd-col.neg .bd-cli-bar i{background:#4F7B8C}
+              .bd-col.ctr .bd-cli-bar i{background:#C55A17}
+              .bd-reg{font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:4px;margin-left:7px;letter-spacing:.03em;flex:none}
               .bd-reg.ne{background:#EAF0F6;color:#4F7B8C}.bd-reg.sul{background:#E7EEE3;color:#2E7D4F}
               .occ-bar{height:7px;border-radius:99px;background:#dfe5ec;overflow:hidden;margin-top:9px}
               .occ-bar i{display:block;height:100%;border-radius:99px;background:var(--accent-3)}
@@ -3036,31 +3050,35 @@
               </div>
               <div class="card-body">
                 <div class="bd-grid">
-                  <div>
-                    <div class="bd-head"><span class="t">Em negociação</span><span class="n">275.000</span></div>
-                    <div class="bd-plant">Assú</div>
-                    <div class="bd-line"><span class="c">Lactalis<span class="bd-reg ne">NE</span></span><span class="v">6.000</span></div>
-                    <div class="bd-line"><span class="c">Master Boi<span class="bd-reg ne">NE</span></span><span class="v">5.000</span></div>
-                    <div class="bd-plant">Itabuna</div>
-                    <div class="bd-line"><span class="c">Ibar<span class="bd-reg ne">NE</span></span><span class="v">13.000</span></div>
-                    <div class="bd-line"><span class="c">PBIO<span class="bd-reg ne">NE</span></span><span class="v">10.000</span></div>
-                    <div class="bd-line"><span class="c">Vanadium<span class="bd-reg ne">NE</span></span><span class="v">9.000</span></div>
-                    <div class="bd-line"><span class="c">Bahiagás (BRU)<span class="bd-reg ne">NE</span></span><span class="v">127.000</span></div>
-                    <div class="bd-plant">Barra Bonita</div>
-                    <div class="bd-line"><span class="c">Mosaic<span class="bd-reg sul">SUL</span></span><span class="v">85.000</span></div>
-                    <div class="bd-line"><span class="c">SCGás / Parati<span class="bd-reg sul">SUL</span></span><span class="v">20.000</span></div>
+                  <div class="bd-col neg">
+                    <div class="bd-col-head"><span class="t">Em negociação</span><span class="n">275.000<small>m³/dia</small></span></div>
+                    <div class="bd-col-body">
+                      <div class="bd-plant2"><span class="pl">Assú</span><span class="sub">11.000</span></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Lactalis<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">6.000</span></div><div class="bd-cli-bar"><i style="width:4.7%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Master Boi<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">5.000</span></div><div class="bd-cli-bar"><i style="width:3.9%"></i></div></div>
+                      <div class="bd-plant2"><span class="pl">Itabuna</span><span class="sub">159.000</span></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Ibar<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">13.000</span></div><div class="bd-cli-bar"><i style="width:10.2%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PBIO<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:7.9%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Vanadium<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">9.000</span></div><div class="bd-cli-bar"><i style="width:7.1%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Bahiagás (BRU)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">127.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
+                      <div class="bd-plant2"><span class="pl">Barra Bonita</span><span class="sub">105.000</span></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Mosaic<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">85.000</span></div><div class="bd-cli-bar"><i style="width:66.9%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">SCGás / Parati<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:15.7%"></i></div></div>
+                    </div>
                   </div>
-                  <div>
-                    <div class="bd-head"><span class="t">Negociações contratuais</span><span class="n">96.500</span></div>
-                    <div class="bd-plant">Assú</div>
-                    <div class="bd-line"><span class="c">Copergás (Trindade)<span class="bd-reg ne">NE</span></span><span class="v">30.000</span></div>
-                    <div class="bd-line"><span class="c">PetroReconcavo<span class="bd-reg ne">NE</span></span><span class="v">10.000</span></div>
-                    <div class="bd-plant">Itabuna</div>
-                    <div class="bd-line"><span class="c">Nexa<span class="bd-reg ne">NE</span></span><span class="v">10.000</span></div>
-                    <div class="bd-plant">Barra Bonita</div>
-                    <div class="bd-line"><span class="c">Compagás (Lapa)<span class="bd-reg sul">SUL</span></span><span class="v">20.000</span></div>
-                    <div class="bd-line"><span class="c">Alcast<span class="bd-reg sul">SUL</span></span><span class="v">20.000</span></div>
-                    <div class="bd-line"><span class="c">Dallon <small style="color:var(--muted)">GNCp</small><span class="bd-reg sul">SUL</span></span><span class="v">6.500</span></div>
+                  <div class="bd-col ctr">
+                    <div class="bd-col-head"><span class="t">Negociações contratuais</span><span class="n">96.500<small>m³/dia</small></span></div>
+                    <div class="bd-col-body">
+                      <div class="bd-plant2"><span class="pl">Assú</span><span class="sub">40.000</span></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Copergás (Trindade)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">30.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PetroReconcavo<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
+                      <div class="bd-plant2"><span class="pl">Itabuna</span><span class="sub">10.000</span></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Nexa<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
+                      <div class="bd-plant2"><span class="pl">Barra Bonita</span><span class="sub">46.500</span></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Compagás (Lapa)<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Alcast<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
+                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Dallon<small>GNCp</small><span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">6.500</span></div><div class="bd-cli-bar"><i style="width:21.7%"></i></div></div>
+                    </div>
                   </div>
                 </div>
               </div>
