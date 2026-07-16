@@ -342,7 +342,7 @@ const projects=[
 
       {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Classificar cada premissa por Evidence Standards [F/I/A/E]', ref:'premissas já rotuladas (Morfologia EXO/END·OBS/INF/ASS) + aba Convenção Morfológica', s:'Fato / Inferência / Assunção / Estimativa — nunca apresentar assunção como fato; hoje volume, tarifa e curva de custo são estimativas/alavancas, não fatos', tags:['evidência']},
       {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Atribuir confidence + threshold-de-reversão às assunções materiais', ref:'Hipóteses (colunas Sinal/Confidência) + Cenários', s:'Para cada [A] que move o valor (tarifa, volume, base do AFRMM, PIS/Cofins = 0): "X% de confiança; abaixo de Y, o VPL fica negativo" — sem threshold, a análise é decorativa', tags:['crítico']},
-      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Verificar contrapartes nominadas vs. fonte primária', ref:'Dados a Coletar D01–D22 + FR HBSA 2025', s:'TGA, ONNO, BASA, Hidrovias do Brasil, MOL — confirmar contra Formulário de Referência / fato relevante antes de fixar a premissa (disciplina de fonte + compliance)', tags:['confidencial']},
+      {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Verificar contrapartes nominadas vs. fonte primária', ref:'Dados a Coletar D01–D22 + FR HBSA 2025', s:'TGA, ONNO, BASA, Hidrovias do Brasil, MOL — confirmar contra Formulário de Referência / fato relevante antes de fixar a premissa (disciplina de fonte + compliance)'},
       {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Construir ranges pessimista/base/otimista + tornado + stress test', ref:'Cenários (16 primitivas materiais; bandas pess/base/otim)', s:'Cada primitiva material com 3 cenários; tornado das mais sensíveis; stress composto de duas variáveis correlacionadas (volume × tarifa) — hoje só há uma sensibilidade pontual'},
       {grp:'Disciplina metodológica (ROIC-tree + tese IC)', n:'Rodar o teste de coerência Damodaran 3P', ref:'Coerência C1–C11 (3P + cross-checks logística)', s:'Crescimento exige reinvestimento (ROIIC), margem alta atrai concorrência (fade), realização não vai a 100% (disponibilidade/uptime) — confirmar que as premissas conversam'},
 
@@ -356,7 +356,7 @@ const projects=[
     meta:'Benchmarks (pedido rápido p/ hoje) + teste da ferramenta (>20 ajustes enviados) · enviar ao pessoal da Dharma',
     tasks:[
       {grp:'Benchmarks de overview', n:'Selecionar ~3 benchmarks de análise/overview já feitos', s:'Overviews com finances, histórico da empresa, etc.', tags:['hoje']},
-      {grp:'Benchmarks de overview', n:'Enviar os benchmarks ao pessoal da Dharma', s:'Compartilhar internamente — validar confidencialidade do conteúdo', tags:['hoje']},
+      {grp:'Benchmarks de overview', n:'Enviar os benchmarks ao pessoal da Dharma', s:'Compartilhar internamente', tags:['hoje']},
       {grp:'Teste da ferramenta', n:'Confirmar conclusão dos >20 ajustes', s:'Gestor fez deep dive e mandou os pontos; equipe deve ter terminado ontem'},
       {grp:'Teste da ferramenta', n:'Re-testar e validar a ferramenta', s:'Garantir que os ajustes foram aplicados corretamente'},
       {grp:'Teste da ferramenta', n:'Rodar um teste-piloto com Arco Norte (~30 min)', s:'Caso já estudado — usar para criticar a ferramenta', tags:['opcional']},
@@ -369,7 +369,7 @@ const projects=[
       {n:'Ler o infopack (cabotagem Brasil apenas)', s:'Material enviado — entender escopo e oportunidade'},
       {n:'Levantar quais documentos adicionais são necessários', s:'Listar o que falta para montar o modelo'},
       {n:'Montar o modelo', s:'Construir a modelagem da operação de cabotagem'},
-      {n:'Manter alinhamento restrito (André e Diegues)', s:'Informação sensível — apenas André e Diegues estão a par; tratar com confidencialidade', tags:['confidencial']}
+      {n:'Manter alinhamento restrito (André e Diegues)', s:'Apenas André e Diegues estão a par do tema'}
     ]},
   { id:'marazul', code:'MA', name:'Norsul | Mar Azul', prio:'low',
     gStart:'2026-06-30', gEnd:'2026-07-03',

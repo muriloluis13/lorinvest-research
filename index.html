@@ -63,6 +63,7 @@
       color: var(--accent-1);
       border-bottom: 1px solid var(--line);
       box-shadow: 0 2px 10px rgba(35, 39, 42, 0.05);
+      transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
     .app-header::before {
@@ -117,34 +118,13 @@
     }
 
     .htitle {
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 700;
       color: var(--ink);
       letter-spacing: -0.2px;
     }
 
-    .hsub {
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
     .hspace { flex: 1; }
-
-    .conf {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--accent-danger);
-      border: 1px solid rgba(226, 58, 46, 0.4);
-      border-radius: 6px;
-      padding: 4px 9px;
-      background: rgba(226, 58, 46, 0.07);
-      white-space: nowrap;
-    }
 
     .chip {
       padding: 4px 10px;
@@ -905,6 +885,22 @@
     /* ===== Responsivo ===== */
 
     @media (max-width: 860px) {
+      /* Topbar mobile (inspirada no app de referência): só o botão ☰ à esquerda
+         e a logo da Lorinvest à direita — sem separador, sem título. Header sem
+         faixa própria: mesma cor do conteúdo, sem borda/sombra/gradiente, para
+         não haver divisão visível entre a topbar e o restante da página. */
+      .app-header {
+        background: var(--bg-main);
+        border-bottom: none;
+        box-shadow: none;
+      }
+      .app-header::before { display: none; }
+      .app-header .hsep,
+      .app-header .hbrand,
+      .app-header .hspace { display: none; }
+      .app-header .logo { margin-left: auto; }
+      .app-header .logo img { height: 24px; }
+
       .sidebar {
         position: fixed;
         left: 0;
@@ -924,6 +920,22 @@
         overflow: hidden;
         border-right: none;
         box-shadow: none;
+      }
+
+      /* Ao rolar para baixo a topbar some e sobra apenas o botão ☰ flutuando.
+         O header vira transparente e deixa os toques passarem para o conteúdo;
+         só o próprio botão volta a receber cliques. */
+      body.chrome-min .app-header {
+        background: transparent;
+        border-bottom-color: transparent;
+        box-shadow: none;
+        pointer-events: none;
+      }
+      body.chrome-min .app-header::before { opacity: 0; }
+      body.chrome-min .hwrap > :not(#navToggle) { display: none; }
+      body.chrome-min #navToggle {
+        pointer-events: auto;
+        box-shadow: 0 2px 10px rgba(19, 32, 46, 0.18);
       }
     }
 
@@ -1000,13 +1012,16 @@
 
     /* ===== Abas da empresa ===== */
     .emp-tabs {
-      display: flex; gap: 2px; flex-wrap: wrap;
+      display: flex; gap: 2px; flex-wrap: nowrap;
       border-bottom: 2px solid var(--line); margin: 16px 0 0;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
+    .emp-tabs::-webkit-scrollbar { display: none; }
     .emp-tab {
       background: none; border: none; font-size: 12.5px; font-weight: 600; color: var(--muted);
       padding: 9px 12px; border-bottom: 2.5px solid transparent; margin-bottom: -2px; white-space: nowrap;
-      transition: color 0.15s;
+      transition: color 0.15s; flex: 0 0 auto;
     }
     .emp-tab:hover { color: var(--accent-1); }
     .emp-tab.active { color: var(--accent-1); border-bottom-color: var(--accent-danger); }
@@ -1075,7 +1090,6 @@
     @media (max-width: 700px) {
       .toolbar { flex-direction: column; align-items: flex-start; }
       .grid-3, .row-3 { grid-template-columns: minmax(0, 1fr); }
-      .hsub { display: none; }
       /* O flex-wrap sozinho não empilha: .emp-head-main tem flex:1/min-width:0 e
          encolhe até sumir em vez de quebrar linha, enquanto o side segura 210px.
          Forçar a coluna é o que faz esta regra de borda abaixo valer de fato. */
@@ -1264,10 +1278,8 @@
       <span class="hsep"></span>
       <div class="hbrand">
         <div class="htitle">Painel da Área de Research</div>
-        <div class="hsub">Fundo de Private Equity · Comitê &amp; Conselhos</div>
       </div>
       <div class="hspace"></div>
-      <span class="conf">CONFIDENCIAL · USO INTERNO LORINVEST</span>
     </div>
   </header>
 
@@ -1312,8 +1324,9 @@
             .org-legend .sw{width:13px;height:13px;border-radius:3px;display:inline-block}
             .org-legend .dotk{width:9px;height:9px;border-radius:50%;background:#F2C200;border:1px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.12);display:inline-block}
             .org-scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:74vh}
-            .ov-tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:2px solid var(--line);margin:2px 0 16px}
-            .ov-tab{background:none;border:none;font-size:13px;font-weight:600;color:var(--muted);padding:9px 14px;border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;cursor:pointer;transition:color .15s}
+            .ov-tabs{display:flex;gap:2px;flex-wrap:nowrap;border-bottom:2px solid var(--line);margin:2px 0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+            .ov-tabs::-webkit-scrollbar{display:none}
+            .ov-tab{background:none;border:none;font-size:13px;font-weight:600;color:var(--muted);padding:9px 14px;border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;cursor:pointer;transition:color .15s;flex:0 0 auto}
             .ov-tab:hover{color:var(--accent-1)}
             .ov-tab.active{color:var(--accent-1);border-bottom-color:var(--accent-danger)}
             .ov-panel{display:none}
@@ -1387,16 +1400,16 @@
             <div class="pan-grid">
 
               <article class="pan-card" data-company="Akron" role="button" tabindex="0" aria-label="Abrir Akron na aba Empresas">
-                <div class="pan-media pan-todo"><svg aria-hidden="true"><use href="#ic-akron"/></svg></div>
+                <div class="pan-media"><img src="logos/paineis/akron-painel.webp" alt="Painel Akron" loading="lazy"></div>
                 <div class="pan-head">
-                  <span class="pan-logo"><svg aria-hidden="true"><use href="#ic-akron"/></svg></span>
-                  <div><div class="pan-name">Akron</div><div class="pan-flags"><span class="pan-flag">Logo e painel pendentes</span><span class="pan-flag pan-ex">Números de exemplo</span></div></div>
+                  <span class="pan-logo"><img src="logos/akron-logo.avif" alt="Logo Akron" loading="lazy"></span>
+                  <div class="pan-name">Akron</div>
                 </div>
                 <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>12.400,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>14.050,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>20.410,0</dd></div>
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd>Pendente</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>Pendente</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>Pendente</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>Pendente</dd></div>
                 </dl>
               </article>
 
@@ -1428,11 +1441,11 @@
                 </dl>
               </article>
 
-              <article class="pan-card" data-company="Eldry" role="button" tabindex="0" aria-label="Abrir Eldry na aba Empresas">
-                <div class="pan-media pan-todo"><svg aria-hidden="true"><use href="#ic-eldry"/></svg></div>
+              <article class="pan-card" data-company="Valsa" role="button" tabindex="0" aria-label="Abrir Valsa na aba Empresas">
+                <div class="pan-media"><img src="logos/paineis/valsa-painel.webp" alt="Painel Valsa" loading="lazy"></div>
                 <div class="pan-head">
-                  <span class="pan-logo"><svg aria-hidden="true"><use href="#ic-eldry"/></svg></span>
-                  <div><div class="pan-name">Eldry</div><div class="pan-flags"><span class="pan-flag">Logo e painel pendentes</span></div></div>
+                  <span class="pan-logo"><img src="logos/valsa-logo.svg" alt="Logo Valsa" loading="lazy"></span>
+                  <div class="pan-name">Valsa</div>
                 </div>
                 <dl class="pan-metrics">
                   <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">92,0%</dd></div>
@@ -1443,7 +1456,7 @@
               </article>
 
               <article class="pan-card" data-company="GBS Storage" role="button" tabindex="0" aria-label="Abrir GBS Storage na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/GBS%20painel.jpg" alt="Painel GBS Storage" loading="lazy"></div>
+                <div class="pan-media"><img src="logos/paineis/gbs-painel.jpg" alt="Painel GBS Storage" loading="lazy"></div>
                 <div class="pan-head">
                   <span class="pan-logo"><img src="logos/gbs-logo.jpg" alt="Logo GBS Storage" loading="lazy"></span>
                   <div class="pan-name">GBS Storage</div>
@@ -1485,16 +1498,16 @@
               </article>
 
               <article class="pan-card" data-company="Norcoast" role="button" tabindex="0" aria-label="Abrir Norcoast na aba Empresas">
-                <div class="pan-media pan-todo"><svg aria-hidden="true"><use href="#ic-norcoast"/></svg></div>
+                <div class="pan-media"><img src="logos/paineis/norcoast-painel.webp" alt="Painel Norcoast" loading="lazy"></div>
                 <div class="pan-head">
-                  <span class="pan-logo"><svg aria-hidden="true"><use href="#ic-norcoast"/></svg></span>
-                  <div><div class="pan-name">Norcoast</div><div class="pan-flags"><span class="pan-flag">Logo e painel pendentes</span><span class="pan-flag pan-ex">Números de exemplo</span></div></div>
+                  <span class="pan-logo"><img src="logos/norcoast-logo.png" alt="Logo Norcoast" loading="lazy"></span>
+                  <div class="pan-name">Norcoast</div>
                 </div>
                 <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">40,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>22.800,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>25.840,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>37.530,0</dd></div>
+                  <div class="pan-row"><dt>% Lorinvest</dt><dd>Pendente</dd></div>
+                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>Pendente</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA</dt><dd>Pendente</dd></div>
+                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>Pendente</dd></div>
                 </dl>
               </article>
 
@@ -1528,7 +1541,7 @@
               </article>
 
               <article class="pan-card" data-company="Sileto" role="button" tabindex="0" aria-label="Abrir Sileto na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Sileto%20painel.jpg" alt="Painel Sileto" loading="lazy"></div>
+                <div class="pan-media"><img src="logos/paineis/Sileto%20painel.png" alt="Painel Sileto" loading="lazy"></div>
                 <div class="pan-head">
                   <span class="pan-logo"><img src="logos/Sileto-logo.PNG" alt="Logo Sileto" loading="lazy"></span>
                   <div class="pan-name">Sileto</div>
@@ -1718,7 +1731,7 @@
               btn.textContent=on?'▸ Ver organograma completo':'▾ Ver só fundos';
             });
             var ovTabs=document.querySelectorAll('[data-ov]'), ovPanels=document.querySelectorAll('.ov-panel');
-            ovTabs.forEach(function(tb){ tb.addEventListener('click',function(){ var k=tb.getAttribute('data-ov'); ovTabs.forEach(function(x){ x.classList.toggle('active',x===tb); }); ovPanels.forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-ovp')===k); }); }); });
+            ovTabs.forEach(function(tb){ tb.addEventListener('click',function(){ var k=tb.getAttribute('data-ov'); ovTabs.forEach(function(x){ x.classList.toggle('active',x===tb); }); ovPanels.forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-ovp')===k); }); var bar=tb.parentElement; if(bar){var b=bar.getBoundingClientRect(),t=tb.getBoundingClientRect(); bar.scrollBy({left:(t.left+t.width/2)-(b.left+b.width/2),behavior:'smooth'});} }); });
           })();
           </script>
         </section>
@@ -1819,7 +1832,7 @@
               <span class="company-sep">|</span>
               <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eldry"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Eldry</button>
+              <button class="company-pill" type="button" data-company="Valsa"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Valsa</button>
               <span class="company-sep">|</span>
               <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
               <span class="company-sep">|</span>
@@ -3293,7 +3306,7 @@
               <span class="company-sep">|</span>
               <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eldry"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Eldry</button>
+              <button class="company-pill" type="button" data-company="Valsa"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Valsa</button>
               <span class="company-sep">|</span>
               <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
               <span class="company-sep">|</span>
@@ -3394,7 +3407,7 @@
               <span class="company-sep">|</span>
               <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
               <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eldry"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Eldry</button>
+              <button class="company-pill" type="button" data-company="Valsa"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Valsa</button>
               <span class="company-sep">|</span>
               <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
               <span class="company-sep">|</span>
@@ -3508,6 +3521,41 @@
       const navToggle = document.getElementById("navToggle");
       if (navToggle) navToggle.addEventListener("click", function(){ document.body.classList.toggle("snav-collapsed"); });
 
+      // No mobile: esconde a topbar ao rolar para baixo (fica só o botão ☰) e
+      // a traz de volta ao rolar para cima ou ao voltar ao topo.
+      (function(){
+        const mq = window.matchMedia("(max-width: 860px)");
+        const TOP = 12, DELTA = 6;
+        let lastY = window.scrollY, ticking = false;
+        function update(){
+          ticking = false;
+          if (!mq.matches) { document.body.classList.remove("chrome-min"); lastY = window.scrollY; return; }
+          const y = window.scrollY;
+          if (y <= TOP) {
+            document.body.classList.remove("chrome-min");
+          } else if (y > lastY + DELTA) {
+            document.body.classList.add("chrome-min");     // rolando para baixo
+          } else if (y < lastY - DELTA) {
+            document.body.classList.remove("chrome-min");  // rolando para cima
+          }
+          lastY = y;
+        }
+        window.addEventListener("scroll", function(){
+          if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
+        }, { passive: true });
+        mq.addEventListener("change", update);
+      })();
+
+      // Rola a faixa de sub-abas para centralizar a aba clicada (só o container,
+      // sem mexer no scroll vertical da página). Usado nas abas da Empresa e da
+      // Visão Geral, que agora rolam na horizontal sem barra visível.
+      function centerTab(tab){
+        const bar = tab.parentElement;
+        if (!bar) return;
+        const b = bar.getBoundingClientRect(), t = tab.getBoundingClientRect();
+        bar.scrollBy({ left: (t.left + t.width / 2) - (b.left + b.width / 2), behavior: "smooth" });
+      }
+
       // Abas internas (empresa) na seção Empresas
       const empTabs = document.querySelectorAll("[data-emp-target]");
       const empPanels = document.querySelectorAll(".emp-panel");
@@ -3516,6 +3564,7 @@
           const key = this.getAttribute("data-emp-target");
           empTabs.forEach(function(x){ x.classList.toggle("active", x === tab); });
           empPanels.forEach(function(p){ p.classList.toggle("active", p.getAttribute("data-emp") === key); });
+          centerTab(this);
         });
       });
 
