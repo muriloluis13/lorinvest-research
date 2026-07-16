@@ -2951,8 +2951,19 @@
               .rmp-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
               .rmp-cap{text-align:center;font-size:9px;font-weight:800;color:var(--accent-1);margin-bottom:3px}
               .rmp-stack{display:flex;flex-direction:column-reverse;width:100%;border-radius:4px 4px 0 0;overflow:hidden}
-              .rmp-seg{flex-basis:0;min-height:0;width:100%}
+              .rmp-seg{flex-basis:0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;font-style:normal;font-size:8.5px;font-weight:700;color:#fff;white-space:nowrap;line-height:1}
               .rmp-seg.bb{background:#6B8299}.rmp-seg.ita{background:#C55A17}.rmp-seg.assu{background:#2E7D4F}
+              /* linha de % de ocupação (eixo secundário) */
+              .dm-wrap{display:flex;gap:6px;align-items:flex-start}
+              .dm-plot{flex:1;position:relative;min-width:0}
+              .dm-axis{width:30px;height:190px;position:relative;flex:none}
+              .dm-axis span{position:absolute;right:0;transform:translateY(-50%);font-size:9px;font-weight:700;color:#13202E;white-space:nowrap}
+              .dm-axis span::before{content:"";position:absolute;right:100%;top:50%;width:5px;border-top:1px solid #c7d0da;margin-right:2px}
+              .dm-axis .cap-t{color:var(--muted);font-weight:600}
+              .rmp-line{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:3}
+              .rmp-line svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+              .rmp-pt{position:absolute;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:#fff;border:2px solid #13202E}
+              .rmp-pt b{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);font-size:8.5px;font-weight:800;color:#13202E;background:#fff;padding:0 3px;border-radius:3px;box-shadow:0 0 0 1px rgba(19,32,46,.08)}
               .rmp-x{display:flex;gap:6px;margin-top:5px}
               .rmp-x span{flex:1;text-align:center;font-size:9px;color:var(--muted);min-width:0}
               .rmp-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:11px 0 2px;font-size:11.5px;color:var(--muted)}
@@ -3226,26 +3237,47 @@
                 <span class="tag">m³/dia · topo = total (mil)</span>
               </div>
               <div class="card-body">
-                <div class="rmp-plot">
-                  <div class="rmp-col"><span class="rmp-cap">34</span><div class="rmp-stack" style="height:17.4%"><i class="rmp-seg ita" style="flex-grow:14625"></i><i class="rmp-seg assu" style="flex-grow:19740"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">61</span><div class="rmp-stack" style="height:31.0%"><i class="rmp-seg bb" style="flex-grow:34300"></i><i class="rmp-seg ita" style="flex-grow:14625"></i><i class="rmp-seg assu" style="flex-grow:12247"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">92</span><div class="rmp-stack" style="height:46.4%"><i class="rmp-seg bb" style="flex-grow:32000"></i><i class="rmp-seg ita" style="flex-grow:33625"></i><i class="rmp-seg assu" style="flex-grow:26000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">97</span><div class="rmp-stack" style="height:48.9%"><i class="rmp-seg bb" style="flex-grow:32000"></i><i class="rmp-seg ita" style="flex-grow:33625"></i><i class="rmp-seg assu" style="flex-grow:31000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">115</span><div class="rmp-stack" style="height:58.0%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:33625"></i><i class="rmp-seg assu" style="flex-grow:38000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">130</span><div class="rmp-stack" style="height:65.6%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:46625"></i><i class="rmp-seg assu" style="flex-grow:40000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">131</span><div class="rmp-stack" style="height:66.1%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:46625"></i><i class="rmp-seg assu" style="flex-grow:41000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">168</span><div class="rmp-stack" style="height:84.9%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:56625"></i><i class="rmp-seg assu" style="flex-grow:68000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">174</span><div class="rmp-stack" style="height:87.9%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:56625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:59625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:59625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">180</span><div class="rmp-stack" style="height:91.0%"><i class="rmp-seg bb" style="flex-grow:43000"></i><i class="rmp-seg ita" style="flex-grow:62625"></i><i class="rmp-seg assu" style="flex-grow:74000"></i></div></div>
+                <div class="dm-wrap">
+                  <div class="dm-plot">
+                    <div class="rmp-plot">
+                      <div class="rmp-col"><span class="rmp-cap">34</span><div class="rmp-stack" style="height:17.4%"><i class="rmp-seg ita" style="flex-grow:14625">14.625</i><i class="rmp-seg assu" style="flex-grow:19740">19.740</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">61</span><div class="rmp-stack" style="height:31.0%"><i class="rmp-seg bb" style="flex-grow:34300">34.300</i><i class="rmp-seg ita" style="flex-grow:14625">14.625</i><i class="rmp-seg assu" style="flex-grow:12247">12.247</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">92</span><div class="rmp-stack" style="height:46.4%"><i class="rmp-seg bb" style="flex-grow:32000">32.000</i><i class="rmp-seg ita" style="flex-grow:33625">33.625</i><i class="rmp-seg assu" style="flex-grow:26000">26.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">97</span><div class="rmp-stack" style="height:48.9%"><i class="rmp-seg bb" style="flex-grow:32000">32.000</i><i class="rmp-seg ita" style="flex-grow:33625">33.625</i><i class="rmp-seg assu" style="flex-grow:31000">31.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">115</span><div class="rmp-stack" style="height:58.0%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:33625">33.625</i><i class="rmp-seg assu" style="flex-grow:38000">38.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">130</span><div class="rmp-stack" style="height:65.6%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:46625">46.625</i><i class="rmp-seg assu" style="flex-grow:40000">40.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">131</span><div class="rmp-stack" style="height:66.1%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:46625">46.625</i><i class="rmp-seg assu" style="flex-grow:41000">41.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">168</span><div class="rmp-stack" style="height:84.9%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:56625">56.625</i><i class="rmp-seg assu" style="flex-grow:68000">68.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">174</span><div class="rmp-stack" style="height:87.9%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:56625">56.625</i><i class="rmp-seg assu" style="flex-grow:74000">74.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:59625">59.625</i><i class="rmp-seg assu" style="flex-grow:74000">74.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:59625">59.625</i><i class="rmp-seg assu" style="flex-grow:74000">74.000</i></div></div>
+                      <div class="rmp-col"><span class="rmp-cap">180</span><div class="rmp-stack" style="height:91.0%"><i class="rmp-seg bb" style="flex-grow:43000">43.000</i><i class="rmp-seg ita" style="flex-grow:62625">62.625</i><i class="rmp-seg assu" style="flex-grow:74000">74.000</i></div></div>
+                      <div class="rmp-line">
+                        <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="4.17,62.42 12.5,65.11 20.83,47.21 29.17,44.53 37.5,48.11 45.83,40.95 54.17,40.95 62.5,23.95 70.83,21.26 79.17,20.37 87.5,20.37 95.83,18.58" fill="none" stroke="#13202E" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+                        <span class="rmp-pt" style="left:4.17%;top:62.42%"><b>42%</b></span>
+                        <span class="rmp-pt" style="left:12.5%;top:65.11%"><b>39%</b></span>
+                        <span class="rmp-pt" style="left:20.83%;top:47.21%"><b>59%</b></span>
+                        <span class="rmp-pt" style="left:29.17%;top:44.53%"><b>62%</b></span>
+                        <span class="rmp-pt" style="left:37.5%;top:48.11%"><b>58%</b></span>
+                        <span class="rmp-pt" style="left:45.83%;top:40.95%"><b>66%</b></span>
+                        <span class="rmp-pt" style="left:54.17%;top:40.95%"><b>66%</b></span>
+                        <span class="rmp-pt" style="left:62.5%;top:23.95%"><b>85%</b></span>
+                        <span class="rmp-pt" style="left:70.83%;top:21.26%"><b>88%</b></span>
+                        <span class="rmp-pt" style="left:79.17%;top:20.37%"><b>89%</b></span>
+                        <span class="rmp-pt" style="left:87.5%;top:20.37%"><b>89%</b></span>
+                        <span class="rmp-pt" style="left:95.83%;top:18.58%"><b>91%</b></span>
+                      </div>
+                    </div>
+                    <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
+                  </div>
+                  <div class="dm-axis"><span style="top:10.5%">100%</span><span style="top:55.3%">50%</span><span style="top:100%">0%</span></div>
                 </div>
-                <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
                 <div class="rmp-legend">
                   <span><i style="background:#6B8299"></i>Barra Bonita (PR)</span>
                   <span><i style="background:#C55A17"></i>Itabuna (BA)</span>
                   <span><i style="background:#2E7D4F"></i>Assú (RN)</span>
-                  <span style="margin-left:auto">Escala: 197.500 m³/dia (capacidade plena)</span>
+                  <span><i style="background:#13202E;border-radius:50%"></i>% ocupação (eixo dir.)</span>
+                  <span style="margin-left:auto">Barras: m³/dia · escala 197.500 (capacidade plena)</span>
                 </div>
 
                 <div class="table-scroll" style="margin-top:14px">
