@@ -8,6 +8,7 @@ __pycache__/
 # Confidential deal documents (do not commit)
 *.pdf
 *.xlsx
+*.pptx
 gnlink/bbog-model/*.pdf
 gnlink/bbog-model/*.xlsx
 
