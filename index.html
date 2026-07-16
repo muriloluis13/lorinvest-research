@@ -3301,54 +3301,73 @@
           </div>
           </div>
           <div class="emp-panel" data-emp="financeiro">
-          <div class="row-2">
+            <!-- ===== DRE Orçamento 2026 por planta vs. BP Copa (CI GNLink Dez/25 — slide 8) ===== -->
+            <style>
+              .dre-tbl td, .dre-tbl th{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+              .dre-tbl td:first-child, .dre-tbl th:first-child{text-align:left;white-space:normal}
+              .dre-tbl th.c-con{background:#3D4A5C;color:#fff}
+              .dre-tbl th.c-bp{background:#C55A17;color:#fff}
+              .dre-tbl td.c-con{background:#EAF0F6;font-weight:800;color:var(--ink)}
+              .dre-tbl td.c-bp{background:#FBEEE4;font-weight:800;color:#C55A17}
+              .dre-tbl tr.grp td:first-child{font-weight:700;color:var(--ink)}
+              .dre-tbl tr.sub td{font-style:italic;color:var(--muted);border-top:none}
+              .dre-tbl tr.sub td.c-con{color:#55677C;background:#EFF3F8}
+              .dre-tbl tr.sub td.c-bp{color:#D6763A;background:#FDF4EC}
+              .dre-tbl td.neg{color:var(--accent-danger)}
+              .dre-tbl td.c-con.neg{color:var(--accent-danger)}
+              .dre-obs{columns:2;column-gap:26px;margin:12px 0 0;padding:0;list-style:none;font-size:11.5px;color:var(--muted)}
+              .dre-obs li{break-inside:avoid;margin:0 0 5px;padding-left:12px;position:relative;line-height:1.4}
+              .dre-obs li::before{content:"•";position:absolute;left:0;color:var(--accent-3);font-weight:700}
+              @media(max-width:720px){.dre-obs{columns:1}}
+            </style>
+            <div class="row-full">
             <div class="card">
               <div class="card-header">
-                <div class="card-title">Financials Resumidos (LTM)</div>
-              </div>
-              <div class="card-body">
-                <div class="kpi-grid">
-                  <div class="kpi-tile k-slate"><div class="k">Receita Líquida</div><div class="v">R$ 980,0 mi</div><div class="s">últimos 12 meses</div></div>
-                  <div class="kpi-tile k-teal"><div class="k">EBITDA</div><div class="v">R$ 617,0 mi</div><div class="s">margem de 63,0%</div></div>
-                  <div class="kpi-tile k-sage"><div class="k">Lucro Líquido</div><div class="v">R$ 260,0 mi</div><div class="s">margem líq. de 26,5%</div></div>
-                  <div class="kpi-tile k-stone"><div class="k">FCFF</div><div class="v">R$ 480,0 mi</div><div class="s">caixa livre à firma</div></div>
-                  <div class="kpi-tile k-teal"><div class="k">FCFE</div><div class="v">R$ 410,0 mi</div><div class="s">caixa livre ao acionista</div></div>
-                  <div class="kpi-tile k-red"><div class="k">Dívida Líq./EBITDA</div><div class="v">2,3x</div><div class="s">dívida líquida R$ 1,42 bi</div></div>
-                </div>
-                <p class="card-note">
-                  ➜ Essa caixa funciona como “painel financeiro rápido” para Conselhos e Comitê de Investimentos.
-                </p>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Premissas BP – Companhia vs Research</div>
+                <div class="card-title">DRE — Orçamento 2026 por planta vs. Business Plan Copa</div>
+                <span class="tag">R$ milhões</span>
               </div>
               <div class="card-body">
                 <div class="table-scroll">
-                <table class="placeholder-table">
-                  <thead>
-                    <tr>
-                      <th>Variável 2026</th>
-                      <th>BP Companhia</th>
-                      <th>Research</th>
-                      <th>Δ%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Volume médio (MMm³/dia)</td><td>9,0</td><td>8,2</td><td>-8,9%</td></tr>
-                    <tr><td>Tarifa média (R$/MMm³)</td><td>1,35</td><td>1,32</td><td>-2,2%</td></tr>
-                    <tr><td>Margem EBITDA</td><td>68%</td><td>64%</td><td>-4 p.p.</td></tr>
-                    <tr><td>Capex 2025–2028 (R$ mi)</td><td>980</td><td>1.050</td><td>+7,1%</td></tr>
-                  </tbody>
-                </table>
+                  <table class="placeholder-table dre-tbl">
+                    <thead>
+                      <tr>
+                        <th>R$ milhões</th><th>PR</th><th>BA</th><th>RN</th><th class="c-con">Consolidado</th><th class="c-bp">BP Copa¹</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="grp"><td>Capacidade Real <small style="color:var(--muted)">(m³/dia)</small></td><td>53.980</td><td>85.427</td><td>87.088</td><td class="c-con">226.495</td><td class="c-bp">270.708</td></tr>
+                      <tr class="grp"><td>Volume GNL + GNC <small style="color:var(--muted)">(m³/dia)</small></td><td>50.872</td><td>43.208</td><td>49.666</td><td class="c-con">143.746</td><td class="c-bp">270.708</td></tr>
+                      <tr class="grp"><td>% de Utilização</td><td>94,2%</td><td>50,6%</td><td>57,0%</td><td class="c-con">63,5%</td><td class="c-bp">100,0%</td></tr>
+                      <tr class="grp"><td>Receita Líquida</td><td>63,0</td><td>63,5</td><td>58,9</td><td class="c-con">185,4</td><td class="c-bp">376,3</td></tr>
+                      <tr class="grp"><td>Resultado Operacional</td><td>7,6</td><td>6,8</td><td>7,0</td><td class="c-con">21,4</td><td class="c-bp">114,8</td></tr>
+                      <tr class="sub"><td>Margem Operacional</td><td>12,1%</td><td>10,7%</td><td>11,9%</td><td class="c-con">11,5%</td><td class="c-bp">30,5%</td></tr>
+                      <tr class="grp"><td>EBITDA</td><td>—</td><td>—</td><td>—</td><td class="c-con neg">-5,5</td><td class="c-bp">89,8</td></tr>
+                      <tr class="sub"><td>Margem EBITDA</td><td>—</td><td>—</td><td>—</td><td class="c-con">-3,0%</td><td class="c-bp">23,9%</td></tr>
+                      <tr class="grp"><td>Lucro Líquido</td><td>—</td><td>—</td><td>—</td><td class="c-con neg">-55,3</td><td class="c-bp">15,8</td></tr>
+                      <tr class="sub"><td>Margem Líquida</td><td>—</td><td>—</td><td>—</td><td class="c-con">-29,8%</td><td class="c-bp">4,2%</td></tr>
+                      <tr class="grp"><td>Saldo Final de Caixa Livre³</td><td>—</td><td>—</td><td>—</td><td class="c-con neg">-29,3</td><td class="c-bp">—</td></tr>
+                    </tbody>
+                  </table>
                 </div>
-                <p class="card-note">
-                  ➜ Destaque automático das 3 maiores divergências de premissas para discussão em Comitê/Conselho.
+                <ul class="dre-obs">
+                  <li>Ramp-up: 91% da capacidade real das 3 plantas em dez/26.</li>
+                  <li>Preço médio inferior, conforme plano.</li>
+                  <li>Manutenção e reajuste dos contratos atuais (Tradener, Bahiagás e PetroRecôncavo).</li>
+                  <li>BA: compra de volume adicional no mercado livre para reduzir o custo médio da molécula.</li>
+                  <li>Energia elétrica do mercado livre no PR e BA.</li>
+                  <li>RN: geradores a gás (sem disponibilidade de energia da rede local).</li>
+                  <li>Diluição de custos fixos com o aumento do volume.</li>
+                  <li>Realocação de custos de veículos e viagens da matriz para as plantas.</li>
+                  <li>Maior depreciação pela ativação da planta do RN.</li>
+                </ul>
+                <p class="card-note" style="margin-top:10px">
+                  <b>BP Copa¹:</b> Business Plan da transação de M&amp;A considerando 3 plantas (ao invés de 4). &nbsp;
+                  <b>³</b> Saldo de caixa livre considera o fundo de liquidez do BNB (retido): 3% do desembolsado na BA e 5% no RN.<br>
+                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 8). A coluna de BP com capacidades ajustadas ao orçamento foi omitida, conforme solicitado.
                 </p>
               </div>
             </div>
-          </div>
+            </div>
           <div class="row-full">
             <div class="card">
               <div class="card-header"><div class="card-title">Análises</div></div>
