@@ -2791,6 +2791,108 @@
               </div>
             </div>
 
+            <!-- ===== Timeline dos 3 projetos de liquefação (CI GNLink Dez/25 — slide 2) ===== -->
+            <style>
+              .gtl-wrap{margin:22px 0 4px}
+              .gtl-sub{font-size:12.5px;color:var(--muted);margin:2px 0 10px}
+              .gtl-sub b{color:var(--accent-3);font-weight:700}
+              .gtl-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 12px;font-size:11.5px;color:var(--muted)}
+              .gtl-legend span{display:inline-flex;align-items:center;gap:6px}
+              .gtl-sw{width:16px;height:12px;border-radius:3px;display:inline-block;flex:none}
+              .gtl-sw.lic{background:#6B8299}
+              .gtl-sw.obr{background:#2E7D4F}
+              .gtl-sw.aut{background:#C55A17}
+              .gtl-sw.agu{background:repeating-linear-gradient(45deg,#e7edf4,#e7edf4 3px,#cdd8e5 3px,#cdd8e5 6px);border:1px dashed #9db0c4}
+              .gtl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--bg-card)}
+              .gtl-grid{display:grid;grid-template-columns:120px repeat(34,minmax(26px,1fr));min-width:960px}
+              .gtl-yr{grid-row:1;font-size:11px;font-weight:700;color:var(--accent-1);text-align:center;padding:8px 0 3px;border-left:1px solid var(--line)}
+              .gtl-mh{grid-row:2;font-size:9px;color:var(--muted);text-align:center;padding:2px 0 7px;border-left:1px solid #eef2f7}
+              .gtl-band{grid-column:1/-1;border-top:1px solid var(--line);min-height:54px}
+              .gtl-lbl{grid-column:1;align-self:center;justify-self:start;padding:0 12px;font-weight:700;font-size:13px;color:var(--ink);z-index:2}
+              .gtl-lbl small{display:block;font-weight:500;font-size:10px;color:var(--muted)}
+              .gtl-bar{align-self:center;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:visible;z-index:2;box-shadow:0 1px 2px rgba(19,32,46,.12)}
+              .gtl-bar.lic{background:#6B8299}
+              .gtl-bar.obr{background:#2E7D4F}
+              .gtl-bar.aut{background:#C55A17}
+              .gtl-bar.agu{background:repeating-linear-gradient(45deg,#e7edf4,#e7edf4 3px,#cdd8e5 3px,#cdd8e5 6px);border:1px dashed #9db0c4;color:var(--muted);box-shadow:none}
+              .gtl-bar.aguao{background:repeating-linear-gradient(45deg,#fbeee4,#fbeee4 3px,#f3d6c4 3px,#f3d6c4 6px);border:1px dashed #e0a99a;border-left:3px solid var(--accent-danger);color:var(--accent-danger)}
+              .gtl-total{align-self:center;justify-self:start;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap;z-index:2;margin-left:6px}
+              .gtl-total.ok{color:#2E7D4F;background:#EAF3EC;border:1px solid rgba(46,125,79,.4)}
+              .gtl-total.over{color:#C55A17;background:#FBEEE4;border:1px solid rgba(197,90,23,.45)}
+              .gtl-abbr{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
+              .gtl-abbr b{color:var(--accent-1)}
+              .gtl-foot{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+            </style>
+            <div class="section-title" style="margin: 26px 0 4px;">Timeline dos 3 projetos de liquefação</div>
+            <div class="gtl-wrap">
+              <p class="gtl-sub">Prazo entre a Licença Prévia e a Autorização de Operação (AO) da ANP. <b>Target original de 18 meses por projeto.</b> PR e BA concluídos abaixo do alvo; RN acima, por conta de esperas no licenciamento e na autorização final.</p>
+              <div class="gtl-legend">
+                <span><i class="gtl-sw lic"></i>Licenciamento (LP · LI · LO)</span>
+                <span><i class="gtl-sw obr"></i>Obra física (Terraplanagem · Obra)</span>
+                <span><i class="gtl-sw aut"></i>Autorização de operação (ATO · AO)</span>
+                <span><i class="gtl-sw agu"></i>Aguardando</span>
+                <span style="color:var(--accent-danger);font-weight:700">⚑ BP — marco planejado / espera pela AO</span>
+              </div>
+              <div class="gtl-scroll">
+                <div class="gtl-grid">
+                  <!-- Cabeçalho: anos -->
+                  <div class="gtl-yr" style="grid-column:2/span 6">2023</div>
+                  <div class="gtl-yr" style="grid-column:8/span 12">2024</div>
+                  <div class="gtl-yr" style="grid-column:20/span 12">2025</div>
+                  <div class="gtl-yr" style="grid-column:32/span 4">2026</div>
+                  <!-- Cabeçalho: meses -->
+                  <div class="gtl-mh" style="grid-column:2">Jul</div><div class="gtl-mh" style="grid-column:3">Ago</div><div class="gtl-mh" style="grid-column:4">Set</div><div class="gtl-mh" style="grid-column:5">Out</div><div class="gtl-mh" style="grid-column:6">Nov</div><div class="gtl-mh" style="grid-column:7">Dez</div>
+                  <div class="gtl-mh" style="grid-column:8">Jan</div><div class="gtl-mh" style="grid-column:9">Fev</div><div class="gtl-mh" style="grid-column:10">Mar</div><div class="gtl-mh" style="grid-column:11">Abr</div><div class="gtl-mh" style="grid-column:12">Mai</div><div class="gtl-mh" style="grid-column:13">Jun</div><div class="gtl-mh" style="grid-column:14">Jul</div><div class="gtl-mh" style="grid-column:15">Ago</div><div class="gtl-mh" style="grid-column:16">Set</div><div class="gtl-mh" style="grid-column:17">Out</div><div class="gtl-mh" style="grid-column:18">Nov</div><div class="gtl-mh" style="grid-column:19">Dez</div>
+                  <div class="gtl-mh" style="grid-column:20">Jan</div><div class="gtl-mh" style="grid-column:21">Fev</div><div class="gtl-mh" style="grid-column:22">Mar</div><div class="gtl-mh" style="grid-column:23">Abr</div><div class="gtl-mh" style="grid-column:24">Mai</div><div class="gtl-mh" style="grid-column:25">Jun</div><div class="gtl-mh" style="grid-column:26">Jul</div><div class="gtl-mh" style="grid-column:27">Ago</div><div class="gtl-mh" style="grid-column:28">Set</div><div class="gtl-mh" style="grid-column:29">Out</div><div class="gtl-mh" style="grid-column:30">Nov</div><div class="gtl-mh" style="grid-column:31">Dez</div>
+                  <div class="gtl-mh" style="grid-column:32">Jan</div><div class="gtl-mh" style="grid-column:33">Fev</div><div class="gtl-mh" style="grid-column:34">Mar</div><div class="gtl-mh" style="grid-column:35">Abr</div>
+
+                  <!-- Faixas de fundo -->
+                  <div class="gtl-band" style="grid-row:3"></div>
+                  <div class="gtl-band" style="grid-row:4"></div>
+                  <div class="gtl-band" style="grid-row:5"></div>
+
+                  <!-- PR — Paraná -->
+                  <div class="gtl-lbl" style="grid-row:3">PR<small>Paraná</small></div>
+                  <div class="gtl-bar lic" style="grid-row:3;grid-column:3/span 2" title="Licença Prévia">LP</div>
+                  <div class="gtl-bar obr" style="grid-row:3;grid-column:5/span 1" title="Terraplanagem">Terr.</div>
+                  <div class="gtl-bar lic" style="grid-row:3;grid-column:6/span 1" title="Licença de Instalação">LI</div>
+                  <div class="gtl-bar obr" style="grid-row:3;grid-column:7/span 9" title="Obra e montagem">Obra</div>
+                  <div class="gtl-bar lic" style="grid-row:3;grid-column:16/span 1" title="Licença de Operação">LO</div>
+                  <div class="gtl-bar aguao" style="grid-row:3;grid-column:17/span 2" title="Espera pela Autorização de Operação (BP)">⚑ 2,4 m</div>
+                  <div class="gtl-bar aut" style="grid-row:3;grid-column:19/span 1" title="Autorização de Operação (ANP)">AO</div>
+                  <div class="gtl-total ok" style="grid-row:3;grid-column:20/span 5">14,6 m · alvo 18</div>
+
+                  <!-- BA — Bahia -->
+                  <div class="gtl-lbl" style="grid-row:4">BA<small>Bahia</small></div>
+                  <div class="gtl-bar lic" style="grid-row:4;grid-column:9/span 2" title="Licença Prévia">LP</div>
+                  <div class="gtl-bar obr" style="grid-row:4;grid-column:11/span 1" title="Terraplanagem">Terr.</div>
+                  <div class="gtl-bar lic" style="grid-row:4;grid-column:12/span 1" title="Licença de Instalação">LI</div>
+                  <div class="gtl-bar obr" style="grid-row:4;grid-column:13/span 7" title="Obra e montagem">Obra</div>
+                  <div class="gtl-bar lic" style="grid-row:4;grid-column:20/span 1" title="Licença de Operação">LO</div>
+                  <div class="gtl-bar aguao" style="grid-row:4;grid-column:21/span 5" title="Espera pela Autorização de Operação (BP)">⚑ 5,2 m</div>
+                  <div class="gtl-bar aut" style="grid-row:4;grid-column:26/span 1" title="Autorização de Operação (ANP)">AO</div>
+                  <div class="gtl-total ok" style="grid-row:4;grid-column:27/span 6">16,6 m · alvo 18</div>
+
+                  <!-- RN — Rio Grande do Norte -->
+                  <div class="gtl-lbl" style="grid-row:5">RN<small>R. G. do Norte</small></div>
+                  <div class="gtl-bar lic" style="grid-row:5;grid-column:12/span 2" title="Licença Prévia">LP</div>
+                  <div class="gtl-bar agu" style="grid-row:5;grid-column:14/span 1" title="Aguardando"></div>
+                  <div class="gtl-bar lic" style="grid-row:5;grid-column:15/span 1" title="Licença de Instalação">LI</div>
+                  <div class="gtl-bar agu" style="grid-row:5;grid-column:16/span 1" title="Aguardando"></div>
+                  <div class="gtl-bar obr" style="grid-row:5;grid-column:17/span 9" title="Obra e montagem">Obra</div>
+                  <div class="gtl-bar aut" style="grid-row:5;grid-column:26/span 2" title="Autorização Temporária de Operação">ATO</div>
+                  <div class="gtl-bar lic" style="grid-row:5;grid-column:28/span 1" title="Licença de Operação">LO</div>
+                  <div class="gtl-bar aguao" style="grid-row:5;grid-column:29/span 2" title="Espera pela Autorização de Operação (BP)">⚑ 4 m</div>
+                  <div class="gtl-bar aut" style="grid-row:5;grid-column:31/span 1" title="Autorização de Operação (ANP)">AO</div>
+                  <div class="gtl-total over" style="grid-row:5;grid-column:32/span 4">19,9 m · alvo 18</div>
+                </div>
+              </div>
+              <div class="gtl-abbr">
+                <span><b>LP</b> Licença Prévia</span><span><b>Terrap.</b> Terraplanagem</span><span><b>LI</b> Licença de Instalação</span><span><b>Obra</b> Obra e montagem</span><span><b>LO</b> Licença de Operação</span><span><b>ATO</b> Autorização Temporária de Operação</span><span><b>AO</b> Autorização de Operação (ANP)</span><span><b>BP</b> marco planejado</span>
+              </div>
+              <p class="gtl-foot">Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 2). O marco <b>⚑ (BP)</b> indica a data planejada de operação; a faixa hachurada em vermelho é a espera até a Autorização de Operação (AO) da ANP (2,4 m no PR, 5,2 m na BA e 4 m no RN). Durações totais e prazos conforme apresentado ao comitê.</p>
+            </div>
+
             <!-- ===== Novos negócios ===== -->
             <div class="section-title" style="margin: 24px 0 14px;">Novos negócios</div>
             <div class="row-2">
