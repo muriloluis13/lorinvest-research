@@ -986,7 +986,10 @@
     .emp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     .emp-head-side {
       display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
-      border-left: 1px solid var(--line); padding-left: 20px; min-width: 210px;
+      border-left: 1px solid var(--line); padding-left: 20px;
+      /* largura fixa para o bloco do analista (foto/nome/contato/travessão) ficar
+         sempre na mesma posição em todas as empresas, igual à GNLink */
+      width: 292px; flex-shrink: 0;
     }
     .emp-covered-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
     .emp-analyst { display: flex; align-items: center; gap: 10px; }
@@ -1100,6 +1103,79 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Empresas — conteúdo dinâmico das demais empresas (#empOther) ===== */
+    #empOther { display: none; }
+    #section-company.other-mode .emp-header,
+    #section-company.other-mode .emp-tabs,
+    #section-company.other-mode .emp-panel { display: none !important; }
+    #section-company.other-mode #empOther { display: block; }
+    /* o cabeçalho do #empOther reusa .emp-header (mapa/analista/tags) — re-exibe */
+    #section-company.other-mode #empOther .emp-header { display: flex !important; }
+
+    .e2-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft); padding: 18px 20px; margin-top: 4px;
+    }
+    .e2-breadcrumb { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .e2-title { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; margin-top: 4px; }
+    .e2-analyst { display: flex; align-items: center; gap: 10px; flex: none; }
+    .e2-analyst img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); background: var(--chip); }
+    .e2-analyst-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .e2-analyst-role { font-size: 11px; color: var(--muted); }
+
+    .e2-tabs {
+      display: flex; gap: 2px; flex-wrap: nowrap; border-bottom: 2px solid var(--line);
+      margin: 16px 0 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .e2-tabs::-webkit-scrollbar { display: none; }
+    .e2-tab {
+      background: none; border: none; font-size: 12.5px; font-weight: 600; color: var(--muted);
+      padding: 9px 12px; border-bottom: 2.5px solid transparent; margin-bottom: -2px;
+      white-space: nowrap; cursor: pointer; transition: color .15s; flex: 0 0 auto;
+    }
+    .e2-tab:hover { color: var(--accent-1); }
+    .e2-tab.active { color: var(--accent-1); border-bottom-color: var(--accent-danger); }
+    .e2-body { margin-top: 14px; }
+
+    .e2-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 16px 18px; margin-bottom: 14px; }
+    .e2-card h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin: 0 0 12px; }
+    .e2-updated { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+    .e2-updated b { color: var(--ink); }
+
+    .e2-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .e2-kpi { background: var(--bg-card-soft); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .e2-kpi .v { font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: -.4px; font-variant-numeric: tabular-nums; }
+    .e2-kpi .v.neg { color: var(--accent-danger); }
+    .e2-kpi .l { font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+
+    .e2-hold { display: grid; grid-template-columns: 170px 1fr; gap: 20px; align-items: center; }
+    .e2-donut { flex: none; }
+    .e2-legend { display: flex; flex-direction: column; gap: 8px; }
+    .e2-legend .r { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #33424F; }
+    .e2-legend .r i { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+    .e2-legend .r b { margin-left: auto; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+    .e2-gov { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; align-items: start; }
+    .e2-board .when { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
+    .e2-board ul { margin: 0; padding: 0; list-style: none; }
+    .e2-board li { position: relative; padding-left: 15px; margin-bottom: 6px; font-size: 12.8px; line-height: 1.45; color: #32414F; }
+    .e2-board li::before { content: ''; position: absolute; left: 2px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-1); }
+    .e2-info { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 12.5px; margin: 0; }
+    .e2-info dt { color: var(--muted); font-weight: 600; }
+    .e2-info dd { color: var(--ink); font-weight: 600; margin: 0; }
+
+    .e2-dev { text-align: center; padding: 44px 20px; }
+    .e2-dev .ic { font-size: 30px; line-height: 1; }
+    .e2-dev .t { font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 10px; }
+    .e2-dev .s { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+
+    @media (max-width: 700px) {
+      .e2-hold { grid-template-columns: 1fr; justify-items: center; }
+      .e2-header { flex-direction: column; }
     }
 
   </style>
@@ -1857,6 +1933,51 @@
             </div>
           </div>
 
+          <!-- Conteúdo dinâmico das demais empresas (Aportes/Governança nativos; demais sub-abas "Em desenvolvimento") -->
+          <div id="empOther">
+            <div class="emp-header">
+              <div class="emp-head-main">
+                <div class="emp-breadcrumb" id="e2Crumb"></div>
+                <div class="emp-title" id="e2Title">—</div>
+                <div class="emp-sub" id="e2Sub"></div>
+                <div class="emp-docs">
+                  <a class="emp-doclink" role="button"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="flex:none"><rect x="1" y="1" width="14" height="14" rx="2.5" fill="#185ABD"/><text x="8" y="11.7" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Arial, sans-serif">W</text></svg> Info Memo</a>
+                  <span class="emp-doc-sep"></span>
+                  <a class="emp-doclink" role="button"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="flex:none"><rect x="1" y="1" width="14" height="14" rx="2.5" fill="#C43E1C"/><text x="8" y="11.7" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Arial, sans-serif">P</text></svg> Teaser</a>
+                  <span class="emp-doc-sep"></span>
+                  <a class="emp-doclink" role="button"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="flex:none"><rect x="1" y="1" width="14" height="14" rx="2.5" fill="#107C41"/><text x="8" y="11.7" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Arial, sans-serif">X</text></svg> Modelo Financeiro</a>
+                  <span class="emp-doc-sep"></span>
+                  <a class="emp-doclink" role="button"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="flex:none"><rect x="1" y="1" width="14" height="14" rx="2.5" fill="#C43E1C"/><text x="8" y="11.7" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Arial, sans-serif">P</text></svg> BP aprovado 2025–2030</a>
+                </div>
+                <div class="emp-tags" id="e2Tags"></div>
+                <div class="emp-updated" style="margin-top: 10px;">Atualizado em 16/07/2026</div>
+              </div>
+              <div class="emp-head-side">
+                <div class="emp-covered-label">Coberto por</div>
+                <div class="emp-analyst">
+                  <img class="emp-avatar-img" id="e2AnPhoto" alt="" loading="lazy">
+                  <div>
+                    <div class="emp-analyst-name" id="e2AnName">—</div>
+                    <div class="emp-analyst-role" id="e2AnRole"></div>
+                  </div>
+                </div>
+                <div class="emp-contact">
+                  <a class="emp-contact-link" id="e2Email">✉ Email</a>
+                  <a class="emp-contact-link" id="e2Call">📞 Call</a>
+                  <details class="emp-menu">
+                    <summary class="emp-menu-btn" title="Mais">⋮</summary>
+                    <div class="emp-menu-pop">
+                      <a id="e2MenuEmail"></a>
+                      <a id="e2MenuCall"></a>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </div>
+            <nav class="e2-tabs" id="e2Tabs"></nav>
+            <div class="e2-body" id="e2Body"></div>
+          </div>
+
           <!-- Header GNLink -->
           <!-- Cabeçalho da empresa (estilo research header) -->
           <div class="emp-header">
@@ -2465,8 +2586,9 @@
     // image's own proportions, so any logo shape works)
     var logo = root.getAttribute("data-logo");
     if (logo) {
+      var logoScale = parseFloat(root.getAttribute("data-logo-scale")) || 1;
       h.push('<img class="board-logo" alt="" src="' + esc(logo) + '" style="left:' +
-        X(tableX + tableW / 2) + ';top:' + Y(tableY + tableH / 2) + ';width:' + X(tableW * LOGO_W) +
+        X(tableX + tableW / 2) + ';top:' + Y(tableY + tableH / 2) + ';width:' + X(tableW * LOGO_W * logoScale) +
         ';padding:' + C(LOGO_PAD) + ';transform:translate(-50%,-50%)">');
     }
 
@@ -3636,6 +3758,159 @@
         sel.appendChild(select);
       });
     })();
+  </script>
+  <script>
+  // ===== Aba Empresas: conteúdo por empresa (Aportes/Governança nativos das imagens) =====
+  (function(){
+    function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+    var PAL = ['#1F3B57','#2E7D4F','#8FA6BC','#C55A17','#6B8299','#B23A2E','#7FB0A0','#D6B24A'];
+
+    var ANALYST = {"Akron":"Lucas Werner","Bioren":"Murilo Nunes","Eindom":"Lucas Marques","Valsa":"Lucas Marques","GBS Storage":"Murilo Nunes","New Wave":"Lucas Marques","Norcoast":"Lucas Werner","Norflor":"Felipe Seixas","Norsul":"Lucas Werner","Sileto":"Felipe Seixas","Target Bank":"Murilo Nunes","Tree+":"Felipe Seixas"};
+    var PHOTO = {"Lucas Werner":"logos/lucaswerner-logo.jpg","Murilo Nunes":"logos/murilo-logo.jpg","Lucas Marques":"logos/lucasmarques-logo.jpg","Felipe Seixas":"logos/felipeseixas-logo.jpg"};
+    // Cabeçalho por empresa (setor/breadcrumb, descrição, tags). Valores inferidos — confirmar.
+    var HDR = {
+      "Akron":      {crumb:["Serviços Financeiros","Gestão de Recursos"], sub:"Gestora de recursos.", tags:["Asset Management","Financeiro"]},
+      "Bioren":     {crumb:["Indústria & Tecnologia","Industrial Tech"], sub:"", tags:["Industrial Tech"]},
+      "Eindom":     {crumb:["Real Estate","Hotelaria"], sub:"Operação hoteleira.", tags:["Real Estate","Hotelaria"]},
+      "Valsa":      {crumb:["Saúde","Serviços Hospitalares"], sub:"Serviços de saúde / hospitalar.", tags:["Saúde"]},
+      "GBS Storage":{crumb:["Energia & Infraestrutura","Estocagem de Gás"], sub:"Estocagem de gás natural (Gas Bridge Storage).", tags:["Oil & Gas","Infraestrutura"]},
+      "New Wave":   {crumb:["Mineração & Metais","Metals & Mining"], sub:"Mineração / metais.", tags:["Metals & Mining"]},
+      "Norcoast":   {crumb:["Logística & Transporte","Transportation"], sub:"", tags:["Transportation"]},
+      "Norflor":    {crumb:["Agronegócio","Base Florestal"], sub:"Ativos florestais.", tags:["Florestal"]},
+      "Norsul":     {crumb:["Logística & Transporte","Navegação / Cabotagem"], sub:"Navegação e cabotagem.", tags:["Logística","Navegação"]},
+      "Sileto":     {crumb:["Materiais de Construção","Cimento"], sub:"Produção de cimento.", tags:["Construção","Cimento"]},
+      "Target Bank":{crumb:["Serviços Financeiros","Banco"], sub:"Banco / serviços financeiros.", tags:["Financeiro","Banco"]},
+      "Tree+":      {crumb:["Agronegócio","Base Florestal"], sub:"Fundo florestal — Skog FIP.", tags:["Florestal"]}
+    };
+    // Cargo/cobertura e contato por analista (do To-Do Tracker).
+    var ANALYST_ROLE = {"Murilo Nunes":"Oil & Gas · Transportation · Industrial Tech","Lucas Werner":"Research Lead","Lucas Marques":"Metals & Mining · Real Estate · Healthcare","Felipe Seixas":"Forestry · Cement"};
+    var CONTACT = {"Murilo Nunes":["murilo.nunes@lorinvest.com","+5521979028288"],"Lucas Werner":["lucas.werner@lorinvest.com","+5521984401311"],"Lucas Marques":["lucas.marques@lorinvest.com","+5521995003329"],"Felipe Seixas":["felipe.seixas@lorinvest.com","+5521994484455"]};
+
+    var EMP = {
+      "Bioren":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","25.016,8"],["Aportes Líquidos","25.017,0"],["Correção IPCA","27.118,3"],["Correção IPCA + 15%","34.914,1"]],holdersTitle:"Acionistas",holders:[["Hankoe",77.8],["Roberto Kessel",11.1],["Carlos Carloni",11.1]]},governanca:[{title:"Conselho de Administração",eleito:"03/11/2025",mandato:"03/11/2027",membros:["Christian Lorentzen","Luciano Medeiros","Carlos Carloni","Roberto Kessel"]},{title:"Diretoria",eleito:"04/10/2023",mandato:"04/10/2026",membros:["CEO: Luiz Cidade","Diretor: José Cavalcante"]}]},
+      "Eindom":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","92.098,1"],["Aportes Líquidos","113.349,5"],["Correção IPCA","133.986,3"],["Correção IPCA + 15%","216.817,7"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"01/04/2026",mandato:"01/04/2028",membros:["Peter Boot","Lucas Werner"]},{title:"Diretoria",eleito:"30/04/2024",mandato:"30/08/2027",membros:["Ricardo Goldstein","Evandro Paiva"]}]},
+      "Valsa":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","165.000,0"],["Aportes Líquidos","165.000,0"],["Correção IPCA","181.628,7"],["Correção IPCA + 15%","221.457,1"]],holdersTitle:"Acionistas",holders:[["Hankoe",92],["Helser",8]]},governanca:[{title:"Conselho de Administração",eleito:"07/08/2025",mandato:"07/08/2027",membros:["Luciano Medeiros","Leonardo Szczerb","Alfredo Cardoso"]},{title:"Diretoria",eleito:"05/01/2026",mandato:"05/01/2028",membros:["CEO: Alfredo Cardoso","Diretor: Carlos Ceppas"]}]},
+      "GBS Storage":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","98.790,9"],["Aportes Líquidos","91.140,5"],["Correção IPCA","105.613,3"],["Correção IPCA + 15%","163.211,8"],["Exposição Total","298.586,0"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"05/12/2023",mandato:"05/12/2025",membros:["Marcelo Menicucci","Celso Pereira","Peter Boot","Leonardo Szczerb"]},{title:"Diretoria",eleito:"30/06/2025",mandato:"30/06/2027",membros:["CEO: Celso Pereira","Diretor: Shiniti Ohara"]}]},
+      "New Wave":{updated:"08/06/2026",aportes:{kpis:[["Valor Dyna","119.331,4"],["Aportes Líquidos","144.319,9"],["Correção IPCA","168.345,8"],["Correção IPCA + 15%","266.986,4"]],holdersTitle:"Acionistas",holders:[["Dyna",78.4],["Gustavo Emina",21.6]]},governanca:[{title:"Conselho de Administração",eleito:"21/03/2023",mandato:"21/03/2025",membros:["Luciano Medeiros","Gustavo Emina","Leonardo Szczerb"]},{title:"Diretoria",eleito:"27/10/2025",mandato:"31/10/2027",membros:["CEO: Gustavo Emina","CLO: Newton Junior","CFO: Elvira Presta","Diretor: Ivan Menezes","Diretor: Bruno Ferraz","Diretor: Marcus Berto"]}]},
+      "Norflor":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","187.463,4"],["Aportes Líquidos","-65.566,6"],["Correção IPCA","-49.282,3"],["Correção IPCA + 15%","-101.564,7"],["Exposição Total","95.602,4"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"10/06/2024",mandato:"10/06/2026",membros:["Luciano Medeiros","Leonardo Szczerb","Maria Clara Assis"]},{title:"Diretoria",eleito:"07/06/2024",mandato:"07/06/2027",membros:["CEO: Sandro Longuinho","COO: Fabiano Lago","CSO: Adauta Braga"]}]},
+      "Norsul":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","1.547.592,3"],["Valuation Múltiplo","1.320.216,9"],["Valor Hankoe - Lorentzen (%)","1.189.123,5"],["Valuation Múltiplo - Lorentzen (%)","1.014.415,1"]],holdersTitle:"Acionistas",holders:[["Lorentzen",76.8],["Hugo",19.8],["Lily",0.7],["Luke",0.7],["Outros",2]]},governanca:[{title:"Conselho de Administração",eleito:"08/07/2025",mandato:"08/07/2028",membros:["Angelo Baroncini","Luciano Medeiros","Leonardo Szczerb","Pietro Allevato","Hugo Figueiredo"]},{title:"Diretoria",eleito:"08/04/2024",mandato:"08/04/2027",membros:["CEO: Rodrigo Cuesta","CFO: André Gonçalves","Dir. Operacional: Christian Lachmann"]}]},
+      "Sileto":{updated:"08/06/2026",aportes:{kpis:[["Valor Dyna","79.023,2"],["Aporte Total","74.648,6"],["Correção IPCA","82.335,3"],["Correção IPCA + 15%","111.364,0"]],holdersTitle:"Acionistas",holders:[["Crystall",51.6],["Dyna",40],["Fundo Nunki",8.4]]},governanca:[{title:"Supervisory Committee",eleito:"11/07/2025",mandato:"11/07/2027",membros:["Christian Lorentzen","Luciano Medeiros"]},{title:"Supervisory Board",eleito:"11/07/2025",mandato:"11/07/2027",membros:["Luciano Medeiros","Christian Lorentzen"]}]},
+      "Target Bank":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","2.377,6"],["Aportes Líquidos","96.139,8"],["Correção IPCA","110.458,1"],["Correção IPCA + 15%","229.779,2"]],holdersTitle:"Acionistas",holders:[["Hankoe",92.3],["Santos",3.4],["William",3.3],["Outros",1]]},governanca:[{title:"Conselho de Administração",eleito:"24/10/2024",mandato:"26/10/2026",membros:["Peter Boot","Leonardo Szczerb","William Rego"]},{title:"Diretoria",eleito:"16/01/2025",mandato:"16/01/2028",membros:["CEO: William Rego","Diretor Jurídico: Gustavo Abdalla"]}]},
+      "Tree+":{updated:"08/06/2026",aportes:{kpis:[["Aportes Líquidos","62.327,0"],["Correção IPCA","67.842,2"],["Correção IPCA + 15%","87.184,7"]],holdersTitle:"Quotistas",holders:[["Ti17 FIM",25],["Zest",25],["Hankoe",25.1],["Mercuria",25]]},governanca:[{title:"Comitê de Investimento",eleito:"29/09/2023",mandato:"29/09/2025",membros:["Luciano Medeiros","Eduardo Gomes de Almeida","Fábio Medeiros Martins da Silva","Marc Adam Hiller"]}],govInfo:[["Fundo","Skog FIP – Multiestratégia"],["Administrador","BTG Pactual"],["Gestor","Lorinvest"],["Data da Constituição","14/08/2023"],["Exercício Social","31/março"]]}
+    };
+
+    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["financeiro","Financeiro e Alavancagem"],["valuation","Valuation"],["comites","Comitês"],["competidores","Mapa competitivo"]];
+
+    function pctTxt(n){ return String(n).replace('.',','); }
+    function fmtPhone(p){ var d=String(p).replace(/\D/g,''); return d.length>=13 ? '+'+d.slice(0,2)+' '+d.slice(2,4)+' '+d.slice(4,9)+'.'+d.slice(9,13) : p; }
+    var KCLS=['k-slate','k-teal','k-sage','k-stone','k-red'];
+    var KSUB={"Valor Hankoe":"marcado na carteira","Valor Dyna":"marcado na carteira","Aportes Líquidos":"líquido de desinvestimentos","Aporte Total":"aporte total","Correção IPCA":"aportes corrigidos","Correção IPCA + 15%":"aportes corrigidos (IPCA+15%)","Exposição Total":"exposição máxima do fundo","Valuation Múltiplo":"5x EBITDA LTM"};
+    var KDEF={"Valor Hankoe":"valor que está marcado na carteira do Hankoe FIP.","Valor Dyna":"valor que está marcado na carteira do Dyna FIP.","Aportes Líquidos":"soma dos valores investidos na companhia, deduzidos dos desinvestimentos já efetuados.","Aporte Total":"soma dos valores investidos na companhia.","Correção IPCA":"correção dos aportes líquidos das investidas pelo IPCA.","Correção IPCA + 15%":"correção dos aportes líquidos das investidas pelo IPCA + 15%.","Exposição Total":"soma dos aportes líquidos e das garantias concedidas pelo fundo, incluindo avais e fianças, relacionadas às dívidas das companhias investidas. Representa a exposição máxima potencial do fundo.","Valuation Múltiplo":"valor pela metodologia de múltiplo (5x EBITDA LTM)."};
+    var LOGO={"Bioren":"logos/bioren-logo.jpg","Eindom":"logos/eindom-logo.jpg","Valsa":"logos/valsa-logo.svg","GBS Storage":"logos/gbs-logo.jpg","New Wave":"logos/new-wave-logo.jpg","Norflor":"logos/Norflor-logo.png","Norsul":"logos/norsul-logo.jpg","Sileto":"logos/Sileto-logo.PNG","Target Bank":"logos/target-bank-logo.png","Tree+":"logos/tree-logo.png"};
+    var LOGOSCALE={"Sileto":0.68};
+
+    // Donut de acionistas no mesmo padrão da GNLink (200x200, rótulos de % dentro das fatias)
+    function donutGN(holders){
+      var C=2*Math.PI*70, segs='', labels='', acc=0, total=0, i;
+      for(i=0;i<holders.length;i++) total+=holders[i][1];
+      if(total<=0) total=100;
+      for(i=0;i<holders.length;i++){
+        var frac=holders[i][1]/total, col=PAL[i%PAL.length], len=frac*C;
+        segs+='<circle cx="100" cy="100" r="70" fill="none" stroke="'+col+'" stroke-width="46" stroke-dasharray="'+len.toFixed(2)+' '+C.toFixed(2)+'" stroke-dashoffset="'+(-acc*C).toFixed(2)+'" transform="rotate(-90 100 100)"/>';
+        if(frac>=0.06){
+          var mid=acc+frac/2, ang=(-90+mid*360)*Math.PI/180;
+          labels+='<text x="'+(100+70*Math.cos(ang)).toFixed(1)+'" y="'+(100+70*Math.sin(ang)).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="700" fill="#fff">'+pctTxt((frac*100).toFixed(1))+'%</text>';
+        }
+        acc+=frac;
+      }
+      return '<svg viewBox="0 0 200 200" style="width:200px;height:200px;flex:none" role="img" aria-hidden="true"><circle cx="100" cy="100" r="70" fill="none" stroke="#E2E7EE" stroke-width="46"/>'+segs+labels+'</svg>';
+    }
+
+    // Aportes e Exposição: KPIs coloridos (kpi-tile) + definições — igual à GNLink
+    function renderAportes(name,d){
+      var tiles=d.aportes.kpis.map(function(k,i){
+        var sub=KSUB[k[0]]||'', neg=String(k[1]).charAt(0)==='-';
+        return '<div class="kpi-tile '+KCLS[i%KCLS.length]+'"><div class="k">'+esc(k[0])+'</div><div class="v"'+(neg?' style="color:var(--accent-danger)"':'')+'>'+esc(k[1])+'</div>'+(sub?'<div class="s">'+esc(sub)+'</div>':'')+'</div>';
+      }).join('');
+      var defs=d.aportes.kpis.map(function(k){ var dd=KDEF[k[0]]; return dd?'<li><span class="bullet">•</span><span><strong>'+esc(k[0])+':</strong> '+esc(dd)+'</span></li>':''; }).join('');
+      return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Exposição da Lorinvest</div></div><div class="card-body">'
+        +'<div class="card-note" style="margin-bottom:8px;">Em milhares de reais · atualizado em '+esc(d.updated)+'</div>'
+        +'<div class="kpi-grid">'+tiles+'</div>'
+        +(defs?'<ul class="list" style="margin-top:12px;">'+defs+'</ul>':'')
+        +'</div></div></div>';
+    }
+
+    // Governança & Estrutura Acionária: acionistas (donut) + diretoria (lista) + conselho (mesa) — igual à GNLink
+    function isMesa(t){ return /conselho|committee|comit[êe]/i.test(t); }
+    function renderGov(name,d){
+      var mesa=d.governanca.filter(function(b){return isMesa(b.title);});
+      var list=d.governanca.filter(function(b){return !isMesa(b.title);});
+      var leg=d.aportes.holders.map(function(h,i){ return '<div style="display:flex;align-items:center;gap:8px;"><span style="width:11px;height:11px;border-radius:3px;background:'+PAL[i%PAL.length]+';display:inline-block;flex:none;"></span>'+esc(h[0])+'</div>'; }).join('');
+      var donutBlock='<div><strong style="font-size:11px;">'+esc(d.aportes.holdersTitle)+'</strong><div style="display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap;">'+donutGN(d.aportes.holders)+'<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:#324256;min-width:135px;">'+leg+'</div></div></div>';
+      var right='';
+      if(list.length){ var b=list[0]; right='<div><strong style="font-size:11px;">'+esc(b.title)+'</strong><div class="card-note" style="margin-top:2px;">Eleitos '+esc(b.eleito)+' · Mandato até '+esc(b.mandato)+'</div><ul class="list" style="margin-top:4px;">'+b.membros.map(function(m){return '<li><span class="bullet">•</span><span>'+esc(m)+'</span></li>';}).join('')+'</ul></div>'; }
+      else if(d.govInfo){ right='<div><strong style="font-size:11px;">Informações do fundo</strong><ul class="list" style="margin-top:4px;">'+d.govInfo.map(function(p){return '<li><span class="bullet">•</span><span><strong>'+esc(p[0])+':</strong> '+esc(p[1])+'</span></li>';}).join('')+'</ul></div>'; }
+      var mesaHtml=mesa.map(function(b){
+        var role=/conselho/i.test(b.title)?'Conselheiro':'Membro';
+        var members=b.membros.map(function(m){return {name:m,role:role};});
+        return '<div class="board-sep"><strong style="font-size:11px;">'+esc(b.title)+'</strong><div class="card-note" style="margin-top:2px;">'+b.membros.length+' membros eleitos</div><div class="card-note">Eleitos '+esc(b.eleito)+' · Mandato até '+esc(b.mandato)+'</div><div class="board"'+(LOGO[name]?' data-logo="'+LOGO[name]+'"':'')+(LOGOSCALE[name]?' data-logo-scale="'+LOGOSCALE[name]+'"':'')+' data-members=\''+JSON.stringify(members)+'\'></div></div>';
+      }).join('');
+      return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Governança &amp; Estrutura Acionária</div></div><div class="card-body"><div class="grid-2">'+donutBlock+right+'</div>'+mesaHtml+'</div></div></div>';
+    }
+    function renderDev(name,label){
+      return '<div class="e2-card e2-dev"><div class="ic">🚧</div><div class="t">Em desenvolvimento…</div><div class="s">A seção <b>'+esc(label)+'</b> da '+esc(name)+' está sendo construída.</div></div>';
+    }
+
+    var e2co=null, e2tab='aportes';
+    var tabsEl=document.getElementById('e2Tabs'), bodyEl=document.getElementById('e2Body');
+    function labelOf(k){ for(var i=0;i<SUB.length;i++){ if(SUB[i][0]===k) return SUB[i][1]; } return ''; }
+    function renderTabs(){
+      tabsEl.innerHTML = SUB.map(function(s){ return '<button class="e2-tab'+(s[0]===e2tab?' active':'')+'" data-e2="'+s[0]+'">'+s[1]+'</button>'; }).join('');
+      tabsEl.querySelectorAll('.e2-tab').forEach(function(b){
+        b.addEventListener('click', function(){
+          e2tab=b.getAttribute('data-e2'); renderTabs(); renderBody();
+          var bar=b.parentElement, br=bar.getBoundingClientRect(), tr=b.getBoundingClientRect();
+          bar.scrollBy({left:(tr.left+tr.width/2)-(br.left+br.width/2), behavior:'smooth'});
+        });
+      });
+    }
+    function renderBody(){
+      var d=EMP[e2co];
+      if(e2tab==='aportes' && d) bodyEl.innerHTML=renderAportes(e2co,d);
+      else if(e2tab==='governanca' && d){ bodyEl.innerHTML=renderGov(e2co,d); if(window.renderBoards) window.renderBoards(); }
+      else bodyEl.innerHTML=renderDev(e2co, labelOf(e2tab));
+    }
+    function applyCompany(name){
+      var sc=document.getElementById('section-company');
+      if(name==='GNLink'){ sc.classList.remove('other-mode'); return; }
+      sc.classList.add('other-mode');
+      e2co=name;
+      document.getElementById('e2Title').textContent=name;
+      var hd=HDR[name]||{crumb:["Portfólio Lorinvest","Private Equity"],sub:"",tags:[]};
+      document.getElementById('e2Crumb').innerHTML=(hd.crumb||[]).map(esc).join(' <span>/</span> ');
+      var subEl=document.getElementById('e2Sub'); subEl.textContent=hd.sub||''; subEl.style.display=hd.sub?'':'none';
+      document.getElementById('e2Tags').innerHTML=(hd.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('');
+      var an=ANALYST[name]||'—';
+      document.getElementById('e2AnName').textContent=an;
+      document.getElementById('e2AnRole').textContent=ANALYST_ROLE[an]||'';
+      var img=document.getElementById('e2AnPhoto'), ph=PHOTO[an];
+      if(ph){ img.src=ph; img.alt=an; img.style.visibility='visible'; } else { img.removeAttribute('src'); img.style.visibility='hidden'; }
+      var ct=CONTACT[an], em=document.getElementById('e2Email'), cl=document.getElementById('e2Call');
+      var me=document.getElementById('e2MenuEmail'), mc=document.getElementById('e2MenuCall');
+      if(ct){
+        em.href='mailto:'+ct[0]; cl.href='tel:'+ct[1]; em.style.display=''; cl.style.display='';
+        me.href='mailto:'+ct[0]; me.textContent='✉ '+ct[0];
+        mc.href='tel:'+ct[1]; mc.textContent='📞 '+fmtPhone(ct[1]);
+      } else { em.style.display='none'; cl.style.display='none'; }
+      e2tab = EMP[name] ? 'aportes' : 'panorama';
+      renderTabs(); renderBody();
+    }
+
+    // Só o seletor da aba Empresas troca o conteúdo; os das outras seções apenas filtram.
+    document.querySelectorAll('#section-company .company-pill').forEach(function(p){
+      p.addEventListener('click', function(){ applyCompany(p.getAttribute('data-company')); });
+    });
+  })();
   </script>
 </body>
 </html>
