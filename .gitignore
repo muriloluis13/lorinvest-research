@@ -12,6 +12,10 @@ __pycache__/
 gnlink/bbog-model/*.pdf
 gnlink/bbog-model/*.xlsx
 
+# Node / Vercel
+node_modules/
+.vercel/
+
 # OS files
 Thumbs.db
 .DS_Store
