@@ -1180,6 +1180,46 @@
     }
 
   </style>
+  <!-- ===== Componentes de dataviz reutilizáveis (blocos dinâmicos de empresa) ===== -->
+  <style>
+    /* Subtítulo de bloco dentro de um card */
+    .blk-sub{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-1);margin:22px 0 12px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+    .blk-sub:first-child{margin-top:2px}
+    /* Números em tabela: alinhados à direita, tabulares */
+    .placeholder-table td.num,.placeholder-table th.num{text-align:right;font-variant-numeric:tabular-nums}
+    td.neg{color:var(--accent-danger)}
+    td.pos{color:var(--accent-3)}
+    tr.grp-row td{background:#EAF0F6;font-weight:800;color:var(--accent-1);letter-spacing:.02em}
+    tr.tot-row td{font-weight:800;border-top:1.5px solid #cdd6e2}
+    .placeholder-table tbody tr.grp-row:hover td,.placeholder-table tbody tr.tot-row:hover td{background:#EAF0F6}
+    /* Gráfico de barras agrupadas (CSS) */
+    .gbc-plot{display:flex;align-items:flex-end;gap:20px;height:210px;padding-top:24px;border-bottom:2px solid var(--line)}
+    .gbc-grp{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+    .gbc-bars{display:flex;align-items:flex-end;gap:7px;height:100%}
+    .gbc-bar{flex:1;border-radius:4px 4px 0 0;position:relative;min-height:2px}
+    .gbc-val{position:absolute;top:-17px;left:0;right:0;text-align:center;font-size:10px;font-weight:700;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+    .gbc-x{text-align:center;font-size:10.5px;font-weight:700;color:var(--muted);margin-top:7px}
+    .gbc-legend,.alloc-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:13px;font-size:11.5px;color:var(--muted)}
+    .gbc-legend span,.alloc-legend span{display:inline-flex;align-items:center;gap:6px}
+    .gbc-legend i,.alloc-legend i{width:11px;height:11px;border-radius:3px;flex:none}
+    /* Barras empilhadas horizontais */
+    .hsb-row{display:grid;grid-template-columns:130px 1fr auto;align-items:center;gap:12px;margin-bottom:10px}
+    .hsb-lab{font-size:12px;font-weight:600;color:var(--ink)}
+    .hsb-track{height:20px;display:flex;border-radius:5px;overflow:hidden;min-width:3px}
+    .hsb-seg{height:100%}
+    .hsb-seg+.hsb-seg{box-shadow:inset 2px 0 0 var(--bg-card)}
+    .hsb-tot{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+    /* Barra de alocação (uma barra, vários segmentos) */
+    .alloc-bar{display:flex;height:30px;border-radius:7px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(19,32,46,.04)}
+    .alloc-seg{height:100%}.alloc-seg+.alloc-seg{box-shadow:inset 2px 0 0 var(--bg-card)}
+    .alloc-legend b{color:var(--ink);font-weight:700;margin-left:2px}
+    /* Mini-estatística destacada */
+    .statline{display:flex;flex-wrap:wrap;gap:22px;align-items:baseline;margin:2px 0 4px}
+    .statline .sl{display:flex;flex-direction:column;gap:1px}
+    .statline .sl .v{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+    .statline .sl .k{font-size:11px;color:var(--muted)}
+    @media(max-width:720px){.gbc-plot{gap:9px;height:180px}.hsb-row{grid-template-columns:96px 1fr auto;gap:8px}}
+  </style>
 </head>
 <body>
   <script>
@@ -4231,7 +4271,7 @@
       "Bioren":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","25.016,8"],["Aportes Líquidos","25.017,0"],["Correção IPCA","27.118,3"],["Correção IPCA + 15%","34.914,1"]],holdersTitle:"Acionistas",holders:[["Hankoe",77.8],["Roberto Kessel",11.1],["Carlos Carloni",11.1]]},governanca:[{title:"Conselho de Administração",eleito:"03/11/2025",mandato:"03/11/2027",membros:["Christian Lorentzen","Luciano Medeiros","Carlos Carloni","Roberto Kessel"]},{title:"Diretoria",eleito:"04/10/2023",mandato:"04/10/2026",membros:["CEO: Luiz Cidade","Diretor: José Cavalcante"]}]},
       "Eindom":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","92.098,1"],["Aportes Líquidos","113.349,5"],["Correção IPCA","133.986,3"],["Correção IPCA + 15%","216.817,7"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"01/04/2026",mandato:"01/04/2028",membros:["Peter Boot","Lucas Werner"]},{title:"Diretoria",eleito:"30/04/2024",mandato:"30/08/2027",membros:["Ricardo Goldstein","Evandro Paiva"]}]},
       "Valsa":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","165.000,0"],["Aportes Líquidos","165.000,0"],["Correção IPCA","181.628,7"],["Correção IPCA + 15%","221.457,1"]],holdersTitle:"Acionistas",holders:[["Hankoe",92],["Helser",8]]},governanca:[{title:"Conselho de Administração",eleito:"07/08/2025",mandato:"07/08/2027",membros:["Luciano Medeiros","Leonardo Szczerb","Alfredo Cardoso"]},{title:"Diretoria",eleito:"05/01/2026",mandato:"05/01/2028",membros:["CEO: Alfredo Cardoso","Diretor: Carlos Ceppas"]}]},
-      "GBS Storage":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","98.790,9"],["Aportes Líquidos","91.140,5"],["Correção IPCA","105.613,3"],["Correção IPCA + 15%","163.211,8"],["Exposição Total","298.586,0"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"05/12/2023",mandato:"05/12/2025",membros:["Marcelo Menicucci","Celso Pereira","Peter Boot","Leonardo Szczerb"]},{title:"Diretoria",eleito:"30/06/2025",mandato:"30/06/2027",membros:["CEO: Celso Pereira","Diretor: Shiniti Ohara"]}]},
+      "GBS Storage":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","98.790,9"],["Aportes Líquidos","91.140,5"],["Correção IPCA","105.613,3"],["Correção IPCA + 15%","163.211,8"],["Exposição Total","298.586,0"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"05/12/2023",mandato:"05/12/2025",membros:["Marcelo Menicucci","Celso Pereira","Peter Boot","Leonardo Szczerb"]},{title:"Diretoria",eleito:"30/06/2025",mandato:"30/06/2027",membros:["CEO: Celso Pereira","Diretor: Shiniti Ohara"]}],operacional:{segurosGarantias:{groups:[{cobertura:"Intraconsórcio",rows:[{periodo:"2025",parcela:"10% GPK",tipo:"Fiança",emissor:"BTG",status:"Aguardando emissão",st:"wait"},{periodo:"2026",parcela:"10% GBS",tipo:"Seguro",emissor:"BTG",status:"Emitido a viger em 01/01/26",st:"ok"},{periodo:"2026",parcela:"10% GPK",tipo:"Fiança",emissor:"BTG",status:"Aguardando emissão",st:"wait"}]},{cobertura:"Garantia ANP",rows:[{periodo:"Set/2025 – Mar/2028",parcela:"20%",tipo:"Fiança",emissor:"BTG",status:"Vigente",st:"ok"}]}],notes:["Ações em curso a fim de mitigar os efeitos da dupla garantia.","Apesar de ter sido aprovada a garantia intraconsórcio para a baixa do fundo abandono, seguimos discutindo junto com a Brava, para que a Petrobras aceite outra alternativa.","Reunião solicitada junto à ANP a fim de propor uma mudança na resolução que trata desse assunto, propondo uma sub-rogação da garantia para o operador.","Para que a GBS pudesse dar uma garantia corporativa, o PL deveria ser de R$ 1,6 bilhões de reais, considerando a GBS com nota A-. O patrimônio líquido da GBS está por volta de R$ 60 milhões."],source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 3)"},usosPDI:{fontes:[{nome:"PRIO",valor:"~R$ 9,9 MM",obs:"recebido em 30/11/2025"},{nome:"Geopark (“herdado”)",valor:"R$ 1,30–2,85 MM",obs:"a investir · estimado"}],usos:[{destino:"BioRen",prio:"~R$ 4,0 MM",geopark:"~R$ 2,4 MM",mmP:4.0,mmG:2.4},{destino:"Universidades",prio:"~R$ 5,4 MM",geopark:"~R$ 300 mil",mmP:5.4,mmG:0.3},{destino:"SG&A",prio:"~R$ 500 mil",geopark:"~R$ 150 mil",mmP:0.5,mmG:0.15}],total:{prio:"~R$ 9,9 MM",geopark:"~R$ 2,85 MM"},note:"Recebido da PRIO em 30/11/2025 (~R$ 9,9 MM). Assim que o projeto da Bioren tiver aprovação da ANP, os contratos serão assinados e os recursos transferidos conforme cronograma. Valor “herdado” da Geopark a investir estimado entre R$ 1,30 MM e R$ 2,85 MM.",source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 4)"}},financeiro:{orcado2025:{resultado:{realizadoProj:"(8.150)",orcado:"(9.402)",saldo:"1.252"},trimestral:[{tri:"1º Tri",real:"2.844",orc:"3.674",pct:"77%"},{tri:"2º Tri",real:"4.497",orc:"5.551",pct:"81%"},{tri:"3º Tri",real:"6.224",orc:"7.407",pct:"84%"},{tri:"4º Tri",real:"8.150",orc:"9.402",pct:"87%"}],gbs:{rows:[{item:"Employee Expenses",real:"(5.595)",orc:"(6.624)",pct:"-84%"},{item:"Annual Bonus",real:"(328)",orc:"(1.080)",pct:"-30%"},{item:"G&A Expenses",real:"(1.284)",orc:"(732)",pct:"-25%"},{item:"Outsourced Services",real:"(205)",orc:"(510)",pct:"-40%"},{item:"Legal Consulting",real:"(746)",orc:"(456)",pct:"-36%"},{item:"Others",real:"8",orc:"0",pct:"0%"}],total:{real:"(8.150)",orc:"(9.402)"}},manati:{rows:[{item:"Revenue",real:"33.003",orc:"59.118",pct:"-44%"},{item:"Opex",real:"(34.001)",orc:"(36.036)",pct:"-6%"},{item:"Taxes",real:"(6.849)",orc:"(13.233)",pct:"-48%"},{item:"Royalties",real:"(1.475)",orc:"(4.920)",pct:"-70%"},{item:"Insurance & Warranty",real:"(1.866)",orc:"(2.106)",pct:"-11%"},{item:"Consulting",real:"(187)",orc:"0",pct:"0%"}],total:{real:"(11.375)",orc:"2.823"}},caixa:{data:"03/12/2025",valor:"R$ 16.774.615,54"},variacaoCaixa:[["Jan","5,37"],["Fev","1,68"],["Mar","1,70"],["Abr","1,32"],["Mai","0,38"],["Jun","3,81"],["Jul","1,58"],["Ago","0,60"],["Set","2,11"],["Out","4,53"],["Nov","16,69"],["Dez","14,28"]],note:"Valores em milhares de reais (R$ mil), salvo indicação. O G&A da GBS (realizado + projeção) fechou 2025 em (8.150) vs. (9.402) orçado — economia de 1.252. Percentuais conforme apresentados no Comitê.",source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 5)"},exposicao2025:{useOfProceeds:{fontes:{itens:[{valor:"R$ 91,1 mi",label:"Capital próprio"}],total:{valor:"R$ 91,1 mi",label:"Capital Investido"}},usos:{itens:[{valor:"R$ 25 mi",label:"CapEx PRIO"},{valor:"R$ 8,3 mi",label:"CapEx GeoPark"},{valor:"R$ 30,8 mi",label:"SG&A (*)"},{valor:"R$ 12,7 mi",label:"Prejuízo acumulado Manati"}],total:{valor:"R$ 76,8 mi",label:"Capital utilizado (R$ 14,4 mi em caixa)"}},footnote:"(*) inclui todos os estudos e consultorias",alloc:[{label:"CapEx PRIO",v:25,vl:"25",color:"#1F3B57"},{label:"CapEx GeoPark",v:8.3,vl:"8,3",color:"#6B8299"},{label:"SG&A",v:30.8,vl:"30,8",color:"#C55A17"},{label:"Prejuízo Manati",v:12.7,vl:"12,7",color:"#B23A2E"},{label:"Em caixa",v:14.4,vl:"14,4",color:"#9FB4C7"}],caixa:"R$ 14,4 mi"},tabela:{grupos:[{titulo:"CapEx | Stake 20% PRIO + GPRK",rows:[{item:"Signing",data:"out-22",nom:"(24,8)"},{item:"Closing",data:"nov-23",nom:"(85,7)"},{item:"1º retirada do fundo",data:"dez-23",nom:"9,8"},{item:"Closing adjustment",data:"jan-24",nom:"4,1"},{item:"2º retirada do fundo",data:"jun-24",nom:"0,3"},{item:"Cash balance",data:"set-24",nom:"5,2"},{item:"3º retirada do fundo",data:"set-24",nom:"66,2"},{item:"Total PRIO",nom:"(25,0)",tot:true},{item:"Signing GeoPark",data:"abr-25",nom:"(3,3)"},{item:"Closing GeoPark",data:"dez-25",nom:"(2,9)"},{item:"Ajustes",data:"dez-25",nom:"(2,1)"},{item:"Total GeoPark",nom:"(8,3)",tot:true},{item:"Total CapEx",nom:"(33,3)",tot:true}]},{titulo:"OpEx",rows:[{item:"SG&A",data:"jul-22 ~ dez-25",nom:"(30,8)"},{item:"Prejuízo Manati",data:"jan-24 ~ dez-25",nom:"(12,7)"},{item:"Total OpEx",nom:"(43,5)",tot:true},{item:"Caixa",nom:"(14,4)",tot:true}]}],resumo:[{item:"Exposição (contábil)",nom:"(91,1)",ipca:"(102,2)",ipca15:"(147,1)",tot:true},{item:"Despesas na GB",data:"abr-20 ~ jun-22",nom:"(13,5)",ipca:"(21,8)",ipca15:"(41,6)"},{item:"Exposição (gerencial)",nom:"(104,6)",ipca:"(124,0)",ipca15:"(188,7)",tot:true}]},source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 6)"}}},
       "New Wave":{updated:"08/06/2026",aportes:{kpis:[["Valor Dyna","119.331,4"],["Aportes Líquidos","144.319,9"],["Correção IPCA","168.345,8"],["Correção IPCA + 15%","266.986,4"]],holdersTitle:"Acionistas",holders:[["Dyna",78.4],["Gustavo Emina",21.6]]},governanca:[{title:"Conselho de Administração",eleito:"21/03/2023",mandato:"21/03/2025",membros:["Luciano Medeiros","Gustavo Emina","Leonardo Szczerb"]},{title:"Diretoria",eleito:"27/10/2025",mandato:"31/10/2027",membros:["CEO: Gustavo Emina","CLO: Newton Junior","CFO: Elvira Presta","Diretor: Ivan Menezes","Diretor: Bruno Ferraz","Diretor: Marcus Berto"]}]},
       "Norflor":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","187.463,4"],["Aportes Líquidos","-65.566,6"],["Correção IPCA","-49.282,3"],["Correção IPCA + 15%","-101.564,7"],["Exposição Total","95.602,4"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"10/06/2024",mandato:"10/06/2026",membros:["Luciano Medeiros","Leonardo Szczerb","Maria Clara Assis"]},{title:"Diretoria",eleito:"07/06/2024",mandato:"07/06/2027",membros:["CEO: Sandro Longuinho","COO: Fabiano Lago","CSO: Adauta Braga"]}]},
       "Norsul":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","1.547.592,3"],["Valuation Múltiplo","1.320.216,9"],["Valor Hankoe - Lorentzen (%)","1.189.123,5"],["Valuation Múltiplo - Lorentzen (%)","1.014.415,1"]],holdersTitle:"Acionistas",holders:[["Lorentzen",76.8],["Hugo",19.8],["Lily",0.7],["Luke",0.7],["Outros",2]]},governanca:[{title:"Conselho de Administração",eleito:"08/07/2025",mandato:"08/07/2028",membros:["Angelo Baroncini","Luciano Medeiros","Leonardo Szczerb","Pietro Allevato","Hugo Figueiredo"]},{title:"Diretoria",eleito:"08/04/2024",mandato:"08/04/2027",membros:["CEO: Rodrigo Cuesta","CFO: André Gonçalves","Dir. Operacional: Christian Lachmann"]}]},
@@ -4298,6 +4338,182 @@
       }).join('');
       return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Governança &amp; Estrutura Acionária</div></div><div class="card-body"><div class="grid-2">'+donutBlock+right+'</div>'+mesaHtml+'</div></div></div>';
     }
+    // ---- Helpers de dataviz (compartilhados pelos blocos dinâmicos) ----
+    // magnitude numérica a partir de strings pt-BR: "2.844"->2844, "16,69"->16.69, "(91,1)"->91.1
+    function mag(s){ s=String(s).replace(/(\d)\.(?=\d{3}\b)/g,'$1'); var m=s.match(/\d+(?:,\d+)?/); return m?Math.abs(parseFloat(m[0].replace(',','.'))):0; }
+    // classe de cor conforme o valor (negativo entre parênteses -> vermelho)
+    function numCls(v){ return /^\(/.test(String(v).trim())?'num neg':'num'; }
+    // Barras agrupadas: groups=[{x,vals:[..]}], series=[{name,color}]
+    function barsGrouped(groups, series){
+      var all=[]; groups.forEach(function(g){ all=all.concat(g.vals.map(mag)); });
+      var max=Math.max.apply(null, all)||1;
+      var cols=groups.map(function(g){
+        var bars=g.vals.map(function(v,i){
+          var h=Math.max(1.5, mag(v)/max*100);
+          return '<div class="gbc-bar" style="height:'+h.toFixed(1)+'%;background:'+series[i].color+'"><span class="gbc-val">'+esc(v)+'</span></div>';
+        }).join('');
+        return '<div class="gbc-grp"><div class="gbc-bars">'+bars+'</div><div class="gbc-x">'+esc(g.x)+'</div></div>';
+      }).join('');
+      var leg=series.map(function(s){return '<span><i style="background:'+s.color+'"></i>'+esc(s.name)+'</span>';}).join('');
+      return '<div class="gbc"><div class="gbc-plot">'+cols+'</div><div class="gbc-legend">'+leg+'</div></div>';
+    }
+    // Linha com área (série única): pairs=[[label,valorStr]]
+    function lineChart(pairs, ariaLabel){
+      var vals=pairs.map(function(p){return mag(p[1]);}), n=pairs.length;
+      var max=Math.max.apply(null, vals)||1;
+      var W=640,H=200,padL=24,padR=24,padT=28,padB=26, iw=W-padL-padR, ih=H-padT-padB, baseY=padT+ih;
+      var pts=vals.map(function(v,i){ return [padL+(n<=1?iw/2:i*(iw/(n-1))), padT+ih-(v/max*ih)]; });
+      var poly=pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');
+      var area='M '+pts[0][0].toFixed(1)+' '+baseY.toFixed(1)+' '+pts.map(function(p){return 'L '+p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' ')+' L '+pts[n-1][0].toFixed(1)+' '+baseY.toFixed(1)+' Z';
+      var deco=pts.map(function(p,i){
+        var peak=vals[i]===max, col=peak?'#C55A17':'#1F3B57';
+        return '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(peak?4:3)+'" fill="'+col+'"/>'
+          +'<text x="'+p[0].toFixed(1)+'" y="'+(p[1]-9).toFixed(1)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="'+(peak?'#C55A17':'#3D4A5C')+'">'+esc(pairs[i][1])+'</text>';
+      }).join('');
+      var xl=pairs.map(function(p,i){ return '<text x="'+pts[i][0].toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#5C6B7A">'+esc(p[0])+'</text>'; }).join('');
+      return '<div class="lnc"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="'+esc(ariaLabel||'')+'">'
+        +'<line x1="'+padL+'" y1="'+baseY+'" x2="'+(padL+iw)+'" y2="'+baseY+'" stroke="var(--line)" stroke-width="1.5"/>'
+        +'<path d="'+area+'" fill="rgba(31,59,87,.08)"/>'
+        +'<polyline points="'+poly+'" fill="none" stroke="#1F3B57" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+        +deco+xl+'</svg></div>';
+    }
+    // Barras empilhadas horizontais: rows=[{lab,segs:[num..],totLabel}], series=[{name,color}]
+    function hStacked(rows, series){
+      var max=Math.max.apply(null, rows.map(function(r){return r.segs.reduce(function(a,b){return a+b;},0);}))||1;
+      var body=rows.map(function(r){
+        var tot=r.segs.reduce(function(a,b){return a+b;},0), trackW=tot/max*100;
+        var segs=r.segs.map(function(v,i){ return '<div class="hsb-seg" style="width:'+(tot?v/tot*100:0).toFixed(1)+'%;background:'+series[i].color+'"></div>'; }).join('');
+        return '<div class="hsb-row"><div class="hsb-lab">'+esc(r.lab)+'</div><div class="hsb-track" style="width:'+trackW.toFixed(1)+'%">'+segs+'</div><div class="hsb-tot">'+esc(r.totLabel||'')+'</div></div>';
+      }).join('');
+      var leg=series.map(function(s){return '<span><i style="background:'+s.color+'"></i>'+esc(s.name)+'</span>';}).join('');
+      return '<div class="hsb">'+body+'<div class="gbc-legend" style="margin-top:4px">'+leg+'</div></div>';
+    }
+    // Barra de alocação: segs=[{label,val(num),valLabel,color}]
+    function allocBar(segs){
+      var tot=segs.reduce(function(a,s){return a+s.val;},0)||1;
+      var bar=segs.map(function(s){ return '<div class="alloc-seg" style="width:'+(s.val/tot*100).toFixed(1)+'%;background:'+s.color+'"></div>'; }).join('');
+      var leg=segs.map(function(s){ return '<span><i style="background:'+s.color+'"></i>'+esc(s.label)+'<b>'+esc(s.valLabel)+'</b></span>'; }).join('');
+      return '<div class="alloc-bar">'+bar+'</div><div class="alloc-legend">'+leg+'</div>';
+    }
+
+    // Operacional — por enquanto só o bloco "Seguros e Garantias" (CI Dez/25 · slide 3)
+    function renderOperacional(name,d){
+      var o=d.operacional; if(!o) return renderDev(name,'Operacional');
+      var html='';
+      if(o.segurosGarantias){
+        var sg=o.segurosGarantias;
+        var allSG=sg.groups.reduce(function(a,g){return a.concat(g.rows);},[]);
+        var nOk=allSG.filter(function(r){return r.st==='ok';}).length, nWait=allSG.filter(function(r){return r.st==='wait';}).length;
+        var body=sg.groups.map(function(g){
+          return g.rows.map(function(r,ri){
+            var cob = ri===0 ? '<td rowspan="'+g.rows.length+'" style="font-weight:700;vertical-align:middle;background:#F7F9FC">'+esc(g.cobertura)+'</td>' : '';
+            var badge='<span class="sg-badge sg-'+(r.st||'')+'"><span class="dot"></span>'+esc(r.status)+'</span>';
+            return '<tr>'+cob+'<td>'+esc(r.periodo)+'</td><td>'+esc(r.parcela)+'</td><td>'+esc(r.tipo)+'</td><td>'+esc(r.emissor)+'</td><td>'+badge+'</td></tr>';
+          }).join('');
+        }).join('');
+        var notes = sg.notes ? '<div class="blk-sub">Observações</div><ul class="list">'+sg.notes.map(function(n){return '<li><span class="bullet">•</span><span>'+esc(n)+'</span></li>';}).join('')+'</ul>' : '';
+        html += '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Seguros e Garantias</div></div><div class="card-body">'
+          + '<style>.sg-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}'
+          + '.sg-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}'
+          + '.sg-ok{background:rgba(46,107,65,.13);color:#2E6B41}'
+          + '.sg-wait{background:rgba(176,116,20,.16);color:#8a5a00}</style>'
+          + '<div class="statline"><div class="sl"><span class="v">'+allSG.length+'</span><span class="k">coberturas</span></div>'
+          + '<div class="sl"><span class="v" style="color:#2E6B41">'+nOk+'</span><span class="k">vigentes / emitidas</span></div>'
+          + '<div class="sl"><span class="v" style="color:#8a5a00">'+nWait+'</span><span class="k">aguardando emissão</span></div></div>'
+          + '<div class="table-scroll" style="margin-top:8px"><table class="placeholder-table"><thead>'
+          + '<tr><th>Cobertura</th><th>Período</th><th>Parcela</th><th>Tipo</th><th>Emissor</th><th>Status</th></tr>'
+          + '</thead><tbody>'+body+'</tbody></table></div>'
+          + notes
+          + (sg.source?'<p class="card-note" style="margin-top:14px;">Fonte: '+esc(sg.source)+'</p>':'')
+          + '</div></div></div>';
+      }
+      if(o.usosPDI){
+        var u=o.usosPDI;
+        function fmtMM(n){ return 'R$ '+(Math.round(n*100)/100).toString().replace('.',',')+' MM'; }
+        var fontesLine=u.fontes.map(function(f){ return '<div class="sl"><span class="v">'+esc(f.valor)+'</span><span class="k">'+esc(f.nome)+(f.obs?' · '+esc(f.obs):'')+'</span></div>'; }).join('');
+        var chart=hStacked(u.usos.map(function(r){ return {lab:r.destino, segs:[r.mmP||0, r.mmG||0], totLabel:fmtMM((r.mmP||0)+(r.mmG||0))}; }), [{name:'Recursos PRIO',color:'#1F3B57'},{name:'“Herdado” Geopark',color:'#D6B24A'}]);
+        var urows=u.usos.map(function(r){
+          return '<tr><td>'+esc(r.destino)+'</td><td class="num">'+esc(r.prio)+'</td><td class="num">'+esc(r.geopark)+'</td></tr>';
+        }).join('');
+        var totalRow = u.total ? '<tr class="tot-row"><td>Total</td><td class="num">'+esc(u.total.prio)+'</td><td class="num">'+esc(u.total.geopark)+'</td></tr>' : '';
+        html += '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Usos do Fundo PD&amp;I</div></div><div class="card-body">'
+          + '<div class="blk-sub">Fontes de recurso</div>'
+          + '<div class="statline">'+fontesLine+'</div>'
+          + '<div class="blk-sub">Destinação dos recursos (R$ MM)</div>'
+          + chart
+          + '<div class="table-scroll" style="margin-top:16px"><table class="placeholder-table"><thead>'
+          + '<tr><th>Destino</th><th class="num">Recursos PRIO</th><th class="num">“Herdado” Geopark</th></tr>'
+          + '</thead><tbody>'+urows+totalRow+'</tbody></table></div>'
+          + (u.note?'<p class="card-note" style="margin-top:14px;">'+esc(u.note)+'</p>':'')
+          + (u.source?'<p class="card-note" style="margin-top:6px;">Fonte: '+esc(u.source)+'</p>':'')
+          + '</div></div></div>';
+      }
+      return html || renderDev(name,'Operacional');
+    }
+    // Financeiro e Alavancagem — por enquanto o bloco "Acompanhamento do Orçamento 2025" (CI Dez/25 · slide 5)
+    function renderFinanceiro(name,d){
+      var f=d.financeiro; if(!f) return renderDev(name,'Financeiro e Alavancagem');
+      var html='';
+      if(f.orcado2025){
+        var o=f.orcado2025, r=o.resultado;
+        var kpis=''
+          +'<div class="kpi-tile k-slate"><div class="k">G&amp;A Realizado + Projeção</div><div class="v">'+esc(r.realizadoProj)+'</div><div class="s">R$ mil · 2025</div></div>'
+          +'<div class="kpi-tile k-stone"><div class="k">G&amp;A Orçado</div><div class="v">'+esc(r.orcado)+'</div><div class="s">R$ mil · 2025</div></div>'
+          +'<div class="kpi-tile k-sage"><div class="k">Saldo (economia)</div><div class="v" style="color:#2E6B41">'+esc(r.saldo)+'</div><div class="s">R$ mil · abaixo do orçado</div></div>';
+        var triChart=barsGrouped(o.trimestral.map(function(t){return {x:t.tri, vals:[t.real, t.orc]};}), [{name:'Realizado',color:'#2E7D4F'},{name:'Orçado',color:'#8FA6BC'}]);
+        function detail(tbl,titleTxt){
+          var rows=tbl.rows.map(function(x){return '<tr><td>'+esc(x.item)+'</td><td class="'+numCls(x.real)+'">'+esc(x.real)+'</td><td class="'+numCls(x.orc)+'">'+esc(x.orc)+'</td><td class="num">'+esc(x.pct)+'</td></tr>';}).join('');
+          var tot=tbl.total?'<tr class="tot-row"><td>Total</td><td class="'+numCls(tbl.total.real)+'">'+esc(tbl.total.real)+'</td><td class="'+numCls(tbl.total.orc)+'">'+esc(tbl.total.orc)+'</td><td></td></tr>':'';
+          return '<div class="blk-sub">'+titleTxt+'</div>'
+            +'<div class="table-scroll"><table class="placeholder-table"><thead><tr><th>Item</th><th class="num">Realizado</th><th class="num">Orçado 2025</th><th class="num">%</th></tr></thead><tbody>'+rows+tot+'</tbody></table></div>';
+        }
+        var caixaKpi=o.caixa?'<div class="kpi-tile k-teal" style="margin-top:2px;max-width:380px;"><div class="k">Caixa atual · '+esc(o.caixa.data)+'</div><div class="v">'+esc(o.caixa.valor)+'</div></div>':'';
+        var caixaChart=o.variacaoCaixa?('<div class="blk-sub">Variação do caixa mensal (R$ MM)</div>'+lineChart(o.variacaoCaixa,'Variação do caixa mensal em R$ milhões')):'';
+        html += '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Acompanhamento do Orçamento 2025</div></div><div class="card-body">'
+          +'<div class="blk-sub">Resultado do ano · G&amp;A (R$ mil)</div>'
+          +'<div class="kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));">'+kpis+'</div>'
+          +'<div class="blk-sub">Evolução trimestral acumulada — Realizado × Orçado (R$ mil)</div>'
+          +triChart
+          +detail(o.gbs,'GBS — G&amp;A por natureza (R$ mil)')
+          +detail(o.manati,'MANATI — Resultado (R$ mil)')
+          +'<div class="blk-sub">Posição de caixa</div>'
+          +caixaKpi
+          +caixaChart
+          +(o.note?'<p class="card-note" style="margin-top:16px;">'+esc(o.note)+'</p>':'')
+          +(o.source?'<p class="card-note" style="margin-top:6px;">Fonte: '+esc(o.source)+'</p>':'')
+          +'</div></div></div>';
+      }
+      if(f.exposicao2025){
+        var e=f.exposicao2025, uop=e.useOfProceeds;
+        var uopStat='<div class="statline"><div class="sl"><span class="v">'+esc(uop.fontes.total.valor)+'</span><span class="k">Capital investido</span></div>'
+          +'<div class="sl"><span class="v">'+esc(uop.usos.total.valor)+'</span><span class="k">Capital utilizado</span></div>'
+          +(uop.caixa?'<div class="sl"><span class="v">'+esc(uop.caixa)+'</span><span class="k">Em caixa</span></div>':'')+'</div>';
+        var allocHtml=uop.alloc?('<div style="margin-top:14px">'+allocBar(uop.alloc.map(function(a){return {label:a.label,val:a.v,valLabel:a.vl,color:a.color};}))+'</div>'):'';
+        function erow(x){
+          var cls=x.tot?' class="tot-row"':'';
+          return '<tr'+cls+'><td>'+esc(x.item)+'</td><td>'+(x.data?esc(x.data):'')+'</td><td class="'+numCls(x.nom)+'">'+(x.nom?esc(x.nom):'')+'</td><td class="'+(x.ipca?numCls(x.ipca):'num')+'">'+(x.ipca?esc(x.ipca):'')+'</td><td class="'+(x.ipca15?numCls(x.ipca15):'num')+'">'+(x.ipca15?esc(x.ipca15):'')+'</td></tr>';
+        }
+        var tbody='';
+        e.tabela.grupos.forEach(function(g){
+          tbody+='<tr class="grp-row"><td colspan="5">'+esc(g.titulo)+'</td></tr>'+g.rows.map(erow).join('');
+        });
+        tbody+=e.tabela.resumo.map(erow).join('');
+        var tableHtml='<div class="table-scroll"><table class="placeholder-table"><thead><tr><th>GBS · Exposição · Dez/25</th><th>Período</th><th class="num">Valor nominal</th><th class="num">Correção IPCA</th><th class="num">Correção IPCA + 15%</th></tr></thead><tbody>'+tbody+'</tbody></table></div>';
+        var expRows=e.tabela.resumo.filter(function(x){return /Exposição/.test(x.item);});
+        var expBars=expRows.length?('<div class="blk-sub">Exposição — impacto da correção monetária (R$ mi)</div>'+barsGrouped(expRows.map(function(x){return {x:x.item, vals:[x.nom,x.ipca,x.ipca15]};}), [{name:'Valor nominal',color:'#9FB4C7'},{name:'Correção IPCA',color:'#5C7A96'},{name:'Correção IPCA + 15%',color:'#1F3B57'}])):'';
+        html += '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Exposição 2025 · Use of Proceeds</div></div><div class="card-body">'
+          +'<div class="blk-sub">Use of Proceeds (R$ mi)</div>'
+          +uopStat
+          +allocHtml
+          +(uop.footnote?'<p class="card-note" style="margin-top:10px;">'+esc(uop.footnote)+'</p>':'')
+          +expBars
+          +'<div class="blk-sub">Exposição por lançamento — nominal × IPCA × IPCA + 15% (R$ mi)</div>'
+          +tableHtml
+          +(e.source?'<p class="card-note" style="margin-top:12px;">Fonte: '+esc(e.source)+'</p>':'')
+          +'</div></div></div>';
+      }
+      return html || renderDev(name,'Financeiro e Alavancagem');
+    }
     function renderDev(name,label){
       return '<div class="e2-card e2-dev"><div class="ic">🚧</div><div class="t">Em desenvolvimento…</div><div class="s">A seção <b>'+esc(label)+'</b> da '+esc(name)+' está sendo construída.</div></div>';
     }
@@ -4319,6 +4535,8 @@
       var d=EMP[e2co];
       if(e2tab==='aportes' && d) bodyEl.innerHTML=renderAportes(e2co,d);
       else if(e2tab==='governanca' && d){ bodyEl.innerHTML=renderGov(e2co,d); if(window.renderBoards) window.renderBoards(); }
+      else if(e2tab==='operacional' && d && d.operacional) bodyEl.innerHTML=renderOperacional(e2co,d);
+      else if(e2tab==='financeiro' && d && d.financeiro) bodyEl.innerHTML=renderFinanceiro(e2co,d);
       else bodyEl.innerHTML=renderDev(e2co, labelOf(e2tab));
     }
     function applyCompany(name){
