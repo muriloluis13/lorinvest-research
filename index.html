@@ -4814,11 +4814,17 @@
     .todo-item{display:flex;gap:8px;align-items:flex-start}
     .todo-item-main{display:flex;gap:8px;align-items:flex-start;flex:1;min-width:0;cursor:pointer;font-size:12px;line-height:1.42;color:#33424F}
     .todo-item-main input{margin-top:2px;flex:none}
+    .todo-item-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .todo-item-title{font-weight:600;color:#2B3945}
+    .todo-item-comment{font-size:11px;line-height:1.4;color:var(--muted)}
+    .todo-proj-head{margin:9px 0 3px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .todo-proj-head:first-child{margin-top:0}
     .todo-del{margin-left:6px;flex:none;border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 3px;border-radius:6px;opacity:.45}
     .todo-del:hover{color:var(--accent-danger);opacity:1;background:rgba(226,58,46,.09)}
     .todo-add-btn{align-self:flex-start;margin-top:4px;border:1px dashed var(--line);background:var(--bg-card-soft);color:var(--accent-1);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:8px;cursor:pointer}
     .todo-add-btn:hover{border-color:var(--accent-2);background:#fff}
     .todo-add-form{display:flex;flex-direction:column;gap:7px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg-card-soft);margin-top:4px}
+    .todo-add-form label.todo-f-label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:-3px}
     .todo-add-form input,.todo-add-form textarea{font:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
     .todo-add-form textarea{resize:vertical;min-height:40px}
     .todo-add-actions{display:flex;gap:8px}
@@ -4870,6 +4876,7 @@
 
     function render(){
       grid.removeAttribute('aria-busy');
+      refreshProjetos();
       grid.innerHTML = ANALISTAS.map(function(a){
         var meus = todos.filter(function(t){ return t.analista === a.nome; });
         var ordem = [], grupos = {}, rotulos = {};
@@ -4880,13 +4887,25 @@
           var logoHtml = logo
             ? '<img class="todo-emp-logo" src="' + esc(logo) + '" alt="" loading="lazy">'
             : '<span class="todo-emp-logo todo-emp-ini">' + esc(iniciais(emp)) + '</span>';
-          var itens = grupos[key].map(function(t){
-            var risk = t.done ? ' style="text-decoration:line-through;opacity:.55"' : '';
-            return '<div class="todo-item" data-id="' + esc(t.id) + '">'
-                 +   '<label class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
-                 +   '<span' + risk + '>' + esc(t.texto) + '</span></label>'
-                 +   '<button class="todo-del" type="button" title="Excluir tarefa" aria-label="Excluir">×</button>'
-                 + '</div>';
+          // Dentro da empresa, subagrupa por projeto (sub-cabeçalho como na imagem).
+          var pOrdem = [], pGrupos = {}, pRotulos = {};
+          grupos[key].forEach(function(t){
+            var pk = normKey(t.projeto); if (!pGrupos[pk]) { pGrupos[pk] = []; pOrdem.push(pk); pRotulos[pk] = String(t.projeto || '').trim(); } pGrupos[pk].push(t);
+          });
+          var itens = pOrdem.map(function(pk){
+            var head = pRotulos[pk] ? '<div class="todo-proj-head">' + esc(pRotulos[pk]) + '</div>' : '';
+            return head + pGrupos[pk].map(function(t){
+              var risk = t.done ? ' style="text-decoration:line-through;opacity:.55"' : '';
+              var com = String(t.comentario || '').trim();
+              return '<div class="todo-item" data-id="' + esc(t.id) + '">'
+                   +   '<label class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
+                   +     '<span class="todo-item-text">'
+                   +       '<span class="todo-item-title"' + risk + '>' + esc(t.texto) + '</span>'
+                   +       (com ? '<span class="todo-item-comment">' + esc(com) + '</span>' : '')
+                   +     '</span></label>'
+                   +   '<button class="todo-del" type="button" title="Excluir tarefa" aria-label="Excluir">×</button>'
+                   + '</div>';
+            }).join('');
           }).join('');
           return '<details class="todo-emp" open><summary>' + logoHtml
                +   '<span class="todo-emp-name">' + esc(emp) + '</span>'
@@ -4915,22 +4934,30 @@
       var analista = card.getAttribute('data-analista');
       var form = document.createElement('div');
       form.className = 'todo-add-form';
-      form.innerHTML = '<input class="todo-f-emp" list="todoEmpresas" placeholder="Empresa" autocomplete="off">'
+      form.innerHTML = '<label class="todo-f-label">Empresa</label>'
+                     + '<input class="todo-f-emp" list="todoEmpresas" placeholder="Empresa" autocomplete="off">'
+                     + '<label class="todo-f-label">Projeto</label>'
+                     + '<input class="todo-f-proj" list="todoProjetos" placeholder="Selecione ou digite um projeto" autocomplete="off">'
+                     + '<label class="todo-f-label">Descrição da tarefa</label>'
                      + '<textarea class="todo-f-txt" placeholder="Descrição da tarefa"></textarea>'
+                     + '<label class="todo-f-label">Comentários</label>'
+                     + '<textarea class="todo-f-com" placeholder="Comentários (opcional)"></textarea>'
                      + '<div class="todo-add-actions"><button class="todo-btn-save" type="button">Salvar</button>'
                      + '<button class="todo-btn-cancel" type="button">Cancelar</button></div>';
       btn.replaceWith(form);
-      var empEl = form.querySelector('.todo-f-emp'), txtEl = form.querySelector('.todo-f-txt');
+      var empEl = form.querySelector('.todo-f-emp'), projEl = form.querySelector('.todo-f-proj'),
+          txtEl = form.querySelector('.todo-f-txt'), comEl = form.querySelector('.todo-f-com');
       empEl.focus();
       form.querySelector('.todo-btn-cancel').onclick = function(){ render(); };
       form.querySelector('.todo-btn-save').onclick = function(){
-        var empresa = empEl.value.trim(), texto = txtEl.value.trim();
+        var empresa = empEl.value.trim(), projeto = projEl.value.trim(),
+            texto = txtEl.value.trim(), comentario = comEl.value.trim();
         if (!empresa) { empEl.focus(); empEl.style.borderColor = 'var(--accent-danger)'; return; }
         if (!texto)   { txtEl.focus(); txtEl.style.borderColor = 'var(--accent-danger)'; return; }
         var save = form.querySelector('.todo-btn-save');
         save.disabled = true; save.textContent = 'Salvando…';
         var canon = canonEmpresa(empresa);
-        api('POST', { analista: analista, empresa: canon, empresaLogo: logoDe(canon), texto: texto })
+        api('POST', { analista: analista, empresa: canon, empresaLogo: logoDe(canon), projeto: projeto, texto: texto, comentario: comentario })
           .then(function(item){ todos.push(item); render(); })
           .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
       };
@@ -4938,7 +4965,7 @@
 
     function onDelete(item){
       var id = item.getAttribute('data-id');
-      var span = item.querySelector('.todo-item-main span');
+      var span = item.querySelector('.todo-item-title');
       if (!confirm('Excluir esta tarefa?\n\n' + (span ? span.textContent : ''))) return;
       api('DELETE', null, '?id=' + encodeURIComponent(id))
         .then(function(){ todos = todos.filter(function(t){ return t.id !== id; }); render(); })
@@ -4948,7 +4975,7 @@
     function onToggle(cb){
       var item = cb.closest('.todo-item'), id = item.getAttribute('data-id'), done = cb.checked;
       var t = todos.find(function(x){ return x.id === id; });
-      var span = item.querySelector('.todo-item-main span');
+      var span = item.querySelector('.todo-item-title');
       if (t) t.done = done;
       if (span) { span.style.textDecoration = done ? 'line-through' : ''; span.style.opacity = done ? '.55' : ''; }
       cb.disabled = true;
@@ -4979,6 +5006,18 @@
     dl.id = 'todoEmpresas';
     dl.innerHTML = COMPANIES.map(function(c){ return '<option value="' + esc(c.name) + '">'; }).join('');
     document.body.appendChild(dl);
+
+    // Seletor de projetos: datalist alimentado pelos projetos já cadastrados,
+    // atualizado a cada render() para refletir novos projetos digitados.
+    var dlProj = document.createElement('datalist');
+    dlProj.id = 'todoProjetos';
+    document.body.appendChild(dlProj);
+    function refreshProjetos(){
+      var vistos = {}, opts = [];
+      todos.forEach(function(t){ var p = String(t.projeto || '').trim(); var k = normKey(p); if (p && !vistos[k]) { vistos[k] = 1; opts.push(p); } });
+      opts.sort(function(a,b){ return a.localeCompare(b); });
+      dlProj.innerHTML = opts.map(function(p){ return '<option value="' + esc(p) + '">'; }).join('');
+    }
 
     // carga inicial
     api('GET')

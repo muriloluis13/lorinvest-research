@@ -6,8 +6,8 @@
 // cliente. Aceita as duas convenções de nome que o add-on pode injetar.
 //
 //   GET    /api/todos          -> lista todas as tarefas (semeia na 1ª vez)
-//   POST   /api/todos          -> body {analista, empresa, empresaLogo?, texto}
-//   PATCH  /api/todos          -> body {id, done}   (marca/desmarca concluída)
+//   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?}
+//   PATCH  /api/todos          -> body {id, done?, projeto?, texto?, comentario?}
 //   DELETE /api/todos?id=...   -> remove a tarefa
 // ============================================================================
 import { Redis } from '@upstash/redis';
@@ -74,7 +74,9 @@ export default async function handler(req, res) {
         analista: String(b.analista),
         empresa: String(b.empresa),
         empresaLogo: b.empresaLogo ? String(b.empresaLogo) : '',
+        projeto: b.projeto ? String(b.projeto).trim() : '',
         texto: texto,
+        comentario: b.comentario ? String(b.comentario).trim() : '',
         done: false,
         criadoEm: new Date().toISOString(),
       };
@@ -89,7 +91,10 @@ export default async function handler(req, res) {
       const list = await load();
       const it = list.find(function (t) { return t.id === b.id; });
       if (!it) return res.status(404).json({ error: 'tarefa não encontrada' });
-      it.done = !!b.done;
+      if (Object.prototype.hasOwnProperty.call(b, 'done')) it.done = !!b.done;
+      if (Object.prototype.hasOwnProperty.call(b, 'projeto')) it.projeto = String(b.projeto || '').trim();
+      if (Object.prototype.hasOwnProperty.call(b, 'comentario')) it.comentario = String(b.comentario || '').trim();
+      if (Object.prototype.hasOwnProperty.call(b, 'texto') && String(b.texto).trim()) it.texto = String(b.texto).trim();
       await redis.set(KEY, list);
       return res.status(200).json(it);
     }
