@@ -1479,6 +1479,8 @@
             .pan-head{display:flex;align-items:flex-end;gap:12px;padding:0 6px;margin-top:-26px;position:relative;z-index:1}
             .pan-logo{width:56px;height:56px;border-radius:16px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 9px rgba(19,32,46,.18);display:grid;place-items:center;overflow:hidden;flex:none}
             .pan-logo img{width:100%;height:100%;object-fit:contain;padding:6px}
+            /* Logo com arte de fundo própria (ex.: Norcoast): preenche o badge inteiro, sem respiro. */
+            .pan-logo--fill img{padding:0;object-fit:cover}
             .pan-logo svg{width:26px;height:26px;fill:none;stroke:#8C9BAB;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
             .pan-name{font-size:16.5px;font-weight:700;color:var(--ink);line-height:1.2;padding-bottom:4px}
             .pan-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
@@ -1516,188 +1518,6 @@
           <div class="ov-panel active" data-ovp="panorama">
             <div class="pan-grid">
 
-              <article class="pan-card" data-company="Akron" role="button" tabindex="0" aria-label="Abrir Akron na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/akron-painel.webp" alt="Painel Akron" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/akron-logo.avif" alt="Logo Akron" loading="lazy"></span>
-                  <div class="pan-name">Akron</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd>Pendente</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>Pendente</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>Pendente</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>Pendente</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Bioren" role="button" tabindex="0" aria-label="Abrir Bioren na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Bioren%20painel.jpg" alt="Painel Bioren" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/bioren-logo.jpg" alt="Logo Bioren" loading="lazy"></span>
-                  <div class="pan-name">Bioren</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">77,8%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>25.017,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>27.118,3</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>34.914,1</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Eindom" role="button" tabindex="0" aria-label="Abrir Eindom na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Eindom%20painel.jpg" alt="Painel Eindom" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/eindom-logo.jpg" alt="Logo Eindom" loading="lazy"></span>
-                  <div class="pan-name">Eindom</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>113.349,5</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>133.986,3</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>216.817,7</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Valsa" role="button" tabindex="0" aria-label="Abrir Valsa na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/valsa-painel.webp" alt="Painel Valsa" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/valsa-logo.svg" alt="Logo Valsa" loading="lazy"></span>
-                  <div class="pan-name">Valsa</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">92,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>165.000,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>181.628,7</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>221.457,1</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="GBS Storage" role="button" tabindex="0" aria-label="Abrir GBS Storage na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/gbs-painel.jpg" alt="Painel GBS Storage" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/gbs-logo.jpg" alt="Logo GBS Storage" loading="lazy"></span>
-                  <div class="pan-name">GBS Storage</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>91.140,5</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>105.613,3</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>163.211,8</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="GNLink" role="button" tabindex="0" aria-label="Abrir GNLink na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/GNLink%20painel.jpg" alt="Painel GNLink" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/gnlink-logo.jpg" alt="Logo GNLink" loading="lazy"></span>
-                  <div class="pan-name">GNLink</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">64,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>98.385,7</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>111.483,8</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>161.933,6</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="New Wave" role="button" tabindex="0" aria-label="Abrir New Wave na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Newwave%20painel.jpg" alt="Painel New Wave" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/new-wave-logo.jpg" alt="Logo New Wave" loading="lazy"></span>
-                  <div class="pan-name">New Wave</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">78,4%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>144.319,9</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>168.345,8</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>266.986,4</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Norcoast" role="button" tabindex="0" aria-label="Abrir Norcoast na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/norcoast-painel.webp" alt="Painel Norcoast" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/norcoast-logo.png" alt="Logo Norcoast" loading="lazy"></span>
-                  <div class="pan-name">Norcoast</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd>Pendente</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>Pendente</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>Pendente</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>Pendente</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Norflor" role="button" tabindex="0" aria-label="Abrir Norflor na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Painel%20Norflor.png" alt="Painel Norflor" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/Norflor-logo.png" alt="Logo Norflor" loading="lazy"></span>
-                  <div class="pan-name">Norflor</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">100,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest <span class="pan-note" title="Negativo: os desinvestimentos já efetuados superam os aportes.">desinvestido</span></dt><dd>-65.566,6</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>-49.282,3</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>-101.564,7</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Norsul" role="button" tabindex="0" aria-label="Abrir Norsul na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Norsul2%20painel.jpg" alt="Painel Norsul" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/norsul-logo.jpg" alt="Logo Norsul" loading="lazy"></span>
-                  <div class="pan-name">Norsul</div>
-                </div>
-                <!-- Painel da Norsul não traz aportes/IPCA; usa os KPIs próprios dela (valuation) -->
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest <span class="pan-note" title="Participação indireta via Lorentzen; o painel da Norsul não tem fatia do Hankoe FIP.">via Lorentzen</span></dt><dd class="pan-hl">76,8%</dd></div>
-                  <div class="pan-row"><dt>Valor Hankoe</dt><dd>1.547.592,3</dd></div>
-                  <div class="pan-row"><dt>Valuation Múltiplo</dt><dd>1.320.216,9</dd></div>
-                  <div class="pan-row"><dt>Valor Hankoe — Lorentzen (%)</dt><dd>1.189.123,5</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Sileto" role="button" tabindex="0" aria-label="Abrir Sileto na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Sileto%20painel.png" alt="Painel Sileto" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/Sileto-logo.PNG" alt="Logo Sileto" loading="lazy"></span>
-                  <div class="pan-name">Sileto</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest <span class="pan-note" title="Fatia do Dyna FIP. Demais acionistas: Crystall 51,6% e Fundo Nunki 8,4%.">via Dyna</span></dt><dd class="pan-hl">40,0%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest <span class="pan-note" title="No painel da Sileto a métrica é rotulada &quot;Aporte Total&quot;, não &quot;Aportes Líquidos&quot;.">aporte total</span></dt><dd>74.648,6</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>82.335,3</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>111.364,0</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Target Bank" role="button" tabindex="0" aria-label="Abrir Target Bank na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Painel%20Target.png" alt="Painel Target Bank" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/target-bank-logo.png" alt="Logo Target Bank" loading="lazy"></span>
-                  <div class="pan-name">Target Bank</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest</dt><dd class="pan-hl">92,3%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>96.139,8</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>110.458,1</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>229.779,2</dd></div>
-                </dl>
-              </article>
-
-              <article class="pan-card" data-company="Tree+" role="button" tabindex="0" aria-label="Abrir Tree+ na aba Empresas">
-                <div class="pan-media"><img src="logos/paineis/Painel%20Norflor.png" alt="Painel Tree+ (painel da Norflor)" loading="lazy"></div>
-                <div class="pan-head">
-                  <span class="pan-logo"><img src="logos/tree-logo.png" alt="Logo Tree+" loading="lazy"></span>
-                  <div class="pan-name">Tree+</div>
-                </div>
-                <dl class="pan-metrics">
-                  <div class="pan-row"><dt>% Lorinvest <span class="pan-note" title="Skog FIP – Multiestratégia: Hankoe 25,1%, Ti17 FIM 25,0%, Zest 25,0%, Mercuria 25,0%. Lorinvest é a gestora do fundo.">quotista</span></dt><dd class="pan-hl">25,1%</dd></div>
-                  <div class="pan-row"><dt>Aporte Lorinvest</dt><dd>62.327,0</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA</dt><dd>67.842,2</dd></div>
-                  <div class="pan-row"><dt>Correção IPCA + 15%</dt><dd>87.184,7</dd></div>
-                </dl>
-              </article>
 
             </div>
 
@@ -1942,33 +1762,7 @@
               <div class="section-title">Workspace | Empresas do Portfólio</div>
           <div class="company-selector">
             <span class="company-selector-label">Empresa selecionada:</span>
-            <div class="company-selector-pills">
-              <button class="company-pill" type="button" data-company="Akron"><svg class="company-ic" aria-hidden="true"><use href="#ic-akron"/></svg>Akron</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Bioren"><svg class="company-ic" aria-hidden="true"><use href="#ic-bioren"/></svg>Bioren</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Valsa"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Valsa</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill active" type="button" data-company="GNLink"><svg class="company-ic" aria-hidden="true"><use href="#ic-gnlink"/></svg>GNLink</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="New Wave"><svg class="company-ic" aria-hidden="true"><use href="#ic-newwave"/></svg>New Wave</button>
-              <span class="company-break"></span>
-              <button class="company-pill" type="button" data-company="Norcoast"><svg class="company-ic" aria-hidden="true"><use href="#ic-norcoast"/></svg>Norcoast</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norflor"><svg class="company-ic" aria-hidden="true"><use href="#ic-norflor"/></svg>Norflor</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norsul"><svg class="company-ic" aria-hidden="true"><use href="#ic-norsul"/></svg>Norsul</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Sileto"><svg class="company-ic" aria-hidden="true"><use href="#ic-sileto"/></svg>Sileto</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Target Bank"><svg class="company-ic" aria-hidden="true"><use href="#ic-target"/></svg>Target Bank</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
-            </div>
+            <div class="company-selector-pills"></div>
           </div>
 
             </div>
@@ -2990,19 +2784,25 @@
               /* ramp chart (reutilizado em Operacional e Comercial) */
               .rmp-plot{display:flex;align-items:flex-end;gap:6px;height:190px;padding-top:20px;border-bottom:2px solid var(--line)}
               .rmp-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
-              .rmp-cap{text-align:center;font-size:9px;font-weight:800;color:var(--accent-1);margin-bottom:3px}
+              .rmp-cap{text-align:center;font-size:11px;font-weight:800;color:var(--accent-1);margin-bottom:3px}
               .rmp-stack{display:flex;flex-direction:column-reverse;width:100%;border-radius:4px 4px 0 0;overflow:hidden}
-              .rmp-seg{flex-basis:0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;font-style:normal;font-size:8.5px;font-weight:700;color:#fff;white-space:nowrap;line-height:1}
+              .rmp-seg{flex-basis:0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;font-style:normal;font-size:10.5px;font-weight:700;color:#fff;white-space:nowrap;line-height:1}
               .rmp-seg.bb{background:#6B8299}.rmp-seg.ita{background:#C55A17}.rmp-seg.assu{background:#2E7D4F}
               /* faixa reta de % de ocupação no topo */
-              .dm-occ{display:flex;gap:6px;align-items:center;border-bottom:2px solid #13202E;padding-bottom:4px;margin-bottom:8px}
-              .dm-occ span{flex:1;text-align:center;font-size:9.5px;font-weight:800;color:#13202E;min-width:0}
+              .dm-occ{display:flex;gap:6px;align-items:center;border-bottom:2px solid #13202E;padding-bottom:6px;margin-bottom:8px}
+              .dm-occ span{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
+              .dm-occ b{display:inline-block;background:#13202E;color:#fff;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;line-height:1.25;font-variant-numeric:tabular-nums}
               .rmp-x{display:flex;gap:6px;margin-top:5px}
-              .rmp-x span{flex:1;text-align:center;font-size:9px;color:var(--muted);min-width:0}
+              .rmp-x span{flex:1;text-align:center;font-size:10px;color:var(--muted);min-width:0}
               .rmp-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:11px 0 2px;font-size:11.5px;color:var(--muted)}
               .rmp-legend span{display:inline-flex;align-items:center;gap:6px}
               .rmp-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
-              @media(max-width:720px){.op-plants{grid-template-columns:1fr}.rmp-x span,.rmp-cap{font-size:8px}}
+              .placeholder-table th.mth-rz{background:#C55A17;color:#fff;border-bottom-color:#C55A17}
+              .placeholder-table th.mth-fc{background:#4F7B8C;color:#fff;border-bottom-color:#4F7B8C}
+              .rf-legend{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:11px;color:var(--muted);margin:11px 0 2px}
+              .rf-legend span{display:inline-flex;align-items:center;gap:6px}
+              .rf-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+              @media(max-width:720px){.op-plants{grid-template-columns:1fr}.rmp-x span,.rmp-cap{font-size:9.5px}.rmp-seg{font-size:9px}.dm-occ b{font-size:9px;padding:2px 6px}}
             </style>
 
             <div class="section-title" style="margin:2px 0 6px;">Oferta GNL — capacidade por planta</div>
@@ -3192,6 +2992,13 @@
               .bd-plant2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:13px 0 5px}
               .bd-plant2 .pl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-2)}
               .bd-plant2 .sub{font-size:10.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+              .bd-plantg{border-top:1px solid #eef1f5}
+              .bd-plantg:first-of-type{border-top:none}
+              summary.bd-plant2{cursor:pointer;list-style:none;outline:none}
+              summary.bd-plant2::-webkit-details-marker{display:none}
+              summary.bd-plant2 .pl::before{content:'▸';display:inline-block;width:9px;margin-right:5px;font-size:9px;color:var(--accent-2);transition:transform .15s}
+              .bd-plantg[open] > summary.bd-plant2 .pl::before{transform:rotate(90deg)}
+              summary.bd-plant2:hover .pl{color:var(--accent-1)}
               .bd-cli{padding:6px 0}
               .bd-cli + .bd-cli{border-top:1px solid #eef1f5}
               .bd-cli-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -3209,9 +3016,42 @@
               .fun-foot{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.6}
               .fun-foot b{color:var(--accent-1);font-weight:700}
               @media(max-width:720px){.bd-grid{grid-template-columns:1fr}.fun-row{grid-template-columns:120px 1fr;gap:10px}.fun-name{font-size:11px}}
+              /* Toggle de base de dados (RCI Dez/25 x RCA Mai/26) */
+              .comm-src{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:2px 0 16px}
+              .comm-src .lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+              .comm-seg{display:inline-flex;background:#eef1f5;border:1px solid var(--line);border-radius:99px;padding:3px}
+              .comm-seg button{border:none;background:none;font:inherit;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--muted);padding:6px 16px;border-radius:99px;transition:all .15s;white-space:nowrap}
+              .comm-seg button:hover{color:var(--ink)}
+              .comm-seg button.active{background:var(--accent-1);color:#fff;box-shadow:0 1px 3px rgba(19,32,46,.2)}
+              .comm-src .src-cap{font-size:11px;color:var(--muted)}
+              .comm-view{display:none}
+              .comm-view.active{display:block}
+              .bd-prob{font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:4px;margin-left:7px;letter-spacing:.03em;flex:none}
+              .bd-prob.alta{background:#E7EEE3;color:#2E7D4F}
+              .bd-prob.media{background:#FBF1E3;color:#C55A17}
+              .bd-prob.baixa{background:#EEF1F5;color:#6E8CA6}
+              .ct-tag{font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;letter-spacing:.03em;white-space:nowrap}
+              .ct-tag.def{background:#E7EEE3;color:#2E7D4F}
+              .ct-tag.tst{background:#EEF1F5;color:#6E8CA6}
+              .kpi-row5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:15px}
+              .kpi-row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:15px}
+              .kpi-row5 .v small,.kpi-row4 .v small{font-size:12px;font-weight:700;color:var(--muted);margin-left:1px}
+              @media(max-width:900px){.kpi-row5{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi-row4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+              @media(max-width:560px){.kpi-row5{grid-template-columns:repeat(2,minmax(0,1fr))}}
             </style>
 
-            <div class="section-title" style="margin:2px 0 6px;">Funil comercial</div>
+            <div class="section-title" style="margin:2px 0 6px;">Panorama comercial</div>
+
+            <div class="comm-src">
+              <span class="lbl">Base de dados</span>
+              <div class="comm-seg" role="tablist" aria-label="Base de dados comercial">
+                <button type="button" class="active" data-view="rci">RCI · Dez/25</button>
+                <button type="button" data-view="rca">RCA · Mai/26</button>
+              </div>
+              <span class="src-cap" id="commSrcCap">Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)</span>
+            </div>
+
+            <div class="comm-view active" data-view="rci">
             <div class="card" style="margin-bottom:14px">
               <div class="card-header">
                 <div class="card-title">Funil comercial — consolidado</div>
@@ -3232,7 +3072,7 @@
             <!-- Abertura por cliente / planta -->
             <div class="card" style="margin-bottom:14px">
               <div class="card-header">
-                <div class="card-title">Abertura por cliente e planta</div>
+                <div class="card-title">Contratos em negociação</div>
                 <span class="tag">m³/dia</span>
               </div>
               <div class="card-body">
@@ -3240,31 +3080,43 @@
                   <div class="bd-col neg">
                     <div class="bd-col-head"><span class="t">Em negociação</span><span class="n">275.000<small>m³/dia</small></span></div>
                     <div class="bd-col-body">
-                      <div class="bd-plant2"><span class="pl">RN</span><span class="sub">11.000</span></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Lactalis<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">6.000</span></div><div class="bd-cli-bar"><i style="width:4.7%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Master Boi<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">5.000</span></div><div class="bd-cli-bar"><i style="width:3.9%"></i></div></div>
-                      <div class="bd-plant2"><span class="pl">BA</span><span class="sub">159.000</span></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Ibar<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">13.000</span></div><div class="bd-cli-bar"><i style="width:10.2%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PBIO<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:7.9%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Vanadium<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">9.000</span></div><div class="bd-cli-bar"><i style="width:7.1%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Bahiagás (BRU)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">127.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
-                      <div class="bd-plant2"><span class="pl">PR</span><span class="sub">105.000</span></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Mosaic<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">85.000</span></div><div class="bd-cli-bar"><i style="width:66.9%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">SCGás / Parati<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:15.7%"></i></div></div>
+                      <details class="bd-plantg">
+                        <summary class="bd-plant2"><span class="pl">PR</span><span class="sub">105.000</span></summary>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Mosaic<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">85.000</span></div><div class="bd-cli-bar"><i style="width:66.9%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">SCGás / Parati<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:15.7%"></i></div></div>
+                      </details>
+                      <details class="bd-plantg">
+                        <summary class="bd-plant2"><span class="pl">BA</span><span class="sub">159.000</span></summary>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Ibar<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">13.000</span></div><div class="bd-cli-bar"><i style="width:10.2%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PBIO<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:7.9%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Vanadium<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">9.000</span></div><div class="bd-cli-bar"><i style="width:7.1%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Bahiagás (BRU)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">127.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
+                      </details>
+                      <details class="bd-plantg">
+                        <summary class="bd-plant2"><span class="pl">RN</span><span class="sub">11.000</span></summary>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Lactalis<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">6.000</span></div><div class="bd-cli-bar"><i style="width:4.7%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Master Boi<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">5.000</span></div><div class="bd-cli-bar"><i style="width:3.9%"></i></div></div>
+                      </details>
                     </div>
                   </div>
                   <div class="bd-col ctr">
                     <div class="bd-col-head"><span class="t">Negociações contratuais</span><span class="n">96.500<small>m³/dia</small></span></div>
                     <div class="bd-col-body">
-                      <div class="bd-plant2"><span class="pl">RN</span><span class="sub">40.000</span></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Copergás (Trindade)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">30.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PetroReconcavo<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
-                      <div class="bd-plant2"><span class="pl">BA</span><span class="sub">10.000</span></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Nexa<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
-                      <div class="bd-plant2"><span class="pl">PR</span><span class="sub">46.500</span></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Compagás (Lapa)<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Alcast<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
-                      <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Dallon<small>GNCp</small><span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">6.500</span></div><div class="bd-cli-bar"><i style="width:21.7%"></i></div></div>
+                      <details class="bd-plantg">
+                        <summary class="bd-plant2"><span class="pl">PR</span><span class="sub">46.500</span></summary>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Compagás (Lapa)<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Alcast<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Dallon<small>GNCp</small><span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">6.500</span></div><div class="bd-cli-bar"><i style="width:21.7%"></i></div></div>
+                      </details>
+                      <details class="bd-plantg">
+                        <summary class="bd-plant2"><span class="pl">BA</span><span class="sub">10.000</span></summary>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Nexa<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
+                      </details>
+                      <details class="bd-plantg">
+                        <summary class="bd-plant2"><span class="pl">RN</span><span class="sub">40.000</span></summary>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Copergás (Trindade)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">30.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
+                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PetroReconcavo<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
+                      </details>
                     </div>
                   </div>
                 </div>
@@ -3278,6 +3130,12 @@
                 <span class="tag">preço net · reajustado desde a data-base</span>
               </div>
               <div class="card-body">
+                <div class="kpi-row4">
+                  <div class="kpi-tile k-slate"><div class="k">Contratos assinados</div><div class="v">6</div><div class="s">4 GNL · 2 GNCp</div></div>
+                  <div class="kpi-tile k-teal"><div class="k">Prazo médio</div><div class="v">4,4 <small>anos</small></div><div class="s">média simples dos 6 contratos</div></div>
+                  <div class="kpi-tile k-sage"><div class="k">Preço médio</div><div class="v">R$ 3,58<small>/m³</small></div><div class="s">ponderado pelo volume total</div></div>
+                  <div class="kpi-tile k-stone"><div class="k">Volume total contratado</div><div class="v">132.175</div><div class="s">m³/dia · ramp-up 56.865 →</div></div>
+                </div>
                 <div class="table-scroll">
                   <table class="placeholder-table">
                     <thead>
@@ -3343,7 +3201,7 @@
                 <span class="tag">mil m³/dia · topo = total</span>
               </div>
               <div class="card-body">
-                <div class="dm-occ"><span>42%</span><span>39%</span><span>59%</span><span>62%</span><span>58%</span><span>66%</span><span>66%</span><span>85%</span><span>88%</span><span>89%</span><span>89%</span><span>91%</span></div>
+                <div class="dm-occ"><span><b>42%</b></span><span><b>39%</b></span><span><b>59%</b></span><span><b>62%</b></span><span><b>58%</b></span><span><b>66%</b></span><span><b>66%</b></span><span><b>85%</b></span><span><b>88%</b></span><span><b>89%</b></span><span><b>89%</b></span><span><b>91%</b></span></div>
                 <div class="rmp-plot">
                   <div class="rmp-col"><span class="rmp-cap">34</span><div class="rmp-stack" style="height:17.4%"><i class="rmp-seg ita" style="flex-grow:14625">15</i><i class="rmp-seg assu" style="flex-grow:19740">20</i></div></div>
                   <div class="rmp-col"><span class="rmp-cap">61</span><div class="rmp-stack" style="height:31.0%"><i class="rmp-seg bb" style="flex-grow:34300">34</i><i class="rmp-seg ita" style="flex-grow:14625">15</i><i class="rmp-seg assu" style="flex-grow:12247">12</i></div></div>
@@ -3387,6 +3245,245 @@
                 </p>
               </div>
             </div>
+            </div><!-- /comm-view rci -->
+
+            <div class="comm-view" data-view="rca">
+
+              <!-- Funil consolidado — RCA Mai/26 -->
+              <div class="card" style="margin-bottom:14px">
+                <div class="card-header">
+                  <div class="card-title">Funil comercial — consolidado</div>
+                  <span class="tag">valores em m³/dia · ex. Norte</span>
+                </div>
+                <div class="card-body">
+                  <p class="fun-note">Da demanda total mapeada (exceto Norte) até os contratos assinados. <b>Mais de R$ 1,1 bilhão</b> em contratos assinados.</p>
+                  <div class="fun">
+                    <div class="fun-row"><div class="fun-name">Mercado mapeado</div><div class="fun-track"><div class="fun-bar fun-s1" style="width:100%"><span class="fun-val">1.847.776</span></div></div></div>
+                    <div class="fun-row"><div class="fun-name">Em prospecção</div><div class="fun-track"><div class="fun-bar fun-s2" style="width:60.5%"><span class="fun-val">1.118.561</span></div></div></div>
+                    <div class="fun-row"><div class="fun-name">Em negociação — BID</div><div class="fun-track"><div class="fun-bar fun-s3" style="width:32.3%"><span class="fun-val">596.050</span></div></div></div>
+                    <div class="fun-row"><div class="fun-name">Em contrato</div><div class="fun-track"><div class="fun-bar fun-s4" style="width:12%"><span class="fun-val">45.100</span></div></div></div>
+                    <div class="fun-row"><div class="fun-name">Contratos assinados</div><div class="fun-track"><div class="fun-bar fun-s5" style="width:15%"><span class="fun-val">90.065 – 222.675</span></div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Abertura por cliente / planta — RCA Mai/26 -->
+              <div class="card" style="margin-bottom:14px">
+                <div class="card-header">
+                  <div class="card-title">Contratos em negociação</div>
+                  <span class="tag">m³/dia</span>
+                </div>
+                <div class="card-body">
+                  <div class="bd-grid">
+                    <div class="bd-col neg">
+                      <div class="bd-col-head"><span class="t">Em negociação — BID</span><span class="n">596.050<small>m³/dia</small></span></div>
+                      <div class="bd-col-body">
+                        <details class="bd-plantg">
+                          <summary class="bd-plant2"><span class="pl">B. Bonita</span><span class="sub">305.000</span></summary>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Compagás – Firme</span><span class="bd-cli-val">16.000</span></div><div class="bd-cli-bar"><i style="width:6.2%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Compagás – Flex</span><span class="bd-cli-val">25.000</span></div><div class="bd-cli-bar"><i style="width:9.6%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">MOR</span><span class="bd-cli-val">4.000</span></div><div class="bd-cli-bar"><i style="width:1.5%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Sulgás</span><span class="bd-cli-val">260.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
+                        </details>
+                        <details class="bd-plantg">
+                          <summary class="bd-plant2"><span class="pl">Itabuna</span><span class="sub">170.050</span></summary>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Bahiagás (BRU)</span><span class="bd-cli-val">126.000</span></div><div class="bd-cli-bar"><i style="width:48.5%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Bahiagás (JZ)</span><span class="bd-cli-val">9.400</span></div><div class="bd-cli-bar"><i style="width:3.6%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Vanadio</span><span class="bd-cli-val">12.000</span></div><div class="bd-cli-bar"><i style="width:4.6%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Goiasgás</span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:7.7%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Eurofarma</span><span class="bd-cli-val">2.650</span></div><div class="bd-cli-bar"><i style="width:1%"></i></div></div>
+                        </details>
+                        <details class="bd-plantg">
+                          <summary class="bd-plant2"><span class="pl">Assú</span><span class="sub">121.000</span></summary>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Piaui Niquel</span><span class="bd-cli-val">100.000</span></div><div class="bd-cli-bar"><i style="width:38.5%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Gaspisa</span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:3.8%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Lactalis</span><span class="bd-cli-val">6.000</span></div><div class="bd-cli-bar"><i style="width:2.3%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Master Boi</span><span class="bd-cli-val">5.000</span></div><div class="bd-cli-bar"><i style="width:1.9%"></i></div></div>
+                        </details>
+                      </div>
+                    </div>
+                    <div class="bd-col ctr">
+                      <div class="bd-col-head"><span class="t">Em contrato</span><span class="n">45.100<small>m³/dia</small></span></div>
+                      <div class="bd-col-body">
+                        <details class="bd-plantg">
+                          <summary class="bd-plant2"><span class="pl">B. Bonita</span><span class="sub">35.100</span></summary>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Alcast<span class="bd-prob baixa">Baixa</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Grupo Stara<span class="bd-prob media">Média</span></span><span class="bd-cli-val">12.000</span></div><div class="bd-cli-bar"><i style="width:60%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Dalba<span class="bd-prob alta">Alta</span></span><span class="bd-cli-val">1.100</span></div><div class="bd-cli-bar"><i style="width:5.5%"></i></div></div>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">SAMP<span class="bd-prob media">Média</span></span><span class="bd-cli-val">2.000</span></div><div class="bd-cli-bar"><i style="width:10%"></i></div></div>
+                        </details>
+                        <details class="bd-plantg">
+                          <summary class="bd-plant2"><span class="pl">Assú</span><span class="sub">10.000</span></summary>
+                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PetroReconcavo<span class="bd-prob alta">Alta</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:50%"></i></div></div>
+                        </details>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="fun-foot" style="margin-top:12px"><b>Em negociação — BID</b> e <b>Em contrato</b> somam a base ativa do funil; probabilidade indica a chance de conversão do volume em contrato.</p>
+                </div>
+              </div>
+
+              <!-- Contratos assinados — RCA Mai/26 -->
+              <div class="card" style="margin-bottom:14px">
+                <div class="card-header">
+                  <div class="card-title">Contratos assinados</div>
+                  <span class="tag">ramp-up de volume · preço net atual</span>
+                </div>
+                <div class="card-body">
+                  <div class="kpi-row5">
+                    <div class="kpi-tile k-slate"><div class="k">Contratos assinados</div><div class="v">15</div><div class="s">6 definitivos · 9 em teste</div></div>
+                    <div class="kpi-tile k-teal"><div class="k">Prazo médio</div><div class="v">2,7 <small>anos</small></div><div class="s">média simples dos 15 contratos</div></div>
+                    <div class="kpi-tile k-sage"><div class="k">Preço médio</div><div class="v">R$ 3,37<small>/m³</small></div><div class="s">ponderado pelo volume total</div></div>
+                    <div class="kpi-tile k-stone"><div class="k">ToP médio</div><div class="v">54,6%</div><div class="s">ponderado pelo volume total</div></div>
+                    <div class="kpi-tile k-sage"><div class="k">Valor total dos contratos</div><div class="v">R$ 1,10 <small>bi</small></div><div class="s">R$ 1.101.224.386</div></div>
+                  </div>
+                  <div class="table-scroll">
+                    <table class="placeholder-table">
+                      <thead>
+                        <tr>
+                          <th>Contrato</th>
+                          <th>Cliente</th>
+                          <th>Assinatura</th>
+                          <th>Início forn.</th>
+                          <th>Prazo</th>
+                          <th>Produto</th>
+                          <th>Volume — ini → atual → total (m³/dia)</th>
+                          <th>Preço net (R$/m³)</th>
+                          <th>%TOP</th>
+                          <th>Apuração</th>
+                          <th>Início TOP</th>
+                          <th>Valor do contrato</th>
+                          <th>Planta</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>CEGÁS</td><td>28/10/2025</td><td>03/11/2025</td><td>5 anos</td><td>GNL</td><td>18.740 → 22.000 → 50.000</td><td>3,38</td><td>70%</td><td>Trimestral</td><td>fev/26</td><td>R$ 226.003.744</td><td>Assú</td></tr>
+                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>COPERGÁS</td><td>28/01/2026</td><td>09/03/2026</td><td>3 anos</td><td>GNL</td><td>10.000 → 10.000 → 30.000</td><td>3,34</td><td>70%</td><td>Trimestral</td><td>Regás fixa</td><td>R$ 24.738.397</td><td>Assú</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>POSTO LIDER</td><td>04/03/2026</td><td>05/03/2026</td><td>330 dias</td><td>GNCp</td><td>1.000 → 1.000 → 6.000</td><td>1,90</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Assú</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>PARELHAS GÁS</td><td>16/04/2026</td><td>16/04/2026</td><td>330 dias</td><td>GNCp</td><td>1.500 → 3.000 → 3.000</td><td>1,90</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Assú</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>MERI POBO</td><td>28/01/2026</td><td>19/05/2026</td><td>6 meses</td><td>GNCp</td><td>2.000 → 2.000 → 6.000</td><td>3,17</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Assú</td></tr>
+                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>COMPAGÁS</td><td>29/12/2025</td><td>12/03/2026</td><td>1 ano</td><td>GNL</td><td>7.000 → 20.000 → 20.000</td><td>3,85</td><td>70%</td><td>Anual</td><td>mar/26</td><td>R$ 71.832.000</td><td>Barra Bonita</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>SK METAIS</td><td>23/06/2026</td><td>15/07/2026</td><td>180 dias</td><td>GNL</td><td>3.000 → 3.000 → 4.000</td><td>3,80</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>FEVEREIRO LD</td><td>28/01/2026</td><td>29/01/2026</td><td>330 dias</td><td>GNCp</td><td>3.000 → 4.000 → 4.000</td><td>3,20</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>DALLON</td><td>21/01/2026</td><td>Pendente reunião</td><td>330 dias</td><td>GNCp</td><td>6.000 → 6.000 → 10.000</td><td>2,90</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>RIO BONITO</td><td>15/05/2026</td><td>01/08/2026</td><td>180 dias</td><td>GNCp</td><td>1.000 → 1.000 → 2.000</td><td>3,45</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>DALPARE</td><td>03/02/2026</td><td>20/08/2026</td><td>330 dias</td><td>GNCp</td><td>2.200 → 2.000 → 2.000</td><td>3,30</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
+                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>PETROBAHIA</td><td>05/10/2023</td><td>06/06/2025</td><td>10 anos</td><td>GNL</td><td>18.000 → 18.000 → 40.000</td><td>3,72</td><td>70%</td><td>Anual</td><td>jan/26</td><td>R$ 554.668.768</td><td>Itabuna</td></tr>
+                        <tr><td><span class="ct-tag tst">Teste</span></td><td>PETYAN</td><td>04/07/2025</td><td>06/11/2025</td><td>10 meses</td><td>GNL</td><td>12.000 → 12.000 → 12.000</td><td>3,02</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Itabuna</td></tr>
+                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>BAHIAGÁS</td><td>04/11/2025</td><td>07/05/2026</td><td>10 anos</td><td>GNL</td><td>1.625 → 1.625 → 25.175</td><td>3,82</td><td>70%</td><td>Anual</td><td>—</td><td>R$ 205.344.029</td><td>Itabuna</td></tr>
+                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>ALGÁS</td><td>13/02/2026</td><td>01/09/2026</td><td>5 anos</td><td>GNCp</td><td>3.000 → 3.000 → 8.500</td><td>1,81</td><td>70%</td><td>Anual</td><td>—</td><td>R$ 18.637.448</td><td>Itabuna</td></tr>
+                        <tr style="font-weight:800"><td colspan="6">Total</td><td>90.065 → 108.625 → 222.675</td><td colspan="6"></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="fun-foot" style="margin-top:12px">
+                    <b>(1)</b> Preço net considera o preço de face do contrato, sem efeito da receita de locação e sem os reajustes de preço ao longo do tempo. &nbsp;
+                    <b>(2)</b> %TOP = parcela take-or-pay do volume contratado.<br>
+                    Fonte: GNLink — RCA, mai/2026 (slide 6).
+                  </p>
+                </div>
+              </div>
+
+              <!-- Capacidade vs demanda e ocupação — RCA Mai/26 -->
+              <div class="card" style="margin-bottom:14px">
+                <div class="card-header">
+                  <div class="card-title">Capacidade vs demanda e ocupação</div>
+                  <span class="tag">m³/dia · % = demanda ÷ oferta</span>
+                </div>
+                <div class="card-body">
+                  <div class="bd-plant2" style="margin-top:2px"><span class="pl">GNL</span><span class="sub">Ocupação total 76% · oferta 114.612 · demanda 86.625</span></div>
+                  <div class="kpi-grid">
+                    <div class="kpi-tile k-teal"><div class="k">Assú · GNL</div><div class="v">99%</div><div class="s">Demanda 32.000 · Oferta 32.416</div><div class="occ-bar"><i style="width:99%"></i></div></div>
+                    <div class="kpi-tile k-sage"><div class="k">Itabuna · GNL</div><div class="v">74%</div><div class="s">Demanda 31.625 · Oferta 42.616</div><div class="occ-bar"><i style="width:74%"></i></div></div>
+                    <div class="kpi-tile k-stone"><div class="k">B. Bonita · GNL</div><div class="v">58%</div><div class="s">Demanda 23.000 · Oferta 39.580</div><div class="occ-bar"><i style="width:58%"></i></div></div>
+                  </div>
+                  <div class="bd-plant2" style="margin-top:16px"><span class="pl">GNCp</span><span class="sub">Ocupação total 51% · oferta 43.200 · demanda 22.000</span></div>
+                  <div class="kpi-grid">
+                    <div class="kpi-tile k-teal"><div class="k">Assú · GNCp</div><div class="v">42%</div><div class="s">Demanda 6.000 · Oferta 14.400</div><div class="occ-bar"><i style="width:42%"></i></div></div>
+                    <div class="kpi-tile k-sage"><div class="k">Itabuna · GNCp</div><div class="v">21%</div><div class="s">Demanda 3.000 · Oferta 14.400</div><div class="occ-bar"><i style="width:21%"></i></div></div>
+                    <div class="kpi-tile k-stone"><div class="k">B. Bonita · GNCp</div><div class="v">90%</div><div class="s">Demanda 13.000 · Oferta 14.400</div><div class="occ-bar"><i style="width:90%"></i></div></div>
+                  </div>
+                  <p class="card-note" style="margin-top:12px">
+                    Oferta = capacidade instalada por planta e produto; demanda = volume atual dos contratos assinados. GNL agregado a 76% e GNCp a 51%.<br>
+                    Fonte: GNLink — RCA, mai/2026 (slide 6).
+                  </p>
+                </div>
+              </div>
+
+              <!-- ===== Demanda GNL por planta — ramp-up (RCA Mai/26 · realizado até mai + forecast) ===== -->
+              <div class="card" style="margin-bottom:14px">
+                <div class="card-header">
+                  <div class="card-title">Demanda GNL por planta — ramp-up 2026</div>
+                  <span class="tag">mil m³/dia · topo = total · realizado até mai/26</span>
+                </div>
+                <div class="card-body">
+                  <div class="dm-occ"><span><b>28%</b></span><span><b>12%</b></span><span><b>21%</b></span><span><b>26%</b></span><span><b>34%</b></span><span><b>47%</b></span><span><b>48%</b></span><span><b>68%</b></span><span><b>77%</b></span><span><b>45%</b></span><span><b>45%</b></span><span><b>45%</b></span></div>
+                  <div class="rmp-plot">
+                    <div class="rmp-col"><span class="rmp-cap">23</span><div class="rmp-stack" style="height:11.5%"><i class="rmp-seg bb" style="flex-grow:4500">5</i><i class="rmp-seg ita" style="flex-grow:5000">5</i><i class="rmp-seg assu" style="flex-grow:13300">13</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">14</span><div class="rmp-stack" style="height:6.8%"><i class="rmp-seg ita" style="flex-grow:6700">7</i><i class="rmp-seg assu" style="flex-grow:6800">7</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">24</span><div class="rmp-stack" style="height:12.2%"><i class="rmp-seg bb" style="flex-grow:2700">3</i><i class="rmp-seg ita" style="flex-grow:5000">5</i><i class="rmp-seg assu" style="flex-grow:16400">16</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">30</span><div class="rmp-stack" style="height:15.1%"><i class="rmp-seg bb" style="flex-grow:1900">2</i><i class="rmp-seg ita" style="flex-grow:7300">7</i><i class="rmp-seg assu" style="flex-grow:20700">21</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">39</span><div class="rmp-stack" style="height:19.7%"><i class="rmp-seg bb" style="flex-grow:8900">9</i><i class="rmp-seg ita" style="flex-grow:9800">10</i><i class="rmp-seg assu" style="flex-grow:20200">20</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">54</span><div class="rmp-stack" style="height:27.3%"><i class="rmp-seg bb" style="flex-grow:29300">29</i><i class="rmp-seg ita" style="flex-grow:3900">4</i><i class="rmp-seg assu" style="flex-grow:20800">21</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">55</span><div class="rmp-stack" style="height:27.7%"><i class="rmp-seg bb" style="flex-grow:20200">20</i><i class="rmp-seg ita" style="flex-grow:10200">10</i><i class="rmp-seg assu" style="flex-grow:24300">24</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">78</span><div class="rmp-stack" style="height:39.4%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:27900">28</i><i class="rmp-seg assu" style="flex-grow:27900">28</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">89</span><div class="rmp-stack" style="height:44.8%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:31200">31</i><i class="rmp-seg assu" style="flex-grow:35300">35</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">88</span><div class="rmp-stack" style="height:44.7%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:30900">31</i><i class="rmp-seg assu" style="flex-grow:35400">35</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">88</span><div class="rmp-stack" style="height:44.6%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:30800">31</i><i class="rmp-seg assu" style="flex-grow:35300">35</i></div></div>
+                    <div class="rmp-col"><span class="rmp-cap">89</span><div class="rmp-stack" style="height:44.9%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:31300">31</i><i class="rmp-seg assu" style="flex-grow:35400">35</i></div></div>
+                  </div>
+                  <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
+                  <div class="rmp-legend">
+                    <span><i style="background:#6B8299"></i>B. Bonita (PR)</span>
+                    <span><i style="background:#C55A17"></i>Itabuna (BA)</span>
+                    <span><i style="background:#2E7D4F"></i>Assú (RN)</span>
+                    <span><i style="background:#13202E"></i>% ocupação (linha superior)</span>
+                    <span style="margin-left:auto">Barras: m³/dia · escala 197.500 (capacidade plena a partir de out/26)</span>
+                  </div>
+
+                  <div class="table-scroll" style="margin-top:14px">
+                    <table class="placeholder-table">
+                      <thead>
+                        <tr><th>Planta</th><th class="mth-rz">Jan</th><th class="mth-rz">Fev</th><th class="mth-rz">Mar</th><th class="mth-rz">Abr</th><th class="mth-rz">Mai</th><th class="mth-fc">Jun</th><th class="mth-fc">Jul</th><th class="mth-fc">Ago</th><th class="mth-fc">Set</th><th class="mth-fc">Out</th><th class="mth-fc">Nov</th><th class="mth-fc">Dez</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>B. Bonita (PR)</td><td>4.500</td><td>—</td><td>2.700</td><td>1.900</td><td>8.900</td><td>29.300</td><td>20.200</td><td>22.000</td><td>22.000</td><td>22.000</td><td>22.000</td><td>22.000</td></tr>
+                        <tr><td>Itabuna (BA)</td><td>5.000</td><td>6.700</td><td>5.000</td><td>7.300</td><td>9.800</td><td>3.900</td><td>10.200</td><td>27.900</td><td>31.200</td><td>30.900</td><td>30.800</td><td>31.300</td></tr>
+                        <tr><td>Assú (RN)</td><td>13.300</td><td>6.800</td><td>16.400</td><td>20.700</td><td>20.200</td><td>20.800</td><td>24.300</td><td>27.900</td><td>35.300</td><td>35.400</td><td>35.300</td><td>35.400</td></tr>
+                        <tr style="font-weight:800"><td>Total</td><td>22.800</td><td>13.500</td><td>24.100</td><td>29.900</td><td>38.900</td><td>54.000</td><td>54.700</td><td>77.800</td><td>88.500</td><td>88.300</td><td>88.100</td><td>88.700</td></tr>
+                        <tr><td>% Ocupação</td><td>28%</td><td>12%</td><td>21%</td><td>26%</td><td>34%</td><td>47%</td><td>48%</td><td>68%</td><td>77%</td><td>45%</td><td>45%</td><td>45%</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="rf-legend">
+                    <span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span>
+                    <span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span>
+                  </div>
+                  <p class="card-note" style="margin-top:10px">
+                    Demanda GNL por planta usando dados <b>realizados até mai/26</b> e <b>forecast</b> a partir de jun/26. Capacidade total sobe de ~114.600 (fev–set) para 197.500 m³/dia a partir de out/26 (2ª unidade de regas em Itabuna e Assú), o que reduz a ocupação apesar da demanda crescente.<br>
+                    Fonte: GNLink — RCA, mai/2026 (slides 21 · Barra Bonita, 26 · Itabuna, 31 · Assú).
+                  </p>
+                </div>
+              </div>
+
+            </div><!-- /comm-view rca -->
+
+            <script>
+            (function(){
+              var panel=document.querySelector('.emp-panel[data-emp="comercial"]');
+              if(!panel) return;
+              var caps={rci:'Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)',rca:'GNLink · RCA — mai/2026 (slide 6)'};
+              var btns=panel.querySelectorAll('.comm-seg button');
+              var views=panel.querySelectorAll('.comm-view');
+              var cap=panel.querySelector('#commSrcCap');
+              btns.forEach(function(b){b.addEventListener('click',function(){
+                var v=b.getAttribute('data-view');
+                btns.forEach(function(x){x.classList.toggle('active',x===b);});
+                views.forEach(function(vw){vw.classList.toggle('active',vw.getAttribute('data-view')===v);});
+                if(cap) cap.textContent=caps[v]||'';
+              });});
+            })();
+            </script>
 
           <div class="row-full">
             <div class="card">
@@ -3902,33 +3999,7 @@
               <div class="section-title">Análises &amp; Projetos</div>
           <div class="company-selector">
             <span class="company-selector-label">Empresa selecionada:</span>
-            <div class="company-selector-pills">
-              <button class="company-pill" type="button" data-company="Akron"><svg class="company-ic" aria-hidden="true"><use href="#ic-akron"/></svg>Akron</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Bioren"><svg class="company-ic" aria-hidden="true"><use href="#ic-bioren"/></svg>Bioren</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Valsa"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Valsa</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill active" type="button" data-company="GNLink"><svg class="company-ic" aria-hidden="true"><use href="#ic-gnlink"/></svg>GNLink</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="New Wave"><svg class="company-ic" aria-hidden="true"><use href="#ic-newwave"/></svg>New Wave</button>
-              <span class="company-break"></span>
-              <button class="company-pill" type="button" data-company="Norcoast"><svg class="company-ic" aria-hidden="true"><use href="#ic-norcoast"/></svg>Norcoast</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norflor"><svg class="company-ic" aria-hidden="true"><use href="#ic-norflor"/></svg>Norflor</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norsul"><svg class="company-ic" aria-hidden="true"><use href="#ic-norsul"/></svg>Norsul</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Sileto"><svg class="company-ic" aria-hidden="true"><use href="#ic-sileto"/></svg>Sileto</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Target Bank"><svg class="company-ic" aria-hidden="true"><use href="#ic-target"/></svg>Target Bank</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
-            </div>
+            <div class="company-selector-pills"></div>
           </div>
             </div>
           </div>
@@ -4003,33 +4074,7 @@
               <div class="section-title">Teses &amp; Exits</div>
           <div class="company-selector">
             <span class="company-selector-label">Empresa selecionada:</span>
-            <div class="company-selector-pills">
-              <button class="company-pill" type="button" data-company="Akron"><svg class="company-ic" aria-hidden="true"><use href="#ic-akron"/></svg>Akron</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Bioren"><svg class="company-ic" aria-hidden="true"><use href="#ic-bioren"/></svg>Bioren</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Eindom"><svg class="company-ic" aria-hidden="true"><use href="#ic-eindom"/></svg>Eindom</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Valsa"><svg class="company-ic" aria-hidden="true"><use href="#ic-eldry"/></svg>Valsa</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="GBS Storage"><svg class="company-ic" aria-hidden="true"><use href="#ic-gbs"/></svg>GBS Storage</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill active" type="button" data-company="GNLink"><svg class="company-ic" aria-hidden="true"><use href="#ic-gnlink"/></svg>GNLink</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="New Wave"><svg class="company-ic" aria-hidden="true"><use href="#ic-newwave"/></svg>New Wave</button>
-              <span class="company-break"></span>
-              <button class="company-pill" type="button" data-company="Norcoast"><svg class="company-ic" aria-hidden="true"><use href="#ic-norcoast"/></svg>Norcoast</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norflor"><svg class="company-ic" aria-hidden="true"><use href="#ic-norflor"/></svg>Norflor</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Norsul"><svg class="company-ic" aria-hidden="true"><use href="#ic-norsul"/></svg>Norsul</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Sileto"><svg class="company-ic" aria-hidden="true"><use href="#ic-sileto"/></svg>Sileto</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Target Bank"><svg class="company-ic" aria-hidden="true"><use href="#ic-target"/></svg>Target Bank</button>
-              <span class="company-sep">|</span>
-              <button class="company-pill" type="button" data-company="Tree+"><svg class="company-ic" aria-hidden="true"><use href="#ic-treeplus"/></svg>Tree+</button>
-            </div>
+            <div class="company-selector-pills"></div>
           </div>
             </div>
           </div>
@@ -4101,6 +4146,10 @@
       </div>
     </main>
   </div>
+
+  <!-- Fonte única de dados das empresas (aportes, governança, etc.). Deve vir
+       ANTES dos scripts que a consomem (Panorama e aba Empresas). -->
+  <script src="data/empresas.js"></script>
 
   <script>
     (function(){
@@ -4183,6 +4232,81 @@
           card.classList.toggle("an-open");
         });
       });
+
+      // Panorama: constrói o grid inteiro (todos os <article>) a partir da lista
+      // única window.COMPANIES — cabeçalho (imagem/logo/nome) + corpo de métricas
+      // (c.pan.rows). O grid nasce vazio no HTML. Roda ANTES de preencherPanorama,
+      // que depois preenche os <dd data-kpi>/<dd data-pct> gerados aqui.
+      (function gerarPanorama(){
+        var grid = document.querySelector(".pan-grid");
+        if (!grid) return;
+        var html = "";
+        (window.COMPANIES || []).forEach(function(c){
+          var rows = "";
+          ((c.pan && c.pan.rows) || []).forEach(function(r){
+            var dt = r.label + (r.note
+              ? ' <span class="pan-note" title="' + r.note.title + '">' + r.note.txt + '</span>'
+              : '');
+            var cls = r.hl ? ' class="pan-hl"' : '';
+            var attr = r.pct ? ' data-pct' : (r.kpi ? ' data-kpi="' + r.kpi + '"' : '');
+            var val = (r.value != null) ? r.value : '';
+            rows += '<div class="pan-row"><dt>' + dt + '</dt><dd' + cls + attr + '>' + val + '</dd></div>';
+          });
+          html += '<article class="pan-card" data-company="' + c.name + '" role="button" tabindex="0" aria-label="Abrir ' + c.name + ' na aba Empresas">'
+               +    '<div class="pan-media"><img src="' + c.panel + '" alt="' + (c.panelAlt || ("Painel " + c.name)) + '" loading="lazy"></div>'
+               +    '<div class="pan-head">'
+               +      '<span class="pan-logo' + (c.logoFill ? ' pan-logo--fill' : '') + '"><img src="' + c.logo + '" alt="Logo ' + c.name + '" loading="lazy"></span>'
+               +      '<div class="pan-name">' + c.name + '</div>'
+               +    '</div>'
+               +    '<dl class="pan-metrics">' + rows + '</dl>'
+               +  '</article>';
+        });
+        grid.innerHTML = html;
+      })();
+
+      // Panorama: preenche os números de aporte/valuation a partir da fonte única
+      // (window.EMP em data/empresas.js). Os <dd data-kpi="..."> nascem vazios;
+      // o valor vem do dado, eliminando duplicação.
+      (function preencherPanorama(){
+        var EMP = window.EMP || {};
+        document.querySelectorAll(".pan-card[data-company]").forEach(function(card){
+          var d = EMP[card.getAttribute("data-company")];
+          if (!d || !d.aportes) return;
+          var map = {};
+          d.aportes.kpis.forEach(function(k){ map[k[0]] = k[1]; });
+          card.querySelectorAll("dd[data-kpi]").forEach(function(dd){
+            var v = map[dd.getAttribute("data-kpi")];
+            if (v != null) dd.textContent = v;
+          });
+          // % Lorinvest = participação do holder que representa a Lorinvest
+          // (d.pctHolder), lida do array de acionistas — sem duplicar o número.
+          var pctDd = card.querySelector("dd[data-pct]");
+          if (pctDd && d.pctHolder) {
+            var h = (d.aportes.holders || []).filter(function(x){ return x[0] === d.pctHolder; })[0];
+            if (h) pctDd.textContent = h[1].toFixed(1).replace(".", ",") + "%";
+          }
+        });
+      })();
+
+      // Pílulas de empresa: geradas nos 3 seletores a partir da lista única.
+      // Roda ANTES do loop .company-selector (que lê as pílulas para montar o
+      // <select> mobile e anexar os handlers de clique).
+      (function gerarPilulas(){
+        var COMPS = window.COMPANIES || [];
+        document.querySelectorAll(".company-selector-pills").forEach(function(box){
+          var html = "";
+          COMPS.forEach(function(c, i){
+            if (i > 0) html += COMPS[i - 1].rowBreak
+              ? '<span class="company-break"></span>'
+              : '<span class="company-sep">|</span>';
+            html += '<button class="company-pill' + (c.active ? ' active' : '')
+                 + '" type="button" data-company="' + c.name + '">'
+                 + '<svg class="company-ic" aria-hidden="true"><use href="#' + c.icon + '"/></svg>'
+                 + c.name + '</button>';
+          });
+          box.innerHTML = html;
+        });
+      })();
 
       // Cards do Panorama → abrem a empresa na aba Empresas
       document.querySelectorAll(".pan-card[data-company]").forEach(function(card){
@@ -4267,18 +4391,7 @@
     var ANALYST_ROLE = {"Murilo Nunes":"Oil & Gas · Transportation · Industrial Tech","Lucas Werner":"Research Lead","Lucas Marques":"Metals & Mining · Real Estate · Healthcare","Felipe Seixas":"Forestry · Cement"};
     var CONTACT = {"Murilo Nunes":["murilo.nunes@lorinvest.com","+5521979028288"],"Lucas Werner":["lucas.werner@lorinvest.com","+5521984401311"],"Lucas Marques":["lucas.marques@lorinvest.com","+5521995003329"],"Felipe Seixas":["felipe.seixas@lorinvest.com","+5521994484455"]};
 
-    var EMP = {
-      "Bioren":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","25.016,8"],["Aportes Líquidos","25.017,0"],["Correção IPCA","27.118,3"],["Correção IPCA + 15%","34.914,1"]],holdersTitle:"Acionistas",holders:[["Hankoe",77.8],["Roberto Kessel",11.1],["Carlos Carloni",11.1]]},governanca:[{title:"Conselho de Administração",eleito:"03/11/2025",mandato:"03/11/2027",membros:["Christian Lorentzen","Luciano Medeiros","Carlos Carloni","Roberto Kessel"]},{title:"Diretoria",eleito:"04/10/2023",mandato:"04/10/2026",membros:["CEO: Luiz Cidade","Diretor: José Cavalcante"]}]},
-      "Eindom":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","92.098,1"],["Aportes Líquidos","113.349,5"],["Correção IPCA","133.986,3"],["Correção IPCA + 15%","216.817,7"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"01/04/2026",mandato:"01/04/2028",membros:["Peter Boot","Lucas Werner"]},{title:"Diretoria",eleito:"30/04/2024",mandato:"30/08/2027",membros:["Ricardo Goldstein","Evandro Paiva"]}]},
-      "Valsa":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","165.000,0"],["Aportes Líquidos","165.000,0"],["Correção IPCA","181.628,7"],["Correção IPCA + 15%","221.457,1"]],holdersTitle:"Acionistas",holders:[["Hankoe",92],["Helser",8]]},governanca:[{title:"Conselho de Administração",eleito:"07/08/2025",mandato:"07/08/2027",membros:["Luciano Medeiros","Leonardo Szczerb","Alfredo Cardoso"]},{title:"Diretoria",eleito:"05/01/2026",mandato:"05/01/2028",membros:["CEO: Alfredo Cardoso","Diretor: Carlos Ceppas"]}]},
-      "GBS Storage":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","98.790,9"],["Aportes Líquidos","91.140,5"],["Correção IPCA","105.613,3"],["Correção IPCA + 15%","163.211,8"],["Exposição Total","298.586,0"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"05/12/2023",mandato:"05/12/2025",membros:["Marcelo Menicucci","Celso Pereira","Peter Boot","Leonardo Szczerb"]},{title:"Diretoria",eleito:"30/06/2025",mandato:"30/06/2027",membros:["CEO: Celso Pereira","Diretor: Shiniti Ohara"]}],operacional:{segurosGarantias:{groups:[{cobertura:"Intraconsórcio",rows:[{periodo:"2025",parcela:"10% GPK",tipo:"Fiança",emissor:"BTG",status:"Aguardando emissão",st:"wait"},{periodo:"2026",parcela:"10% GBS",tipo:"Seguro",emissor:"BTG",status:"Emitido a viger em 01/01/26",st:"ok"},{periodo:"2026",parcela:"10% GPK",tipo:"Fiança",emissor:"BTG",status:"Aguardando emissão",st:"wait"}]},{cobertura:"Garantia ANP",rows:[{periodo:"Set/2025 – Mar/2028",parcela:"20%",tipo:"Fiança",emissor:"BTG",status:"Vigente",st:"ok"}]}],notes:["Ações em curso a fim de mitigar os efeitos da dupla garantia.","Apesar de ter sido aprovada a garantia intraconsórcio para a baixa do fundo abandono, seguimos discutindo junto com a Brava, para que a Petrobras aceite outra alternativa.","Reunião solicitada junto à ANP a fim de propor uma mudança na resolução que trata desse assunto, propondo uma sub-rogação da garantia para o operador.","Para que a GBS pudesse dar uma garantia corporativa, o PL deveria ser de R$ 1,6 bilhões de reais, considerando a GBS com nota A-. O patrimônio líquido da GBS está por volta de R$ 60 milhões."],source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 3)"},usosPDI:{fontes:[{nome:"PRIO",valor:"~R$ 9,9 MM",obs:"recebido em 30/11/2025"},{nome:"Geopark (“herdado”)",valor:"R$ 1,30–2,85 MM",obs:"a investir · estimado"}],usos:[{destino:"BioRen",prio:"~R$ 4,0 MM",geopark:"~R$ 2,4 MM",mmP:4.0,mmG:2.4},{destino:"Universidades",prio:"~R$ 5,4 MM",geopark:"~R$ 300 mil",mmP:5.4,mmG:0.3},{destino:"SG&A",prio:"~R$ 500 mil",geopark:"~R$ 150 mil",mmP:0.5,mmG:0.15}],total:{prio:"~R$ 9,9 MM",geopark:"~R$ 2,85 MM"},note:"Recebido da PRIO em 30/11/2025 (~R$ 9,9 MM). Assim que o projeto da Bioren tiver aprovação da ANP, os contratos serão assinados e os recursos transferidos conforme cronograma. Valor “herdado” da Geopark a investir estimado entre R$ 1,30 MM e R$ 2,85 MM.",source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 4)"}},financeiro:{orcado2025:{resultado:{realizadoProj:"(8.150)",orcado:"(9.402)",saldo:"1.252"},trimestral:[{tri:"1º Tri",real:"2.844",orc:"3.674",pct:"77%"},{tri:"2º Tri",real:"4.497",orc:"5.551",pct:"81%"},{tri:"3º Tri",real:"6.224",orc:"7.407",pct:"84%"},{tri:"4º Tri",real:"8.150",orc:"9.402",pct:"87%"}],gbs:{rows:[{item:"Employee Expenses",real:"(5.595)",orc:"(6.624)",pct:"-84%"},{item:"Annual Bonus",real:"(328)",orc:"(1.080)",pct:"-30%"},{item:"G&A Expenses",real:"(1.284)",orc:"(732)",pct:"-25%"},{item:"Outsourced Services",real:"(205)",orc:"(510)",pct:"-40%"},{item:"Legal Consulting",real:"(746)",orc:"(456)",pct:"-36%"},{item:"Others",real:"8",orc:"0",pct:"0%"}],total:{real:"(8.150)",orc:"(9.402)"}},manati:{rows:[{item:"Revenue",real:"33.003",orc:"59.118",pct:"-44%"},{item:"Opex",real:"(34.001)",orc:"(36.036)",pct:"-6%"},{item:"Taxes",real:"(6.849)",orc:"(13.233)",pct:"-48%"},{item:"Royalties",real:"(1.475)",orc:"(4.920)",pct:"-70%"},{item:"Insurance & Warranty",real:"(1.866)",orc:"(2.106)",pct:"-11%"},{item:"Consulting",real:"(187)",orc:"0",pct:"0%"}],total:{real:"(11.375)",orc:"2.823"}},caixa:{data:"03/12/2025",valor:"R$ 16.774.615,54"},variacaoCaixa:[["Jan","5,37"],["Fev","1,68"],["Mar","1,70"],["Abr","1,32"],["Mai","0,38"],["Jun","3,81"],["Jul","1,58"],["Ago","0,60"],["Set","2,11"],["Out","4,53"],["Nov","16,69"],["Dez","14,28"]],note:"Valores em milhares de reais (R$ mil), salvo indicação. O G&A da GBS (realizado + projeção) fechou 2025 em (8.150) vs. (9.402) orçado — economia de 1.252. Percentuais conforme apresentados no Comitê.",source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 5)"},exposicao2025:{useOfProceeds:{fontes:{itens:[{valor:"R$ 91,1 mi",label:"Capital próprio"}],total:{valor:"R$ 91,1 mi",label:"Capital Investido"}},usos:{itens:[{valor:"R$ 25 mi",label:"CapEx PRIO"},{valor:"R$ 8,3 mi",label:"CapEx GeoPark"},{valor:"R$ 30,8 mi",label:"SG&A (*)"},{valor:"R$ 12,7 mi",label:"Prejuízo acumulado Manati"}],total:{valor:"R$ 76,8 mi",label:"Capital utilizado (R$ 14,4 mi em caixa)"}},footnote:"(*) inclui todos os estudos e consultorias",alloc:[{label:"CapEx PRIO",v:25,vl:"25",color:"#1F3B57"},{label:"CapEx GeoPark",v:8.3,vl:"8,3",color:"#6B8299"},{label:"SG&A",v:30.8,vl:"30,8",color:"#C55A17"},{label:"Prejuízo Manati",v:12.7,vl:"12,7",color:"#B23A2E"},{label:"Em caixa",v:14.4,vl:"14,4",color:"#9FB4C7"}],caixa:"R$ 14,4 mi"},tabela:{grupos:[{titulo:"CapEx | Stake 20% PRIO + GPRK",rows:[{item:"Signing",data:"out-22",nom:"(24,8)"},{item:"Closing",data:"nov-23",nom:"(85,7)"},{item:"1º retirada do fundo",data:"dez-23",nom:"9,8"},{item:"Closing adjustment",data:"jan-24",nom:"4,1"},{item:"2º retirada do fundo",data:"jun-24",nom:"0,3"},{item:"Cash balance",data:"set-24",nom:"5,2"},{item:"3º retirada do fundo",data:"set-24",nom:"66,2"},{item:"Total PRIO",nom:"(25,0)",tot:true},{item:"Signing GeoPark",data:"abr-25",nom:"(3,3)"},{item:"Closing GeoPark",data:"dez-25",nom:"(2,9)"},{item:"Ajustes",data:"dez-25",nom:"(2,1)"},{item:"Total GeoPark",nom:"(8,3)",tot:true},{item:"Total CapEx",nom:"(33,3)",tot:true}]},{titulo:"OpEx",rows:[{item:"SG&A",data:"jul-22 ~ dez-25",nom:"(30,8)"},{item:"Prejuízo Manati",data:"jan-24 ~ dez-25",nom:"(12,7)"},{item:"Total OpEx",nom:"(43,5)",tot:true},{item:"Caixa",nom:"(14,4)",tot:true}]}],resumo:[{item:"Exposição (contábil)",nom:"(91,1)",ipca:"(102,2)",ipca15:"(147,1)",tot:true},{item:"Despesas na GB",data:"abr-20 ~ jun-22",nom:"(13,5)",ipca:"(21,8)",ipca15:"(41,6)"},{item:"Exposição (gerencial)",nom:"(104,6)",ipca:"(124,0)",ipca15:"(188,7)",tot:true}]},source:"GBS Storage — Comitê de Investimentos Lorinvest, dez/2025 (slide 6)"}}},
-      "New Wave":{updated:"08/06/2026",aportes:{kpis:[["Valor Dyna","119.331,4"],["Aportes Líquidos","144.319,9"],["Correção IPCA","168.345,8"],["Correção IPCA + 15%","266.986,4"]],holdersTitle:"Acionistas",holders:[["Dyna",78.4],["Gustavo Emina",21.6]]},governanca:[{title:"Conselho de Administração",eleito:"21/03/2023",mandato:"21/03/2025",membros:["Luciano Medeiros","Gustavo Emina","Leonardo Szczerb"]},{title:"Diretoria",eleito:"27/10/2025",mandato:"31/10/2027",membros:["CEO: Gustavo Emina","CLO: Newton Junior","CFO: Elvira Presta","Diretor: Ivan Menezes","Diretor: Bruno Ferraz","Diretor: Marcus Berto"]}]},
-      "Norflor":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","187.463,4"],["Aportes Líquidos","-65.566,6"],["Correção IPCA","-49.282,3"],["Correção IPCA + 15%","-101.564,7"],["Exposição Total","95.602,4"]],holdersTitle:"Acionistas",holders:[["Hankoe",100]]},governanca:[{title:"Conselho de Administração",eleito:"10/06/2024",mandato:"10/06/2026",membros:["Luciano Medeiros","Leonardo Szczerb","Maria Clara Assis"]},{title:"Diretoria",eleito:"07/06/2024",mandato:"07/06/2027",membros:["CEO: Sandro Longuinho","COO: Fabiano Lago","CSO: Adauta Braga"]}]},
-      "Norsul":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","1.547.592,3"],["Valuation Múltiplo","1.320.216,9"],["Valor Hankoe - Lorentzen (%)","1.189.123,5"],["Valuation Múltiplo - Lorentzen (%)","1.014.415,1"]],holdersTitle:"Acionistas",holders:[["Lorentzen",76.8],["Hugo",19.8],["Lily",0.7],["Luke",0.7],["Outros",2]]},governanca:[{title:"Conselho de Administração",eleito:"08/07/2025",mandato:"08/07/2028",membros:["Angelo Baroncini","Luciano Medeiros","Leonardo Szczerb","Pietro Allevato","Hugo Figueiredo"]},{title:"Diretoria",eleito:"08/04/2024",mandato:"08/04/2027",membros:["CEO: Rodrigo Cuesta","CFO: André Gonçalves","Dir. Operacional: Christian Lachmann"]}]},
-      "Sileto":{updated:"08/06/2026",aportes:{kpis:[["Valor Dyna","79.023,2"],["Aporte Total","74.648,6"],["Correção IPCA","82.335,3"],["Correção IPCA + 15%","111.364,0"]],holdersTitle:"Acionistas",holders:[["Crystall",51.6],["Dyna",40],["Fundo Nunki",8.4]]},governanca:[{title:"Supervisory Committee",eleito:"11/07/2025",mandato:"11/07/2027",membros:["Christian Lorentzen","Luciano Medeiros"]},{title:"Supervisory Board",eleito:"11/07/2025",mandato:"11/07/2027",membros:["Luciano Medeiros","Christian Lorentzen"]}]},
-      "Target Bank":{updated:"08/06/2026",aportes:{kpis:[["Valor Hankoe","2.377,6"],["Aportes Líquidos","96.139,8"],["Correção IPCA","110.458,1"],["Correção IPCA + 15%","229.779,2"]],holdersTitle:"Acionistas",holders:[["Hankoe",92.3],["Santos",3.4],["William",3.3],["Outros",1]]},governanca:[{title:"Conselho de Administração",eleito:"24/10/2024",mandato:"26/10/2026",membros:["Peter Boot","Leonardo Szczerb","William Rego"]},{title:"Diretoria",eleito:"16/01/2025",mandato:"16/01/2028",membros:["CEO: William Rego","Diretor Jurídico: Gustavo Abdalla"]}]},
-      "Tree+":{updated:"08/06/2026",aportes:{kpis:[["Aportes Líquidos","62.327,0"],["Correção IPCA","67.842,2"],["Correção IPCA + 15%","87.184,7"]],holdersTitle:"Quotistas",holders:[["Ti17 FIM",25],["Zest",25],["Hankoe",25.1],["Mercuria",25]]},governanca:[{title:"Comitê de Investimento",eleito:"29/09/2023",mandato:"29/09/2025",membros:["Luciano Medeiros","Eduardo Gomes de Almeida","Fábio Medeiros Martins da Silva","Marc Adam Hiller"]}],govInfo:[["Fundo","Skog FIP – Multiestratégia"],["Administrador","BTG Pactual"],["Gestor","Lorinvest"],["Data da Constituição","14/08/2023"],["Exercício Social","31/março"]]}
-    };
+    var EMP = window.EMP;  // dados movidos para data/empresas.js (fonte única)
 
     var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["financeiro","Financeiro e Alavancagem"],["valuation","Valuation"],["comites","Comitês"],["competidores","Mapa competitivo"]];
 
@@ -4287,7 +4400,8 @@
     var KCLS=['k-slate','k-teal','k-sage','k-stone','k-red'];
     var KSUB={"Valor Hankoe":"marcado na carteira","Valor Dyna":"marcado na carteira","Aportes Líquidos":"líquido de desinvestimentos","Aporte Total":"aporte total","Correção IPCA":"aportes corrigidos","Correção IPCA + 15%":"aportes corrigidos (IPCA+15%)","Exposição Total":"exposição máxima do fundo","Valuation Múltiplo":"5x EBITDA LTM"};
     var KDEF={"Valor Hankoe":"valor que está marcado na carteira do Hankoe FIP.","Valor Dyna":"valor que está marcado na carteira do Dyna FIP.","Aportes Líquidos":"soma dos valores investidos na companhia, deduzidos dos desinvestimentos já efetuados.","Aporte Total":"soma dos valores investidos na companhia.","Correção IPCA":"correção dos aportes líquidos das investidas pelo IPCA.","Correção IPCA + 15%":"correção dos aportes líquidos das investidas pelo IPCA + 15%.","Exposição Total":"soma dos aportes líquidos e das garantias concedidas pelo fundo, incluindo avais e fianças, relacionadas às dívidas das companhias investidas. Representa a exposição máxima potencial do fundo.","Valuation Múltiplo":"valor pela metodologia de múltiplo (5x EBITDA LTM)."};
-    var LOGO={"Bioren":"logos/bioren-logo.jpg","Eindom":"logos/eindom-logo.jpg","Valsa":"logos/valsa-logo.svg","GBS Storage":"logos/gbs-logo.jpg","New Wave":"logos/new-wave-logo.jpg","Norflor":"logos/Norflor-logo.png","Norsul":"logos/norsul-logo.jpg","Sileto":"logos/Sileto-logo.PNG","Target Bank":"logos/target-bank-logo.png","Tree+":"logos/tree-logo.png"};
+    // Logos derivados da lista única (window.COMPANIES) — sem repetir caminhos.
+    var LOGO={}; (window.COMPANIES||[]).forEach(function(c){ LOGO[c.name]=c.logo; });
     var LOGOSCALE={"Sileto":0.68};
 
     // Donut de acionistas no mesmo padrão da GNLink (200x200, rótulos de % dentro das fatias)
