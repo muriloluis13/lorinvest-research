@@ -4876,7 +4876,6 @@
 
     function render(){
       grid.removeAttribute('aria-busy');
-      refreshProjetos();
       grid.innerHTML = ANALISTAS.map(function(a){
         var meus = todos.filter(function(t){ return t.analista === a.nome; });
         var ordem = [], grupos = {}, rotulos = {};
@@ -4947,6 +4946,10 @@
       btn.replaceWith(form);
       var empEl = form.querySelector('.todo-f-emp'), projEl = form.querySelector('.todo-f-proj'),
           txtEl = form.querySelector('.todo-f-txt'), comEl = form.querySelector('.todo-f-com');
+      // Só sugere projetos da empresa escolhida; atualiza ao trocar a empresa.
+      function syncProjetos(){ setProjOptions(projetosDe(empEl.value)); }
+      empEl.addEventListener('input', syncProjetos);
+      syncProjetos();
       empEl.focus();
       form.querySelector('.todo-btn-cancel').onclick = function(){ render(); };
       form.querySelector('.todo-btn-save').onclick = function(){
@@ -5007,15 +5010,23 @@
     dl.innerHTML = COMPANIES.map(function(c){ return '<option value="' + esc(c.name) + '">'; }).join('');
     document.body.appendChild(dl);
 
-    // Seletor de projetos: datalist alimentado pelos projetos já cadastrados,
-    // atualizado a cada render() para refletir novos projetos digitados.
+    // Seletor de projetos: um projeto pertence a uma empresa específica, então o
+    // datalist só sugere projetos já cadastrados na empresa escolhida no form.
     var dlProj = document.createElement('datalist');
     dlProj.id = 'todoProjetos';
     document.body.appendChild(dlProj);
-    function refreshProjetos(){
+    function projetosDe(empresaRaw){
+      var canon = grupoKey(empresaRaw); if (!canon) return [];
       var vistos = {}, opts = [];
-      todos.forEach(function(t){ var p = String(t.projeto || '').trim(); var k = normKey(p); if (p && !vistos[k]) { vistos[k] = 1; opts.push(p); } });
+      todos.forEach(function(t){
+        if (grupoKey(t.empresa) !== canon) return;
+        var p = String(t.projeto || '').trim(); var k = normKey(p);
+        if (p && !vistos[k]) { vistos[k] = 1; opts.push(p); }
+      });
       opts.sort(function(a,b){ return a.localeCompare(b); });
+      return opts;
+    }
+    function setProjOptions(opts){
       dlProj.innerHTML = opts.map(function(p){ return '<option value="' + esc(p) + '">'; }).join('');
     }
 
