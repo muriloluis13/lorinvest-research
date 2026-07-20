@@ -34,3 +34,13 @@ window.COMPANIES = [
   {name:"Target Bank", icon:"ic-target", logo:"logos/target-bank-logo.png", panel:"logos/paineis/Painel%20Target.png", pan:{rows:[{label:"% Lorinvest",hl:true,pct:true},{label:"Aporte Lorinvest",kpi:"Aportes Líquidos"},{label:"Correção IPCA",kpi:"Correção IPCA"},{label:"Correção IPCA + 15%",kpi:"Correção IPCA + 15%"}]}},
   {name:"Tree+", icon:"ic-treeplus", logo:"logos/tree-logo.png", panel:"logos/paineis/Painel%20Norflor.png", panelAlt:"Painel Tree+ (painel da Norflor)", pan:{rows:[{label:"% Lorinvest",hl:true,pct:true,note:{txt:"quotista",title:"Skog FIP – Multiestratégia: Hankoe 25,1%, Ti17 FIM 25,0%, Zest 25,0%, Mercuria 25,0%. Lorinvest é a gestora do fundo."}},{label:"Aporte Lorinvest",kpi:"Aportes Líquidos"},{label:"Correção IPCA",kpi:"Correção IPCA"},{label:"Correção IPCA + 15%",kpi:"Correção IPCA + 15%"}]}},
 ];
+
+// Analistas do To-Do Tracker (equipe). Ordem = ordem dos cards no Tracker.
+// As TAREFAS ficam no banco (via /api/todos); esta lista é só quem são os
+// analistas (nome, cobertura, foto, contato) para montar os cards.
+window.ANALISTAS = [
+  {nome:"Lucas Werner",  cfa:true,  role:"Research Lead",                                email:"lucas.werner@lorinvest.com",  phone:"+5521984401311", avatar:"logos/lucaswerner-logo.jpg"},
+  {nome:"Lucas Marques", cfa:false, role:"Metals & Mining · Real Estate · Healthcare",   email:"lucas.marques@lorinvest.com", phone:"+5521995003329", avatar:"logos/lucasmarques-logo.jpg"},
+  {nome:"Felipe Seixas", cfa:false, role:"Forestry · Cement",                             email:"felipe.seixas@lorinvest.com", phone:"+5521994484455", avatar:"logos/felipeseixas-logo.jpg"},
+  {nome:"Murilo Nunes",  cfa:false, role:"Oil & Gas · Transportation · Industrial Tech",  email:"murilo.nunes@lorinvest.com",  phone:"+5521979028288", avatar:"logos/murilo-logo.jpg"}
+];
