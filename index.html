@@ -4811,7 +4811,12 @@
   <style>
     .todo-loading,.todo-error{padding:16px;color:var(--muted);font-size:13px}
     .todo-error{color:var(--accent-danger)}
-    .todo-item{display:flex;gap:8px;align-items:flex-start}
+    .todo-item{display:flex;gap:6px;align-items:flex-start;border-radius:8px}
+    .todo-item.dragging{opacity:.4}
+    .todo-item.todo-drop-hint{box-shadow:inset 0 2px 0 var(--accent-2)}
+    .todo-drag{flex:none;cursor:grab;color:var(--muted);opacity:.45;font-size:13px;line-height:1.42;padding:0 1px;user-select:none;touch-action:none}
+    .todo-drag:hover{opacity:.9}
+    .todo-drag:active{cursor:grabbing}
     .todo-item-main{display:flex;gap:8px;align-items:flex-start;flex:1;min-width:0;cursor:pointer;font-size:12px;line-height:1.42;color:#33424F}
     .todo-item-main input{margin-top:2px;flex:none}
     .todo-item-text{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -4893,10 +4898,14 @@
           });
           var itens = pOrdem.map(function(pk){
             var head = pRotulos[pk] ? '<div class="todo-proj-head">' + esc(pRotulos[pk]) + '</div>' : '';
-            return head + pGrupos[pk].map(function(t){
+            // Concluídas descem para o fim do projeto (só exibição: a ordem-base
+            // não muda, então desmarcar devolve o item ao lugar original).
+            var lista = pGrupos[pk].slice().sort(function(a,b){ return (a.done ? 1 : 0) - (b.done ? 1 : 0); });
+            return head + lista.map(function(t){
               var risk = t.done ? ' style="text-decoration:line-through;opacity:.55"' : '';
               var com = String(t.comentario || '').trim();
-              return '<div class="todo-item" data-id="' + esc(t.id) + '">'
+              return '<div class="todo-item" data-id="' + esc(t.id) + '" draggable="true">'
+                   +   '<span class="todo-drag" title="Arrastar para reordenar" aria-hidden="true">⠿</span>'
                    +   '<label class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
                    +     '<span class="todo-item-text">'
                    +       '<span class="todo-item-title"' + risk + '>' + esc(t.texto) + '</span>'
@@ -4978,15 +4987,14 @@
     function onToggle(cb){
       var item = cb.closest('.todo-item'), id = item.getAttribute('data-id'), done = cb.checked;
       var t = todos.find(function(x){ return x.id === id; });
-      var span = item.querySelector('.todo-item-title');
       if (t) t.done = done;
-      if (span) { span.style.textDecoration = done ? 'line-through' : ''; span.style.opacity = done ? '.55' : ''; }
-      cb.disabled = true;
+      // Re-render: concluída desce para o fim do projeto; ao desmarcar, volta ao
+      // lugar original (a ordem-base não muda).
+      render();
       api('PATCH', { id: id, done: done })
-        .then(function(){ cb.disabled = false; })
         .catch(function(err){
-          cb.disabled = false; cb.checked = !done; if (t) t.done = !done;
-          if (span) { span.style.textDecoration = (t && t.done) ? 'line-through' : ''; span.style.opacity = (t && t.done) ? '.55' : ''; }
+          if (t) t.done = !done;
+          render();
           alert('Erro ao atualizar: ' + err.message);
         });
     }
@@ -5002,6 +5010,95 @@
     });
     grid.addEventListener('change', function(e){
       if (e.target.matches('.todo-item-main input[type=checkbox]')) onToggle(e.target);
+    });
+
+    // ---- Arrastar-e-soltar: reordena to-dos DENTRO da mesma empresa (a lista
+    // de uma empresa é um único .todo-list; soltar noutra seção de projeto
+    // reatribui o projeto do item). Não permite arrastar entre empresas. ----
+    var dragId = null, dragList = null, dragDone = false, dragArmado = false;
+
+    // Só inicia arraste quando o gesto começa na alça (⠿); assim clicar no
+    // checkbox, no texto ou selecionar continua funcionando normalmente.
+    grid.addEventListener('mousedown', function(e){ dragArmado = !!e.target.closest('.todo-drag'); });
+
+    function itemDepoisDe(container, y){
+      var els = Array.prototype.slice.call(container.querySelectorAll('.todo-item:not(.dragging)'));
+      var achado = null, menor = -Infinity;
+      els.forEach(function(el){
+        var box = el.getBoundingClientRect();
+        var off = y - box.top - box.height / 2;
+        if (off < 0 && off > menor) { menor = off; achado = el; }
+      });
+      return achado;
+    }
+
+    function persistirOrdem(id, projeto){
+      api('PUT', { order: todos.map(function(t){ return t.id; }), moved: { id: id, projeto: projeto } })
+        .catch(function(err){
+          alert('Erro ao salvar a nova ordem: ' + err.message);
+          api('GET').then(function(list){ todos = Array.isArray(list) ? list : []; render(); }).catch(function(){});
+        });
+    }
+
+    function finalizarDrag(){
+      var dragging = dragList && dragList.querySelector('.todo-item.dragging');
+      if (!dragging) return false;
+      var id = dragId;
+      // Novo projeto = cabeçalho de projeto que precede o item na nova posição.
+      var proj = '', node = dragging.previousElementSibling;
+      while (node) { if (node.classList && node.classList.contains('todo-proj-head')) { proj = node.textContent.trim(); break; } node = node.previousElementSibling; }
+      // Vizinhos na nova ordem visual (dentro desta empresa).
+      var ids = Array.prototype.slice.call(dragList.querySelectorAll('.todo-item')).map(function(el){ return el.getAttribute('data-id'); });
+      var pos = ids.indexOf(id);
+      var afterId  = (pos >= 0 && pos + 1 < ids.length) ? ids[pos + 1] : null;
+      var beforeId = (pos > 0) ? ids[pos - 1] : null;
+      var t = todos.find(function(x){ return x.id === id; });
+      if (!t) return false;
+      t.projeto = proj;
+      todos = todos.filter(function(x){ return x.id !== id; });
+      if (afterId)       { var ia = todos.findIndex(function(x){ return x.id === afterId; });  todos.splice(ia < 0 ? todos.length : ia, 0, t); }
+      else if (beforeId) { var ib = todos.findIndex(function(x){ return x.id === beforeId; }); todos.splice(ib < 0 ? todos.length : ib + 1, 0, t); }
+      else               { todos.push(t); }
+      persistirOrdem(id, proj);
+      return true;
+    }
+
+    grid.addEventListener('dragstart', function(e){
+      if (!dragArmado) { e.preventDefault(); return; }
+      var item = e.target.closest('.todo-item'); if (!item) return;
+      dragId = item.getAttribute('data-id');
+      dragList = item.closest('.todo-list');
+      dragDone = false;
+      item.classList.add('dragging');
+      if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch(_){} }
+    });
+
+    grid.addEventListener('dragover', function(e){
+      if (!dragId) return;
+      var list = e.target.closest('.todo-list');
+      if (!list || list !== dragList) return; // só dentro da mesma empresa
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      var dragging = dragList.querySelector('.todo-item.dragging');
+      if (!dragging) return;
+      var ref = itemDepoisDe(dragList, e.clientY);
+      if (ref == null) dragList.appendChild(dragging);
+      else if (ref !== dragging) dragList.insertBefore(dragging, ref);
+    });
+
+    grid.addEventListener('drop', function(e){
+      if (!dragId || !dragList) return;
+      var list = e.target.closest('.todo-list');
+      if (list !== dragList) return;
+      e.preventDefault();
+      dragDone = finalizarDrag();
+    });
+
+    grid.addEventListener('dragend', function(){
+      var d = dragList && dragList.querySelector('.todo-item.dragging');
+      if (d) d.classList.remove('dragging');
+      dragId = null; dragList = null; dragArmado = false;
+      render(); // reflete a nova ordem/projeto (ou restaura se o drop foi cancelado)
     });
 
     // datalist de empresas para o formulário de adicionar

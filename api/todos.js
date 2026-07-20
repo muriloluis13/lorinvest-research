@@ -8,6 +8,7 @@
 //   GET    /api/todos          -> lista todas as tarefas (semeia na 1ª vez)
 //   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?}
 //   PATCH  /api/todos          -> body {id, done?, projeto?, texto?, comentario?}
+//   PUT    /api/todos          -> body {order:[id,...], moved?:{id, projeto?}} (reordena)
 //   DELETE /api/todos?id=...   -> remove a tarefa
 // ============================================================================
 import { Redis } from '@upstash/redis';
@@ -99,6 +100,31 @@ export default async function handler(req, res) {
       return res.status(200).json(it);
     }
 
+    if (req.method === 'PUT') {
+      const b = req.body || {};
+      const list = await load();
+      // Atualiza o projeto do item arrastado (quando muda de seção de projeto).
+      if (b.moved && b.moved.id) {
+        const m = list.find(function (t) { return t.id === b.moved.id; });
+        if (m && Object.prototype.hasOwnProperty.call(b.moved, 'projeto')) {
+          m.projeto = String(b.moved.projeto || '').trim();
+        }
+      }
+      // Reordena a lista inteira conforme a ordem de ids enviada pelo cliente.
+      let next = list;
+      if (Array.isArray(b.order)) {
+        const pos = {};
+        b.order.forEach(function (id, i) { pos[String(id)] = i; });
+        next = list.slice().sort(function (a, c) {
+          const pa = pos[a.id] != null ? pos[a.id] : Infinity;
+          const pc = pos[c.id] != null ? pos[c.id] : Infinity;
+          return pa - pc;
+        });
+      }
+      await redis.set(KEY, next);
+      return res.status(200).json({ ok: true });
+    }
+
     if (req.method === 'DELETE') {
       const id = (req.query && req.query.id) || (req.body && req.body.id);
       if (!id) return res.status(400).json({ error: 'id é obrigatório' });
@@ -108,7 +134,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, removidas: list.length - next.length });
     }
 
-    res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
+    res.setHeader('Allow', 'GET, POST, PATCH, PUT, DELETE');
     return res.status(405).json({ error: 'método não permitido' });
   } catch (e) {
     return res.status(500).json({ error: String((e && e.message) || e) });
