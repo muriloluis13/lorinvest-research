@@ -4811,12 +4811,13 @@
   <style>
     .todo-loading,.todo-error{padding:16px;color:var(--muted);font-size:13px}
     .todo-error{color:var(--accent-danger)}
-    .todo-item{display:flex;gap:6px;align-items:flex-start;border-radius:8px}
-    .todo-item.dragging{opacity:.4}
-    .todo-item.todo-drop-hint{box-shadow:inset 0 2px 0 var(--accent-2)}
-    .todo-drag{flex:none;cursor:grab;color:var(--muted);opacity:.45;font-size:13px;line-height:1.42;padding:0 1px;user-select:none;touch-action:none}
+    .todo-item{display:flex;gap:6px;align-items:flex-start;border-radius:8px;-webkit-touch-callout:none}
+    .todo-item.dragging{opacity:.75;background:var(--bg-card-soft);box-shadow:var(--shadow-soft)}
+    .todo-drag{flex:none;cursor:grab;color:var(--muted);opacity:.45;font-size:15px;line-height:1.3;padding:2px 4px;margin:-2px -1px;user-select:none;touch-action:none}
     .todo-drag:hover{opacity:.9}
     .todo-drag:active{cursor:grabbing}
+    body.todo-dragging{cursor:grabbing;user-select:none;-webkit-user-select:none}
+    body.todo-dragging .todo-item{-webkit-user-select:none;user-select:none}
     .todo-item-main{display:flex;gap:8px;align-items:flex-start;flex:1;min-width:0;cursor:pointer;font-size:12px;line-height:1.42;color:#33424F}
     .todo-item-main input{margin-top:2px;flex:none}
     .todo-item-text{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -4904,7 +4905,7 @@
             return head + lista.map(function(t){
               var risk = t.done ? ' style="text-decoration:line-through;opacity:.55"' : '';
               var com = String(t.comentario || '').trim();
-              return '<div class="todo-item" data-id="' + esc(t.id) + '" draggable="true">'
+              return '<div class="todo-item" data-id="' + esc(t.id) + '">'
                    +   '<span class="todo-drag" title="Arrastar para reordenar" aria-hidden="true">⠿</span>'
                    +   '<label class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
                    +     '<span class="todo-item-text">'
@@ -5012,14 +5013,13 @@
       if (e.target.matches('.todo-item-main input[type=checkbox]')) onToggle(e.target);
     });
 
-    // ---- Arrastar-e-soltar: reordena to-dos DENTRO da mesma empresa (a lista
-    // de uma empresa é um único .todo-list; soltar noutra seção de projeto
-    // reatribui o projeto do item). Não permite arrastar entre empresas. ----
-    var dragId = null, dragList = null, dragDone = false, dragArmado = false;
-
-    // Só inicia arraste quando o gesto começa na alça (⠿); assim clicar no
-    // checkbox, no texto ou selecionar continua funcionando normalmente.
-    grid.addEventListener('mousedown', function(e){ dragArmado = !!e.target.closest('.todo-drag'); });
+    // ---- Arrastar-e-soltar via Pointer Events (funciona com mouse E toque).
+    // Desktop: arraste pela alça (⠿). Mobile: pressione e segure o item para
+    // pegá-lo e mova. Reordena só DENTRO da mesma empresa (a lista de uma
+    // empresa é um único .todo-list); soltar noutra seção de projeto reatribui
+    // o projeto do item. Nunca move entre empresas. ----
+    var dragId = null, dragList = null, dragEl = null, dragPid = null,
+        holdTimer = null, dragActive = false, startX = 0, startY = 0;
 
     function itemDepoisDe(container, y){
       var els = Array.prototype.slice.call(container.querySelectorAll('.todo-item:not(.dragging)'));
@@ -5041,11 +5041,10 @@
     }
 
     function finalizarDrag(){
-      var dragging = dragList && dragList.querySelector('.todo-item.dragging');
-      if (!dragging) return false;
+      if (!dragEl || !dragList) return;
       var id = dragId;
       // Novo projeto = cabeçalho de projeto que precede o item na nova posição.
-      var proj = '', node = dragging.previousElementSibling;
+      var proj = '', node = dragEl.previousElementSibling;
       while (node) { if (node.classList && node.classList.contains('todo-proj-head')) { proj = node.textContent.trim(); break; } node = node.previousElementSibling; }
       // Vizinhos na nova ordem visual (dentro desta empresa).
       var ids = Array.prototype.slice.call(dragList.querySelectorAll('.todo-item')).map(function(el){ return el.getAttribute('data-id'); });
@@ -5053,53 +5052,73 @@
       var afterId  = (pos >= 0 && pos + 1 < ids.length) ? ids[pos + 1] : null;
       var beforeId = (pos > 0) ? ids[pos - 1] : null;
       var t = todos.find(function(x){ return x.id === id; });
-      if (!t) return false;
+      if (!t) return;
       t.projeto = proj;
       todos = todos.filter(function(x){ return x.id !== id; });
       if (afterId)       { var ia = todos.findIndex(function(x){ return x.id === afterId; });  todos.splice(ia < 0 ? todos.length : ia, 0, t); }
       else if (beforeId) { var ib = todos.findIndex(function(x){ return x.id === beforeId; }); todos.splice(ib < 0 ? todos.length : ib + 1, 0, t); }
       else               { todos.push(t); }
       persistirOrdem(id, proj);
-      return true;
     }
 
-    grid.addEventListener('dragstart', function(e){
-      if (!dragArmado) { e.preventDefault(); return; }
+    function limparHold(){ if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } }
+
+    function ativarDrag(){
+      limparHold();
+      if (!dragEl) return;
+      dragActive = true;
+      dragId = dragEl.getAttribute('data-id');
+      dragList = dragEl.closest('.todo-list');
+      dragEl.classList.add('dragging');
+      document.body.classList.add('todo-dragging');
+      try { dragEl.setPointerCapture(dragPid); } catch(_){}
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch(_){} }
+    }
+
+    function prep(item, e){ dragEl = item; dragPid = e.pointerId; startX = e.clientX; startY = e.clientY; dragActive = false; }
+
+    grid.addEventListener('pointerdown', function(e){
       var item = e.target.closest('.todo-item'); if (!item) return;
-      dragId = item.getAttribute('data-id');
-      dragList = item.closest('.todo-list');
-      dragDone = false;
-      item.classList.add('dragging');
-      if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch(_){} }
+      if (e.target.closest('.todo-drag')) {
+        // Alça: pega na hora (mouse com botão esquerdo, ou toque na alça).
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        prep(item, e); ativarDrag(); e.preventDefault();
+      } else if (e.pointerType !== 'mouse') {
+        // Toque/caneta no corpo do item: pressionar e segurar para pegar.
+        prep(item, e);
+        holdTimer = setTimeout(ativarDrag, 320);
+      }
     });
 
-    grid.addEventListener('dragover', function(e){
-      if (!dragId) return;
-      var list = e.target.closest('.todo-list');
-      if (!list || list !== dragList) return; // só dentro da mesma empresa
+    grid.addEventListener('pointermove', function(e){
+      if (dragPid == null || e.pointerId !== dragPid) return;
+      if (!dragActive) {
+        // Ainda aguardando o "segurar": se o dedo desliza, é rolagem → cancela.
+        if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) { limparHold(); dragEl = null; dragPid = null; }
+        return;
+      }
       e.preventDefault();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-      var dragging = dragList.querySelector('.todo-item.dragging');
-      if (!dragging) return;
       var ref = itemDepoisDe(dragList, e.clientY);
-      if (ref == null) dragList.appendChild(dragging);
-      else if (ref !== dragging) dragList.insertBefore(dragging, ref);
+      if (ref == null) dragList.appendChild(dragEl);
+      else if (ref !== dragEl) dragList.insertBefore(dragEl, ref);
     });
 
-    grid.addEventListener('drop', function(e){
-      if (!dragId || !dragList) return;
-      var list = e.target.closest('.todo-list');
-      if (list !== dragList) return;
-      e.preventDefault();
-      dragDone = finalizarDrag();
-    });
+    function encerrarDrag(e){
+      if (dragPid != null && e && e.pointerId !== dragPid) return;
+      limparHold();
+      var estavaAtivo = dragActive;
+      if (estavaAtivo) finalizarDrag();
+      if (dragEl) dragEl.classList.remove('dragging');
+      document.body.classList.remove('todo-dragging');
+      dragEl = null; dragPid = null; dragActive = false; dragId = null;
+      if (estavaAtivo) render(); // reflete a nova ordem/projeto
+      dragList = null;
+    }
+    grid.addEventListener('pointerup', encerrarDrag);
+    grid.addEventListener('pointercancel', encerrarDrag);
 
-    grid.addEventListener('dragend', function(){
-      var d = dragList && dragList.querySelector('.todo-item.dragging');
-      if (d) d.classList.remove('dragging');
-      dragId = null; dragList = null; dragArmado = false;
-      render(); // reflete a nova ordem/projeto (ou restaura se o drop foi cancelado)
-    });
+    // Bloqueia a rolagem da página enquanto um item está sendo arrastado no toque.
+    document.addEventListener('touchmove', function(e){ if (dragActive) e.preventDefault(); }, { passive: false });
 
     // datalist de empresas para o formulário de adicionar
     var dl = document.createElement('datalist');
