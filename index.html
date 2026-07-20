@@ -4842,6 +4842,18 @@
       for (var i=0;i<COMPANIES.length;i++){ if (COMPANIES[i].name.toLowerCase() === e) return COMPANIES[i].logo; }
       return '';
     }
+    // Normaliza (caixa/acento/espaço) e resolve o nome canônico da empresa em
+    // COMPANIES — assim "GBS", "GBS Storage", "gbs" e "BioRen"/"Bioren" caem no
+    // mesmo grupo, evitando seções duplicadas da mesma empresa.
+    function normKey(s){ return String(s == null ? '' : s).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+    function matchEmpresa(raw){
+      var n = normKey(raw); if (!n) return null;
+      for (var i=0;i<COMPANIES.length;i++){ if (normKey(COMPANIES[i].name) === n) return COMPANIES[i].name; }
+      for (var j=0;j<COMPANIES.length;j++){ var cn = normKey(COMPANIES[j].name); if (cn.indexOf(n) === 0 || n.indexOf(cn) === 0) return COMPANIES[j].name; }
+      return null;
+    }
+    function canonEmpresa(raw){ return matchEmpresa(raw) || String(raw == null ? '' : raw).trim(); }
+    function grupoKey(raw){ return normKey(canonEmpresa(raw)); }
     // Chamada à API. O middleware protege /api/*; o navegador reenvia o Basic Auth sozinho.
     function api(method, body, qs){
       return fetch('/api/todos' + (qs || ''), {
@@ -4860,14 +4872,15 @@
       grid.removeAttribute('aria-busy');
       grid.innerHTML = ANALISTAS.map(function(a){
         var meus = todos.filter(function(t){ return t.analista === a.nome; });
-        var ordem = [], grupos = {};
-        meus.forEach(function(t){ if (!grupos[t.empresa]) { grupos[t.empresa] = []; ordem.push(t.empresa); } grupos[t.empresa].push(t); });
-        var emps = ordem.map(function(emp){
-          var logo = grupos[emp][0].empresaLogo || logoDe(emp);
+        var ordem = [], grupos = {}, rotulos = {};
+        meus.forEach(function(t){ var k = grupoKey(t.empresa); if (!grupos[k]) { grupos[k] = []; ordem.push(k); rotulos[k] = canonEmpresa(t.empresa); } grupos[k].push(t); });
+        var emps = ordem.map(function(key){
+          var emp = rotulos[key];
+          var logo = grupos[key][0].empresaLogo || logoDe(emp);
           var logoHtml = logo
             ? '<img class="todo-emp-logo" src="' + esc(logo) + '" alt="" loading="lazy">'
             : '<span class="todo-emp-logo todo-emp-ini">' + esc(iniciais(emp)) + '</span>';
-          var itens = grupos[emp].map(function(t){
+          var itens = grupos[key].map(function(t){
             var risk = t.done ? ' style="text-decoration:line-through;opacity:.55"' : '';
             return '<div class="todo-item" data-id="' + esc(t.id) + '">'
                  +   '<label class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
@@ -4877,7 +4890,7 @@
           }).join('');
           return '<details class="todo-emp" open><summary>' + logoHtml
                +   '<span class="todo-emp-name">' + esc(emp) + '</span>'
-               +   '<span class="cnt">' + grupos[emp].length + '</span>'
+               +   '<span class="cnt">' + grupos[key].length + '</span>'
                +   '<svg class="todo-emp-chev" aria-hidden="true"><use href="#ic-chev"/></svg></summary>'
                +   '<div class="todo-list">' + itens + '</div></details>';
         }).join('');
@@ -4916,7 +4929,8 @@
         if (!texto)   { txtEl.focus(); txtEl.style.borderColor = 'var(--accent-danger)'; return; }
         var save = form.querySelector('.todo-btn-save');
         save.disabled = true; save.textContent = 'Salvando…';
-        api('POST', { analista: analista, empresa: empresa, empresaLogo: logoDe(empresa), texto: texto })
+        var canon = canonEmpresa(empresa);
+        api('POST', { analista: analista, empresa: canon, empresaLogo: logoDe(canon), texto: texto })
           .then(function(item){ todos.push(item); render(); })
           .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
       };
