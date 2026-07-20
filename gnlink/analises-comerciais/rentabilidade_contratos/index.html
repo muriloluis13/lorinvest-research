@@ -508,19 +508,11 @@
       <div id="ind-tabs-scroll"><div class="tabs" id="ind-tabs">
         <button class="tabbtn active" data-ind-tab="macro" type="button">Brasil | Macro</button>
         <button class="tabbtn" data-ind-tab="combustiveis" type="button">Brasil | Preços de combustíveis</button>
-        <button class="tabbtn" data-ind-tab="agro" type="button">Brasil | Agro</button>
-        <button class="tabbtn" data-ind-tab="portos" type="button">Brasil | Movimentação portuária</button>
         <button class="tabbtn" data-ind-tab="petroleo" type="button">Global | Petróleo e produtos refinados</button>
-        <button class="tabbtn" data-ind-tab="metals" type="button">Global | Metals &amp; Mining</button>
-        <button class="tabbtn" data-ind-tab="fretes" type="button">Global | Fretes marítimos</button>
       </div></div>
 
       <div id="ind-view-combustiveis"><div id="view-combustiveis"></div></div>
-      <div id="ind-view-agro" class="hidden"><div class="dev-placeholder"><span style="font-size:48px;">🚧</span><span>Em desenvolvimento...</span></div></div>
-      <div id="ind-view-portos" class="hidden"><div class="dev-placeholder"><span style="font-size:48px;">🚧</span><span>Em desenvolvimento...</span></div></div>
       <div id="ind-view-petroleo" class="hidden"><div id="view-petroleo"></div></div>
-      <div id="ind-view-metals" class="hidden"><div class="dev-placeholder"><span style="font-size:48px;">🚧</span><span>Em desenvolvimento...</span></div></div>
-      <div id="ind-view-fretes" class="hidden"><div class="dev-placeholder"><span style="font-size:48px;">🚧</span><span>Em desenvolvimento...</span></div></div>
       <div id="ind-view-macro" class="hidden"><div id="view-macro"></div></div>
     </div>
   </div>
@@ -568,7 +560,7 @@ let curIndTab='macro';
 function goToIndTab(tab){
   curIndTab=tab;
   document.querySelectorAll('#ind-tabs .tabbtn').forEach(b=>b.classList.toggle('active',b.dataset.indTab===tab));
-  ['combustiveis','agro','portos','petroleo','metals','fretes','macro'].forEach(t=>{
+  ['combustiveis','petroleo','macro'].forEach(t=>{
     const el=document.getElementById('ind-view-'+t);
     if(el)el.classList.toggle('hidden',t!==tab);
   });
@@ -1940,7 +1932,7 @@ function rBrentFuturo(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{beginAtZero:true,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -1949,7 +1941,7 @@ function rBrentFuturo(){
       }
     });
   }
-  
+
   // Inicia atualização automática se ainda não estiver ativa
   startBrentFuturoAutoUpdate();
 }
@@ -2141,7 +2133,7 @@ function rJkmFuturo(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{beginAtZero:true,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -2393,7 +2385,7 @@ function rBrentHistorical(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{beginAtZero:true,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -2592,7 +2584,7 @@ function rJkmHistorical(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{beginAtZero:true,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
