@@ -4838,6 +4838,17 @@
     .todo-btn-save{background:var(--accent-1);color:#fff;border-color:var(--accent-1)}
     .todo-btn-save:disabled{opacity:.6;cursor:default}
     .todo-btn-cancel{background:#fff;color:var(--muted)}
+    /* Combobox: dropdown clicável (empresas/projetos) que também aceita digitação.
+       Substitui o <datalist> nativo, que no mobile quase nunca abre a lista. */
+    .todo-combo{position:relative;width:100%}
+    .todo-add-form .todo-combo input{padding-right:26px}
+    .todo-combo-toggle{position:absolute;top:0;right:0;height:100%;width:26px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--muted);font-size:10px;line-height:1;cursor:pointer;padding:0}
+    .todo-combo-toggle:hover{color:var(--accent-1)}
+    .todo-combo-menu{display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:50;max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-soft);padding:3px}
+    .todo-combo-menu.open{display:block}
+    .todo-combo-opt{display:block;width:100%;text-align:left;border:none;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:7px 8px;border-radius:6px;cursor:pointer}
+    .todo-combo-opt:hover,.todo-combo-opt.active{background:var(--bg-card-soft)}
+    .todo-combo-empty{padding:7px 8px;font-size:11.5px;color:var(--muted)}
   </style>
   <script>
   (function todoTracker(){
@@ -4944,9 +4955,9 @@
       var form = document.createElement('div');
       form.className = 'todo-add-form';
       form.innerHTML = '<label class="todo-f-label">Empresa</label>'
-                     + '<input class="todo-f-emp" list="todoEmpresas" placeholder="Empresa" autocomplete="off">'
+                     + '<input class="todo-f-emp" placeholder="Selecione ou digite uma empresa" autocomplete="off">'
                      + '<label class="todo-f-label">Projeto</label>'
-                     + '<input class="todo-f-proj" list="todoProjetos" placeholder="Selecione ou digite um projeto" autocomplete="off">'
+                     + '<input class="todo-f-proj" placeholder="Selecione ou digite um projeto" autocomplete="off">'
                      + '<label class="todo-f-label">Descrição da tarefa</label>'
                      + '<textarea class="todo-f-txt" placeholder="Descrição da tarefa"></textarea>'
                      + '<label class="todo-f-label">Comentários</label>'
@@ -4956,10 +4967,12 @@
       btn.replaceWith(form);
       var empEl = form.querySelector('.todo-f-emp'), projEl = form.querySelector('.todo-f-proj'),
           txtEl = form.querySelector('.todo-f-txt'), comEl = form.querySelector('.todo-f-com');
-      // Só sugere projetos da empresa escolhida; atualiza ao trocar a empresa.
-      function syncProjetos(){ setProjOptions(projetosDe(empEl.value)); }
-      empEl.addEventListener('input', syncProjetos);
-      syncProjetos();
+      // Dropdown clicável (também aceita digitação). Empresas: lista fixa.
+      makeCombo(empEl, function(){ return COMPANIES.map(function(c){ return c.name; }); });
+      // Projetos: só os já cadastrados na empresa escolhida (recalculado a cada abertura).
+      makeCombo(projEl, function(){ return projetosDe(empEl.value); });
+      // Abre a lista de empresas assim que o formulário aparece, deixando a
+      // escolha à mão sem precisar digitar.
       empEl.focus();
       form.querySelector('.todo-btn-cancel').onclick = function(){ render(); };
       form.querySelector('.todo-btn-save').onclick = function(){
@@ -5120,17 +5133,8 @@
     // Bloqueia a rolagem da página enquanto um item está sendo arrastado no toque.
     document.addEventListener('touchmove', function(e){ if (dragActive) e.preventDefault(); }, { passive: false });
 
-    // datalist de empresas para o formulário de adicionar
-    var dl = document.createElement('datalist');
-    dl.id = 'todoEmpresas';
-    dl.innerHTML = COMPANIES.map(function(c){ return '<option value="' + esc(c.name) + '">'; }).join('');
-    document.body.appendChild(dl);
-
-    // Seletor de projetos: um projeto pertence a uma empresa específica, então o
-    // datalist só sugere projetos já cadastrados na empresa escolhida no form.
-    var dlProj = document.createElement('datalist');
-    dlProj.id = 'todoProjetos';
-    document.body.appendChild(dlProj);
+    // Um projeto pertence a uma empresa específica: o dropdown de projeto só
+    // sugere os já cadastrados na empresa escolhida no form.
     function projetosDe(empresaRaw){
       var canon = grupoKey(empresaRaw); if (!canon) return [];
       var vistos = {}, opts = [];
@@ -5142,8 +5146,66 @@
       opts.sort(function(a,b){ return a.localeCompare(b); });
       return opts;
     }
-    function setProjOptions(opts){
-      dlProj.innerHTML = opts.map(function(p){ return '<option value="' + esc(p) + '">'; }).join('');
+
+    // Combobox: transforma um <input> num campo com dropdown clicável que também
+    // aceita digitação livre. Feito à mão porque o <datalist> nativo é instável
+    // no mobile (a lista quase nunca abre ao toque). getOptions() é chamado a
+    // cada abertura, então a lista fica sempre atualizada (ex.: projetos da
+    // empresa que acabou de ser escolhida).
+    function makeCombo(input, getOptions){
+      var wrap = document.createElement('div');
+      wrap.className = 'todo-combo';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'todo-combo-toggle';
+      toggle.setAttribute('aria-label', 'Mostrar opções');
+      toggle.textContent = '▼';
+      wrap.appendChild(toggle);
+      var menu = document.createElement('div');
+      menu.className = 'todo-combo-menu';
+      wrap.appendChild(menu);
+
+      function open(){
+        var opts = getOptions() || [];
+        var q = input.value.trim().toLowerCase();
+        var filt = q ? opts.filter(function(o){ return o.toLowerCase().indexOf(q) >= 0; }) : opts;
+        if (!filt.length){
+          // Sem opções cadastradas: some com o menu (o usuário digita livremente).
+          menu.classList.remove('open');
+          return;
+        }
+        menu.innerHTML = filt.map(function(o){ return '<button type="button" class="todo-combo-opt">' + esc(o) + '</button>'; }).join('');
+        menu.classList.add('open');
+      }
+      function close(){ menu.classList.remove('open'); }
+
+      // preventDefault no mousedown mantém o foco no input (desktop) ao clicar.
+      toggle.addEventListener('mousedown', function(e){ e.preventDefault(); });
+      toggle.addEventListener('click', function(){
+        if (menu.classList.contains('open')) { close(); }
+        else { input.focus(); open(); }
+      });
+      input.addEventListener('focus', open);
+      input.addEventListener('input', open);
+      input.addEventListener('keydown', function(e){ if (e.key === 'Escape') { close(); } });
+      menu.addEventListener('mousedown', function(e){ e.preventDefault(); });
+      menu.addEventListener('click', function(e){
+        var opt = e.target.closest('.todo-combo-opt'); if (!opt) return;
+        input.value = opt.textContent;
+        close();
+        // Notifica quem escuta (ex.: nada aqui, mas mantém previsível).
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        close();
+      });
+      // Fecha ao tocar/clicar fora do campo. Ignora alvos já removidos do DOM —
+      // é o caso do próprio clique em "+ Adicionar tarefa", que troca o botão
+      // pelo form e ainda borbulha até aqui; sem isso fecharia o menu recém-aberto.
+      document.addEventListener('click', function(e){
+        if (e.target && !document.contains(e.target)) return;
+        if (!wrap.contains(e.target)) close();
+      });
     }
 
     // carga inicial
