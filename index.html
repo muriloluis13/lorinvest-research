@@ -4939,7 +4939,7 @@
         var avatar = a.avatar
           ? '<img class="an-avatar" src="' + esc(a.avatar) + '" alt="' + esc(a.nome) + '" loading="lazy">'
           : '<div class="an-avatar an-initials">' + esc(iniciais(a.nome)) + '</div>';
-        return '<div class="an-card an-collapsible' + (meus.length ? ' an-open' : '') + '" data-analista="' + esc(a.nome) + '">'
+        return '<div class="an-card an-collapsible" data-analista="' + esc(a.nome) + '">'
              +   '<div class="an-head">' + avatar
              +     '<div class="an-hinfo"><div class="an-name">' + esc(a.nome) + (a.cfa ? ' <span class="cfa">CFA</span>' : '') + '</div>'
              +       '<div class="an-role">' + esc(a.role) + '</div>'
