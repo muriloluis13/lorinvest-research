@@ -4827,6 +4827,8 @@
     .todo-proj-head:first-child{margin-top:0}
     .todo-del{margin-left:6px;flex:none;border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 3px;border-radius:6px;opacity:.45}
     .todo-del:hover{color:var(--accent-danger);opacity:1;background:rgba(226,58,46,.09)}
+    .todo-edit{flex:none;border:none;background:transparent;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;padding:0 3px;border-radius:6px;opacity:.45;margin-left:2px}
+    .todo-edit:hover{color:var(--accent-1);opacity:1;background:var(--bg-card-soft)}
     .todo-add-btn{align-self:flex-start;margin-top:4px;border:1px dashed var(--line);background:var(--bg-card-soft);color:var(--accent-1);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:8px;cursor:pointer}
     .todo-add-btn:hover{border-color:var(--accent-2);background:#fff}
     .todo-add-form{display:flex;flex-direction:column;gap:7px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg-card-soft);margin-top:4px}
@@ -4923,6 +4925,7 @@
                    +       '<span class="todo-item-title"' + risk + '>' + esc(t.texto) + '</span>'
                    +       (com ? '<span class="todo-item-comment">' + esc(com) + '</span>' : '')
                    +     '</span></label>'
+                   +   '<button class="todo-edit" type="button" title="Editar tarefa" aria-label="Editar">✎</button>'
                    +   '<button class="todo-del" type="button" title="Excluir tarefa" aria-label="Excluir">×</button>'
                    + '</div>';
             }).join('');
@@ -4949,9 +4952,9 @@
       }).join('');
     }
 
-    function openAddForm(btn){
-      var card = btn.closest('.an-card');
-      var analista = card.getAttribute('data-analista');
+    // Monta o formulário (mesmos campos para adicionar e editar). vals pré-preenche
+    // os campos (no modo edição). Retorna o form e as referências aos inputs.
+    function makeForm(vals){
       var form = document.createElement('div');
       form.className = 'todo-add-form';
       form.innerHTML = '<label class="todo-f-label">Empresa</label>'
@@ -4964,27 +4967,67 @@
                      + '<textarea class="todo-f-com" placeholder="Comentários (opcional)"></textarea>'
                      + '<div class="todo-add-actions"><button class="todo-btn-save" type="button">Salvar</button>'
                      + '<button class="todo-btn-cancel" type="button">Cancelar</button></div>';
-      btn.replaceWith(form);
       var empEl = form.querySelector('.todo-f-emp'), projEl = form.querySelector('.todo-f-proj'),
           txtEl = form.querySelector('.todo-f-txt'), comEl = form.querySelector('.todo-f-com');
       // Dropdown clicável (também aceita digitação). Empresas: lista fixa.
       makeCombo(empEl, function(){ return COMPANIES.map(function(c){ return c.name; }); });
       // Projetos: só os já cadastrados na empresa escolhida (recalculado a cada abertura).
       makeCombo(projEl, function(){ return projetosDe(empEl.value); });
-      // Abre a lista de empresas assim que o formulário aparece, deixando a
-      // escolha à mão sem precisar digitar.
-      empEl.focus();
+      if (vals) {
+        empEl.value = vals.empresa || ''; projEl.value = vals.projeto || '';
+        txtEl.value = vals.texto || ''; comEl.value = vals.comentario || '';
+      }
       form.querySelector('.todo-btn-cancel').onclick = function(){ render(); };
-      form.querySelector('.todo-btn-save').onclick = function(){
-        var empresa = empEl.value.trim(), projeto = projEl.value.trim(),
-            texto = txtEl.value.trim(), comentario = comEl.value.trim();
-        if (!empresa) { empEl.focus(); empEl.style.borderColor = 'var(--accent-danger)'; return; }
-        if (!texto)   { txtEl.focus(); txtEl.style.borderColor = 'var(--accent-danger)'; return; }
-        var save = form.querySelector('.todo-btn-save');
+      return { form: form, empEl: empEl, projEl: projEl, txtEl: txtEl, comEl: comEl };
+    }
+
+    // Lê e valida os campos; retorna null (e sinaliza o campo) se algo faltar.
+    function lerForm(f) {
+      var empresa = f.empEl.value.trim(), texto = f.txtEl.value.trim();
+      if (!empresa) { f.empEl.focus(); f.empEl.style.borderColor = 'var(--accent-danger)'; return null; }
+      if (!texto)   { f.txtEl.focus(); f.txtEl.style.borderColor = 'var(--accent-danger)'; return null; }
+      return { empresa: empresa, projeto: f.projEl.value.trim(), texto: texto, comentario: f.comEl.value.trim() };
+    }
+
+    function openAddForm(btn){
+      var card = btn.closest('.an-card');
+      var analista = card.getAttribute('data-analista');
+      var f = makeForm(null);
+      btn.replaceWith(f.form);
+      f.empEl.focus(); // abre a lista de empresas assim que o form aparece
+      f.form.querySelector('.todo-btn-save').onclick = function(){
+        var v = lerForm(f); if (!v) return;
+        var save = f.form.querySelector('.todo-btn-save');
         save.disabled = true; save.textContent = 'Salvando…';
-        var canon = canonEmpresa(empresa);
-        api('POST', { analista: analista, empresa: canon, empresaLogo: logoDe(canon), projeto: projeto, texto: texto, comentario: comentario })
+        var canon = canonEmpresa(v.empresa);
+        api('POST', { analista: analista, empresa: canon, empresaLogo: logoDe(canon), projeto: v.projeto, texto: v.texto, comentario: v.comentario })
           .then(function(item){ todos.push(item); render(); })
+          .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
+      };
+    }
+
+    // Edição de uma tarefa existente: troca o item pelo formulário pré-preenchido.
+    function openEditForm(item){
+      var id = item.getAttribute('data-id');
+      var t = todos.find(function(x){ return x.id === id; });
+      if (!t) return;
+      var f = makeForm({ empresa: t.empresa, projeto: t.projeto, texto: t.texto, comentario: t.comentario });
+      item.replaceWith(f.form);
+      f.txtEl.focus();
+      f.form.querySelector('.todo-btn-save').onclick = function(){
+        var v = lerForm(f); if (!v) return;
+        var save = f.form.querySelector('.todo-btn-save');
+        save.disabled = true; save.textContent = 'Salvando…';
+        var canon = canonEmpresa(v.empresa);
+        // Logo da nova empresa; se a empresa não mudou e não há logo no cadastro,
+        // preserva o que já existia (ex.: seeds com logo custom).
+        var logo = logoDe(canon);
+        if (!logo && grupoKey(canon) === grupoKey(t.empresa)) logo = t.empresaLogo || '';
+        api('PATCH', { id: id, empresa: canon, empresaLogo: logo, projeto: v.projeto, texto: v.texto, comentario: v.comentario })
+          .then(function(){
+            t.empresa = canon; t.empresaLogo = logo; t.projeto = v.projeto; t.texto = v.texto; t.comentario = v.comentario;
+            render();
+          })
           .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
       };
     }
@@ -5017,6 +5060,8 @@
     grid.addEventListener('click', function(e){
       var del = e.target.closest('.todo-del');
       if (del) { e.preventDefault(); e.stopPropagation(); onDelete(del.closest('.todo-item')); return; }
+      var edit = e.target.closest('.todo-edit');
+      if (edit) { e.preventDefault(); e.stopPropagation(); openEditForm(edit.closest('.todo-item')); return; }
       var add = e.target.closest('.todo-add-btn');
       if (add) { e.preventDefault(); openAddForm(add); return; }
       var head = e.target.closest('.an-head');

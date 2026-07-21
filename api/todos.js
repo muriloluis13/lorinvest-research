@@ -7,7 +7,7 @@
 //
 //   GET    /api/todos          -> lista todas as tarefas (semeia na 1ª vez)
 //   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?}
-//   PATCH  /api/todos          -> body {id, done?, projeto?, texto?, comentario?}
+//   PATCH  /api/todos          -> body {id, done?, empresa?, empresaLogo?, projeto?, texto?, comentario?}
 //   PUT    /api/todos          -> body {order:[id,...], moved?:{id, projeto?}} (reordena)
 //   DELETE /api/todos?id=...   -> remove a tarefa
 // ============================================================================
@@ -96,6 +96,8 @@ export default async function handler(req, res) {
       if (Object.prototype.hasOwnProperty.call(b, 'projeto')) it.projeto = String(b.projeto || '').trim();
       if (Object.prototype.hasOwnProperty.call(b, 'comentario')) it.comentario = String(b.comentario || '').trim();
       if (Object.prototype.hasOwnProperty.call(b, 'texto') && String(b.texto).trim()) it.texto = String(b.texto).trim();
+      if (Object.prototype.hasOwnProperty.call(b, 'empresa') && String(b.empresa).trim()) it.empresa = String(b.empresa).trim();
+      if (Object.prototype.hasOwnProperty.call(b, 'empresaLogo')) it.empresaLogo = String(b.empresaLogo || '');
       await redis.set(KEY, list);
       return res.status(200).json(it);
     }
