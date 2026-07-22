@@ -542,6 +542,7 @@
 
     /* KPI tiles (Aportes e Exposição) */
     .kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .kpi-grid.k4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .kpi-tile { border-radius: 12px; padding: 13px 15px; border: 1px solid rgba(0,0,0,.04); background: #EAEDF2; }
     .kpi-tile .k { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #5A6675; }
     .kpi-tile .v { font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-top: 4px; color: var(--ink); }
@@ -552,6 +553,31 @@
     .kpi-tile.k-stone { background: #EAEDF2; }
     .kpi-tile.k-red   { background: #FBECEA; }
     .kpi-tile.k-red .v { color: var(--accent-danger); }
+    /* Tiles de KPI com sub-tabela (Receita/Resultado/Capex por projeto) */
+    .kpi-tile .v.neg { color: var(--accent-danger); }
+    .kpi-tile .v2 { font-size: 15px; font-weight: 800; letter-spacing: -.2px; margin-top: 2px; color: var(--ink); }
+    .kpi-tile .sub { font-size: 10.5px; color: #6B7787; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(19,32,46,.10); }
+    .kpi-tile .sub b { color: #33424F; font-weight: 700; }
+    .kpi-mini { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 9px; font-size: 11px;
+      font-variant-numeric: tabular-nums; background: rgba(255,255,255,.72);
+      border: 1px solid rgba(19,32,46,.09); border-radius: 8px; overflow: hidden; }
+    .kpi-mini th { font-size: 8.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #6B7787;
+      text-align: right; padding: 5px 8px 4px; background: rgba(19,32,46,.045); border-bottom: 1px solid rgba(19,32,46,.10); }
+    .kpi-mini th:first-child { text-align: left; }
+    .kpi-mini td { text-align: right; padding: 4px 8px; color: #33424F; border-bottom: 1px solid rgba(19,32,46,.055); }
+    .kpi-mini td:first-child { text-align: left; color: #5A6675; font-weight: 600; }
+    .kpi-mini tbody tr:last-child td { border-bottom: 0; }
+    .kpi-mini tr.tot td { font-weight: 800; color: var(--ink); background: rgba(19,32,46,.05); border-top: 1px solid rgba(19,32,46,.14); }
+    /* filete separando o bloco Real/Orçado da coluna de variação */
+    .kpi-mini .cvar { border-left: 1px solid rgba(19,32,46,.11); }
+    .kpi-mini td.neg { color: var(--accent-danger); }
+    .kpi-mini td.pos { color: #2E6B41; }
+    /* tiles com tabela ocupam a linha inteira quando a grade fica estreita,
+       senão a coluna de variação é cortada */
+    @media (max-width: 700px) {
+      .kpi-tile.has-tbl { grid-column: 1 / -1; }
+      .kpi-mini th, .kpi-mini td { padding-left: 6px; padding-right: 6px; }
+    }
 
     /* ===== Stakeholders – Riscos & Oportunidades ===== */
     .sh-legend {
@@ -1085,7 +1111,7 @@
       .grid-2 { grid-template-columns: minmax(0, 1fr); }
       .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .row-2, .row-2w { grid-template-columns: minmax(0, 1fr); }
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-grid, .kpi-grid.k4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .mc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .mc-region-row { grid-template-columns: 1fr; gap: 2px; }
       .row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1220,6 +1246,11 @@
     .statline .sl .k{font-size:11px;color:var(--muted)}
     @media(max-width:720px){.gbc-plot{gap:9px;height:180px}.hsb-row{grid-template-columns:96px 1fr auto;gap:8px}}
   </style>
+  <!-- Fonte única de dados do Painel (EMP, COMPANIES, ANALISTAS, ORG, MACRO).
+       Carregada no <head> para estar disponível ANTES de qualquer script inline
+       que a consome (organograma, Panorama, aba Empresas). -->
+  <!-- ?v= força o browser a buscar a versão nova quando os dados mudam -->
+  <script src="data/empresas.js?v=2026-07-22d"></script>
 </head>
 <body>
   <script>
@@ -1574,58 +1605,9 @@
           (function(){
             var host=document.getElementById('orgchart'); if(!host) return;
             var W=1400,H=815;
-            var N=[
-             {x:340,y:6,w:120,h:44,t:'Ragnhild Lorentzen',p:'24,86%',k:'per'},
-             {x:470,y:6,w:120,h:44,t:'Haakon Lorentzen',p:'73,62%',k:'per'},
-             {x:600,y:6,w:120,h:44,t:'Martha Freitas Lorentzen',p:'0,13%',k:'per'},
-             {x:730,y:6,w:120,h:44,t:'Christian Fredrik Lorentzen',p:'1,13%',k:'per'},
-             {x:860,y:6,w:120,h:44,t:'Olav Alexander Lorentzen',p:'0,13%',k:'per'},
-             {x:990,y:6,w:120,h:44,t:'Sophia Anne Lorentzen',p:'0,13%',k:'per'},
-             {x:360,y:96,w:170,h:46,t:'Lofoten FIP Multiestrategia IE',p:'100,00%',k:'fund'},
-             {x:980,y:96,w:170,h:46,t:'Bygdoy FIP Multiestrategia IE',p:'100,00%',k:'fund'},
-             {x:360,y:176,w:170,h:46,t:'Hankoe FIP Multiestrategia IE',p:'',k:'fund'},
-             {x:980,y:176,w:170,h:46,t:'Dyna FIP Multiestrategia IE',p:'',k:'fund'},
-             {x:20,y:280,w:152,h:64,t:'Boreal Brasil Part. S.A.',s:'62.806.695/0001-50 · Brasil',p:'14,70%',k:'brh'},
-             {x:20,y:356,w:152,h:64,t:'Target Inst. de Pgto e Sec. de Creditos S.A.',s:'14.821.124/0001-42 · Brasil',p:'100,00%',k:'brh',o:1},
-             {x:20,y:432,w:152,h:64,t:'TGT Securitizadora de Creditos S.A.',s:'64.122.386/0001-97 · Brasil',p:'92,31%',k:'brh',o:1},
-             {x:20,y:508,w:152,h:64,t:'BioRen Tecnologia S.A.',s:'42.292.051/0001-84 · Brasil',p:'77,81%',k:'brh',o:1},
-             {x:20,y:584,w:152,h:64,t:'Itaparica Beach Club Part. LTDA',s:'50.132.341/0001-99 · Brasil',p:'100,00%',k:'brh'},
-             {x:20,y:660,w:152,h:64,t:'Itaparica Beach Club LTDA',s:'50.730.972/0001-00 · Brasil',p:'100,00%',k:'brh',o:1},
-             {x:190,y:280,w:152,h:64,t:'GNLink Distribuidora de Gas Natural S.A.',s:'34.470.844/0001-18 · Brasil',p:'64,00%',k:'brh',o:1},
-             {x:190,y:356,w:152,h:64,t:'GBS Estocagem de Gas Natural S.A.',s:'38.427.732/0001-35 · Brasil',p:'100,00%',k:'brh',o:1},
-             {x:190,y:432,w:152,h:64,t:'Dharma IA S.A.',s:'57.968.071/0001-07 · Brasil',p:'21,61%',k:'brh',o:1},
-             {x:190,y:508,w:152,h:64,t:'Eindom Participacoes S.A.',s:'48.803.998/0001-99 · Brasil',p:'100,00%',k:'brh'},
-             {x:190,y:584,w:152,h:64,t:'Eindom Empreend. Imobiliarios S.A.',s:'36.099.356/0001-64 · Brasil',p:'100,00%',k:'brh'},
-             {x:190,y:660,w:152,h:64,t:'Eindom House Adm. de Imoveis LTDA',s:'48.694.247/0001-81 · Brasil',p:'100,00%',k:'brh',o:1},
-             {x:360,y:280,w:152,h:64,t:'Norflor Empreend. Florestais S.A.',s:'44.925.620/0001-07 · Brasil',p:'100,00%',k:'brh',o:1},
-             {x:360,y:356,w:152,h:64,t:'Arven Ltda',s:'44.405.253/0001-10 · Brasil',p:'99,99%',k:'brh',o:1},
-             {x:360,y:432,w:152,h:64,t:'Skog FIP Multiestrategia',s:'51.806.546/0001-75 · Brasil',p:'25,10%',k:'fund'},
-             {x:360,y:508,w:152,h:64,t:'Tree Agroflorestal S.A.',s:'46.742.630/0001-32 · Brasil',p:'100,00%',k:'brh'},
-             {x:360,y:584,w:152,h:64,t:'Tjoeme FIM CP IE',s:'32.041.793/0001-83 · Brasil',p:'100,00%',k:'fund'},
-             {x:360,y:660,w:152,h:64,t:'Akron FIDC-NP',s:'43.809.937/0001-15 · Brasil',p:'100,00%',k:'fund'},
-             {x:530,y:280,w:152,h:64,t:'Lorentzen Empreend. S.A.',s:'33.107.533/0001-26 · Brasil',p:'89,29% + 10,71%',k:'brh'},
-             {x:530,y:356,w:152,h:64,t:'Cia de Navegacao S.A.',s:'33.127.002/0001-03 · Brasil',p:'76,84%',k:'brh',o:1},
-             {x:530,y:432,w:152,h:64,t:'Norcoast Logistica S.A.',s:'48.009.424/0001-06 · Bermudas',p:'50,00%',k:'lite',o:1},
-             {x:530,y:508,w:152,h:64,t:'Tyburn Ltd',s:'05.605.594/0001-88 · Bermudas',p:'100,00%',k:'lite'},
-             {x:530,y:584,w:152,h:64,t:'Rio Broker (L.P.F.) Ltda.',s:'31.355.852/0001-25 · Brasil',p:'33,33%',k:'lite',o:1},
-             {x:712,y:280,w:152,h:64,t:'Helser Saude S.A.',s:'33.534.973/0001-60 · Brasil',p:'70,00%',k:'brh'},
-             {x:712,y:380,w:152,h:64,t:'Eldry Saude Holding S.A.',s:'32.324.414/0001-62 · Brasil',p:'92,02%',k:'brh'},
-             {x:712,y:480,w:152,h:64,t:'Tann Odonto e Estetica S.A.',s:'32.112.982/0001-08 · Brasil',p:'82,67% + 17,33%',k:'brh'},
-             {x:900,y:280,w:152,h:64,t:'Sileto Global Holding S.a.r.l',s:'Luxemburgo',p:'40,00%',k:'brh'},
-             {x:1062,y:280,w:152,h:64,t:'Fielo Technologies Inc.',s:'39.995.546/0001-65 · Delaware - EUA',p:'26,60%',k:'brh'},
-             {x:900,y:380,w:152,h:64,t:'NWF HoldCo',s:'Cayman',p:'78,44%',k:'brh'},
-             {x:1062,y:380,w:152,h:64,t:'Fielo Technologies Brasil S.A.',s:'05.605.594/0001-88 · Brasil',p:'80,00%',k:'brh'},
-             {x:900,y:480,w:152,h:64,t:'New Wave L.P. (Partnership)',s:'Cayman',p:'88,22%',k:'brh'},
-             {x:1062,y:480,w:152,h:64,t:'New Wave G.P.',s:'',p:'100,00%',k:'brh'},
-             {x:981,y:568,w:152,h:64,t:'New Wave Holding S.a.r.l',s:'48.364.956/0001-07 · Luxemburgo',p:'100,00%',k:'lite'},
-             {x:796,y:656,w:152,h:64,t:'New Wave Royalties',s:'Uruguai',p:'1,00%',k:'lite'},
-             {x:900,y:656,w:152,h:64,t:'New Wave Tech S.A.',s:'27.383.117/0001-58 · Brasil',p:'100,00%',k:'lite'},
-             {x:1062,y:656,w:152,h:64,t:'Wave Nickel International S.a.r.L',s:'48.348.491/0001-07 · Luxemburgo',p:'100,00%',k:'lite'},
-             {x:1224,y:656,w:152,h:64,t:'Wave Aluminium International S.a.r.L',s:'48.348.490/0001-62 · Luxemburgo',p:'100,00%',k:'lite'},
-             {x:900,y:736,w:152,h:64,t:'New Wave Brasil S.A.',s:'51.138.361/0001-30 · Brasil',p:'100,00%',k:'lite'},
-             {x:1062,y:736,w:152,h:64,t:'Wave Nickel S.A.',s:'42.099.568/0001-51 · Brasil',p:'100,00%',k:'lite'},
-             {x:1224,y:736,w:152,h:64,t:'Wave Aluminium S.A.',s:'33.564.013/0001-42 · Brasil',p:'100,00%',k:'lite'}
-            ];
+            // Dados do organograma: fonte única em data/empresas.js (window.ORG).
+            // A ordem é significativa — as ligações abaixo referenciam nós por índice.
+            var N=window.ORG||[]; if(!N.length) return;
             var P='';
             function cx(n){return n.x+n.w/2;} function bo(n){return n.y+n.h;}
             function elbow(a,b,dash,lbl){var A=N[a],B=N[b];var x1=cx(A),y1=bo(A),x2=cx(B),y2=B.y;var my=y1+Math.max(12,(y2-y1)/2);
@@ -1681,75 +1663,14 @@
             </div>
           </div>
 
-          <div class="grid-2">
-            <!-- Coluna 1: Snapshot do Portfólio -->
-            <div class="card-stack">
-              <!-- Snapshot do Portfólio -->
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">Snapshot do Portfólio</div>
-                </div>
-                <div class="card-body">
-                  <div class="metric-row">
-                    <div class="metric-value">R$ 4,2 bi</div>
-                    <div class="metric-label">Valor estimado (EV portfólio)</div>
-                    <span class="metric-chip">+8,3% vs. plano</span>
-                  </div>
-                  <div class="placeholder-chart">
-                    EV por investida (GNLink ~ 28% do EV total), geração de caixa consolidada e alocação de capital nos últimos 3 anos.
-                  </div>
-                  <p class="card-note">
-                    ➜ Substitua por embed de BI com EV, CF e múltiplos por investida.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Coluna 2: Empresas do Portfólio -->
+          <div class="row-full">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Empresas do Portfólio</div>
-              </div>
               <div class="card-body">
-                <div class="table-scroll">
-                <table class="placeholder-table">
-                  <thead>
-                    <tr>
-                      <th>Empresa</th>
-                      <th>Setor</th>
-                      <th>Stage</th>
-                      <th>Risco</th>
-                      <th>Próximo gatilho</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>GNLink</td>
-                      <td>Midstream de Gás Natural</td>
-                      <td>Growth / Infraestrutura</td>
-                      <td><span class="tag">Verde</span></td>
-                      <td>Entrada em operação do Ramal Norte II</td>
-                    </tr>
-                    <tr>
-                      <td>HospCare</td>
-                      <td>Saúde</td>
-                      <td>Build-up</td>
-                      <td><span class="tag-soft">Amarelo</span></td>
-                      <td>Integração de aquisições regionais</td>
-                    </tr>
-                    <tr>
-                      <td>PayFleet</td>
-                      <td>Fintech logística</td>
-                      <td>Scale-up</td>
-                      <td><span class="tag-risk">Vermelho</span></td>
-                      <td>Ajuste regulatório e funding</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="e2-dev">
+                  <div class="ic">🚧</div>
+                  <div class="t">Em desenvolvimento…</div>
+                  <div class="s">O snapshot do portfólio e o quadro de empresas serão montados a partir dos dados reais das investidas.</div>
                 </div>
-                <p class="card-note">
-                  ➜ GNLink é tratada como ativo core de infraestrutura de gás do portfólio.
-                </p>
               </div>
             </div>
           </div>
@@ -1865,58 +1786,118 @@
             <button class="emp-tab" data-emp-target="projetos">Projetos</button>
             <button class="emp-tab" data-emp-target="operacional">Operacional</button>
             <button class="emp-tab" data-emp-target="comercial">Comercial</button>
-            <button class="emp-tab" data-emp-target="financeiro">Financeiro e Alavancagem</button>
+            <button class="emp-tab" data-emp-target="resultados">Resultados</button>
+            <button class="emp-tab" data-emp-target="alavancagem">Alavancagem</button>
             <button class="emp-tab" data-emp-target="valuation">Valuation</button>
             <button class="emp-tab" data-emp-target="comites">Comitês</button>
             <button class="emp-tab" data-emp-target="competidores">Mapa competitivo</button>
           </nav>
 
           <div class="emp-panel active" data-emp="panorama">
-          <div class="row-3">
+          <div class="row-full">
             <div class="card">
               <div class="card-header">
                 <div class="card-title">KPIs Principais</div>
+                <span class="tag">jun/2026</span>
               </div>
               <div class="card-body">
-                <div class="kpi-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-                  <div class="kpi-tile k-slate"><div class="k">Receita LTM</div><div class="v">R$ 980,0 mi</div><div class="s">receita líquida · 12 meses</div></div>
-                  <div class="kpi-tile k-teal"><div class="k">Margem EBITDA LTM</div><div class="v">63,0%</div><div class="s">R$ 617 mi de EBITDA</div></div>
-                  <div class="kpi-tile k-sage"><div class="k">FCFE LTM</div><div class="v">R$ 410,0 mi</div><div class="s">geração de caixa ao acionista</div></div>
-                  <div class="kpi-tile k-red"><div class="k">Dívida Líq./EBITDA</div><div class="v">2,3x</div><div class="s">dívida líquida R$ 1,42 bi</div></div>
+                <div class="kpi-grid k4">
+
+                  <div class="kpi-tile k-slate">
+                    <div class="k">Volume Vendido (GNL + GNC)</div>
+                    <div class="v" style="font-size:19px">1.803,8 mil m³</div>
+                    <div class="v2">60,1 mil m³/dia</div>
+                    <div class="sub">
+                      Orçado <b>1.914,3 mil m³</b> · <b>63,8 mil m³/dia</b><br>
+                      Variação <b style="color:var(--accent-danger)">(5,8%)</b>
+                    </div>
+                  </div>
+
+                  <div class="kpi-tile has-tbl k-slate">
+                    <div class="k">Receita Líquida (R$ mi)</div>
+                    <table class="kpi-mini">
+                      <thead><tr><th></th><th>Real</th><th>Orçado</th><th class="cvar">Var.</th></tr></thead>
+                      <tbody>
+                        <tr><td>PR</td><td>3,0</td><td>3,0</td><td class="cvar">0,0</td></tr>
+                        <tr><td>BA</td><td>1,9</td><td>0,9</td><td class="cvar pos">1,1</td></tr>
+                        <tr><td>RN</td><td>1,4</td><td>2,7</td><td class="cvar neg">(1,3)</td></tr>
+                        <tr class="tot"><td>Total</td><td>6,4</td><td>6,6</td><td class="cvar neg">(0,2)</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="kpi-tile has-tbl k-stone">
+                    <div class="k">Resultado Operacional (R$ mi)</div>
+                    <table class="kpi-mini">
+                      <thead><tr><th></th><th>Real</th><th>Orçado</th><th class="cvar">Var.</th></tr></thead>
+                      <tbody>
+                        <tr><td>PR</td><td class="neg">(0,2)</td><td class="neg">(0,4)</td><td class="cvar pos">0,1</td></tr>
+                        <tr><td>BA</td><td class="neg">(0,2)</td><td class="neg">(1,1)</td><td class="cvar pos">0,9</td></tr>
+                        <tr><td>RN</td><td class="neg">(0,3)</td><td class="neg">(0,2)</td><td class="cvar neg">(0,1)</td></tr>
+                        <tr class="tot"><td>Total</td><td class="neg">(0,7)</td><td class="neg">(1,6)</td><td class="cvar pos">0,9</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="kpi-tile k-red">
+                    <div class="k">EBITDA (R$ mi)</div>
+                    <div class="v">(2,8)</div>
+                    <div class="sub">
+                      Orçado <b>(3,3)</b><br>
+                      Variação <b style="color:#2E6B41">14,7%</b>
+                    </div>
+                  </div>
+
+                  <div class="kpi-tile k-red">
+                    <div class="k">Geração de Caixa Operacional² (R$ mi)</div>
+                    <div class="v">(6,4)</div>
+                    <div class="sub">
+                      Orçado <b>(2,3)</b><br>
+                      Variação <b style="color:var(--accent-danger)">(178,0%)</b>
+                    </div>
+                  </div>
+
+                  <div class="kpi-tile has-tbl k-stone">
+                    <div class="k">Capex YTD (R$ mi)</div>
+                    <table class="kpi-mini">
+                      <thead><tr><th></th><th>Real</th><th>Orçado</th><th class="cvar">%</th></tr></thead>
+                      <tbody>
+                        <tr><td>PR</td><td>5,8</td><td>7,2</td><td class="cvar neg">(20%)</td></tr>
+                        <tr><td>BA</td><td>4,8</td><td>11,9</td><td class="cvar neg">(68%)</td></tr>
+                        <tr><td>RN</td><td>14,5</td><td>16,9</td><td class="cvar neg">(23%)</td></tr>
+                        <tr class="tot"><td>Total</td><td>25,0</td><td>36,1</td><td class="cvar neg">(31%)</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="kpi-tile k-slate">
+                    <div class="k">Endividamento (R$ mi)</div>
+                    <div class="v">322,0</div>
+                    <div class="s">dívida bruta</div>
+                    <div class="sub">
+                      Dívida líquida <b>292,0</b><br>
+                      Custo médio ponderado³ <b>12,8% a.a.</b>
+                    </div>
+                  </div>
+
+                  <div class="kpi-tile k-sage">
+                    <div class="k">Saldo Final de Caixa (R$ mi)</div>
+                    <div class="v">30,0</div>
+                    <div class="sub">
+                      Caixa livre <b>23,2</b>
+                    </div>
+                  </div>
+
                 </div>
-                <div class="placeholder-chart">
-                  Série histórica de receita, EBITDA, volume transportado (MMm³/dia) e FCFF nos últimos 12 trimestres.
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Timeline</div>
-              </div>
-              <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span>2016 – Constituição da GNLink e obtenção das primeiras autorizações de gasoduto.</span></li>
-                  <li><span class="bullet">•</span><span>2018 – Entrada em operação do Gasoduto Tronco Leste (120 km).</span></li>
-                  <li><span class="bullet">•</span><span>2022 – Entrada da Lorinvest (aquisição de 60% e aporte primário para expansão).</span></li>
-                  <li><span class="bullet">•</span><span>2023 – Aprovação em Conselho do Business Plan 2023–2028, com foco em ramais industriais.</span></li>
-                  <li><span class="bullet">•</span><span>2024 – Início da construção do Ramal Norte II e contratação de clientes âncora (siderurgia e fertilizantes).</span></li>
-                </ul>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Painel Setorial – Transporte & Ramais de Gás</div>
-              </div>
-              <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span>TAM estimado na região de atuação: ~R$ 4,0 bi/ano em receita de transporte e distribuição de gás.</span></li>
-                  <li><span class="bullet">•</span><span>Market share GNLink na região: ~28% do volume transportado para clientes industriais.</span></li>
-                  <li><span class="bullet">•</span><span>EBITDA médio esperado do setor de gasodutos dedicados: 60–70%.</span></li>
-                  <li><span class="bullet">•</span><span>Drivers principais: expansão da malha de gás, competitividade do gás vs. óleo combustível e estabilidade regulatória.</span></li>
-                </ul>
-                <div class="placeholder-chart">
-                  Gráfico de market share: GNLink vs. Transportadora A, Transportadora B, gasodutos próprios de grandes clientes.
-                </div>
+                <p class="card-note">
+                  ➜ Volume, receita, resultado operacional, EBITDA e geração de caixa referem-se ao mês de <b>jun/2026</b>;
+                  Capex é acumulado no ano (YTD); dívida e caixa são saldos de fechamento.
+                </p>
+                <p class="card-note" style="margin-top:4px">
+                  <b>Orçado</b> — orçamento revisado aprovado em abril/26.<br>
+                  <b>²</b> Geração de caixa operacional pelo fluxo de caixa indireto: EBITDA − IRPJ/CSLL − Δ capital de giro.<br>
+                  <b>³</b> Custo médio ponderado: anualização do custo efetivo dos juros do mês.
+                </p>
               </div>
             </div>
           </div>
@@ -1928,14 +1909,26 @@
                 <div class="card-title">Exposição da Lorinvest</div>
               </div>
               <div class="card-body">
-                <div class="card-note" style="margin-bottom: 8px;">Em milhares de reais · atualizado em 08/06/2026</div>
+                <!-- Valores e data lidos de window.EMP['GNLink'] (data/empresas.js). -->
+                <div class="card-note" style="margin-bottom: 8px;">Em milhares de reais · atualizado em <span data-gnl-upd></span></div>
                 <div class="kpi-grid">
-                  <div class="kpi-tile k-slate"><div class="k">Valor Hankoe</div><div class="v">106.100,2</div><div class="s">marcado na carteira</div></div>
-                  <div class="kpi-tile k-teal"><div class="k">Aportes Líquidos</div><div class="v">98.385,7</div><div class="s">líquido de desinvestimentos</div></div>
-                  <div class="kpi-tile k-sage"><div class="k">Correção IPCA</div><div class="v">111.483,8</div><div class="s">aportes corrigidos</div></div>
-                  <div class="kpi-tile k-stone"><div class="k">Correção IPCA + 15%</div><div class="v">161.933,6</div><div class="s">aportes corrigidos (IPCA+15%)</div></div>
-                  <div class="kpi-tile k-red"><div class="k">Exposição Total</div><div class="v">98.537,1</div><div class="s">exposição máxima do fundo</div></div>
+                  <div class="kpi-tile k-slate"><div class="k">Valor Hankoe</div><div class="v" data-gnl-kpi="Valor Hankoe"></div><div class="s">marcado na carteira</div></div>
+                  <div class="kpi-tile k-teal"><div class="k">Aportes Líquidos</div><div class="v" data-gnl-kpi="Aportes Líquidos"></div><div class="s">líquido de desinvestimentos</div></div>
+                  <div class="kpi-tile k-sage"><div class="k">Correção IPCA</div><div class="v" data-gnl-kpi="Correção IPCA"></div><div class="s">aportes corrigidos</div></div>
+                  <div class="kpi-tile k-stone"><div class="k">Correção IPCA + 15%</div><div class="v" data-gnl-kpi="Correção IPCA + 15%"></div><div class="s">aportes corrigidos (IPCA+15%)</div></div>
+                  <div class="kpi-tile k-red"><div class="k">Exposição Total</div><div class="v" data-gnl-kpi="Exposição Total"></div><div class="s">exposição máxima do fundo</div></div>
                 </div>
+                <script>
+                (function(){
+                  var g=(window.EMP||{})['GNLink']; if(!g||!g.aportes) return;
+                  var map={}; (g.aportes.kpis||[]).forEach(function(k){ map[k[0]]=k[1]; });
+                  document.querySelectorAll('#section-company [data-emp="aportes"] [data-gnl-kpi]').forEach(function(el){
+                    var v=map[el.getAttribute('data-gnl-kpi')]; if(v!=null) el.textContent=v;
+                  });
+                  var u=document.querySelector('#section-company [data-emp="aportes"] [data-gnl-upd]');
+                  if(u&&g.updated) u.textContent=g.updated;
+                })();
+                </script>
                 <ul class="list" style="margin-top: 12px;">
                   <li><span class="bullet">•</span><span><strong>Valor Hankoe:</strong> valor que está marcado na carteira do Hankoe FIP.</span></li>
                   <li><span class="bullet">•</span><span><strong>Aportes Líquidos:</strong> soma dos valores investidos na companhia, deduzidos dos desinvestimentos já efetuados.</span></li>
@@ -1943,6 +1936,24 @@
                   <li><span class="bullet">•</span><span><strong>Correção IPCA + 15%:</strong> correção dos aportes líquidos das investidas pelo IPCA + 15%.</span></li>
                   <li><span class="bullet">•</span><span><strong>Exposição Total:</strong> soma dos aportes líquidos e das garantias concedidas pelo Hankoe FIP, incluindo avais e fianças, relacionadas às dívidas das companhias investidas. Representa a exposição máxima potencial do fundo.</span></li>
                 </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="row-full" style="margin-top: 14px;">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Análises</div></div>
+              <div class="card-body">
+                <p class="card-note">Estudos de capital aportado e exposição dos acionistas da GNLink.</p>
+                <div class="analise-list">
+                  <a class="analise-item" href="gnlink/Exposicao/index.html" target="_blank" rel="noopener">
+                    <div class="analise-info">
+                      <span class="analise-title">Aportes e Exposição dos Acionistas</span>
+                      <span class="analise-meta">Capital aportado e exposição via aval/fiança de Lorinvest e Copa Energia, por projeto (PR, BA, RN e Holding)</span>
+                    </div>
+                    <span class="analise-date">Jun 2026</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -1954,47 +1965,11 @@
                 <div class="card-title">Governança & Estrutura Acionária</div>
               </div>
               <div class="card-body">
-                <div class="grid-2">
-                  <div>
-                    <strong style="font-size: 11px;">Acionistas</strong>
-                    <div style="display: flex; align-items: center; gap: 16px; margin-top: 10px; flex-wrap: wrap;">
-                      <svg viewBox="0 0 200 200" style="width: 220px; height: 220px; flex: none;" role="img" aria-label="Acionistas: Hankoe FIP 64%, Copa 36%">
-                        <circle cx="100" cy="100" r="70" fill="none" stroke="#E2E7EE" stroke-width="46"/>
-                        <circle cx="100" cy="100" r="70" fill="none" stroke="#4E8385" stroke-width="46" stroke-dasharray="281.5 439.8" transform="rotate(-90 100 100)"/>
-                        <circle cx="100" cy="100" r="70" fill="none" stroke="#3D4A5C" stroke-width="46" stroke-dasharray="158.3 439.8" stroke-dashoffset="-281.5" transform="rotate(-90 100 100)"/>
-                        <!-- rótulos no meio de cada fatia: ângulo = -90° + (fatia média × 360°), raio 70 = linha central do anel -->
-                        <text x="163.3" y="129.8" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="700" fill="#fff">64,0%</text>
-                        <text x="36.7" y="70.2" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="700" fill="#fff">36,0%</text>
-                      </svg>
-                      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #324256;">
-                        <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 11px; height: 11px; border-radius: 3px; background: #4E8385; display: inline-block;"></span>Hankoe FIP</div>
-                        <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 11px; height: 11px; border-radius: 3px; background: #3D4A5C; display: inline-block;"></span>Copa</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <strong style="font-size: 11px;">Diretoria</strong>
-                    <div class="card-note" style="margin-top: 2px;">Eleitos em 21/02/2025 · Mandato até 21/02/2027</div>
-                    <ul class="list" style="margin-top: 4px;">
-                      <li><span class="bullet">•</span><span>Marcelo Rodrigues</span></li>
-                      <li><span class="bullet">•</span><span>Laila Helayel</span></li>
-                      <li><span class="bullet">•</span><span>Márcio Cardoso</span></li>
-                      <li><span class="bullet">•</span><span>Silvino Junior</span></li>
-                      <li><span class="bullet">•</span><span>Cleber Hamada</span></li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div class="board-sep">
-                  <strong style="font-size: 11px;">Conselho de Administração</strong>
-                  <div class="card-note" style="margin-top: 2px;">3 membros eleitos</div>
-                  <div class="card-note">Eleitos em 01/08/2025 · Mandato até 31/07/2027</div>
-                  <div class="board" data-logo="logos/gnlink-logo.jpg" data-members='[
-                       {"name":"Peter Boot","role":"Chairman"},
-                       {"name":"Celso Pereira","role":"Conselheiro"},
-                       {"name":"Marcos Mesquita","role":"Conselheiro"}
-                     ]'></div>
-                </div>
+                <!-- Governança da GNLink: renderizada como as demais empresas, via
+                     renderGov (paleta padrão no donut + board igual), lendo de
+                     window.EMP['GNLink']. O board é desenhado pelo boot()/renderBoards
+                     no DOMContentLoaded — o mount recebe o markup antes disso. -->
+                <div id="gnlGovBody"></div>
           <style>
             .board-sep{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
             .board{position:relative;width:100%;max-width:470px;margin:6px 0 0}
@@ -2536,61 +2511,81 @@
               <div class="card-header">
                 <div class="card-title">Organograma</div>
               </div>
-              <div class="card-body">
-                <div class="card-note" style="margin-bottom: 8px;">Headcount total: 62 · Matriz 41 · Operação 21 · exercício 2026</div>
+              <div class="card-body" id="gnlOrgHc">
+                <!-- Nomes, cargos e headcount lidos de window.EMP['GNLink'].orgHeadcount
+                     (data/empresas.js). A GEOMETRIA do SVG (rects/paths/posições) fica
+                     no markup; só o conteúdo textual vem do dado (leaf-fill). -->
+                <div class="card-note" style="margin-bottom: 8px;" data-hc="note"></div>
                 <div class="orgchart">
                   <svg viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" role="img" aria-label="Organograma GNLink 2026">
                     <path d="M500,80 L500,205 M98,205 L902,205 M98,205 L98,228 M299,205 L299,228 M500,205 L500,228 M701,205 L701,228 M902,205 L902,228" stroke="#9AA7B5" stroke-width="1.5" fill="none"/>
                     <path d="M500,137 L382,137" stroke="#9AA7B5" stroke-width="1.4" fill="none"/>
                     <rect x="415" y="18" width="170" height="62" rx="8" fill="#3D4A5C"/>
                     <text x="500" y="42" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.82)">CEO</text>
-                    <text x="500" y="61" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">Marcelo Rodrigues</text>
+                    <text x="500" y="61" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" data-hc="ceo"></text>
                     <path d="M585,49 L604,49" stroke="#9AA7B5" stroke-width="1.4" fill="none"/>
                     <rect x="604" y="33" width="36" height="32" rx="6" fill="#2F6E6C"/>
-                    <text x="622" y="54" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">62</text>
+                    <text x="622" y="54" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" data-hc="total"></text>
                     <path d="M640,49 L664,49 M664,33 L664,65 M664,33 L686,33 M664,65 L686,65" stroke="#9AA7B5" stroke-width="1.3" fill="none"/>
                     <rect x="686" y="20" width="30" height="26" rx="5" fill="#4E8385"/>
-                    <text x="701" y="38" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">41</text>
+                    <text x="701" y="38" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" data-hc="matriz"></text>
                     <text x="724" y="38" font-size="12" fill="#46566A">Matriz</text>
                     <rect x="686" y="52" width="30" height="26" rx="5" fill="#4E8385"/>
-                    <text x="701" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">21</text>
+                    <text x="701" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" data-hc="operacao"></text>
                     <text x="724" y="70" font-size="12" fill="#46566A">Operação</text>
                     <rect x="172" y="112" width="210" height="50" rx="8" fill="#7FA0A6"/>
-                    <text x="277" y="132" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.92)">Analista Jr. de Comunicação</text>
-                    <text x="277" y="150" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Ana Jacome</text>
+                    <text x="277" y="132" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.92)" data-hc="p:ana:r0"></text>
+                    <text x="277" y="150" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-hc="p:ana:n"></text>
                     <rect x="8" y="228" width="180" height="84" rx="8" fill="#4E8385"/>
                     <rect x="152" y="236" width="28" height="20" rx="5" fill="#2F6E6C"/>
-                    <text x="166" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">10</text>
-                    <text x="98" y="258" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">Diretora RH/JUR/REG/COMP</text>
-                    <text x="98" y="286" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Laila Helayel</text>
+                    <text x="166" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" data-hc="p:laila:c"></text>
+                    <text x="98" y="258" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:laila:r0"></text>
+                    <text x="98" y="286" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-hc="p:laila:n"></text>
                     <rect x="209" y="228" width="180" height="84" rx="8" fill="#4E8385"/>
                     <rect x="353" y="236" width="28" height="20" rx="5" fill="#2F6E6C"/>
-                    <text x="367" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">13</text>
-                    <text x="299" y="250" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">Diretor Administrativo</text>
-                    <text x="299" y="265" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">Financeiro</text>
-                    <text x="299" y="292" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Cleber Hamada</text>
+                    <text x="367" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" data-hc="p:cleber:c"></text>
+                    <text x="299" y="250" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:cleber:r0"></text>
+                    <text x="299" y="265" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:cleber:r1"></text>
+                    <text x="299" y="292" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-hc="p:cleber:n"></text>
                     <rect x="410" y="228" width="180" height="84" rx="8" fill="#4E8385"/>
                     <rect x="554" y="236" width="28" height="20" rx="5" fill="#2F6E6C"/>
-                    <text x="568" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">30</text>
-                    <text x="500" y="250" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">Diretor Operações</text>
-                    <text x="500" y="265" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">e Negócios</text>
-                    <text x="500" y="292" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Silvino Pinto</text>
+                    <text x="568" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" data-hc="p:silvino:c"></text>
+                    <text x="500" y="250" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:silvino:r0"></text>
+                    <text x="500" y="265" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:silvino:r1"></text>
+                    <text x="500" y="292" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-hc="p:silvino:n"></text>
                     <rect x="611" y="228" width="180" height="84" rx="8" fill="#4E8385"/>
                     <rect x="755" y="236" width="28" height="20" rx="5" fill="#2F6E6C"/>
-                    <text x="769" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
-                    <text x="701" y="258" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">Gerente Segurança</text>
-                    <text x="701" y="286" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Edimar Alves</text>
+                    <text x="769" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" data-hc="p:edimar:c"></text>
+                    <text x="701" y="258" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:edimar:r0"></text>
+                    <text x="701" y="286" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-hc="p:edimar:n"></text>
                     <rect x="812" y="228" width="180" height="84" rx="8" fill="#4E8385"/>
                     <rect x="956" y="236" width="28" height="20" rx="5" fill="#2F6E6C"/>
-                    <text x="970" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
-                    <text x="902" y="250" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">Gerente Originação</text>
-                    <text x="902" y="265" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)">e Logística</text>
-                    <text x="902" y="292" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Fabiane Rocha</text>
+                    <text x="970" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" data-hc="p:augusto:c"></text>
+                    <text x="902" y="250" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:augusto:r0"></text>
+                    <text x="902" y="265" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.9)" data-hc="p:augusto:r1"></text>
+                    <text x="902" y="292" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-hc="p:augusto:n"></text>
                   </svg>
                 </div>
+                <script>
+                (function(){
+                  var host=document.getElementById('gnlOrgHc'); if(!host) return;
+                  var g=(window.EMP||{})['GNLink']; if(!g||!g.orgHeadcount) return;
+                  var o=g.orgHeadcount;
+                  var flat={ note:'Headcount total: '+o.total+' · Matriz '+o.matriz+' · Operação '+o.operacao+' · exercício '+o.exercicio,
+                             ceo:o.ceo, total:o.total, matriz:o.matriz, operacao:o.operacao };
+                  Object.keys(o.people||{}).forEach(function(k){
+                    var p=o.people[k]; flat['p:'+k+':n']=p.n; if(p.c!=null) flat['p:'+k+':c']=p.c;
+                    (p.r||[]).forEach(function(line,i){ flat['p:'+k+':r'+i]=line; });
+                  });
+                  host.querySelectorAll('[data-hc]').forEach(function(el){
+                    var v=flat[el.getAttribute('data-hc')]; if(v!=null) el.textContent=v;
+                  });
+                })();
+                </script>
               </div>
             </div>
           </div>
+
           </div>
           <div class="emp-panel" data-emp="projetos">
 
@@ -2812,197 +2807,69 @@
               <div class="comm-seg" role="tablist" aria-label="Base de dados operacional">
                 <button type="button" class="active" data-view="rci">RCI · Dez/25</button>
                 <button type="button" data-view="rca">RCA · Mai/26</button>
+                <button type="button" data-view="rcaJun">RCA · Jun/26</button>
               </div>
               <span class="src-cap" id="opSrcCap">Comitê de Investimentos Lorinvest · 15/dez/2025 (slide 5)</span>
             </div>
 
-            <div class="comm-view active" data-view="rci">
-            <div class="op-plants">
-              <div class="op-plant bb">
-                <div class="op-plant-top"><span class="nm">PR — Paraná</span></div>
-                <div class="op-plant-body">
-                  <div class="op-cap">39.580 <small>m³/dia</small></div>
-                  <div class="op-r"><span class="l">Início operacional</span><span class="val">Em operação</span></div>
-                  <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Jan/26</span></div>
-                  <div class="op-r"><span class="l">Máquinas</span><span class="val">2 novas + 1 usada</span></div>
-                </div>
-              </div>
-              <div class="op-plant ita">
-                <div class="op-plant-top"><span class="nm">BA — Bahia</span></div>
-                <div class="op-plant-body">
-                  <div class="op-cap">85.232 <small>m³/dia</small></div>
-                  <div class="op-r"><span class="l">Início operacional</span><span class="val">Em operação</span></div>
-                  <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Mai/26</span></div>
-                  <div class="op-r"><span class="l">Máquinas</span><span class="val">4 novas</span></div>
-                </div>
-              </div>
-              <div class="op-plant assu">
-                <div class="op-plant-top"><span class="nm">RN — Rio Grande do Norte</span></div>
-                <div class="op-plant-body">
-                  <div class="op-cap">72.688 <small>m³/dia</small></div>
-                  <div class="op-r"><span class="l">Início operacional</span><span class="val">Fev/26</span></div>
-                  <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Fev/26</span></div>
-                  <div class="op-r"><span class="l">Máquinas</span><span class="val">2 novas + 2 usadas</span></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card" style="margin-top:14px;margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Ramp-up da oferta — empilhado por planta</div>
-                <span class="tag">topo: % da capacidade · segmentos: mil m³/dia</span>
-              </div>
-              <div class="card-body">
-                <div class="rmp-plot">
-                  <div class="rmp-col"><span class="rmp-cap">42%</span><div class="rmp-stack" style="height:41.6%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">78%</span><div class="rmp-stack" style="height:78.4%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">78%</span><div class="rmp-stack" style="height:78.4%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">78%</span><div class="rmp-stack" style="height:78.4%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                </div>
-                <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
-                <div class="rmp-legend">
-                  <span><i style="background:#6B8299"></i>PR</span>
-                  <span><i style="background:#C55A17"></i>BA</span>
-                  <span><i style="background:#2E7D4F"></i>RN</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card" style="margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Oferta GNL mensal — 2026</div>
-                <span class="tag">m³/dia</span>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                  <table class="placeholder-table">
-                    <thead>
-                      <tr><th>Planta</th><th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr><td>PR</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td></tr>
-                      <tr><td>BA</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td><td>85.232</td></tr>
-                      <tr><td>RN</td><td>—</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td><td>72.688</td></tr>
-                      <tr style="font-weight:800"><td>Total</td><td>82.196</td><td>154.884</td><td>154.884</td><td>154.884</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td><td>197.500</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p class="card-note" style="margin-top:12px">
-                  <b>Máquinas por planta:</b> RN — 2 novas + 2 usadas (72.688); BA — 4 novas (85.232); PR — 2 novas + 1 usada (potencial 56.701).<br>
-                  <b>Notas:</b> partida de RN em fev/26 (prazo legal da ANP); capacidade plena de BA com a 2ª fase da Energia Coelba (mai/26); 3ª máquina usada de PR não considerada (negociação Tradener e disponibilidade de energia — pode rodar com gerador) e infra pronta para +1 máquina nova (pedido não colocado na Galileo); volume adicional de GNC Purga de 14.400 m³/dia por planta.<br>
-                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 5).
-                </p>
-              </div>
-            </div>
-            </div><!-- /comm-view rci -->
-
-            <div class="comm-view" data-view="rca">
-              <div class="op-plants">
-                <div class="op-plant bb">
-                  <div class="op-plant-top"><span class="nm">PR — Paraná</span></div>
-                  <div class="op-plant-body">
-                    <div class="op-cap">39.580 <small>m³/dia</small></div>
-                    <div class="op-r"><span class="l">Início operacional</span><span class="val">Em operação</span></div>
-                    <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Jan/26</span></div>
-                    <div class="op-r"><span class="l">Máquinas</span><span class="val">2 novas + 1 usada</span></div>
-                  </div>
-                </div>
-                <div class="op-plant ita">
-                  <div class="op-plant-top"><span class="nm">BA — Bahia</span></div>
-                  <div class="op-plant-body">
-                    <div class="op-cap">85.232 <small>m³/dia</small></div>
-                    <div class="op-r"><span class="l">Parcial (até set/26)</span><span class="val">42.616</span></div>
-                    <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Out/26</span></div>
-                    <div class="op-r"><span class="l">Máquinas</span><span class="val">4 novas</span></div>
-                  </div>
-                </div>
-                <div class="op-plant assu">
-                  <div class="op-plant-top"><span class="nm">RN — Rio Grande do Norte</span></div>
-                  <div class="op-plant-body">
-                    <div class="op-cap">72.688 <small>m³/dia</small></div>
-                    <div class="op-r"><span class="l">Parcial (fev–set/26)</span><span class="val">32.416</span></div>
-                    <div class="op-r"><span class="l">Capacidade plena</span><span class="val hl">Out/26</span></div>
-                    <div class="op-r"><span class="l">Máquinas</span><span class="val">2 novas + 2 usadas</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="card" style="margin-top:14px;margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Ramp-up da oferta — empilhado por planta</div>
-                  <span class="tag">topo: % da capacidade · segmentos: mil m³/dia · realizado até mai/26</span>
-                </div>
-                <div class="card-body">
-                  <div class="rmp-plot">
-                    <div class="rmp-col"><span class="rmp-cap">42%</span><div class="rmp-stack" style="height:41.6%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">58%</span><div class="rmp-stack" style="height:58%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:42616">43</i><i class="rmp-seg assu" style="flex-grow:32416">32</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">100%</span><div class="rmp-stack" style="height:100%"><i class="rmp-seg bb" style="flex-grow:39580">40</i><i class="rmp-seg ita" style="flex-grow:85232">85</i><i class="rmp-seg assu" style="flex-grow:72688">73</i></div></div>
-                  </div>
-                  <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
-                  <div class="rmp-legend">
-                    <span><i style="background:#6B8299"></i>PR</span>
-                    <span><i style="background:#C55A17"></i>BA</span>
-                    <span><i style="background:#2E7D4F"></i>RN</span>
-                    <span style="margin-left:auto">Topo: % da capacidade plena (197.500 m³/dia)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Oferta GNL mensal — 2026</div>
-                  <span class="tag">m³/dia</span>
-                </div>
-                <div class="card-body">
-                  <div class="table-scroll">
-                    <table class="placeholder-table">
-                      <thead>
-                        <tr><th>Planta</th><th class="mth-rz">Jan</th><th class="mth-rz">Fev</th><th class="mth-rz">Mar</th><th class="mth-rz">Abr</th><th class="mth-rz">Mai</th><th class="mth-fc">Jun</th><th class="mth-fc">Jul</th><th class="mth-fc">Ago</th><th class="mth-fc">Set</th><th class="mth-fc">Out</th><th class="mth-fc">Nov</th><th class="mth-fc">Dez</th></tr>
-                      </thead>
-                      <tbody>
-                        <tr><td>PR</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td><td>39.580</td></tr>
-                        <tr><td>BA</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>42.616</td><td>85.232</td><td>85.232</td><td>85.232</td></tr>
-                        <tr><td>RN</td><td>—</td><td>32.416</td><td>32.416</td><td>32.416</td><td>32.416</td><td>32.416</td><td>32.416</td><td>32.416</td><td>32.416</td><td>72.688</td><td>72.688</td><td>72.688</td></tr>
-                        <tr style="font-weight:800"><td>Total</td><td>82.196</td><td>114.612</td><td>114.612</td><td>114.612</td><td>114.612</td><td>114.612</td><td>114.612</td><td>114.612</td><td>114.612</td><td>197.500</td><td>197.500</td><td>197.500</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="rf-legend">
-                    <span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span>
-                    <span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span>
-                  </div>
-                  <p class="card-note" style="margin-top:10px">
-                    <b>Atualização RCA vs RCI:</b> a capacidade plena (197.500 m³/dia) escorregou de mai/26 para <b>out/26</b> — BA opera a 42.616 (metade) até set/26 e sobe a 85.232 em out/26; RN parte em fev/26 a 32.416 e atinge 72.688 em out/26. PR permanece pleno (39.580) desde jan/26.<br>
-                    Fonte: GNLink — RCA, mai/2026 (linha “Capacidade Planta” · slides 21 · Barra Bonita, 26 · Itabuna, 31 · Assú).
-                  </p>
-                </div>
-              </div>
-            </div><!-- /comm-view rca -->
+            <div id="gnlOpViews"></div>
 
             <script>
+            // Operacional (plantas + ramp-up + tabela mensal): gerado de
+            // window.EMP['GNLink'].operacional. O ramp-up e os totais da tabela são
+            // DERIVADOS da matriz mensal (supply) — sem números duplicados no markup.
+            // A tabela de molécula (abaixo) segue estática por ora.
             (function(){
               var panel=document.querySelector('.emp-panel[data-emp="operacional"]');
               if(!panel) return;
-              var caps={rci:'Comitê de Investimentos Lorinvest · 15/dez/2025 (slide 5)',rca:'GNLink · RCA — mai/2026 (slides 21, 26, 31)'};
+              var g=(window.EMP||{})['GNLink'], O=g&&g.operacional;
+              var mount=document.getElementById('gnlOpViews');
+              function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+              function fmt(n){ return n==null?'—':String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+              if(O&&mount){
+                var full=O.full, months=O.months, PM=O.plantsMeta;
+                function plantCard(p){
+                  var rows=p.rows.map(function(r){ return '<div class="op-r"><span class="l">'+esc(r[0])+'</span><span class="val'+(r[2]?' hl':'')+'">'+esc(r[1])+'</span></div>'; }).join('');
+                  return '<div class="op-plant '+p.cls+'"><div class="op-plant-top"><span class="nm">'+esc(p.nome)+'</span></div><div class="op-plant-body"><div class="op-cap">'+esc(p.cap)+' <small>m³/dia</small></div>'+rows+'</div></div>';
+                }
+                function ramp(v){
+                  var cols='';
+                  for(var i=0;i<months.length;i++){
+                    var total=0, segs='';
+                    PM.forEach(function(pm){ var val=v.supply[pm[0]][i]; if(val){ total+=val; segs+='<i class="rmp-seg '+pm[1]+'" style="flex-grow:'+val+'">'+Math.round(val/1000)+'</i>'; } });
+                    var pct=total/full*100, hs=pct.toFixed(1).replace(/\.0$/,'');
+                    cols+='<div class="rmp-col"><span class="rmp-cap">'+Math.round(pct)+'%</span><div class="rmp-stack" style="height:'+hs+'%">'+segs+'</div></div>';
+                  }
+                  var leg='<span><i style="background:#6B8299"></i>PR</span><span><i style="background:#C55A17"></i>BA</span><span><i style="background:#2E7D4F"></i>RN</span>'+(v.rampLegendExtra||'');
+                  var xs=months.map(function(m){return '<span>'+esc(m)+'</span>';}).join('');
+                  return '<div class="card" style="margin-top:14px;margin-bottom:14px"><div class="card-header"><div class="card-title">Ramp-up da oferta — empilhado por planta</div><span class="tag">'+esc(v.rampTag)+'</span></div><div class="card-body"><div class="rmp-plot">'+cols+'</div><div class="rmp-x">'+xs+'</div><div class="rmp-legend">'+leg+'</div></div></div>';
+                }
+                function table(v){
+                  var th=months.map(function(m,i){ var c=v.tableColored?(i<5?' class="mth-rz"':' class="mth-fc"'):''; return '<th'+c+'>'+esc(m)+'</th>'; }).join('');
+                  var body=PM.map(function(pm){ var vals=v.supply[pm[0]].map(function(x){return '<td>'+fmt(x)+'</td>';}).join(''); return '<tr><td>'+esc(pm[0])+'</td>'+vals+'</tr>'; }).join('');
+                  var totals=''; for(var i=0;i<months.length;i++){ var t=0; PM.forEach(function(pm){ t+=v.supply[pm[0]][i]||0; }); totals+='<td>'+fmt(t)+'</td>'; }
+                  var totRow='<tr style="font-weight:800"><td>Total</td>'+totals+'</tr>';
+                  return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Oferta GNL mensal — 2026</div><span class="tag">m³/dia</span></div><div class="card-body"><div class="table-scroll"><table class="placeholder-table"><thead><tr><th>Planta</th>'+th+'</tr></thead><tbody>'+body+totRow+'</tbody></table></div>'+(v.rfLegend||'')+'<p class="card-note" style="margin-top:'+(v.tableColored?'10':'12')+'px">'+v.note+'</p></div></div>';
+                }
+                // Tabela de GNC purga — só nas bases que trazem supplyGnc.
+                function tableGnc(v){
+                  if(!v.supplyGnc) return '';
+                  var th=months.map(function(m,i){ var c=v.tableColored?(i<6?' class="mth-rz"':' class="mth-fc"'):''; return '<th'+c+'>'+esc(m)+'</th>'; }).join('');
+                  var body=PM.map(function(pm){ var vals=v.supplyGnc[pm[0]].map(function(x){return '<td>'+fmt(x)+'</td>';}).join(''); return '<tr><td>'+esc(pm[0])+'</td>'+vals+'</tr>'; }).join('');
+                  var totals=''; for(var i=0;i<months.length;i++){ var t=0; PM.forEach(function(pm){ t+=v.supplyGnc[pm[0]][i]||0; }); totals+='<td>'+fmt(t)+'</td>'; }
+                  var totRow='<tr style="font-weight:800"><td>Total</td>'+totals+'</tr>';
+                  return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Oferta GNC purga mensal — 2026</div><span class="tag">m³/dia</span></div><div class="card-body"><div class="table-scroll"><table class="placeholder-table"><thead><tr><th>Planta</th>'+th+'</tr></thead><tbody>'+body+totRow+'</tbody></table></div><p class="card-note" style="margin-top:10px">'+(v.noteGnc||'')+'</p></div></div>';
+                }
+                function view(key,i){
+                  var v=O.views[key];
+                  return '<div class="comm-view'+(i===0?' active':'')+'" data-view="'+key+'"><div class="op-plants">'+v.plants.map(plantCard).join('')+'</div>'+ramp(v)+table(v)+tableGnc(v)+'</div>';
+                }
+                mount.innerHTML=Object.keys(O.views).map(view).join('');
+              }
+              // Toggle RCI/RCA + legenda de fonte (caps lidas de EMP, sem duplicar).
+              var caps={}; if(O){ Object.keys(O.views).forEach(function(k){ caps[k]=O.views[k].srcCap; }); }
               var btns=panel.querySelectorAll('.comm-seg button');
-              var cap=panel.querySelector('#opSrcCap');
+              var cap=panel.querySelector('#opSrcCap'); if(cap&&caps.rci) cap.textContent=caps.rci;
               btns.forEach(function(b){b.addEventListener('click',function(){
                 var v=b.getAttribute('data-view');
                 btns.forEach(function(x){x.classList.toggle('active',x===b);});
@@ -3050,42 +2917,40 @@
               @media(max-width:720px){.mol-val{width:60px}.mol-brk{margin-left:0}}
             </style>
 
-            <div class="comm-view active" data-view="rci">
-            <div class="card" style="margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Custos atuais de compra de molécula</div>
-                <span class="tag">sem impostos · dez/25</span>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                  <table class="mol-tbl">
-                    <thead>
-                      <tr>
-                        <th>Supridor</th><th>Custo da molécula · R$/m³</th><th class="n">US$/MMBtu</th><th class="n">% Brent</th><th>Cenário</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="mol-s-tra mol-grp"><td class="mol-sup"><span class="mol-nm">Tradener</span><span class="mol-loc">Barra Bonita</span></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 2,36</span><span class="mol-track"><span class="mol-fill" style="width:100%"></span></span></div></td><td class="n mm">11,62</td><td class="n">16,85%</td><td><span class="mol-cen">Preços anteriores atualizados</span></td></tr>
-                      <tr class="mol-s-tra"><td class="mol-sup"></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 2,00</span><span class="mol-track"><span class="mol-fill" style="width:85%"></span></span></div></td><td class="n mm">9,83</td><td class="n">14,26%</td><td></td></tr>
-                      <tr class="mol-s-tra"><td class="mol-sup"></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 1,70</span><span class="mol-track"><span class="mol-fill" style="width:72%"></span></span></div></td><td class="n mm">8,37</td><td class="n">12,13%</td><td><span class="mol-cen">Oferta Tradener</span></td></tr>
-                      <tr class="mol-s-bah mol-grp"><td class="mol-sup"><span class="mol-nm">Bahiagás</span><span class="mol-loc">Itabuna</span></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 2,06</span><span class="mol-track"><span class="mol-fill" style="width:87%"></span></span></div></td><td class="n mm">10,12</td><td class="n">14,67%</td><td><span class="mol-cen">GNC Industrial</span></td></tr>
-                      <tr class="mol-s-bah"><td class="mol-sup"></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 1,91</span><span class="mol-track"><span class="mol-fill" style="width:81%"></span></span></div></td><td class="n mm">9,42</td><td class="n">13,65%</td><td><span class="mol-cen">GNC Veicular</span></td></tr>
-                      <tr class="mol-s-btg mol-grp"><td class="mol-sup"><span class="mol-nm">BTG</span><span class="mol-loc">Itabuna</span></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 2,03</span><span class="mol-track"><span class="mol-fill" style="width:86%"></span></span></div><div class="mol-brk">molécula R$ 1,45 · gasoduto R$ 0,58</div></td><td class="n mm">10,00</td><td class="n">10,35%</td><td><span class="mol-cen">Firme</span></td></tr>
-                      <tr class="mol-s-btg"><td class="mol-sup"></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 1,98</span><span class="mol-track"><span class="mol-fill" style="width:84%"></span></span></div><div class="mol-brk">molécula R$ 1,40 · gasoduto R$ 0,58</div></td><td class="n mm">9,76</td><td class="n">10,00%</td><td><span class="mol-cen">PUT</span></td></tr>
-                      <tr class="mol-s-pet mol-grp"><td class="mol-sup"><span class="mol-nm">PetroRecôncavo</span><span class="mol-loc">Itabuna</span></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 2,01</span><span class="mol-track"><span class="mol-fill" style="width:85%"></span></span></div><div class="mol-brk">molécula R$ 1,44 · gasoduto R$ 0,57</div></td><td class="n mm">9,90</td><td class="n">10,30%</td><td><span class="mol-cen">Para Bahiagás</span></td></tr>
-                      <tr class="mol-s-pet"><td class="mol-sup"><span class="mol-loc solo">Assú</span></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 1,61</span><span class="mol-track"><span class="mol-fill" style="width:68%"></span></span></div></td><td class="n mm">7,93</td><td class="n">11,50%</td><td><span class="mol-cen">Base</span></td></tr>
-                      <tr class="mol-s-pet"><td class="mol-sup"></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 1,44</span><span class="mol-track"><span class="mol-fill" style="width:61%"></span></span></div></td><td class="n mm">7,10</td><td class="n">10,30%</td><td><span class="mol-cen">Para Cegás</span></td></tr>
-                      <tr class="mol-s-pet"><td class="mol-sup"></td><td class="mol-totc"><div class="mol-totrow"><span class="mol-val">R$ 0,49</span><span class="mol-track"><span class="mol-fill" style="width:21%"></span></span></div></td><td class="n mm">2,41</td><td class="n">3,50%</td><td><span class="mol-cen">Geração de EE</span></td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p class="card-note" style="margin-top:12px">
-                  Premissas constantes para todas as linhas (omitidas da tabela): câmbio <b>R$ 5,45/US$</b> · Brent <b>US$ 68,97/bbl</b> · data <b>dez/25</b>. Preços <b>sem impostos</b>.<br>
-                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 18).
-                </p>
-              </div>
-            </div>
-            </div><!-- /comm-view rci: Custos de molécula só na visão RCI -->
+            <!-- Tabela de custo da molécula: gerada de EMP['GNLink'].operacional.molecula. -->
+            <div id="gnlMolView"></div>
+            <script>
+            (function(){
+              var g=(window.EMP||{})['GNLink'], M=g&&g.operacional&&g.operacional.molecula;
+              var mount=document.getElementById('gnlMolView'); if(!M||!mount) return;
+              function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+              // molCard(): mesma tabela para todas as bases — só mudam dados e título.
+              function molCard(D,titulo,view,ativo){
+                var rows='';
+                D.groups.forEach(function(gr){
+                  gr.rows.forEach(function(r,j){
+                    var sup = j===0
+                      ? '<td class="mol-sup"><span class="mol-nm">'+esc(gr.nm)+'</span><span class="mol-loc">'+esc(gr.loc)+'</span></td>'
+                      : (r.loc2 ? '<td class="mol-sup"><span class="mol-loc solo">'+esc(r.loc2)+'</span></td>' : '<td class="mol-sup"></td>');
+                    var brk = r.brk ? '<div class="mol-brk">'+esc(r.brk)+'</div>' : '';
+                    var cen = r.cen ? '<span class="mol-cen">'+esc(r.cen)+'</span>' : '';
+                    rows += '<tr class="mol-s-'+gr.cls+(j===0?' mol-grp':'')+'">'+sup
+                      + '<td class="mol-totc"><div class="mol-totrow"><span class="mol-val">'+esc(r.v)+'</span><span class="mol-track"><span class="mol-fill" style="width:'+r.w+'%"></span></span></div>'+brk+'</td>'
+                      + '<td class="n mm">'+esc(r.mm)+'</td><td class="n">'+esc(r.br)+'</td><td>'+cen+'</td></tr>';
+                  });
+                });
+                return '<div class="comm-view'+(ativo?' active':'')+'" data-view="'+view+'"><div class="card" style="margin-bottom:14px">'
+                  + '<div class="card-header"><div class="card-title">'+titulo+'</div><span class="tag">'+esc(D.tag)+'</span></div>'
+                  + '<div class="card-body"><div class="table-scroll"><table class="mol-tbl">'
+                  + '<thead><tr><th>Supridor</th><th>Custo da molécula · R$/m³</th><th class="n">US$/MMBtu</th><th class="n">% Brent</th><th>Cenário</th></tr></thead>'
+                  + '<tbody>'+rows+'</tbody></table></div>'
+                  + '<p class="card-note" style="margin-top:12px">'+D.note+'</p></div></div></div>';
+              }
+              var J=g&&g.operacional&&g.operacional.moleculaJun;
+              mount.innerHTML = molCard(M,'Custos atuais de compra de molécula','rci',true)
+                + (J ? molCard(J,'Custos atuais de compra de molécula','rcaJun',false) : '');
+            })();
+            </script>
 
           </div>
           <div class="emp-panel" data-emp="comercial">
@@ -3168,432 +3033,152 @@
               <div class="comm-seg" role="tablist" aria-label="Base de dados comercial">
                 <button type="button" class="active" data-view="rci">RCI · Dez/25</button>
                 <button type="button" data-view="rca">RCA · Mai/26</button>
+                <button type="button" data-view="rcaJun">RCA · Jun/26</button>
               </div>
               <span class="src-cap" id="commSrcCap">Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)</span>
             </div>
 
             <div class="comm-view active" data-view="rci">
-            <div class="card" style="margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Funil comercial — consolidado</div>
-                <span class="tag">valores em m³/dia</span>
-              </div>
-              <div class="card-body">
-                <p class="fun-note">Da demanda total mapeada até os contratos assinados. <b>Mais de R$ 1 bilhão</b> em contratos já assinados.</p>
-                <div class="fun">
-                  <div class="fun-row"><div class="fun-name">Mercado mapeado</div><div class="fun-track"><div class="fun-bar fun-s1" style="width:100%"><span class="fun-val">1.673.638</span></div></div></div>
-                  <div class="fun-row"><div class="fun-name">Em prospecção</div><div class="fun-track"><div class="fun-bar fun-s2" style="width:65.7%"><span class="fun-val">1.099.537</span></div></div></div>
-                  <div class="fun-row"><div class="fun-name">Em negociação</div><div class="fun-track"><div class="fun-bar fun-s3" style="width:16.4%"><span class="fun-val">275.000</span></div></div></div>
-                  <div class="fun-row"><div class="fun-name">Negociações contratuais</div><div class="fun-track"><div class="fun-bar fun-s4" style="width:5.8%"><span class="fun-val">96.500</span></div></div></div>
-                  <div class="fun-row"><div class="fun-name">Contratos assinados</div><div class="fun-track"><div class="fun-bar fun-s5" style="width:7.9%"><span class="fun-val">56.865 – 132.175</span></div></div></div>
-                </div>
-              </div>
-            </div>
+            <div id="gnlComFunRci"></div>
 
-            <!-- Abertura por cliente / planta -->
-            <div class="card" style="margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Contratos em negociação</div>
-                <span class="tag">m³/dia</span>
-              </div>
-              <div class="card-body">
-                <div class="bd-grid">
-                  <div class="bd-col neg">
-                    <div class="bd-col-head"><span class="t">Em negociação</span><span class="n">275.000<small>m³/dia</small></span></div>
-                    <div class="bd-col-body">
-                      <details class="bd-plantg">
-                        <summary class="bd-plant2"><span class="pl">PR</span><span class="sub">105.000</span></summary>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Mosaic<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">85.000</span></div><div class="bd-cli-bar"><i style="width:66.9%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">SCGás / Parati<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:15.7%"></i></div></div>
-                      </details>
-                      <details class="bd-plantg">
-                        <summary class="bd-plant2"><span class="pl">BA</span><span class="sub">159.000</span></summary>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Ibar<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">13.000</span></div><div class="bd-cli-bar"><i style="width:10.2%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PBIO<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:7.9%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Vanadium<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">9.000</span></div><div class="bd-cli-bar"><i style="width:7.1%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Bahiagás (BRU)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">127.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
-                      </details>
-                      <details class="bd-plantg">
-                        <summary class="bd-plant2"><span class="pl">RN</span><span class="sub">11.000</span></summary>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Lactalis<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">6.000</span></div><div class="bd-cli-bar"><i style="width:4.7%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Master Boi<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">5.000</span></div><div class="bd-cli-bar"><i style="width:3.9%"></i></div></div>
-                      </details>
-                    </div>
-                  </div>
-                  <div class="bd-col ctr">
-                    <div class="bd-col-head"><span class="t">Negociações contratuais</span><span class="n">96.500<small>m³/dia</small></span></div>
-                    <div class="bd-col-body">
-                      <details class="bd-plantg">
-                        <summary class="bd-plant2"><span class="pl">PR</span><span class="sub">46.500</span></summary>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Compagás (Lapa)<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Alcast<span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:66.7%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Dallon<small>GNCp</small><span class="bd-reg sul">SUL</span></span><span class="bd-cli-val">6.500</span></div><div class="bd-cli-bar"><i style="width:21.7%"></i></div></div>
-                      </details>
-                      <details class="bd-plantg">
-                        <summary class="bd-plant2"><span class="pl">BA</span><span class="sub">10.000</span></summary>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Nexa<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
-                      </details>
-                      <details class="bd-plantg">
-                        <summary class="bd-plant2"><span class="pl">RN</span><span class="sub">40.000</span></summary>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Copergás (Trindade)<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">30.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
-                        <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PetroReconcavo<span class="bd-reg ne">NE</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:33.3%"></i></div></div>
-                      </details>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="gnlComNegRci"></div>
 
-            <!-- Contratos assinados -->
-            <div class="card" style="margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Contratos assinados</div>
-                <span class="tag">preço net · reajustado desde a data-base</span>
-              </div>
-              <div class="card-body">
-                <div class="kpi-row4">
-                  <div class="kpi-tile k-slate"><div class="k">Contratos assinados</div><div class="v">6</div><div class="s">4 GNL · 2 GNCp</div></div>
-                  <div class="kpi-tile k-teal"><div class="k">Prazo médio</div><div class="v">4,4 <small>anos</small></div><div class="s">média simples dos 6 contratos</div></div>
-                  <div class="kpi-tile k-sage"><div class="k">Preço médio</div><div class="v">R$ 3,58<small>/m³</small></div><div class="s">ponderado pelo volume total</div></div>
-                  <div class="kpi-tile k-stone"><div class="k">Volume total contratado</div><div class="v">132.175</div><div class="s">m³/dia · ramp-up 56.865 →</div></div>
-                </div>
-                <div class="table-scroll">
-                  <table class="placeholder-table">
-                    <thead>
-                      <tr>
-                        <th>Cliente</th>
-                        <th>Assinatura</th>
-                        <th>Início forn.</th>
-                        <th>Prazo</th>
-                        <th>Término</th>
-                        <th>Produto</th>
-                        <th>Volume (m³/dia)</th>
-                        <th>Preço net (R$/m³)</th>
-                        <th>Planta</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td>CEGÁS</td><td>28/10/2025</td><td>03/11/2025</td><td>5 anos</td><td>28/10/2030</td><td>GNL</td><td>18.740 – 50.000</td><td>3,3041</td><td>RN</td></tr>
-                      <tr><td>BAHIAGÁS</td><td>04/11/2025</td><td>—</td><td>10 anos</td><td>31/12/2035</td><td>GNL</td><td>3.125 – 25.175</td><td>3,6359</td><td>BA</td></tr>
-                      <tr><td>PETROBAHIA</td><td>05/10/2023</td><td>06/06/2025</td><td>10 anos</td><td>06/06/2030</td><td>GNL</td><td>18.000 – 40.000</td><td>4,0780</td><td>BA</td></tr>
-                      <tr><td>PETYAN</td><td>04/07/2025</td><td>06/11/2025</td><td>10 meses</td><td>04/05/2026</td><td>GNL</td><td>12.000</td><td>3,3099</td><td>BA</td></tr>
-                      <tr><td>REITERLOG</td><td>12/02/2025</td><td>19/02/2025</td><td>90 dias</td><td>12/05/2025</td><td>GNCp</td><td>3.000</td><td>2,2000</td><td>PR</td></tr>
-                      <tr><td>RODOPRINCIPE</td><td>06/08/2025</td><td>23/07/2025</td><td>120 dias</td><td>04/12/2025</td><td>GNCp</td><td>2.000</td><td>3,2017</td><td>PR</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+            <div id="gnlComAssRci"></div>
 
-                <div class="kpi-grid" style="margin-top:14px">
-                  <div class="kpi-tile k-teal">
-                    <div class="k">RN · cap. GNL</div>
-                    <div class="v">72.688</div>
-                    <div class="s">Ocupação GNL <b>69%</b></div>
-                    <div class="occ-bar"><i style="width:69%"></i></div>
-                  </div>
-                  <div class="kpi-tile k-sage">
-                    <div class="k">BA · cap. GNL</div>
-                    <div class="v">85.232</div>
-                    <div class="s">Ocupação GNL <b>91%</b></div>
-                    <div class="occ-bar"><i style="width:91%"></i></div>
-                  </div>
-                  <div class="kpi-tile k-stone">
-                    <div class="k">PR · cap. GNL</div>
-                    <div class="v">39.580</div>
-                    <div class="s">Ocupação GNL <b>0%</b></div>
-                    <div class="occ-bar"><i style="width:0%"></i></div>
-                  </div>
-                </div>
-
-                <p class="fun-foot" style="margin-top:14px">
-                  <b>(1)</b> Mais de R$ 1 bilhão em contratos assinados. &nbsp;
-                  <b>(2)</b> Preço atual considera reajustes aplicados desde a data-base do contrato. &nbsp;
-                  <b>(3)</b> 264 clientes foram passados para a COPA prospectar. &nbsp;
-                  <b>(4)</b> 46 clientes foram indicados pela COPA para a GNLink prospectar, sendo metade do volume em SP. &nbsp;
-                  <b>(5)</b> 70 clientes acima de 100 ton/mês na lista da GNLink, sendo apenas 16 na lista da COPA enviada à GNLink.<br>
-                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 4).
-                </p>
-              </div>
-            </div>
-
-            <!-- ===== Demanda GNL por planta (CI GNLink Dez/25 — slide 5) ===== -->
-            <div class="card" style="margin-bottom:14px">
-              <div class="card-header">
-                <div class="card-title">Demanda GNL por planta — ramp-up 2026</div>
-                <span class="tag">mil m³/dia · topo = total</span>
-              </div>
-              <div class="card-body">
-                <div class="dm-occ"><span><b>42%</b></span><span><b>39%</b></span><span><b>59%</b></span><span><b>62%</b></span><span><b>58%</b></span><span><b>66%</b></span><span><b>66%</b></span><span><b>85%</b></span><span><b>88%</b></span><span><b>89%</b></span><span><b>89%</b></span><span><b>91%</b></span></div>
-                <div class="rmp-plot">
-                  <div class="rmp-col"><span class="rmp-cap">34</span><div class="rmp-stack" style="height:17.4%"><i class="rmp-seg ita" style="flex-grow:14625">15</i><i class="rmp-seg assu" style="flex-grow:19740">20</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">61</span><div class="rmp-stack" style="height:31.0%"><i class="rmp-seg bb" style="flex-grow:34300">34</i><i class="rmp-seg ita" style="flex-grow:14625">15</i><i class="rmp-seg assu" style="flex-grow:12247">12</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">92</span><div class="rmp-stack" style="height:46.4%"><i class="rmp-seg bb" style="flex-grow:32000">32</i><i class="rmp-seg ita" style="flex-grow:33625">34</i><i class="rmp-seg assu" style="flex-grow:26000">26</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">97</span><div class="rmp-stack" style="height:48.9%"><i class="rmp-seg bb" style="flex-grow:32000">32</i><i class="rmp-seg ita" style="flex-grow:33625">34</i><i class="rmp-seg assu" style="flex-grow:31000">31</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">115</span><div class="rmp-stack" style="height:58.0%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:33625">34</i><i class="rmp-seg assu" style="flex-grow:38000">38</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">130</span><div class="rmp-stack" style="height:65.6%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:46625">47</i><i class="rmp-seg assu" style="flex-grow:40000">40</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">131</span><div class="rmp-stack" style="height:66.1%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:46625">47</i><i class="rmp-seg assu" style="flex-grow:41000">41</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">168</span><div class="rmp-stack" style="height:84.9%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:56625">57</i><i class="rmp-seg assu" style="flex-grow:68000">68</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">174</span><div class="rmp-stack" style="height:87.9%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:56625">57</i><i class="rmp-seg assu" style="flex-grow:74000">74</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:59625">60</i><i class="rmp-seg assu" style="flex-grow:74000">74</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">177</span><div class="rmp-stack" style="height:89.4%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:59625">60</i><i class="rmp-seg assu" style="flex-grow:74000">74</i></div></div>
-                  <div class="rmp-col"><span class="rmp-cap">180</span><div class="rmp-stack" style="height:91.0%"><i class="rmp-seg bb" style="flex-grow:43000">43</i><i class="rmp-seg ita" style="flex-grow:62625">63</i><i class="rmp-seg assu" style="flex-grow:74000">74</i></div></div>
-                </div>
-                <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
-                <div class="rmp-legend">
-                  <span><i style="background:#6B8299"></i>PR</span>
-                  <span><i style="background:#C55A17"></i>BA</span>
-                  <span><i style="background:#2E7D4F"></i>RN</span>
-                  <span><i style="background:#13202E"></i>% ocupação (linha superior)</span>
-                  <span style="margin-left:auto">Barras: m³/dia · escala 197.500 (capacidade plena)</span>
-                </div>
-
-                <div class="table-scroll" style="margin-top:14px">
-                  <table class="placeholder-table">
-                    <thead>
-                      <tr><th>Planta</th><th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr><td>PR</td><td>—</td><td>34.300</td><td>32.000</td><td>32.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td><td>43.000</td></tr>
-                      <tr><td>BA</td><td>14.625</td><td>14.625</td><td>33.625</td><td>33.625</td><td>33.625</td><td>46.625</td><td>46.625</td><td>56.625</td><td>56.625</td><td>59.625</td><td>59.625</td><td>62.625</td></tr>
-                      <tr><td>RN</td><td>19.740</td><td>12.247</td><td>26.000</td><td>31.000</td><td>38.000</td><td>40.000</td><td>41.000</td><td>68.000</td><td>74.000</td><td>74.000</td><td>74.000</td><td>74.000</td></tr>
-                      <tr style="font-weight:800"><td>Total</td><td>34.365</td><td>61.172</td><td>91.625</td><td>96.625</td><td>114.625</td><td>129.625</td><td>130.625</td><td>167.625</td><td>173.625</td><td>176.625</td><td>176.625</td><td>179.625</td></tr>
-                      <tr><td>% Ocupação</td><td>42%</td><td>39%</td><td>59%</td><td>62%</td><td>58%</td><td>66%</td><td>66%</td><td>85%</td><td>88%</td><td>89%</td><td>89%</td><td>91%</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p class="card-note" style="margin-top:12px">
-                  % Ocupação = demanda ÷ oferta do mês. Atinge 91% da capacidade plena das 3 plantas em dez/26.<br>
-                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 5).
-                </p>
-              </div>
-            </div>
+            <div id="gnlComDemRci"></div>
             </div><!-- /comm-view rci -->
 
             <div class="comm-view" data-view="rca">
 
               <!-- Funil consolidado — RCA Mai/26 -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Funil comercial — consolidado</div>
-                  <span class="tag">valores em m³/dia · ex. Norte</span>
-                </div>
-                <div class="card-body">
-                  <p class="fun-note">Da demanda total mapeada (exceto Norte) até os contratos assinados. <b>Mais de R$ 1,1 bilhão</b> em contratos assinados.</p>
-                  <div class="fun">
-                    <div class="fun-row"><div class="fun-name">Mercado mapeado</div><div class="fun-track"><div class="fun-bar fun-s1" style="width:100%"><span class="fun-val">1.847.776</span></div></div></div>
-                    <div class="fun-row"><div class="fun-name">Em prospecção</div><div class="fun-track"><div class="fun-bar fun-s2" style="width:60.5%"><span class="fun-val">1.118.561</span></div></div></div>
-                    <div class="fun-row"><div class="fun-name">Em negociação — BID</div><div class="fun-track"><div class="fun-bar fun-s3" style="width:32.3%"><span class="fun-val">596.050</span></div></div></div>
-                    <div class="fun-row"><div class="fun-name">Em contrato</div><div class="fun-track"><div class="fun-bar fun-s4" style="width:12%"><span class="fun-val">45.100</span></div></div></div>
-                    <div class="fun-row"><div class="fun-name">Contratos assinados</div><div class="fun-track"><div class="fun-bar fun-s5" style="width:15%"><span class="fun-val">90.065 – 222.675</span></div></div></div>
-                  </div>
-                </div>
-              </div>
+              <div id="gnlComFunRca"></div>
 
-              <!-- Abertura por cliente / planta — RCA Mai/26 -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Contratos em negociação</div>
-                  <span class="tag">m³/dia</span>
-                </div>
-                <div class="card-body">
-                  <div class="bd-grid">
-                    <div class="bd-col neg">
-                      <div class="bd-col-head"><span class="t">Em negociação — BID</span><span class="n">596.050<small>m³/dia</small></span></div>
-                      <div class="bd-col-body">
-                        <details class="bd-plantg">
-                          <summary class="bd-plant2"><span class="pl">B. Bonita</span><span class="sub">305.000</span></summary>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Compagás – Firme</span><span class="bd-cli-val">16.000</span></div><div class="bd-cli-bar"><i style="width:6.2%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Compagás – Flex</span><span class="bd-cli-val">25.000</span></div><div class="bd-cli-bar"><i style="width:9.6%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">MOR</span><span class="bd-cli-val">4.000</span></div><div class="bd-cli-bar"><i style="width:1.5%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Sulgás</span><span class="bd-cli-val">260.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
-                        </details>
-                        <details class="bd-plantg">
-                          <summary class="bd-plant2"><span class="pl">Itabuna</span><span class="sub">170.050</span></summary>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Bahiagás (BRU)</span><span class="bd-cli-val">126.000</span></div><div class="bd-cli-bar"><i style="width:48.5%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">CP Bahiagás (JZ)</span><span class="bd-cli-val">9.400</span></div><div class="bd-cli-bar"><i style="width:3.6%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Vanadio</span><span class="bd-cli-val">12.000</span></div><div class="bd-cli-bar"><i style="width:4.6%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Goiasgás</span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:7.7%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Eurofarma</span><span class="bd-cli-val">2.650</span></div><div class="bd-cli-bar"><i style="width:1%"></i></div></div>
-                        </details>
-                        <details class="bd-plantg">
-                          <summary class="bd-plant2"><span class="pl">Assú</span><span class="sub">121.000</span></summary>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Piaui Niquel</span><span class="bd-cli-val">100.000</span></div><div class="bd-cli-bar"><i style="width:38.5%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Gaspisa</span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:3.8%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Lactalis</span><span class="bd-cli-val">6.000</span></div><div class="bd-cli-bar"><i style="width:2.3%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Master Boi</span><span class="bd-cli-val">5.000</span></div><div class="bd-cli-bar"><i style="width:1.9%"></i></div></div>
-                        </details>
-                      </div>
-                    </div>
-                    <div class="bd-col ctr">
-                      <div class="bd-col-head"><span class="t">Em contrato</span><span class="n">45.100<small>m³/dia</small></span></div>
-                      <div class="bd-col-body">
-                        <details class="bd-plantg">
-                          <summary class="bd-plant2"><span class="pl">B. Bonita</span><span class="sub">35.100</span></summary>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Alcast<span class="bd-prob baixa">Baixa</span></span><span class="bd-cli-val">20.000</span></div><div class="bd-cli-bar"><i style="width:100%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Grupo Stara<span class="bd-prob media">Média</span></span><span class="bd-cli-val">12.000</span></div><div class="bd-cli-bar"><i style="width:60%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">Dalba<span class="bd-prob alta">Alta</span></span><span class="bd-cli-val">1.100</span></div><div class="bd-cli-bar"><i style="width:5.5%"></i></div></div>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">SAMP<span class="bd-prob media">Média</span></span><span class="bd-cli-val">2.000</span></div><div class="bd-cli-bar"><i style="width:10%"></i></div></div>
-                        </details>
-                        <details class="bd-plantg">
-                          <summary class="bd-plant2"><span class="pl">Assú</span><span class="sub">10.000</span></summary>
-                          <div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">PetroReconcavo<span class="bd-prob alta">Alta</span></span><span class="bd-cli-val">10.000</span></div><div class="bd-cli-bar"><i style="width:50%"></i></div></div>
-                        </details>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="fun-foot" style="margin-top:12px"><b>Em negociação — BID</b> e <b>Em contrato</b> somam a base ativa do funil; probabilidade indica a chance de conversão do volume em contrato.</p>
-                </div>
-              </div>
+              <div id="gnlComNegRca"></div>
 
-              <!-- Contratos assinados — RCA Mai/26 -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Contratos assinados</div>
-                  <span class="tag">ramp-up de volume · preço net atual</span>
-                </div>
-                <div class="card-body">
-                  <div class="kpi-row5">
-                    <div class="kpi-tile k-slate"><div class="k">Contratos assinados</div><div class="v">15</div><div class="s">6 definitivos · 9 em teste</div></div>
-                    <div class="kpi-tile k-teal"><div class="k">Prazo médio</div><div class="v">2,7 <small>anos</small></div><div class="s">média simples dos 15 contratos</div></div>
-                    <div class="kpi-tile k-sage"><div class="k">Preço médio</div><div class="v">R$ 3,37<small>/m³</small></div><div class="s">ponderado pelo volume total</div></div>
-                    <div class="kpi-tile k-stone"><div class="k">ToP médio</div><div class="v">54,6%</div><div class="s">ponderado pelo volume total</div></div>
-                    <div class="kpi-tile k-sage"><div class="k">Valor total dos contratos</div><div class="v">R$ 1,10 <small>bi</small></div><div class="s">R$ 1.101.224.386</div></div>
-                  </div>
-                  <div class="table-scroll">
-                    <table class="placeholder-table">
-                      <thead>
-                        <tr>
-                          <th>Contrato</th>
-                          <th>Cliente</th>
-                          <th>Assinatura</th>
-                          <th>Início forn.</th>
-                          <th>Prazo</th>
-                          <th>Produto</th>
-                          <th>Volume — ini → atual → total (m³/dia)</th>
-                          <th>Preço net (R$/m³)</th>
-                          <th>%TOP</th>
-                          <th>Apuração</th>
-                          <th>Início TOP</th>
-                          <th>Valor do contrato</th>
-                          <th>Planta</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>CEGÁS</td><td>28/10/2025</td><td>03/11/2025</td><td>5 anos</td><td>GNL</td><td>18.740 → 22.000 → 50.000</td><td>3,38</td><td>70%</td><td>Trimestral</td><td>fev/26</td><td>R$ 226.003.744</td><td>Assú</td></tr>
-                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>COPERGÁS</td><td>28/01/2026</td><td>09/03/2026</td><td>3 anos</td><td>GNL</td><td>10.000 → 10.000 → 30.000</td><td>3,34</td><td>70%</td><td>Trimestral</td><td>Regás fixa</td><td>R$ 24.738.397</td><td>Assú</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>POSTO LIDER</td><td>04/03/2026</td><td>05/03/2026</td><td>330 dias</td><td>GNCp</td><td>1.000 → 1.000 → 6.000</td><td>1,90</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Assú</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>PARELHAS GÁS</td><td>16/04/2026</td><td>16/04/2026</td><td>330 dias</td><td>GNCp</td><td>1.500 → 3.000 → 3.000</td><td>1,90</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Assú</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>MERI POBO</td><td>28/01/2026</td><td>19/05/2026</td><td>6 meses</td><td>GNCp</td><td>2.000 → 2.000 → 6.000</td><td>3,17</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Assú</td></tr>
-                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>COMPAGÁS</td><td>29/12/2025</td><td>12/03/2026</td><td>1 ano</td><td>GNL</td><td>7.000 → 20.000 → 20.000</td><td>3,85</td><td>70%</td><td>Anual</td><td>mar/26</td><td>R$ 71.832.000</td><td>Barra Bonita</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>SK METAIS</td><td>23/06/2026</td><td>15/07/2026</td><td>180 dias</td><td>GNL</td><td>3.000 → 3.000 → 4.000</td><td>3,80</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>FEVEREIRO LD</td><td>28/01/2026</td><td>29/01/2026</td><td>330 dias</td><td>GNCp</td><td>3.000 → 4.000 → 4.000</td><td>3,20</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>DALLON</td><td>21/01/2026</td><td>Pendente reunião</td><td>330 dias</td><td>GNCp</td><td>6.000 → 6.000 → 10.000</td><td>2,90</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>RIO BONITO</td><td>15/05/2026</td><td>01/08/2026</td><td>180 dias</td><td>GNCp</td><td>1.000 → 1.000 → 2.000</td><td>3,45</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>DALPARE</td><td>03/02/2026</td><td>20/08/2026</td><td>330 dias</td><td>GNCp</td><td>2.200 → 2.000 → 2.000</td><td>3,30</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Barra Bonita</td></tr>
-                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>PETROBAHIA</td><td>05/10/2023</td><td>06/06/2025</td><td>10 anos</td><td>GNL</td><td>18.000 → 18.000 → 40.000</td><td>3,72</td><td>70%</td><td>Anual</td><td>jan/26</td><td>R$ 554.668.768</td><td>Itabuna</td></tr>
-                        <tr><td><span class="ct-tag tst">Teste</span></td><td>PETYAN</td><td>04/07/2025</td><td>06/11/2025</td><td>10 meses</td><td>GNL</td><td>12.000 → 12.000 → 12.000</td><td>3,02</td><td>0%</td><td>—</td><td>—</td><td>—</td><td>Itabuna</td></tr>
-                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>BAHIAGÁS</td><td>04/11/2025</td><td>07/05/2026</td><td>10 anos</td><td>GNL</td><td>1.625 → 1.625 → 25.175</td><td>3,82</td><td>70%</td><td>Anual</td><td>—</td><td>R$ 205.344.029</td><td>Itabuna</td></tr>
-                        <tr><td><span class="ct-tag def">Definitivo</span></td><td>ALGÁS</td><td>13/02/2026</td><td>01/09/2026</td><td>5 anos</td><td>GNCp</td><td>3.000 → 3.000 → 8.500</td><td>1,81</td><td>70%</td><td>Anual</td><td>—</td><td>R$ 18.637.448</td><td>Itabuna</td></tr>
-                        <tr style="font-weight:800"><td colspan="6">Total</td><td>90.065 → 108.625 → 222.675</td><td colspan="6"></td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <p class="fun-foot" style="margin-top:12px">
-                    <b>(1)</b> Preço net considera o preço de face do contrato, sem efeito da receita de locação e sem os reajustes de preço ao longo do tempo. &nbsp;
-                    <b>(2)</b> %TOP = parcela take-or-pay do volume contratado.<br>
-                    Fonte: GNLink — RCA, mai/2026 (slide 6).
-                  </p>
-                </div>
-              </div>
+              <div id="gnlComAssRca"></div>
 
-              <!-- Capacidade vs demanda e ocupação — RCA Mai/26 -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Capacidade vs demanda e ocupação</div>
-                  <span class="tag">m³/dia · % = demanda ÷ oferta</span>
-                </div>
-                <div class="card-body">
-                  <div class="bd-plant2" style="margin-top:2px"><span class="pl">GNL</span><span class="sub">Ocupação total 76% · oferta 114.612 · demanda 86.625</span></div>
-                  <div class="kpi-grid">
-                    <div class="kpi-tile k-teal"><div class="k">Assú · GNL</div><div class="v">99%</div><div class="s">Demanda 32.000 · Oferta 32.416</div><div class="occ-bar"><i style="width:99%"></i></div></div>
-                    <div class="kpi-tile k-sage"><div class="k">Itabuna · GNL</div><div class="v">74%</div><div class="s">Demanda 31.625 · Oferta 42.616</div><div class="occ-bar"><i style="width:74%"></i></div></div>
-                    <div class="kpi-tile k-stone"><div class="k">B. Bonita · GNL</div><div class="v">58%</div><div class="s">Demanda 23.000 · Oferta 39.580</div><div class="occ-bar"><i style="width:58%"></i></div></div>
-                  </div>
-                  <div class="bd-plant2" style="margin-top:16px"><span class="pl">GNCp</span><span class="sub">Ocupação total 51% · oferta 43.200 · demanda 22.000</span></div>
-                  <div class="kpi-grid">
-                    <div class="kpi-tile k-teal"><div class="k">Assú · GNCp</div><div class="v">42%</div><div class="s">Demanda 6.000 · Oferta 14.400</div><div class="occ-bar"><i style="width:42%"></i></div></div>
-                    <div class="kpi-tile k-sage"><div class="k">Itabuna · GNCp</div><div class="v">21%</div><div class="s">Demanda 3.000 · Oferta 14.400</div><div class="occ-bar"><i style="width:21%"></i></div></div>
-                    <div class="kpi-tile k-stone"><div class="k">B. Bonita · GNCp</div><div class="v">90%</div><div class="s">Demanda 13.000 · Oferta 14.400</div><div class="occ-bar"><i style="width:90%"></i></div></div>
-                  </div>
-                  <p class="card-note" style="margin-top:12px">
-                    Oferta = capacidade instalada por planta e produto; demanda = volume atual dos contratos assinados. GNL agregado a 76% e GNCp a 51%.<br>
-                    Fonte: GNLink — RCA, mai/2026 (slide 6).
-                  </p>
-                </div>
-              </div>
+              <div id="gnlComCap"></div>
 
-              <!-- ===== Demanda GNL por planta — ramp-up (RCA Mai/26 · realizado até mai + forecast) ===== -->
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-header">
-                  <div class="card-title">Demanda GNL por planta — ramp-up 2026</div>
-                  <span class="tag">mil m³/dia · topo = total · realizado até mai/26</span>
-                </div>
-                <div class="card-body">
-                  <div class="dm-occ"><span><b>28%</b></span><span><b>12%</b></span><span><b>21%</b></span><span><b>26%</b></span><span><b>34%</b></span><span><b>47%</b></span><span><b>48%</b></span><span><b>68%</b></span><span><b>77%</b></span><span><b>45%</b></span><span><b>45%</b></span><span><b>45%</b></span></div>
-                  <div class="rmp-plot">
-                    <div class="rmp-col"><span class="rmp-cap">23</span><div class="rmp-stack" style="height:11.5%"><i class="rmp-seg bb" style="flex-grow:4500">5</i><i class="rmp-seg ita" style="flex-grow:5000">5</i><i class="rmp-seg assu" style="flex-grow:13300">13</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">14</span><div class="rmp-stack" style="height:6.8%"><i class="rmp-seg ita" style="flex-grow:6700">7</i><i class="rmp-seg assu" style="flex-grow:6800">7</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">24</span><div class="rmp-stack" style="height:12.2%"><i class="rmp-seg bb" style="flex-grow:2700">3</i><i class="rmp-seg ita" style="flex-grow:5000">5</i><i class="rmp-seg assu" style="flex-grow:16400">16</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">30</span><div class="rmp-stack" style="height:15.1%"><i class="rmp-seg bb" style="flex-grow:1900">2</i><i class="rmp-seg ita" style="flex-grow:7300">7</i><i class="rmp-seg assu" style="flex-grow:20700">21</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">39</span><div class="rmp-stack" style="height:19.7%"><i class="rmp-seg bb" style="flex-grow:8900">9</i><i class="rmp-seg ita" style="flex-grow:9800">10</i><i class="rmp-seg assu" style="flex-grow:20200">20</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">54</span><div class="rmp-stack" style="height:27.3%"><i class="rmp-seg bb" style="flex-grow:29300">29</i><i class="rmp-seg ita" style="flex-grow:3900">4</i><i class="rmp-seg assu" style="flex-grow:20800">21</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">55</span><div class="rmp-stack" style="height:27.7%"><i class="rmp-seg bb" style="flex-grow:20200">20</i><i class="rmp-seg ita" style="flex-grow:10200">10</i><i class="rmp-seg assu" style="flex-grow:24300">24</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">78</span><div class="rmp-stack" style="height:39.4%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:27900">28</i><i class="rmp-seg assu" style="flex-grow:27900">28</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">89</span><div class="rmp-stack" style="height:44.8%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:31200">31</i><i class="rmp-seg assu" style="flex-grow:35300">35</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">88</span><div class="rmp-stack" style="height:44.7%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:30900">31</i><i class="rmp-seg assu" style="flex-grow:35400">35</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">88</span><div class="rmp-stack" style="height:44.6%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:30800">31</i><i class="rmp-seg assu" style="flex-grow:35300">35</i></div></div>
-                    <div class="rmp-col"><span class="rmp-cap">89</span><div class="rmp-stack" style="height:44.9%"><i class="rmp-seg bb" style="flex-grow:22000">22</i><i class="rmp-seg ita" style="flex-grow:31300">31</i><i class="rmp-seg assu" style="flex-grow:35400">35</i></div></div>
-                  </div>
-                  <div class="rmp-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span><span>Dez</span></div>
-                  <div class="rmp-legend">
-                    <span><i style="background:#6B8299"></i>B. Bonita (PR)</span>
-                    <span><i style="background:#C55A17"></i>Itabuna (BA)</span>
-                    <span><i style="background:#2E7D4F"></i>Assú (RN)</span>
-                    <span><i style="background:#13202E"></i>% ocupação (linha superior)</span>
-                    <span style="margin-left:auto">Barras: m³/dia · escala 197.500 (capacidade plena a partir de out/26)</span>
-                  </div>
-
-                  <div class="table-scroll" style="margin-top:14px">
-                    <table class="placeholder-table">
-                      <thead>
-                        <tr><th>Planta</th><th class="mth-rz">Jan</th><th class="mth-rz">Fev</th><th class="mth-rz">Mar</th><th class="mth-rz">Abr</th><th class="mth-rz">Mai</th><th class="mth-fc">Jun</th><th class="mth-fc">Jul</th><th class="mth-fc">Ago</th><th class="mth-fc">Set</th><th class="mth-fc">Out</th><th class="mth-fc">Nov</th><th class="mth-fc">Dez</th></tr>
-                      </thead>
-                      <tbody>
-                        <tr><td>B. Bonita (PR)</td><td>4.500</td><td>—</td><td>2.700</td><td>1.900</td><td>8.900</td><td>29.300</td><td>20.200</td><td>22.000</td><td>22.000</td><td>22.000</td><td>22.000</td><td>22.000</td></tr>
-                        <tr><td>Itabuna (BA)</td><td>5.000</td><td>6.700</td><td>5.000</td><td>7.300</td><td>9.800</td><td>3.900</td><td>10.200</td><td>27.900</td><td>31.200</td><td>30.900</td><td>30.800</td><td>31.300</td></tr>
-                        <tr><td>Assú (RN)</td><td>13.300</td><td>6.800</td><td>16.400</td><td>20.700</td><td>20.200</td><td>20.800</td><td>24.300</td><td>27.900</td><td>35.300</td><td>35.400</td><td>35.300</td><td>35.400</td></tr>
-                        <tr style="font-weight:800"><td>Total</td><td>22.800</td><td>13.500</td><td>24.100</td><td>29.900</td><td>38.900</td><td>54.000</td><td>54.700</td><td>77.800</td><td>88.500</td><td>88.300</td><td>88.100</td><td>88.700</td></tr>
-                        <tr><td>% Ocupação</td><td>28%</td><td>12%</td><td>21%</td><td>26%</td><td>34%</td><td>47%</td><td>48%</td><td>68%</td><td>77%</td><td>45%</td><td>45%</td><td>45%</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="rf-legend">
-                    <span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span>
-                    <span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span>
-                  </div>
-                  <p class="card-note" style="margin-top:10px">
-                    Demanda GNL por planta usando dados <b>realizados até mai/26</b> e <b>forecast</b> a partir de jun/26. Capacidade total sobe de ~114.600 (fev–set) para 197.500 m³/dia a partir de out/26 (2ª unidade de regas em Itabuna e Assú), o que reduz a ocupação apesar da demanda crescente.<br>
-                    Fonte: GNLink — RCA, mai/2026 (slides 21 · Barra Bonita, 26 · Itabuna, 31 · Assú).
-                  </p>
-                </div>
-              </div>
+              <div id="gnlComDemRca"></div>
 
             </div><!-- /comm-view rca -->
+
+            <div class="comm-view" data-view="rcaJun">
+
+              <!-- Funil consolidado — RCA Jun/26 (slide 6) -->
+              <div id="gnlComFunRcaJun"></div>
+
+              <div id="gnlComNegRcaJun"></div>
+
+              <div id="gnlComAssRcaJun"></div>
+
+              <div id="gnlComCapJun"></div>
+
+            </div><!-- /comm-view rcaJun -->
 
             <script>
             (function(){
               var panel=document.querySelector('.emp-panel[data-emp="comercial"]');
               if(!panel) return;
-              var caps={rci:'Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)',rca:'GNLink · RCA — mai/2026 (slide 6)'};
+              // Funil comercial (RCI/RCA): gerado de EMP['GNLink'].comercial.funil.
+              var C=((window.EMP||{})['GNLink']||{}).comercial;
+              function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+              function funil(f){
+                var rows=f.rows.map(function(r,i){ return '<div class="fun-row"><div class="fun-name">'+esc(r[0])+'</div><div class="fun-track"><div class="fun-bar fun-s'+(i+1)+'" style="width:'+r[2]+'%"><span class="fun-val">'+esc(r[1])+'</span></div></div></div>'; }).join('');
+                return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Funil comercial — consolidado</div><span class="tag">'+esc(f.tag)+'</span></div><div class="card-body"><p class="fun-note">'+f.note+'</p><div class="fun">'+rows+'</div></div></div>';
+              }
+              if(C&&C.funil){
+                var mr=document.getElementById('gnlComFunRci'); if(mr) mr.innerHTML=funil(C.funil.rci);
+                var ma=document.getElementById('gnlComFunRca'); if(ma) ma.innerHTML=funil(C.funil.rca);
+                var mj=document.getElementById('gnlComFunRcaJun'); if(mj&&C.funil.rcaJun) mj.innerHTML=funil(C.funil.rcaJun);
+              }
+              // Contratos assinados (RCI 6 · RCA 15 com valores em R$): gerado de EMP.
+              function assinados(a){
+                var kpis='<div class="'+a.kpiCls+'">'+a.kpis.map(function(k){ return '<div class="kpi-tile '+k[0]+'"><div class="k">'+esc(k[1])+'</div><div class="v">'+k[2]+'</div><div class="s">'+esc(k[3])+'</div></div>'; }).join('')+'</div>';
+                var thead='<tr>'+a.cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'</tr>';
+                var body=a.rows.map(function(r){
+                  if(a.tagCol){ var tg='<td><span class="ct-tag '+r.t+'">'+(r.t==='def'?'Definitivo':'Teste')+'</span></td>';
+                    return '<tr>'+tg+r.c.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')+'</tr>'; }
+                  return '<tr>'+r.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')+'</tr>';
+                }).join('');
+                // colspan final derivado de a.cols para o total acompanhar o nº de colunas
+                var totalRow=a.total?'<tr style="font-weight:800"><td colspan="6">Total</td><td>'+esc(a.total)+'</td>'
+                  +(a.totalReal?'<td>'+esc(a.totalReal)+'</td>':'')
+                  +'<td colspan="'+(a.cols.length-7-(a.totalReal?1:0))+'"></td></tr>':'';
+                var occ=a.occ?'<div class="kpi-grid" style="margin-top:14px">'+a.occ.map(function(o){ return '<div class="kpi-tile '+o[0]+'"><div class="k">'+esc(o[1])+'</div><div class="v">'+esc(o[2])+'</div><div class="s">'+o[3]+'</div><div class="occ-bar"><i style="width:'+o[4]+'%"></i></div></div>'; }).join('')+'</div>':'';
+                return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Contratos assinados</div><span class="tag">'+esc(a.tag)+'</span></div><div class="card-body">'+kpis
+                  +'<div class="table-scroll"><table class="placeholder-table"><thead>'+thead+'</thead><tbody>'+body+totalRow+'</tbody></table></div>'
+                  +occ+'<p class="fun-foot" style="margin-top:'+(a.occ?'14':'12')+'px">'+a.foot+'</p></div></div>';
+              }
+              if(C&&C.assinados){
+                var ar=document.getElementById('gnlComAssRci'); if(ar) ar.innerHTML=assinados(C.assinados.rci);
+                var aa=document.getElementById('gnlComAssRca'); if(aa) aa.innerHTML=assinados(C.assinados.rca);
+                var aj=document.getElementById('gnlComAssRcaJun'); if(aj&&C.assinados.rcaJun) aj.innerHTML=assinados(C.assinados.rcaJun);
+              }
+              // Contratos em negociação (bd-grid por planta/cliente, RCI/RCA): de EMP.
+              var REG={sul:"SUL",ne:"NE"}, PROB={alta:"Alta",media:"Média",baixa:"Baixa"};
+              function cliName(cl){
+                var s=esc(cl.n);
+                if(cl.sm) s+='<small>'+esc(cl.sm)+'</small>';
+                if(cl.reg) s+='<span class="bd-reg '+cl.reg+'">'+REG[cl.reg]+'</span>';
+                if(cl.prob) s+='<span class="bd-prob '+cl.prob+'">'+PROB[cl.prob]+'</span>';
+                return s;
+              }
+              function negoc(nd){
+                var cols=nd.cols.map(function(co){
+                  var plants=co.plants.map(function(p){
+                    var cli=p.cli.map(function(cl){ return '<div class="bd-cli"><div class="bd-cli-top"><span class="bd-cli-name">'+cliName(cl)+'</span><span class="bd-cli-val">'+esc(cl.v)+'</span></div><div class="bd-cli-bar"><i style="width:'+cl.w+'%"></i></div></div>'; }).join('');
+                    return '<details class="bd-plantg"><summary class="bd-plant2"><span class="pl">'+esc(p.pl)+'</span><span class="sub">'+esc(p.sub)+'</span></summary>'+cli+'</details>';
+                  }).join('');
+                  return '<div class="bd-col '+co.cls+'"><div class="bd-col-head"><span class="t">'+esc(co.title)+'</span><span class="n">'+esc(co.total)+'<small>m³/dia</small></span></div><div class="bd-col-body">'+plants+'</div></div>';
+                }).join('');
+                return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Contratos em negociação</div><span class="tag">m³/dia</span></div><div class="card-body"><div class="bd-grid">'+cols+'</div>'+(nd.foot?'<p class="fun-foot" style="margin-top:12px">'+nd.foot+'</p>':'')+'</div></div>';
+              }
+              if(C&&C.negociacao){
+                var nr=document.getElementById('gnlComNegRci'); if(nr) nr.innerHTML=negoc(C.negociacao.rci);
+                var na=document.getElementById('gnlComNegRca'); if(na) na.innerHTML=negoc(C.negociacao.rca);
+                var nj=document.getElementById('gnlComNegRcaJun'); if(nj&&C.negociacao.rcaJun) nj.innerHTML=negoc(C.negociacao.rcaJun);
+              }
+              // Demanda GNL por planta (ramp + totais derivados da matriz supply) e
+              // Capacidade vs demanda: gerados de EMP.
+              var MONTHS=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+              var DPM=[["PR","bb","#6B8299"],["BA","ita","#C55A17"],["RN","assu","#2E7D4F"]];
+              function fmt(n){ return n==null?'—':String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+              function demanda(v){
+                var full=197500;
+                var occRow='<div class="dm-occ">'+v.occ.map(function(o){return '<span><b>'+esc(o)+'</b></span>';}).join('')+'</div>';
+                var cols='';
+                for(var i=0;i<12;i++){
+                  var total=0, segs='';
+                  DPM.forEach(function(pm){ var val=v.supply[pm[0]][i]; if(val){ total+=val; segs+='<i class="rmp-seg '+pm[1]+'" style="flex-grow:'+val+'">'+Math.round(val/1000)+'</i>'; } });
+                  cols+='<div class="rmp-col"><span class="rmp-cap">'+Math.round(total/1000)+'</span><div class="rmp-stack" style="height:'+(total/full*100).toFixed(1)+'%">'+segs+'</div></div>';
+                }
+                var leg='<div class="rmp-legend">'+DPM.map(function(pm,pi){return '<span><i style="background:'+pm[2]+'"></i>'+esc(v.labels[pi])+'</span>';}).join('')
+                  +'<span><i style="background:#13202E"></i>% ocupação (linha superior)</span><span style="margin-left:auto">'+esc(v.scale)+'</span></div>';
+                var th=MONTHS.map(function(m,i){var c=v.tableColored?(i<5?' class="mth-rz"':' class="mth-fc"'):'';return '<th'+c+'>'+m+'</th>';}).join('');
+                var body=DPM.map(function(pm,pi){return '<tr><td>'+esc(v.labels[pi])+'</td>'+v.supply[pm[0]].map(function(x){return '<td>'+fmt(x)+'</td>';}).join('')+'</tr>';}).join('');
+                var totals=''; for(var i=0;i<12;i++){var t=0;DPM.forEach(function(pm){t+=v.supply[pm[0]][i]||0;});totals+='<td>'+fmt(t)+'</td>';}
+                var occTr='<tr><td>% Ocupação</td>'+v.occ.map(function(o){return '<td>'+esc(o)+'</td>';}).join('')+'</tr>';
+                var table='<div class="table-scroll" style="margin-top:14px"><table class="placeholder-table"><thead><tr><th>Planta</th>'+th+'</tr></thead><tbody>'+body+'<tr style="font-weight:800"><td>Total</td>'+totals+'</tr>'+occTr+'</tbody></table></div>';
+                var rfLeg=v.tableColored?'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span><span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span></div>':'';
+                return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Demanda GNL por planta — ramp-up 2026</div><span class="tag">'+esc(v.tag)+'</span></div><div class="card-body">'+occRow+'<div class="rmp-plot">'+cols+'</div><div class="rmp-x">'+MONTHS.map(function(m){return '<span>'+m+'</span>';}).join('')+'</div>'+leg+table+rfLeg+'<p class="card-note" style="margin-top:'+(v.tableColored?'10':'12')+'px">'+v.note+'</p></div></div>';
+              }
+              function capTiles(ts){ return ts.map(function(t){return '<div class="kpi-tile '+t[0]+'"><div class="k">'+esc(t[1])+'</div><div class="v">'+esc(t[2])+'</div><div class="s">'+esc(t[3])+'</div><div class="occ-bar"><i style="width:'+t[4]+'%"></i></div></div>';}).join(''); }
+              function capacidade(cp){
+                return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Capacidade vs demanda e ocupação</div><span class="tag">m³/dia · % = demanda ÷ oferta</span></div><div class="card-body">'
+                  +'<div class="bd-plant2" style="margin-top:2px"><span class="pl">GNL</span><span class="sub">'+esc(cp.gnl.head)+'</span></div><div class="kpi-grid">'+capTiles(cp.gnl.tiles)+'</div>'
+                  +'<div class="bd-plant2" style="margin-top:16px"><span class="pl">GNCp</span><span class="sub">'+esc(cp.gncp.head)+'</span></div><div class="kpi-grid">'+capTiles(cp.gncp.tiles)+'</div>'
+                  +'<p class="card-note" style="margin-top:12px">'+cp.note+'</p></div></div>';
+              }
+              if(C&&C.demanda){
+                var dr=document.getElementById('gnlComDemRci'); if(dr) dr.innerHTML=demanda(C.demanda.rci);
+                var da=document.getElementById('gnlComDemRca'); if(da) da.innerHTML=demanda(C.demanda.rca);
+              }
+              if(C&&C.capacidade){
+                var cpm=document.getElementById('gnlComCap'); if(cpm&&C.capacidade.rca) cpm.innerHTML=capacidade(C.capacidade.rca);
+                var cpj=document.getElementById('gnlComCapJun'); if(cpj&&C.capacidade.rcaJun) cpj.innerHTML=capacidade(C.capacidade.rcaJun);
+              }
+              var caps={rci:'Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)',rca:'GNLink · RCA — mai/2026 (slide 6)',rcaJun:'GNLink · RCA — jun/2026 (slide 6)'};
               var btns=panel.querySelectorAll('.comm-seg button');
               var views=panel.querySelectorAll('.comm-view');
               var cap=panel.querySelector('#commSrcCap');
@@ -3632,7 +3217,20 @@
             </div>
           </div>
           </div>
-          <div class="emp-panel" data-emp="financeiro">
+          <div class="emp-panel" data-emp="resultados">
+            <div class="section-title" style="margin:2px 0 6px;">Resultados</div>
+
+            <div class="comm-src">
+              <span class="lbl">Vis&#227;o</span>
+              <!-- data-default: este seletor n&#227;o &#233; de base mensal, ent&#227;o o default &#233; explicito -->
+              <div class="comm-seg" role="tablist" aria-label="Vis&#227;o de resultados" data-default="orc2026">
+                <button type="button" data-view="hist">Resultados hist&#243;ricos</button>
+                <button type="button" data-view="orc2026">Or&#231;amento 2026</button>
+                <button type="button" data-view="lp">Proje&#231;&#245;es de Longo Prazo</button>
+              </div>
+              <span class="src-cap" id="resSrcCap"></span>
+            </div>
+
             <!-- ===== Orçamento 2026 por projeto vs. BP Copa (CI GNLink Dez/25 — slide 8) ===== -->
             <style>
               .dre-tbl{font-size:12px;table-layout:fixed;width:100%;min-width:600px}
@@ -3655,54 +3253,6 @@
               .dre-obs li::before{content:"•";position:absolute;left:0;color:var(--accent-3);font-weight:700}
               @media(max-width:720px){.dre-obs{columns:1}}
             </style>
-            <div class="row-full">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Orçamento 2026 por projeto vs. BP Copa</div>
-                <span class="tag">R$ milhões</span>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                  <table class="placeholder-table dre-tbl">
-                    <thead>
-                      <tr>
-                        <th>R$ milhões</th><th>PR</th><th>BA</th><th>RN</th><th class="c-con">Consolidado</th><th class="c-bp">BP Copa¹</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="dre-r"><td>Capacidade Real <small style="color:var(--muted)">(m³/dia)</small></td><td>53.980</td><td>85.427</td><td>87.088</td><td class="c-con">226.495</td><td class="c-bp">270.708</td></tr>
-                      <tr class="dre-r"><td>Volume GNL + GNC <small style="color:var(--muted)">(m³/dia)</small></td><td>50.872</td><td>43.208</td><td>49.666</td><td class="c-con">143.746</td><td class="c-bp">270.708</td></tr>
-                      <tr class="dre-r"><td>% de Utilização</td><td>94,2%</td><td>50,6%</td><td>57,0%</td><td class="c-con">63,5%</td><td class="c-bp">100,0%</td></tr>
-                      <tr class="dre-r"><td>Receita Líquida</td><td>63,0</td><td>63,5</td><td>58,9</td><td class="c-con">185,4</td><td class="c-bp">376,3</td></tr>
-                      <tr class="dre-r"><td>Resultado Operacional</td><td>7,6</td><td>6,8</td><td>7,0</td><td class="c-con">21,4</td><td class="c-bp">114,8</td></tr>
-                      <tr class="dre-s"><td>Margem Operacional</td><td>12,1%</td><td>10,7%</td><td>11,9%</td><td class="c-con">11,5%</td><td class="c-bp">30,5%</td></tr>
-                      <tr class="dre-r"><td>EBITDA</td><td>—</td><td>—</td><td>—</td><td class="c-con neg">(5,5)</td><td class="c-bp">89,8</td></tr>
-                      <tr class="dre-s"><td>Margem EBITDA</td><td>—</td><td>—</td><td>—</td><td class="c-con">(3,0%)</td><td class="c-bp">23,9%</td></tr>
-                      <tr class="dre-r"><td>Lucro Líquido</td><td>—</td><td>—</td><td>—</td><td class="c-con neg">(55,3)</td><td class="c-bp">15,8</td></tr>
-                      <tr class="dre-s"><td>Margem Líquida</td><td>—</td><td>—</td><td>—</td><td class="c-con">(29,8%)</td><td class="c-bp">4,2%</td></tr>
-                      <tr class="dre-r"><td>Saldo Final de Caixa Livre³</td><td>—</td><td>—</td><td>—</td><td class="c-con neg">(29,3)</td><td class="c-bp">—</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <ul class="dre-obs">
-                  <li>Ramp-up: 91% da capacidade real das 3 plantas em dez/26.</li>
-                  <li>Preço médio inferior, conforme plano.</li>
-                  <li>Manutenção e reajuste dos contratos atuais (Tradener, Bahiagás e PetroRecôncavo).</li>
-                  <li>BA: compra de volume adicional no mercado livre para reduzir o custo médio da molécula.</li>
-                  <li>Energia elétrica do mercado livre no PR e BA.</li>
-                  <li>RN: geradores a gás (sem disponibilidade de energia da rede local).</li>
-                  <li>Diluição de custos fixos com o aumento do volume.</li>
-                  <li>Realocação de custos de veículos e viagens da matriz para as plantas.</li>
-                  <li>Maior depreciação pela ativação da planta do RN.</li>
-                </ul>
-                <p class="card-note" style="margin-top:10px">
-                  <b>BP Copa¹:</b> Business Plan da transação de M&amp;A considerando 3 plantas (ao invés de 4). &nbsp;
-                  <b>³</b> Saldo de caixa livre considera o fundo de liquidez do BNB (retido): 3% do desembolsado na BA e 5% no RN.<br>
-                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 8). A coluna de BP com capacidades ajustadas ao orçamento foi omitida, conforme solicitado.
-                </p>
-              </div>
-            </div>
-            </div>
 
             <!-- ===== Fluxo de caixa histórico (CI GNLink Dez/25 — slide 19) ===== -->
             <style>
@@ -3732,64 +3282,6 @@
               .fcx-tbl tbody tr:hover td{background:#F7FAFC}
             </style>
 
-          <div class="row-full">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Fluxo de Caixa Histórico</div>
-                <span class="tag">R$ milhões</span>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                  <table class="placeholder-table fcx-tbl">
-                    <thead>
-                      <tr>
-                        <th>R$ mi</th><th>2022</th><th>2023</th><th>2024</th><th class="c-fct">FCT/25¹</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="fcx-h"><td>(+/–) EBITDA</td><td class="neg">(2,0)</td><td class="neg">(12,5)</td><td class="neg">(20,7)</td><td class="c-fct neg">(45,9)</td></tr>
-                      <tr class="fcx-sub"><td>Matriz</td><td class="neg">(2,0)</td><td class="neg">(12,5)</td><td class="neg">(22,2)</td><td class="c-fct neg">(26,7)</td></tr>
-                      <tr class="fcx-sub"><td>Projetos</td><td>0,0</td><td>0,0</td><td>1,5</td><td class="c-fct neg">(19,2)</td></tr>
-                      <tr class="fcx-sub2"><td>PR</td><td>0,0</td><td>0,0</td><td>1,2</td><td class="c-fct neg">(9,7)</td></tr>
-                      <tr class="fcx-sub2"><td>BA</td><td>0,0</td><td>0,0</td><td>0,3</td><td class="c-fct neg">(8,4)</td></tr>
-                      <tr class="fcx-sub2"><td>RN</td><td>0,0</td><td>0,0</td><td>0,0</td><td class="c-fct neg">(1,1)</td></tr>
-                      <tr class="fcx-h"><td>(–) IRPJ / CSLL</td><td>0,0</td><td>0,0</td><td>0,0</td><td class="c-fct">0,0</td></tr>
-                      <tr class="fcx-h"><td>(+/–) Δ Capital de Giro</td><td>0,0</td><td>0,4</td><td>1,3</td><td class="c-fct neg">(1,3)</td></tr>
-                      <tr class="fcx-tot"><td>(=) F.C. Operacional</td><td class="neg">(2,0)</td><td class="neg">(12,1)</td><td class="neg">(19,5)</td><td class="c-fct neg">(47,1)</td></tr>
-                      <tr class="fcx-sp"><td colspan="5"></td></tr>
-                      <tr class="fcx-h"><td>(–) CapEx</td><td>0,0</td><td class="neg">(53,5)</td><td class="neg">(154,6)</td><td class="c-fct neg">(99,8)</td></tr>
-                      <tr class="fcx-sub"><td>Matriz</td><td>0,0</td><td class="neg">(1,1)</td><td class="neg">(1,3)</td><td class="c-fct neg">(0,3)</td></tr>
-                      <tr class="fcx-sub"><td>PR</td><td>0,0</td><td class="neg">(39,6)</td><td class="neg">(30,9)</td><td class="c-fct neg">(13,0)</td></tr>
-                      <tr class="fcx-sub"><td>BA</td><td>0,0</td><td class="neg">(12,8)</td><td class="neg">(77,9)</td><td class="c-fct neg">(29,6)</td></tr>
-                      <tr class="fcx-sub"><td>RN</td><td>0,0</td><td>0,0</td><td class="neg">(44,4)</td><td class="c-fct neg">(57,0)</td></tr>
-                      <tr class="fcx-tot"><td>(=) F.C. de Investimentos</td><td>0,0</td><td class="neg">(53,5)</td><td class="neg">(154,6)</td><td class="c-fct neg">(99,8)</td></tr>
-                      <tr class="fcx-sp"><td colspan="5"></td></tr>
-                      <tr class="fcx-h"><td>(+) Aporte Hankoe</td><td>5,5</td><td>46,3</td><td>49,2</td><td class="c-fct">0,0</td></tr>
-                      <tr class="fcx-h"><td>(+) Aporte Copa Energia</td><td>0,0</td><td>0,0</td><td>0,0</td><td class="c-fct">100,0</td></tr>
-                      <tr class="fcx-h"><td>(+) Ingresso de dívida</td><td>0,0</td><td>50,0</td><td>111,0</td><td class="c-fct">140,5</td></tr>
-                      <tr class="fcx-h"><td>(–) Pgto Principal</td><td>0,0</td><td>0,0</td><td>0,0</td><td class="c-fct neg">(47,5)</td></tr>
-                      <tr class="fcx-h"><td>(–) Resultado Financeiro</td><td>0,0</td><td>0,0</td><td class="neg">(3,0)</td><td class="c-fct neg">(27,7)</td></tr>
-                      <tr class="fcx-tot"><td>(=) F.C. de Financiamento</td><td>5,5</td><td>96,3</td><td>157,2</td><td class="c-fct">193,0</td></tr>
-                      <tr class="fcx-sp"><td colspan="5"></td></tr>
-                      <tr class="fcx-key"><td>Saldo Inicial de Caixa</td><td>0,0</td><td>3,5</td><td>34,2</td><td class="c-fct">17,4</td></tr>
-                      <tr class="fcx-key"><td>Geração de Caixa — GNLink</td><td>3,5</td><td>30,7</td><td class="neg">(16,8)</td><td class="c-fct">18,8</td></tr>
-                      <tr class="fcx-key"><td>Saldo Final de Caixa</td><td>3,5</td><td>34,2</td><td>17,4</td><td class="c-fct">36,3</td></tr>
-                      <tr class="fcx-key"><td>Fundo de Líquidez BNB (retido)</td><td>0,0</td><td>0,0</td><td>2,1</td><td class="c-fct">6,4</td></tr>
-                      <tr class="fcx-key fcx-strong"><td>Saldo Final de Caixa Livre</td><td>3,5</td><td>34,2</td><td>15,3</td><td class="c-fct">29,8</td></tr>
-                      <tr class="fcx-sp"><td colspan="5"></td></tr>
-                      <tr class="fcx-key"><td>Dívida Bruta</td><td>0,0</td><td>50,1</td><td>94,9</td><td class="c-fct">260,2</td></tr>
-                      <tr class="fcx-key fcx-strong"><td>Dívida Líquida</td><td>0,0</td><td>15,8</td><td>77,5</td><td class="c-fct">223,9</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p class="card-note" style="margin-top:12px">
-                  <b>¹ FCT/25:</b> forecast do ano fechado de 2025 (jan–ago realizado + set–dez projetado). &nbsp;
-                  <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável.<br>
-                  As colunas mensais (jan–ago/25, set–dez/25) e as de Orçamento/25 e variação foram omitidas, conforme solicitado. Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 19).
-                </p>
-              </div>
-            </div>
-          </div>
 
             <!-- ===== Fluxo de caixa — Orçamento 2026 mensal (CI GNLink Dez/25 — slide 20) ===== -->
             <style>
@@ -3799,65 +3291,87 @@
               .mfc-tbl td:first-child, .mfc-tbl th:first-child{min-width:180px}
             </style>
 
-          <div class="row-full">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Fluxo de Caixa — Orçamento 2026 (mensal)</div>
-                <span class="tag">R$ milhões</span>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                  <table class="placeholder-table fcx-tbl mfc-tbl">
-                    <thead>
-                      <tr>
-                        <th>R$ mi</th><th>jan/26</th><th>fev/26</th><th>mar/26</th><th>abr/26</th><th>mai/26</th><th>jun/26</th><th>jul/26</th><th>ago/26</th><th>set/26</th><th>out/26</th><th>nov/26</th><th>dez/26</th><th class="c-fct">FC 2026¹</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="fcx-h"><td>(+/–) EBITDA</td><td class="neg">(4,1)</td><td class="neg">(2,4)</td><td class="neg">(6,6)</td><td class="neg">(1,0)</td><td class="neg">(0,8)</td><td class="neg">(0,4)</td><td class="neg">(0,2)</td><td>2,1</td><td>1,5</td><td>2,8</td><td>2,0</td><td>1,6</td><td class="c-fct neg">(5,5)</td></tr>
-                      <tr class="fcx-sub"><td>Matriz</td><td class="neg">(1,9)</td><td class="neg">(1,7)</td><td class="neg">(6,6)</td><td class="neg">(1,9)</td><td class="neg">(1,9)</td><td class="neg">(1,7)</td><td class="neg">(1,8)</td><td class="neg">(1,8)</td><td class="neg">(1,9)</td><td class="neg">(1,8)</td><td class="neg">(2,0)</td><td class="neg">(2,1)</td><td class="c-fct neg">(26,9)</td></tr>
-                      <tr class="fcx-sub"><td>Projetos</td><td class="neg">(2,3)</td><td class="neg">(0,8)</td><td class="neg">(0,1)</td><td>0,9</td><td>1,1</td><td>1,3</td><td>1,6</td><td>3,9</td><td>3,4</td><td>4,6</td><td>4,1</td><td>3,7</td><td class="c-fct">21,4</td></tr>
-                      <tr class="fcx-sub2"><td>PR</td><td class="neg">(1,0)</td><td>0,5</td><td>0,5</td><td>0,5</td><td>0,4</td><td>1,0</td><td>1,0</td><td>1,0</td><td>0,9</td><td>1,0</td><td>0,8</td><td>0,9</td><td class="c-fct">7,6</td></tr>
-                      <tr class="fcx-sub2"><td>BA</td><td class="neg">(0,5)</td><td class="neg">(0,7)</td><td class="neg">(0,1)</td><td>0,4</td><td>0,4</td><td>0,5</td><td>0,2</td><td>1,2</td><td>1,1</td><td>1,6</td><td>1,5</td><td>1,3</td><td class="c-fct">6,8</td></tr>
-                      <tr class="fcx-sub2"><td>RN</td><td class="neg">(0,8)</td><td class="neg">(0,6)</td><td class="neg">(0,4)</td><td>—</td><td>0,3</td><td class="neg">(0,2)</td><td>0,4</td><td>1,7</td><td>1,5</td><td>2,0</td><td>1,8</td><td>1,5</td><td class="c-fct">7,0</td></tr>
-                      <tr class="fcx-h"><td>(–) IRPJ / CSLL</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct">—</td></tr>
-                      <tr class="fcx-h"><td>(+/–) Δ Capital de Giro</td><td>4,1</td><td class="neg">(0,6)</td><td class="neg">(0,9)</td><td>0,2</td><td class="neg">(0,3)</td><td class="neg">(0,2)</td><td class="neg">(0,2)</td><td class="neg">(1,0)</td><td class="neg">(0,1)</td><td class="neg">(0,3)</td><td>0,3</td><td class="neg">(0,2)</td><td class="c-fct">0,8</td></tr>
-                      <tr class="fcx-tot"><td>(=) F.C. Operacional</td><td class="neg">(0,1)</td><td class="neg">(3,0)</td><td class="neg">(7,6)</td><td class="neg">(0,8)</td><td class="neg">(1,1)</td><td class="neg">(0,6)</td><td class="neg">(0,4)</td><td>1,1</td><td>1,4</td><td>2,6</td><td>2,3</td><td>1,4</td><td class="c-fct neg">(4,7)</td></tr>
-                      <tr class="fcx-sp"><td colspan="14"></td></tr>
-                      <tr class="fcx-h"><td>(–) CapEx</td><td class="neg">(12,2)</td><td class="neg">(9,5)</td><td class="neg">(8,3)</td><td class="neg">(1,7)</td><td class="neg">(0,4)</td><td class="neg">(0,4)</td><td class="neg">(1,0)</td><td class="neg">(0,6)</td><td class="neg">(0,6)</td><td>—</td><td>—</td><td>—</td><td class="c-fct neg">(34,8)</td></tr>
-                      <tr class="fcx-sub"><td>Matriz</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct neg">(0,2)</td></tr>
-                      <tr class="fcx-sub"><td>PR</td><td class="neg">(3,7)</td><td class="neg">(2,3)</td><td class="neg">(1,9)</td><td class="neg">(0,7)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct neg">(8,6)</td></tr>
-                      <tr class="fcx-sub"><td>BA</td><td class="neg">(3,9)</td><td class="neg">(3,6)</td><td class="neg">(3,3)</td><td class="neg">(0,4)</td><td class="neg">(0,2)</td><td class="neg">(0,2)</td><td class="neg">(0,2)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct neg">(11,7)</td></tr>
-                      <tr class="fcx-sub"><td>RN</td><td class="neg">(4,7)</td><td class="neg">(3,6)</td><td class="neg">(3,2)</td><td class="neg">(0,6)</td><td class="neg">(0,2)</td><td class="neg">(0,2)</td><td class="neg">(0,8)</td><td class="neg">(0,6)</td><td class="neg">(0,6)</td><td>—</td><td>—</td><td>—</td><td class="c-fct neg">(14,3)</td></tr>
-                      <tr class="fcx-tot"><td>(=) F.C. de Investimentos</td><td class="neg">(12,2)</td><td class="neg">(9,5)</td><td class="neg">(8,3)</td><td class="neg">(1,7)</td><td class="neg">(0,4)</td><td class="neg">(0,4)</td><td class="neg">(1,0)</td><td class="neg">(0,6)</td><td class="neg">(0,6)</td><td>—</td><td>—</td><td>—</td><td class="c-fct neg">(34,8)</td></tr>
-                      <tr class="fcx-sp"><td colspan="14"></td></tr>
-                      <tr class="fcx-h"><td>(+) Aporte Hankoe</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct">—</td></tr>
-                      <tr class="fcx-h"><td>(+) Aporte Copa Energia</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct">—</td></tr>
-                      <tr class="fcx-h"><td>(+) Ingresso de dívida</td><td>100,0</td><td>10,7</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="c-fct">110,7</td></tr>
-                      <tr class="fcx-h"><td>(–) Pgto Principal</td><td class="neg">(90,0)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="neg">(0,7)</td><td class="neg">(0,7)</td><td class="neg">(0,7)</td><td class="c-fct neg">(92,1)</td></tr>
-                      <tr class="fcx-h"><td>(–) Resultado Financeiro</td><td class="neg">(6,9)</td><td>0,3</td><td class="neg">(4,1)</td><td>—</td><td>—</td><td class="neg">(10,7)</td><td>—</td><td>—</td><td class="neg">(4,4)</td><td>—</td><td>—</td><td class="neg">(12,0)</td><td class="c-fct neg">(37,7)</td></tr>
-                      <tr class="fcx-tot"><td>(=) F.C. de Financiamento</td><td>3,1</td><td>11,0</td><td class="neg">(4,1)</td><td>—</td><td>—</td><td class="neg">(10,7)</td><td>—</td><td>—</td><td class="neg">(4,4)</td><td class="neg">(0,7)</td><td class="neg">(0,7)</td><td class="neg">(12,7)</td><td class="c-fct neg">(19,0)</td></tr>
-                      <tr class="fcx-sp"><td colspan="14"></td></tr>
-                      <tr class="fcx-key"><td>Saldo Inicial de Caixa</td><td>36,3</td><td>27,0</td><td>25,5</td><td>5,5</td><td>3,0</td><td>1,6</td><td class="neg">(10,0)</td><td class="neg">(11,3)</td><td class="neg">(10,9)</td><td class="neg">(14,5)</td><td class="neg">(12,7)</td><td class="neg">(11,0)</td><td class="c-fct">36,3</td></tr>
-                      <tr class="fcx-key"><td>Geração de Caixa — GNLink</td><td class="neg">(9,2)</td><td class="neg">(1,5)</td><td class="neg">(20,0)</td><td class="neg">(2,5)</td><td class="neg">(1,4)</td><td class="neg">(11,6)</td><td class="neg">(1,3)</td><td>0,5</td><td class="neg">(3,6)</td><td>1,8</td><td>1,6</td><td class="neg">(11,3)</td><td class="c-fct neg">(58,6)</td></tr>
-                      <tr class="fcx-key"><td>Saldo Final de Caixa</td><td>27,0</td><td>25,5</td><td>5,5</td><td>3,0</td><td>1,6</td><td class="neg">(10,0)</td><td class="neg">(11,3)</td><td class="neg">(10,9)</td><td class="neg">(14,5)</td><td class="neg">(12,7)</td><td class="neg">(11,0)</td><td class="neg">(22,4)</td><td class="c-fct neg">(22,4)</td></tr>
-                      <tr class="fcx-key"><td>Fundo de Líquidez BNB (retido)</td><td>6,4</td><td>6,4</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td>6,9</td><td class="c-fct">6,9</td></tr>
-                      <tr class="fcx-key fcx-strong"><td>Saldo Final de Caixa Livre</td><td>20,6</td><td>19,1</td><td class="neg">(1,4)</td><td class="neg">(3,9)</td><td class="neg">(5,3)</td><td class="neg">(16,9)</td><td class="neg">(18,3)</td><td class="neg">(17,8)</td><td class="neg">(21,4)</td><td class="neg">(19,6)</td><td class="neg">(18,0)</td><td class="neg">(29,3)</td><td class="c-fct neg">(29,3)</td></tr>
-                      <tr class="fcx-sp"><td colspan="14"></td></tr>
-                      <tr class="fcx-key"><td>Dívida Bruta</td><td>265,4</td><td>278,8</td><td>277,3</td><td>280,0</td><td>282,7</td><td>274,8</td><td>277,5</td><td>280,2</td><td>278,6</td><td>280,6</td><td>282,6</td><td>272,7</td><td class="c-fct">272,7</td></tr>
-                      <tr class="fcx-key fcx-strong"><td>Dívida Líquida</td><td>238,4</td><td>253,3</td><td>271,8</td><td>277,0</td><td>281,1</td><td>284,8</td><td>288,8</td><td>291,1</td><td>293,1</td><td>293,2</td><td>293,7</td><td>295,1</td><td class="c-fct">295,1</td></tr>
-                    </tbody>
-                  </table>
+            <div class="comm-view" data-view="hist">
+              <div id="gnlFinHist"></div>
+            </div>
+
+            <div class="comm-view" data-view="orc2026">
+              <div id="gnlFinDre"></div>
+              <div id="gnlFinMensal"></div>
+            </div>
+
+            <div class="comm-view" data-view="lp">
+              <div class="row-full">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="e2-dev">
+                      <div class="ic">&#128679;</div>
+                      <div class="t">Em desenvolvimento&#8230;</div>
+                      <div class="s">As proje&#231;&#245;es de longo prazo ser&#227;o constru&#237;das a partir do modelo financeiro da companhia.</div>
+                    </div>
+                  </div>
                 </div>
-                <p class="card-note" style="margin-top:12px">
-                  <b>¹ FC 2026:</b> forecast (total) do orçamento de 2026. &nbsp;
-                  <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável.<br>
-                  Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 20).
-                </p>
               </div>
             </div>
+
+          <script>
+          // Financeiro (DRE + fluxos de caixa): tabelas geradas de EMP['GNLink'].financeiro.
+          // dtable(): tabela genérica; classe da coluna vem de cols[i][1]; célula em
+          // parênteses recebe .neg (exceto linhas noNeg, ex.: margens da DRE).
+          (function(){
+            var g=(window.EMP||{})['GNLink'], F=g&&g.financeiro;
+            if(!F) return;
+            function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+            function dtable(t){
+              var thead='<tr>'+t.cols.map(function(c){return '<th'+(c[1]?' class="'+c[1]+'"':'')+'>'+c[0]+'</th>';}).join('')+'</tr>';
+              var body=t.rows.map(function(r){
+                if(r.sp) return '<tr class="'+r.cls+'"><td colspan="'+t.cols.length+'"></td></tr>';
+                var tds=r.cells.map(function(cell,i){
+                  if(i===0) return '<td>'+cell+'</td>';
+                  var cls=t.cols[i][1]||'';
+                  if(!r.noNeg && /^\(/.test(cell)) cls+=(cls?' ':'')+'neg';
+                  return '<td'+(cls?' class="'+cls+'"':'')+'>'+esc(cell)+'</td>';
+                }).join('');
+                return '<tr'+(r.cls?' class="'+r.cls+'"':'')+'>'+tds+'</tr>';
+              }).join('');
+              return '<div class="table-scroll"><table class="'+t.tblCls+'"><thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>';
+            }
+            if(F.dre){
+              var d=F.dre;
+              var obs='<ul class="dre-obs">'+d.obs.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>';
+              var html='<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Orçamento 2026 por projeto vs. BP Copa</div><span class="tag">'+esc(d.tag)+'</span></div><div class="card-body">'+dtable(d)+obs+'<p class="card-note" style="margin-top:10px">'+d.note+'</p></div></div></div>';
+              var m=document.getElementById('gnlFinDre'); if(m) m.innerHTML=html;
+            }
+            // Fluxos de caixa (histórico e mensal): mesmo dtable, card padrão + nota.
+            function fcxCard(t,title){
+              return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">'+title+'</div><span class="tag">'+esc(t.tag)+'</span></div><div class="card-body">'+dtable(t)+'<p class="card-note" style="margin-top:12px">'+t.note+'</p></div></div></div>';
+            }
+            if(F.fcxHist){ var mh=document.getElementById('gnlFinHist'); if(mh) mh.innerHTML=fcxCard(F.fcxHist,'Fluxo de Caixa Histórico'); }
+            if(F.fcxMensal){ var mm=document.getElementById('gnlFinMensal'); if(mm) mm.innerHTML=fcxCard(F.fcxMensal,'Fluxo de Caixa — Orçamento 2026 (mensal)'); }
+          })();
+          </script>
+
+          <script>
+          // Seletor de visão de Resultados (histórico / orçamento 2026 / longo prazo).
+          (function(){
+            var panel=document.querySelector('.emp-panel[data-emp="resultados"]');
+            if(!panel) return;
+            var caps={hist:'GNLink — fluxo de caixa realizado 2022–2024 e forecast 2025',
+                      orc2026:'GNLink — Orçamento 2026 · Comitê de Investimentos Lorinvest, 15/dez/2025 (slides 8 e 20)',
+                      lp:'Projeções de longo prazo — em desenvolvimento'};
+            var btns=panel.querySelectorAll('.comm-seg button');
+            var cap=panel.querySelector('#resSrcCap');
+            btns.forEach(function(b){ b.addEventListener('click',function(){
+              var v=b.getAttribute('data-view');
+              btns.forEach(function(x){ x.classList.toggle('active',x===b); });
+              panel.querySelectorAll('.comm-view').forEach(function(vw){ vw.classList.toggle('active',vw.getAttribute('data-view')===v); });
+              if(cap) cap.textContent=caps[v]||'';
+            });});
+          })();
+          </script>
           </div>
 
+          <div class="emp-panel" data-emp="alavancagem">
           <div class="row-full">
             <div class="card">
               <div class="card-header"><div class="card-title">Análises</div></div>
@@ -3879,17 +3393,11 @@
           <div class="emp-panel" data-emp="valuation">
           <div class="row-full">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Valuation &amp; Cenários</div>
-              </div>
               <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span>EV Base: R$ 1,2 bi – WACC 9,0% real / crescimento perpétuo 2,5%.</span></li>
-                  <li><span class="bullet">•</span><span>Cenário Alto: ramp-up mais rápido de volume (+15% em 3 anos) e extensão contratual com âncora industrial.</span></li>
-                  <li><span class="bullet">•</span><span>Cenário Stress: atraso de 2 anos na entrada de novos ramais e revisões tarifárias abaixo da inflação.</span></li>
-                </ul>
-                <div class="placeholder-chart">
-                  Gráfico Tornado mostrando impacto de volume contratado (±20%), WACC (±2 p.p.) e capex unitário (+20%) no Equity Value.
+                <div class="e2-dev">
+                  <div class="ic">&#128679;</div>
+                  <div class="t">Em desenvolvimento&#8230;</div>
+                  <div class="s">A se&#231;&#227;o <b>Valuation</b> da GNLink est&#225; sendo constru&#237;da.</div>
                 </div>
               </div>
             </div>
@@ -3898,116 +3406,51 @@
           <div class="emp-panel" data-emp="comites">
           <div class="row-full">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Temas para o Próximo Conselho</div>
-              </div>
               <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span>Revisão do plano de expansão de ramais secundários diante da sinalização de demanda de novos clientes industriais.</span></li>
-                  <li><span class="bullet">•</span><span>Estrutura de capital: alongamento da dívida de projeto e possível emissão de debêntures incentivadas.</span></li>
-                  <li><span class="bullet">•</span><span>Estratégia comercial frente à abertura do mercado de gás e novos supridores independentes.</span></li>
-                </ul>
-                <p class="card-note">
-                  ➜ Este card deve ser atualizado a cada ciclo de Conselho com 3–5 questões-chave.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="row-full" style="margin-top: 14px;">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Risk Radar – Riscos Transversais</div>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                <table class="placeholder-table">
-                  <thead>
-                    <tr><th>Risco</th><th>Âmbito</th><th>Empresas / Setores</th><th>Status</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Juros altos por mais tempo</td><td>Macro</td><td>Portfólio alavancado</td><td>🟡 Atenção</td></tr>
-                    <tr><td>Risco regulatório em gás</td><td>Regulatório</td><td>GNLink, demais ativos de gás</td><td>🟡 Atenção</td></tr>
-                    <tr><td>Capacidade de execução em saúde</td><td>Operacional</td><td>HospCare / M&amp;A de clínicas</td><td>🔴 Crítico</td></tr>
-                    <tr><td>Abertura do mercado de gás</td><td>Estrutural</td><td>GNLink, potenciais novos entrantes</td><td>🟢 Monitorado</td></tr>
-                    <tr><td>Pressão de custo de capital (spreads)</td><td>Financiamento</td><td>Projetos com capex intensivo</td><td>🟡 Atenção</td></tr>
-                  </tbody>
-                </table>
+                <div class="e2-dev">
+                  <div class="ic">&#128679;</div>
+                  <div class="t">Em desenvolvimento&#8230;</div>
+                  <div class="s">A se&#231;&#227;o <b>Comit&#234;s</b> da GNLink est&#225; sendo constru&#237;da.</div>
                 </div>
-                <div class="tag-row" style="margin-top: 6px;">
-                  <span class="tag">🟢 Monitorado</span>
-                  <span class="tag-soft">🟡 Atenção</span>
-                  <span class="tag-risk">🔴 Crítico</span>
-                </div>
-                <p class="card-note">
-                  ➜ Idealmente, esse card é alimentado por uma matriz de riscos viva (por empresa/tema), com dono e plano de mitigação.
-                </p>
               </div>
             </div>
           </div>
           </div>
           <div class="emp-panel" data-emp="competidores">
-          <div class="row-full">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Mapa competitivo — cadeia de energia térmica</div></div>
-              <div class="card-body">
-                <p class="card-note">Universo de competidores organizado por elo (segmento) da cadeia de energia térmica. Em destaque, o elo onde a GNLink atua.</p>
-                <div class="mc-legend">
-                  <span class="lg"><span class="sw" style="background:#EAF3EC;border:1px solid rgba(46,125,79,.5)"></span>Elo da GNLink</span>
-                </div>
-                <div class="mc-feature">
-                  <div class="mc-feature-head">
-                    <div class="mc-feature-title">Onde a GNLink compete — Distribuidoras de GNL/GNC</div>
-
-                  </div>
-                  <div class="mc-invest" style="margin-top:6px;"><b>Investidores do elo:</b> Lorinvest · White Martins · J&amp;F · Copa Energia · Ultragaz</div>
-                  <div class="mc-grid">
-                    <details class="mc-comp is-self"><summary><span class="mc-comp-name">GNLink</span><span class="mc-comp-role">Nossa investida</span></summary><div class="mc-comp-detail">Small Scale LNG · liquefação e regaseificação onshore e distribuição de GNL por modal rodoviário.</div></details>
-                    <details class="mc-comp"><summary><span class="mc-comp-name">GásLocal</span><span class="mc-comp-role">GNL/GNC</span></summary><div class="mc-comp-detail">Informações detalhadas a incluir.</div></details>
-                    <details class="mc-comp"><summary><span class="mc-comp-name">Logás</span><span class="mc-comp-role">GNL/GNC</span></summary><div class="mc-comp-detail">Informações detalhadas a incluir.</div></details>
-                    <details class="mc-comp"><summary><span class="mc-comp-name">CTG</span><span class="mc-comp-role">GNL/GNC</span></summary><div class="mc-comp-detail">Informações detalhadas a incluir.</div></details>
-                    <details class="mc-comp"><summary><span class="mc-comp-name">CDGN</span><span class="mc-comp-role">GNL/GNC</span></summary><div class="mc-comp-detail">Informações detalhadas a incluir.</div></details>
-                    <details class="mc-comp"><summary><span class="mc-comp-name">NEOgás</span><span class="mc-comp-role">GNL/GNC</span></summary><div class="mc-comp-detail">Informações detalhadas a incluir.</div></details>
-                  </div>
-                </div>
-                <div class="mc-segments">
-                <div class="mc-seg-card">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#8A6D3B"></span>Holdings diversificadas</div><span class="mc-seg-count">6 players</span></div>
-                  <div class="mc-chips"><a class="mc-chip" href="gnlink/competidores/compass/index.html" target="_blank" rel="noopener">Compass</a><span class="mc-chip">Cosan</span><span class="mc-chip">Energisa</span><span class="mc-chip">J&amp;F</span><span class="mc-chip">Mitsui</span><span class="mc-chip">Ultrapar</span></div>
-                </div>
-                <div class="mc-seg-card">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#55677C"></span>Distribuidoras de combustíveis</div><span class="mc-seg-count">4 players</span></div>
-                  <div class="mc-chips"><span class="mc-chip">Raízen</span><span class="mc-chip">Ipiranga</span><span class="mc-chip">Vibra Energia</span><span class="mc-chip">Ultracargo</span></div>
-                  <div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">Ultrapar · Cosan</span></div>
-                </div>
-                <div class="mc-seg-card">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#C55A17"></span>Distribuidoras de GLP</div><span class="mc-seg-count">4 players</span></div>
-                  <div class="mc-chips"><span class="mc-chip">Ultragaz</span><span class="mc-chip">Copa Energia</span><span class="mc-chip">Supergasbras</span><span class="mc-chip">Nacional Gás</span></div>
-                  <div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">Ultrapar · Itaúsa · SHV Energy · Edson Queiroz</span></div>
-                </div>
-                <div class="mc-seg-card">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#3D4A5C"></span>Distribuidoras de gás natural</div><span class="mc-seg-count">19+ players</span></div>
-                  <div class="mc-regions"><div class="mc-region-row"><span class="mc-region-label">Nordeste</span><div class="mc-chips"><span class="mc-chip">Bahiagás</span><span class="mc-chip">Algás</span><span class="mc-chip">Sergás</span><span class="mc-chip">Copergás</span><span class="mc-chip">Cegás</span><span class="mc-chip">Potigás (…)</span></div></div><div class="mc-region-row"><span class="mc-region-label">Sudeste</span><div class="mc-chips"><span class="mc-chip">Comgás</span><span class="mc-chip">Gasmig</span><span class="mc-chip">Naturgy</span><span class="mc-chip">CEG</span><span class="mc-chip">Necta</span><span class="mc-chip">ESgás</span></div></div><div class="mc-region-row"><span class="mc-region-label">Sul</span><div class="mc-chips"><span class="mc-chip">Compagás</span><span class="mc-chip">SCGás</span><span class="mc-chip">Sulgás</span></div></div><div class="mc-region-row"><span class="mc-region-label">Centro-Oeste</span><div class="mc-chips"><span class="mc-chip">MSGás</span><span class="mc-chip">MTGás</span><span class="mc-chip">CEBGás</span><span class="mc-chip">Goiasgás</span></div></div></div>
-                  <div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">Mitsui · Compass/Commit · Energisa</span></div>
-                </div>
-                <div class="mc-seg-card hl">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#2E7D4F"></span>Distribuidoras de GNL/GNC</div><span class="mc-seg-count">6 players</span></div>
-                  <div class="mc-chips"><span class="mc-chip self">GNLink</span><span class="mc-chip">GásLocal</span><span class="mc-chip">Logás</span><span class="mc-chip">CTG</span><span class="mc-chip">CDGN</span><span class="mc-chip">NEOgás</span></div>
-                  <div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">Lorinvest · White Martins · J&amp;F · Copa Energia · Ultragaz</span></div>
-                </div>
-                <div class="mc-seg-card">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#4E8385"></span>Gas-to-Power</div><span class="mc-seg-count">4 players</span></div>
-                  <div class="mc-chips"><span class="mc-chip">Eneva</span><span class="mc-chip">Âmbar Energia</span><span class="mc-chip">KPS</span><span class="mc-chip">Origem</span></div>
-                  <div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">BTG · J&amp;F · Prisma</span></div>
-                </div>
-                <div class="mc-seg-card">
-                  <div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:#6B8299"></span>Logística</div><span class="mc-seg-count">3 players</span></div>
-                  <div class="mc-chips"><span class="mc-chip">VirtuGNL</span><span class="mc-chip">Rumo</span><span class="mc-chip">Hidrovias do Brasil</span></div>
-                  <div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">BTG · Perfin · Cosan · Ultrapar</span></div>
-                </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div id="gnlComp"></div>
+          <script>
+          // Mapa competitivo (players/investidores por elo): gerado de
+          // EMP['GNLink'].competidores. Conteúdo tem entidades pré-codificadas
+          // (ex.: J&amp;F) — inserido como HTML, sem re-escapar.
+          (function(){
+            var g=(window.EMP||{})['GNLink'], C=g&&g.competidores;
+            var mount=document.getElementById('gnlComp'); if(!C||!mount) return;
+            function chip(c){
+              if(typeof c==='string') return '<span class="mc-chip">'+c+'</span>';
+              if(c.href) return '<a class="mc-chip" href="'+c.href+'" target="_blank" rel="noopener">'+c.name+'</a>';
+              return '<span class="mc-chip'+(c.self?' self':'')+'">'+c.name+'</span>';
+            }
+            var comps=C.feature.comps.map(function(k){
+              return '<details class="mc-comp'+(k.self?' is-self':'')+'"><summary><span class="mc-comp-name">'+k.name+'</span><span class="mc-comp-role">'+k.role+'</span></summary><div class="mc-comp-detail">'+k.detail+'</div></details>';
+            }).join('');
+            var segs=C.segments.map(function(s){
+              var head='<div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:'+s.dot+'"></span>'+s.title+'</div><span class="mc-seg-count">'+s.count+'</span></div>';
+              var body=s.regions
+                ? '<div class="mc-regions">'+s.regions.map(function(r){return '<div class="mc-region-row"><span class="mc-region-label">'+r.label+'</span><div class="mc-chips">'+r.chips.map(chip).join('')+'</div></div>';}).join('')+'</div>'
+                : '<div class="mc-chips">'+s.chips.map(chip).join('')+'</div>';
+              var inv=s.invest?'<div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">'+s.invest+'</span></div>':'';
+              return '<div class="mc-seg-card'+(s.hl?' hl':'')+'">'+head+body+inv+'</div>';
+            }).join('');
+            mount.innerHTML='<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Mapa competitivo — cadeia de energia térmica</div></div><div class="card-body">'
+              +'<p class="card-note">'+C.intro+'</p>'
+              +'<div class="mc-legend"><span class="lg"><span class="sw" style="background:#EAF3EC;border:1px solid rgba(46,125,79,.5)"></span>'+C.legend+'</span></div>'
+              +'<div class="mc-feature"><div class="mc-feature-head"><div class="mc-feature-title">'+C.feature.title+'</div></div>'
+              +'<div class="mc-invest" style="margin-top:6px;"><b>Investidores do elo:</b> '+C.feature.invest+'</div>'
+              +'<div class="mc-grid">'+comps+'</div></div>'
+              +'<div class="mc-segments">'+segs+'</div>'
+              +'</div></div></div>';
+          })();
+          </script>
           </div>
         </section>
 
@@ -4019,219 +3462,79 @@
             </div>
           </div>
 
-          <div class="grid-bento">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Teses Setoriais Atuais</div>
-              </div>
-              <div class="card-body">
-                <div class="table-scroll">
-                <table class="placeholder-table">
-                  <thead>
-                    <tr>
-                      <th>Setor</th>
-                      <th>Tese</th>
-                      <th>Risco-chave</th>
-                      <th>Exposição do fundo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Óleo &amp; Gás / Gás Natural</td>
-                      <td>Desenvolvimento da malha e competitividade do gás na transição energética</td>
-                      <td>Regulatório / preço de commodities</td>
-                      <td>Média / Alta (GNLink + outros ativos)</td>
-                    </tr>
-                    <tr>
-                      <td>Saúde</td>
-                      <td>Consolidação &amp; verticalização</td>
-                      <td>Regulação / sinistralidade</td>
-                      <td>Alta</td>
-                    </tr>
-                    <tr>
-                      <td>Logística</td>
-                      <td>Eficiência e infraestrutura multimodal</td>
-                      <td>Capex / demanda</td>
-                      <td>Média</td>
-                    </tr>
-                  </tbody>
-                </table>
-                </div>
-              </div>
-            </div>
-
+          <div class="row-full">
             <div class="card">
               <div class="card-header">
                 <div class="card-title">Cenário Macro</div>
               </div>
               <div class="card-body">
-                <div class="flex-row">
-                  <div>
-                    <div class="metric-row">
-                      <div class="metric-value">2,2%</div>
-                      <div class="metric-label">PIB (ano corrente)</div>
-                    </div>
-                    <div class="metric-row">
-                      <div class="metric-value">4,0%</div>
-                      <div class="metric-label">Inflação (12m)</div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="metric-row">
-                      <div class="metric-value">5,5%</div>
-                      <div class="metric-label">Juros reais ex-ante</div>
-                    </div>
-                    <div class="metric-row">
-                      <div class="metric-value">R$ 5,20</div>
-                      <div class="metric-label">Câmbio (BRL/USD)</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="placeholder-chart">
-                  Gráfico de cenário base x otimista x stress e impacto estimado em demanda de gás, custo de capital e valuations.
-                </div>
+                <!-- Métricas macro: fonte única em data/empresas.js (window.MACRO). -->
+                <div class="flex-row" id="macroGrid"></div>
+                <script>
+                (function(){
+                  var box=document.getElementById('macroGrid'); if(!box) return;
+                  var M=window.MACRO||[]; if(!M.length) return;
+                  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+                  function cell(m){ return '<div class="metric-row"><div class="metric-value">'+esc(m[0])+'</div><div class="metric-label">'+esc(m[1])+'</div></div>'; }
+                  var half=Math.ceil(M.length/2), cols='';
+                  [M.slice(0,half), M.slice(half)].forEach(function(g){ cols+='<div>'+g.map(cell).join('')+'</div>'; });
+                  box.innerHTML=cols;
+                })();
+                </script>
               </div>
             </div>
+          </div>
 
+          <div class="row-full" style="margin-top: 14px;">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Impacto no Portfólio</div>
-              </div>
               <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span>GNLink é mais sensível a demanda industrial e spreads entre gás e óleo combustível.</span></li>
-                  <li><span class="bullet">•</span><span>Ativos de saúde sofrem mais com inflação médica e renda disponível.</span></li>
-                  <li><span class="bullet">•</span><span>Ativos de logística são mais sensíveis a PIB e custo de financiamento (capex intensivo).</span></li>
-                </ul>
-                <div class="tag-row">
-                  <span class="tag">Stress Test</span>
-                  <span class="tag">Cenário Base</span>
-                  <span class="tag">Cenário Alto</span>
+                <div class="e2-dev">
+                  <div class="ic">&#128679;</div>
+                  <div class="t">Em desenvolvimento&#8230;</div>
+                  <div class="s">As teses setoriais e o impacto no portf&#243;lio ser&#227;o constru&#237;dos a partir das an&#225;lises setoriais da &#225;rea.</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
-
-        <!-- Análises & Projetos -->
         <section class="section" id="section-projects">
           <div class="section-title-row">
             <div>
-              <div class="section-title">Análises &amp; Projetos</div>
-          <div class="company-selector">
-            <span class="company-selector-label">Empresa selecionada:</span>
-            <div class="company-selector-pills"></div>
-          </div>
+              <div class="section-title">An&#225;lises &amp; Projetos</div>
             </div>
           </div>
 
-          <div class="grid-2">
+          <div class="row-full">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Pipeline de Projetos</div>
-              </div>
               <div class="card-body">
-                <div class="table-scroll">
-                <table class="placeholder-table">
-                  <thead>
-                    <tr>
-                      <th>Projeto</th>
-                      <th>Empresa</th>
-                      <th>Tipo</th>
-                      <th>Status</th>
-                      <th>IC alvo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Expansão Ramal Norte II</td>
-                      <td>GNLink</td>
-                      <td>Capex</td>
-                      <td>Modelagem avançada</td>
-                      <td>Mar/26</td>
-                    </tr>
-                    <tr>
-                      <td>Build-up Hospitais Regionais</td>
-                      <td>HospCare</td>
-                      <td>M&amp;A</td>
-                      <td>Screening</td>
-                      <td>Abr/26</td>
-                    </tr>
-                    <tr>
-                      <td>Projeto Pricing Carteira Frota</td>
-                      <td>PayFleet</td>
-                      <td>Pricing</td>
-                      <td>Em análise</td>
-                      <td>Mai/26</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="e2-dev">
+                  <div class="ic">&#128679;</div>
+                  <div class="t">Em desenvolvimento&#8230;</div>
+                  <div class="s">O pipeline de projetos e os entreg&#225;veis ser&#227;o alimentados pelo reposit&#243;rio de documentos da &#225;rea.</div>
                 </div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Últimos Entregáveis</div>
-              </div>
-              <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span><strong>01/11/2025</strong> – Project Memo – Expansão Tronco Leste GNLink (TIR real 11,8%, NPV R$ 180 mi, análise de risco regulatório).</span></li>
-                  <li><span class="bullet">•</span><span><strong>15/09/2025</strong> – Investment Memo – Aquisição Target XYZ (clínicas diagnósticas) pela HospCare.</span></li>
-                  <li><span class="bullet">•</span><span><strong>03/08/2025</strong> – Nota Técnica – Abertura do mercado de gás e impactos na estratégia comercial da GNLink.</span></li>
-                </ul>
-                <p class="card-note">
-                  ➜ Conecte esta lista com o repositório de documentos (Sharepoint/Notion etc.).
-                </p>
               </div>
             </div>
           </div>
         </section>
-
-        <!-- Teses & Exits -->
         <section class="section" id="section-thesis">
           <div class="section-title-row">
             <div>
               <div class="section-title">Teses &amp; Exits</div>
-          <div class="company-selector">
-            <span class="company-selector-label">Empresa selecionada:</span>
-            <div class="company-selector-pills"></div>
-          </div>
             </div>
           </div>
 
-          <div class="grid-bento">
+          <div class="row-full">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Tese</div>
-              </div>
               <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span><strong>Por que entramos:</strong> assimetria entre potencial de demanda industrial de gás na região e infraestrutura existente; capacidade de originar contratos de longo prazo.</span></li>
-                  <li><span class="bullet">•</span><span><strong>O que fizemos:</strong> reforço de governança, estrutura de capital de longo prazo, expansão de ramais industriais, renegociação de contratos legados.</span></li>
-                  <li><span class="bullet">•</span><span><strong>Onde chegamos:</strong> aumento de volume contratado, melhora de rating de crédito, alavancagem em 2,3x DL/EBITDA com perfil de vencimento adequado.</span></li>
-                  <li><span class="bullet">•</span><span><strong>Para onde vamos:</strong> capturar nova demanda de gás em setores intensivos em energia e monetizar opcionalidades via novo ciclo de expansão.</span></li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Equity Story &amp; Preparação de Exit</div>
-              </div>
-              <div class="card-body">
-                <ul class="list">
-                  <li><span class="bullet">•</span><span><strong>Narrativa:</strong> plataforma de infraestrutura de gás com fluxo contratado de longo prazo e opcionalidades de expansão.</span></li>
-                  <li><span class="bullet">•</span><span><strong>Compradores naturais:</strong> estratégicos de energia/gás, fundos de infraestrutura e players regionais.</span></li>
-                  <li><span class="bullet">•</span><span><strong>Preparação de saída:</strong> data room, auditoria, limpeza societária e materiais de venda.</span></li>
-                </ul>
-                <p class="card-note">➜ Card reconstruído após perda de dados — ajuste com o conteúdo original da tese.</p>
+                <div class="e2-dev">
+                  <div class="ic">&#128679;</div>
+                  <div class="t">Em desenvolvimento&#8230;</div>
+                  <div class="s">A tese de investimento e a prepara&#231;&#227;o de exit ser&#227;o montadas a partir dos materiais reais de cada investida.</div>
+                </div>
               </div>
             </div>
           </div>
         </section>
-
-        <!-- Base de Conhecimento -->
         <section class="section" id="section-knowledge">
           <div class="section-title-row">
             <div>
@@ -4267,10 +3570,6 @@
       </div>
     </main>
   </div>
-
-  <!-- Fonte única de dados das empresas (aportes, governança, etc.). Deve vir
-       ANTES dos scripts que a consomem (Panorama e aba Empresas). -->
-  <script src="data/empresas.js"></script>
 
   <script>
     (function(){
@@ -4492,7 +3791,12 @@
     var PAL = ['#1F3B57','#2E7D4F','#8FA6BC','#C55A17','#6B8299','#B23A2E','#7FB0A0','#D6B24A'];
 
     var ANALYST = {"Akron":"Lucas Werner","Bioren":"Murilo Nunes","Eindom":"Lucas Marques","Valsa":"Lucas Marques","GBS Storage":"Murilo Nunes","New Wave":"Lucas Marques","Norcoast":"Lucas Werner","Norflor":"Felipe Seixas","Norsul":"Lucas Werner","Sileto":"Felipe Seixas","Target Bank":"Murilo Nunes","Tree+":"Felipe Seixas"};
-    var PHOTO = {"Lucas Werner":"logos/lucaswerner-logo.jpg","Murilo Nunes":"logos/murilo-logo.jpg","Lucas Marques":"logos/lucasmarques-logo.jpg","Felipe Seixas":"logos/felipeseixas-logo.jpg"};
+    // Foto, cargo e contato por analista: derivados da fonte única window.ANALISTAS
+    // (data/empresas.js) — sem reescrever os mesmos dados aqui.
+    var PHOTO={}, ANALYST_ROLE={}, CONTACT={};
+    (window.ANALISTAS||[]).forEach(function(a){
+      PHOTO[a.nome]=a.avatar; ANALYST_ROLE[a.nome]=a.role; CONTACT[a.nome]=[a.email,a.phone];
+    });
     // Cabeçalho por empresa (setor/breadcrumb, descrição, tags). Valores inferidos — confirmar.
     var HDR = {
       "Akron":      {crumb:["Serviços Financeiros","Gestão de Recursos"], sub:"Gestora de recursos.", tags:["Asset Management","Financeiro"]},
@@ -4508,13 +3812,9 @@
       "Target Bank":{crumb:["Serviços Financeiros","Banco"], sub:"Banco / serviços financeiros.", tags:["Financeiro","Banco"]},
       "Tree+":      {crumb:["Agronegócio","Base Florestal"], sub:"Fundo florestal — Skog FIP.", tags:["Florestal"]}
     };
-    // Cargo/cobertura e contato por analista (do To-Do Tracker).
-    var ANALYST_ROLE = {"Murilo Nunes":"Oil & Gas · Transportation · Industrial Tech","Lucas Werner":"Research Lead","Lucas Marques":"Metals & Mining · Real Estate · Healthcare","Felipe Seixas":"Forestry · Cement"};
-    var CONTACT = {"Murilo Nunes":["murilo.nunes@lorinvest.com","+5521979028288"],"Lucas Werner":["lucas.werner@lorinvest.com","+5521984401311"],"Lucas Marques":["lucas.marques@lorinvest.com","+5521995003329"],"Felipe Seixas":["felipe.seixas@lorinvest.com","+5521994484455"]};
-
     var EMP = window.EMP;  // dados movidos para data/empresas.js (fonte única)
 
-    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["financeiro","Financeiro e Alavancagem"],["valuation","Valuation"],["comites","Comitês"],["competidores","Mapa competitivo"]];
+    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["resultados","Resultados"],["alavancagem","Alavancagem"],["valuation","Valuation"],["comites","Comitês"],["competidores","Mapa competitivo"]];
 
     function pctTxt(n){ return String(n).replace('.',','); }
     function fmtPhone(p){ var d=String(p).replace(/\D/g,''); return d.length>=13 ? '+'+d.slice(0,2)+' '+d.slice(2,4)+' '+d.slice(4,9)+'.'+d.slice(9,13) : p; }
@@ -4685,9 +3985,9 @@
       }
       return html || renderDev(name,'Operacional');
     }
-    // Financeiro e Alavancagem — por enquanto o bloco "Acompanhamento do Orçamento 2025" (CI Dez/25 · slide 5)
-    function renderFinanceiro(name,d){
-      var f=d.financeiro; if(!f) return renderDev(name,'Financeiro e Alavancagem');
+    // Resultados — por enquanto o bloco "Acompanhamento do Orçamento 2025" (CI Dez/25 · slide 5).
+    function renderResultados(name,d){
+      var f=d.financeiro; if(!f) return renderDev(name,'Resultados');
       var html='';
       if(f.orcado2025){
         var o=f.orcado2025, r=o.resultado;
@@ -4747,7 +4047,7 @@
           +(e.source?'<p class="card-note" style="margin-top:12px;">Fonte: '+esc(e.source)+'</p>':'')
           +'</div></div></div>';
       }
-      return html || renderDev(name,'Financeiro e Alavancagem');
+      return html || renderDev(name,'Resultados');
     }
     function renderDev(name,label){
       return '<div class="e2-card e2-dev"><div class="ic">🚧</div><div class="t">Em desenvolvimento…</div><div class="s">A seção <b>'+esc(label)+'</b> da '+esc(name)+' está sendo construída.</div></div>';
@@ -4771,7 +4071,7 @@
       if(e2tab==='aportes' && d) bodyEl.innerHTML=renderAportes(e2co,d);
       else if(e2tab==='governanca' && d){ bodyEl.innerHTML=renderGov(e2co,d); if(window.renderBoards) window.renderBoards(); }
       else if(e2tab==='operacional' && d && d.operacional) bodyEl.innerHTML=renderOperacional(e2co,d);
-      else if(e2tab==='financeiro' && d && d.financeiro) bodyEl.innerHTML=renderFinanceiro(e2co,d);
+      else if(e2tab==='resultados' && d && d.financeiro) bodyEl.innerHTML=renderResultados(e2co,d);
       else bodyEl.innerHTML=renderDev(e2co, labelOf(e2tab));
     }
     function applyCompany(name){
@@ -4804,6 +4104,19 @@
     document.querySelectorAll('#section-company .company-pill').forEach(function(p){
       p.addEventListener('click', function(){ applyCompany(p.getAttribute('data-company')); });
     });
+
+    // GNLink é a única empresa com workspace estático. Sua Governança, porém, passa
+    // a ser gerada pelo MESMO renderGov das demais (donut na paleta padrão + board
+    // idêntico), lendo de EMP['GNLink']. Enxertamos só o miolo do card-body no mount
+    // #gnlGovBody; o board (data-members) é desenhado pelo boot()/renderBoards no
+    // DOMContentLoaded, que ainda não rodou neste ponto do parse (sem render dobrado).
+    (function(){
+      var mount=document.getElementById('gnlGovBody'), g=EMP&&EMP['GNLink'];
+      if(!mount||!g||!g.governanca) return;
+      var tmp=document.createElement('div'); tmp.innerHTML=renderGov('GNLink',g);
+      var body=tmp.querySelector('.card-body');
+      if(body) mount.innerHTML=body.innerHTML;
+    })();
   })();
   </script>
 
@@ -5257,6 +4570,23 @@
     api('GET')
       .then(function(list){ todos = Array.isArray(list) ? list : []; render(); })
       .catch(function(err){ grid.removeAttribute('aria-busy'); grid.innerHTML = '<div class="todo-error">Não foi possível carregar as tarefas: ' + esc(err.message) + '</div>'; });
+  })();
+  </script>
+
+  <script>
+  // Seletores de base de dados (RCI/RCA): o default é sempre a base MAIS RECENTE,
+  // ou seja, o último botão de cada .comm-seg. Roda depois dos scripts dos painéis
+  // para reaproveitar os handlers deles (que já trocam view + legenda de fonte).
+  // Assim, ao acrescentar uma base nova no fim, ela vira o default sozinha.
+  // Exceção: seletores que não são de base mensal declaram data-default="<view>".
+  (function(){
+    document.querySelectorAll('.comm-seg').forEach(function(seg){
+      var bs = seg.querySelectorAll('button');
+      if (!bs.length) return;
+      var fixo = seg.getAttribute('data-default');
+      var alvo = fixo ? seg.querySelector('button[data-view="' + fixo + '"]') : null;
+      (alvo || bs[bs.length - 1]).click();
+    });
   })();
   </script>
 </body>

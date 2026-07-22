@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GNLink · Aportes &amp; Exposição dos Acionistas</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F9;--card:#FFFFFF;--ink:#13202E;--muted:#5C6B7A;
+  --accent:#002D5C;--accent2:#28477E;--line:#E2E7EE;--neg:#B23A3A;--pos:#2E7D4F;
+  --nw-blue:#4880A8;--nw-blue-deep:#0056A7;--nw-mint:#7FC6A2;
+  --lor:#002D5C;--lor-soft:#6F94BC;--lor-bg:#E7EEF6;
+  --copa:#C25C12;--copa-soft:#F2AE75;--copa-bg:#FBEEE2;
+  --pr:#4880A8;--ba:#5A9B87;--rn:#D89A3F;--ho:#8A8CA6;
+  --tab-mark:#E23A2E;   /* sublinhado da aba ativa — mesmo do painel de research */
+  --shadow:0 1px 2px rgba(19,32,46,.05),0 4px 14px rgba(19,32,46,.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.45;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1;-webkit-text-size-adjust:100%;}
+button{font-family:inherit;cursor:pointer;}
+/* ===== header ===== */
+header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(35,39,42,.05);}
+header::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--nw-blue-deep),var(--nw-blue) 55%,var(--nw-mint));}
+.hwrap{max-width:1240px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:13px;flex-wrap:wrap;}
+.logo img{height:34px;width:auto;display:block;}
+.hsep{width:1px;height:26px;background:var(--line);}
+.hsub{font-size:10.5px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--nw-blue-deep);}
+.hspace{flex:1;}
+.conf{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--nw-blue-deep);border:1px solid rgba(0,86,167,.45);border-radius:6px;padding:4px 9px;background:rgba(72,128,168,.1);white-space:nowrap;}
+main{max-width:1240px;margin:0 auto;padding:18px 22px 40px;overflow-x:hidden;}
+h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.2px;}
+.sublead{color:var(--muted);font-size:12px;line-height:1.55;margin:8px 0 0;}
+/* ===== sub-abas (mesmo padrão do painel de research: .ov-tabs / .emp-tabs) ===== */
+.tabs{
+  display:flex;gap:2px;flex-wrap:nowrap;border-bottom:2px solid var(--line);
+  margin:26px 0 0;overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tabbtn{
+  background:none;border:none;font-size:13px;font-weight:600;color:var(--muted);
+  padding:9px 14px;border-bottom:2.5px solid transparent;margin-bottom:-2px;
+  white-space:nowrap;cursor:pointer;transition:color .15s;flex:0 0 auto;
+}
+.tabbtn:hover{color:var(--accent);}
+.tabbtn.active{color:var(--accent);border-bottom-color:var(--tab-mark);}
+.tabpanel{display:none;margin-top:14px;}
+.tabpanel.on{display:block;}
+/* ===== kpis ===== */
+.kgrp{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin:14px 0 -2px;display:flex;align-items:center;gap:8px;}
+.kgrp em{font-style:normal;font-weight:600;letter-spacing:0;text-transform:none;font-size:11.5px;color:#8A97A6;}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:10px 0 4px;}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.kpi .cap{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.kpi .val{font-size:21px;font-weight:700;margin-top:5px;letter-spacing:-.4px;}
+.kpi .sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.kpi .split{margin-top:8px;font-size:11px;color:#46566A;display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:7px;}
+.kpi .split span{display:flex;justify-content:space-between;gap:8px;}
+.kpi .split b{font-weight:700;color:var(--ink);}
+.kpi .split span.minus b{color:var(--muted);font-weight:600;}
+/* destaque suave por acionista */
+.k-lor{background:#EAF2FA;border-color:#C9DCEF;}
+.k-lor .cap,.k-lor .val{color:var(--lor);}
+.k-lor .split{border-top-color:#C9DCEF;}
+.k-copa{background:#FDF1E5;border-color:#F3D7BC;}
+.k-copa .cap,.k-copa .val{color:var(--copa);}
+.k-copa .split{border-top-color:#F3D7BC;}
+/* ===== sections ===== */
+.secttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--accent2);font-weight:700;margin:30px 0 4px;display:flex;align-items:center;gap:10px;}
+.secttl::after{content:'';flex:1;height:1px;background:var(--line);}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:12px 0;}
+.grid2>*{min-width:0;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:17px 19px;box-shadow:var(--shadow);min-width:0;position:relative;}
+.card.full{grid-column:span 2;}
+.card h3{font-size:14.5px;margin:0;font-weight:700;padding-right:38px;}
+.card .hint{font-size:11.5px;color:var(--muted);margin:5px 0 0;line-height:1.5;}
+.note{font-size:11.5px;color:#46566A;margin-top:11px;line-height:1.5;}
+.note b{color:var(--ink);}
+/* chips / toggles */
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0 6px;}
+.chips .lab{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+.pbtn{font-size:12.5px;font-weight:600;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);padding:7px 15px;transition:all .15s;}
+.pbtn:hover{border-color:var(--accent2);color:var(--accent);}
+.pbtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* chart plumbing */
+.chart-expand{position:absolute;top:14px;right:14px;z-index:3;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--muted);box-shadow:var(--shadow);transition:all .15s;}
+.chart-expand:hover{border-color:var(--accent2);color:var(--accent);background:#F6F8FA;}
+.chart-expand:active{transform:scale(.94);}
+.chart-expand svg{width:15px;height:15px;pointer-events:none;}
+.chartscroll{margin-top:10px;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#B8C2CE #EEF2F6;overscroll-behavior-x:contain;}
+.chartscroll::-webkit-scrollbar{height:9px;}
+.chartscroll::-webkit-scrollbar-track{background:#EEF2F6;border-radius:9px;}
+.chartscroll::-webkit-scrollbar-thumb{background:#B8C2CE;border-radius:9px;border:2px solid #EEF2F6;}
+.chart-box{position:relative;height:330px;}
+.chart-box.tall{height:380px;}
+.cmodal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(19,32,46,.55);backdrop-filter:blur(2px);}
+.cmodal.open{display:flex;}
+.cmodal-inner{background:var(--card);border-radius:14px;box-shadow:0 24px 70px rgba(19,32,46,.4);width:min(1180px,96vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+.cmodal-head{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--line);}
+.cmodal-head h3{margin:0;font-size:16px;font-weight:700;flex:1;line-height:1.3;}
+.cmodal-close{width:32px;height:32px;flex:none;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:17px;}
+.cmodal-close:hover{border-color:var(--neg);color:var(--neg);background:#FBEDED;}
+.cmodal-body{padding:18px 20px 22px;overflow:auto;}
+.cmodal-body .chart-box{height:min(58vh,500px)!important;min-width:0!important;width:100%;}
+.cmodal-body .chartscroll{overflow:visible;margin-top:0;}
+/* ===== month scrubber ===== */
+.scrub{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 19px;box-shadow:var(--shadow);margin:12px 0;}
+.scrub-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.scrub-lab{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.scrub-val{font-size:19px;font-weight:700;letter-spacing:-.3px;min-width:96px;}
+.nav{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--accent);font-size:15px;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;}
+.nav:hover{background:#F2F5F8;border-color:var(--accent2);}
+.nav:disabled{opacity:.35;cursor:default;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--nw-blue-deep) var(--fill,0%),#DDE4EC var(--fill,0%));outline:none;margin:14px 0 2px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--nw-blue-deep);cursor:pointer;box-shadow:0 1px 4px rgba(19,32,46,.3);}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--nw-blue-deep);cursor:pointer;}
+.ticks{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted);font-weight:600;}
+/* ===== breakdown ===== */
+.bd{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;}
+.bd-col{border:1px solid var(--line);border-radius:11px;overflow:hidden;}
+.bd-h{padding:9px 13px;font-weight:700;font-size:13.5px;color:#fff;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.bd-h small{font-weight:600;font-size:11px;opacity:.85;}
+.bd-h.lor{background:var(--lor);}.bd-h.copa{background:var(--copa);}
+.bd-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 13px;font-size:12.5px;border-top:1px solid var(--line);align-items:baseline;}
+.bd-row:first-of-type{border-top:0;}
+.bd-row span{color:#46566A;}
+.bd-row span i{font-style:normal;color:var(--muted);font-size:10.5px;}
+.bd-row b{font-weight:700;}
+.bd-row.sum{background:#F6F8FA;font-weight:700;}
+.bd-row.sum span{color:var(--ink);font-weight:700;}
+.bd-row.tot{background:var(--lor-bg);font-size:14px;}
+.bd-h.copa+.bd-row,.bd-col.c .bd-row.tot{}
+.bd-col.c .bd-row.tot{background:var(--copa-bg);}
+.mini-bar{height:9px;border-radius:5px;background:#EDF1F6;overflow:hidden;display:flex;margin:10px 13px 12px;}
+.mini-bar i{display:block;height:100%;}
+.mini-leg{display:flex;gap:12px;flex-wrap:wrap;padding:0 13px 11px;font-size:10.5px;color:var(--muted);}
+.mini-leg em{font-style:normal;display:inline-flex;align-items:center;gap:5px;}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block;}
+/* ===== tables ===== */
+.tblwrap{margin-top:11px;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:640px;}
+thead th{position:sticky;top:0;background:#F6F8FA;color:var(--accent2);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;z-index:2;}
+thead th:first-child{text-align:left;}
+thead tr.grp th{background:#EDF1F6;text-align:center;border-left:1px solid var(--line);font-size:9.5px;}
+thead tr.grp th:first-child{border-left:0;}
+tbody td{padding:7px 10px;text-align:right;border-bottom:1px solid #EFF3F7;white-space:nowrap;}
+tbody td:first-child{text-align:left;font-weight:600;}
+tbody tr:hover td{background:#F6F9FC;}
+tbody tr.mark td{background:#FFF8E8;}
+tbody tr.mark:hover td{background:#FDF2D9;}
+tbody tr.last td{background:var(--lor-bg);font-weight:700;}
+td.lor{color:var(--lor);font-weight:700;}
+td.copa{color:var(--copa);font-weight:700;}
+td.sep{border-left:1px solid var(--line);}
+th.sep{border-left:1px solid var(--line);}
+tfoot td{padding:8px 10px;font-weight:700;background:#F6F8FA;border-top:1px solid var(--line);text-align:right;}
+tfoot td:first-child{text-align:left;}
+.tbl-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+.sel{font-family:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:6px 10px;}
+.dl{font-size:11.5px;font-weight:700;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--accent);padding:6px 12px;}
+.dl:hover{background:#F2F5F8;border-color:var(--accent2);}
+/* ===== formula box ===== */
+.fx{background:#F6F8FA;border:1px dashed #C7D2DE;border-radius:10px;padding:13px 15px;font-size:13px;line-height:1.9;margin-top:12px;color:#2B3A4A;}
+.fx code{background:#fff;border:1px solid var(--line);border-radius:5px;padding:2px 7px;font-family:inherit;font-weight:700;font-size:12.5px;white-space:nowrap;display:inline-block;}
+.fx .cl{color:var(--lor);}.fx .cc{color:var(--copa);}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 9px;letter-spacing:.02em;}
+.pill.up{background:#FBEDED;color:var(--neg);}
+.pill.dn{background:#E4F1E9;color:var(--pos);}
+.pill.n{background:#EDF1F6;color:var(--muted);}
+footer{max-width:1240px;margin:0 auto;padding:16px 22px 34px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line);}
+footer b{letter-spacing:.12em;}
+/* ===== responsivo ===== */
+@media(max-width:980px){.kpis{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){
+  .grid2{grid-template-columns:1fr;}.card.full{grid-column:span 1;}
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  .bd{grid-template-columns:1fr;}
+}
+@media(max-width:760px){
+  .hwrap{padding:10px 14px;gap:8px 10px;}
+  .logo img{height:26px;}
+  .hsub{font-size:9px;letter-spacing:.1em;}
+  .conf{padding:3px 7px;font-size:9px;}
+  main{padding:14px 14px 34px;}
+  h1{font-size:18px;}
+  .sublead{font-size:11px;}
+  .tabs{margin-top:20px;}
+  .tabbtn{font-size:12.5px;padding:9px 12px;}
+  .kpi .val{font-size:18px;}
+  .card{padding:14px 12px;}
+  .card h3{font-size:13.5px;line-height:1.35;}
+  .chips{gap:6px;}
+  .chips .lab{width:100%;margin-bottom:2px;}
+  .pbtn{font-size:11.5px;padding:6px 12px;}
+  .chartscroll{border:1px solid var(--line);border-radius:10px;padding-bottom:2px;}
+  .chart-box{height:300px;min-width:720px;}
+  .chart-box.long{min-width:900px;}
+  .chart-box.tall{height:330px;}
+  .scrub{padding:13px 12px;}
+  .scrub-val{font-size:17px;}
+  .fx{font-size:12px;line-height:2.1;}
+  table{font-size:11.5px;}
+  thead th{padding:8px 8px;}
+  tbody td{padding:6px 8px;}
+  footer{padding:16px 14px 34px;}
+  .cmodal{padding:12px;}.cmodal-body{padding:12px 12px 16px;}
+  .cmodal-body .chart-box{height:min(56vh,420px)!important;}
+}
+@media(max-width:420px){
+  .chart-box{min-width:640px;}
+  .chart-box.long{min-width:800px;}
+  .kpi .val{font-size:17px;}
+}
+@media(max-width:359px){ .kpis{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="logo"><img src="data:image/jpeg;base64,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jOnhfZS31/G585+Cf+TMNa/68b3/ANmqr4D/AGe/DfxA+AdncW2nxWfiW4t2eHUVZt3mAkrnnGDgA8V7TpHwd0rR/hdc+BY7u6k02eGWFp3K+bh85PAxnn0re8CeDrXwD4WsdCsppri2tF2rJPje3PfAAreWJtzOm7Nyv8jlhgeZwVaKaULfP+up5p+zX8UbnxTotx4Y14tF4n0M/Z5kmPzyop2hvqMYP50V0998FNJn+Jlv44tL280zVUx50VqyiK44wd4IPUcHBorkrOEpc0OvTszvw0atOHJV1ts+66fM9DqjrtzNZ6NfT243TxwuyD3A4q9SEAgg8g1itGdMk5RaTsfJF1dzT3MkkkrtIzEli3JPrXr/AIc1nUU+Et3KHcNETFHLnlU4yQfbJHtW9qHwd0W+v2uFLwIzbmiQDH4HtXXWuj2dnpY0+OBRZhCnlkZBB659c13VK8JJWR8Tl+S4rD1KkpytdNJp736nyh58hk3b2yT619NfD68ub/wfp010WMxQrubqQCQD+QFcWfBXgoa4Yzqke7d/x77xjOem+vUoII7aCOKJBHEihVVRwAOgFTiKimkkjbIsvq4WrUnOSa2snf7ySiiiuI+yCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigArnfH91PZ+E7+S3JV9mCynBVT1Oe3FdFTJoUuInilQPG4KsrDIIqouzTMa1N1aUqadm01c+RxNL5u7cd2f1r6Y+Hlxc3Xg7TZLoky+WRlupUEhT+WK8hGh2J+JZ0/7OPsfm7fKycYz0znNe/QxJBEkUahI0AVVUYAA7V24makkj43h7CTpVatST0Xu28+4+iiiuA+4CiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/9k=" alt="GNLink"></div>
+    <span class="hsep"></span>
+    <span class="hsub">Aportes &amp; Exposição dos Acionistas</span>
+    <div class="hspace"></div>
+  </div>
+</header>
+
+<main>
+  <h1>GNLink · Aportes e exposição dos acionistas</h1>
+  <div class="sublead">
+    Acompanhamento mensal do capital aportado e da exposição via aval/fiança dos dois acionistas — <b>Lorinvest</b> e <b>Copa Energia</b> —
+    nas dívidas dos três projetos (PR, BA e RN) e da Holding. Valores em <b>R$ milhões</b>, saldos de <b>final de mês</b>.
+    Série: nov/2022 a <b>jun/2026</b> (44 meses) — base de referência jun/2026. Fonte: <i>Aportes e exposição.xlsx</i>.
+  </div>
+
+  <!-- ================= KPIs ================= -->
+  <div class="secttl">Posição atual <span style="font-weight:600;letter-spacing:0;text-transform:none;font-size:11.5px;color:var(--muted)" id="kpiRef"></span></div>
+  <div class="kgrp">Companhia <em>· capital e dívida na GNLink</em></div>
+  <div class="kpis" id="kpisCia"></div>
+  <div class="kgrp">Acionistas <em>· exposição = aporte + aval/fiança</em></div>
+  <div class="kpis" id="kpisAc"></div>
+
+  <!-- ================= SUB-ABAS ================= -->
+  <nav class="tabs" id="tabs">
+    <button class="tabbtn active" data-tab="pFoto">Foto do mês</button>
+    <button class="tabbtn" data-tab="pExp">Exposição total</button>
+    <button class="tabbtn" data-tab="pAp">Aportes de capital</button>
+    <button class="tabbtn" data-tab="pDiv">Dívida por projeto e cobertura de aval</button>
+    <button class="tabbtn" data-tab="pTbl">Tabela-resumo por ano e série mensal</button>
+    <button class="tabbtn" data-tab="pPrem">Premissas do modelo</button>
+  </nav>
+
+  <!-- ---------- ABA: FOTO DO MÊS ---------- -->
+  <section class="tabpanel on" id="pFoto">
+    <div class="secttl">Foto do mês — navegue pela série</div>
+    <div class="scrub">
+      <div class="scrub-top">
+        <span class="scrub-lab">Mês de referência</span>
+        <button class="nav" id="mPrev" aria-label="Mês anterior">&lsaquo;</button>
+        <span class="scrub-val" id="mLabel">—</span>
+        <button class="nav" id="mNext" aria-label="Próximo mês">&rsaquo;</button>
+        <div class="hspace" style="flex:1"></div>
+        <span class="pill n" id="mPhase"></span>
+      </div>
+      <input type="range" id="mRange" min="0" max="43" value="43" step="1">
+      <div class="ticks"><span id="tk0"></span><span id="tk1"></span><span id="tk2"></span><span id="tk3"></span></div>
+    </div>
+
+    <div class="card">
+      <h3>Decomposição da exposição no mês selecionado</h3>
+      <p class="hint">Cada linha mostra o saldo da dívida, o percentual avalizado e quanto disso cabe a cada acionista.</p>
+      <div class="bd">
+        <div class="bd-col" id="bdLor"></div>
+        <div class="bd-col c" id="bdCopa"></div>
+      </div>
+      <div class="tblwrap" style="margin-top:14px">
+        <table id="tblMes">
+          <thead><tr><th>Componente</th><th>Saldo da dívida</th><th>% avalizado</th><th class="sep">Lorinvest</th><th>Copa</th><th>Total</th></tr></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+      <div class="note" id="mesNote"></div>
+    </div>
+  </section>
+
+  <!-- ---------- ABA: EXPOSIÇÃO TOTAL ---------- -->
+  <section class="tabpanel" id="pExp">
+    <div class="secttl">Exposição total por acionista</div>
+    <div class="grid2">
+      <div class="card full">
+        <h3>Exposição total = aporte + aval/fiança</h3>
+        <p class="hint">Empilhado por acionista, em R$ milhões. O rótulo em cima da coluna marca o total da companhia.</p>
+        <div class="chartscroll"><div class="chart-box long tall"><canvas id="cExp"></canvas></div></div>
+        <div class="note" id="nExp"></div>
+      </div>
+      <div class="card full">
+        <h3>Composição da exposição da Lorinvest</h3>
+        <p class="hint">Quanto é caixa já desembolsado e quanto é garantia contingente.</p>
+        <div class="chartscroll"><div class="chart-box long"><canvas id="cCompL"></canvas></div></div>
+      </div>
+      <div class="card full">
+        <h3>Composição da exposição da Copa</h3>
+        <p class="hint">A Copa entra em ago/2025 já com aporte e aval simultâneos.</p>
+        <div class="chartscroll"><div class="chart-box long"><canvas id="cCompC"></canvas></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- ABA: APORTES ---------- -->
+  <section class="tabpanel" id="pAp">
+    <div class="secttl">Aportes de capital</div>
+    <div class="grid2">
+      <div class="card full">
+        <h3>Aportes acumulados por acionista</h3>
+        <p class="hint">Saldo acumulado de capital integralizado ao final de cada mês.</p>
+        <div class="chartscroll"><div class="chart-box long tall"><canvas id="cAp"></canvas></div></div>
+        <div class="note" id="nAp"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- ABA: DÍVIDA ---------- -->
+  <section class="tabpanel" id="pDiv">
+    <div class="secttl">Dívida por projeto e cobertura de aval</div>
+    <div class="grid2">
+      <div class="card full">
+        <h3>Saldo de dívida por projeto</h3>
+        <p class="hint">PR, BA, RN e Holding. A linha marca a parcela do total efetivamente coberta por aval/fiança dos acionistas.</p>
+        <div class="chartscroll"><div class="chart-box long tall"><canvas id="cDiv"></canvas></div></div>
+        <div class="note" id="nDiv"></div>
+      </div>
+      <div class="card full">
+        <h3>Aval/fiança por acionista</h3>
+        <p class="hint">Exposição contingente, sem contar o capital aportado.</p>
+        <div class="chartscroll"><div class="chart-box long"><canvas id="cAval"></canvas></div></div>
+      </div>
+      <div class="card full">
+        <h3>Efeito de alavancagem da exposição</h3>
+        <p class="hint">Quantos reais de exposição total para cada real de capital aportado.</p>
+        <div class="chartscroll"><div class="chart-box long"><canvas id="cMult"></canvas></div></div>
+        <div class="note" id="nMult"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- ABA: TABELAS ---------- -->
+  <section class="tabpanel" id="pTbl">
+    <div class="secttl">Tabela-resumo por ano</div>
+    <div class="card full">
+      <h3>Posição de dezembro de cada ano</h3>
+      <p class="hint">Fotografia de fim de exercício. 2026 mostra a última posição disponível — a base de jun/2026.</p>
+      <div class="tblwrap">
+        <table id="tblAno">
+          <thead>
+            <tr class="grp"><th></th><th colspan="3">Aportes</th><th colspan="5" class="sep">Dívida</th><th colspan="3" class="sep">Aval / fiança</th><th colspan="3" class="sep">Exposição</th></tr>
+            <tr><th>Ano</th><th>Lorinvest</th><th>Copa</th><th>Total</th><th class="sep">PR</th><th>BA</th><th>RN</th><th>Holding</th><th>Total</th><th class="sep">Lorinvest</th><th>Copa</th><th>Total</th><th class="sep">Lorinvest</th><th>Copa</th><th>Total</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="secttl">Série mensal completa</div>
+    <div class="card full">
+      <h3>Detalhamento mês a mês</h3>
+      <div class="tbl-tools">
+        <select class="sel" id="fAno"><option value="all">Todos os anos</option></select>
+        <button class="dl" id="btnCsv">&darr; Baixar CSV</button>
+        <span class="hint" style="margin:0">Linhas destacadas: marcos societários e de garantia.</span>
+      </div>
+      <div class="tblwrap" style="max-height:520px;overflow-y:auto">
+        <table id="tblMensal">
+          <thead>
+            <tr class="grp"><th></th><th colspan="3">Aportes</th><th colspan="5" class="sep">Dívida</th><th colspan="3" class="sep">Aval / fiança</th><th colspan="3" class="sep">Exposição</th></tr>
+            <tr><th>Mês</th><th>Lorinvest</th><th>Copa</th><th>Total</th><th class="sep">PR</th><th>BA</th><th>RN</th><th>Holding</th><th>Total</th><th class="sep">Lorinvest</th><th>Copa</th><th>Total</th><th class="sep">Lorinvest</th><th>Copa</th><th>Total</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- ABA: PREMISSAS ---------- -->
+  <section class="tabpanel" id="pPrem">
+    <div class="secttl">Premissas do modelo</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Estrutura societária</h3>
+        <div class="tblwrap">
+          <table style="min-width:0">
+            <tbody>
+              <tr><td>Data de entrada da Copa Energia</td><td><b>31/ago/2025</b></td></tr>
+              <tr><td>Valor pago pela Copa</td><td><b>R$ 100,0 mi</b></td></tr>
+              <tr><td>Lorinvest — participação pré-Copa</td><td><b>100,0%</b></td></tr>
+              <tr><td>Lorinvest — participação pós-Copa</td><td class="lor"><b>64,0%</b></td></tr>
+              <tr><td>Copa Energia — participação</td><td class="copa"><b>36,0%</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Cobertura de aval / fiança</h3>
+        <div class="tblwrap">
+          <table style="min-width:0">
+            <tbody>
+              <tr><td>Aval/fiança — dívidas PR, RN e Holding</td><td><b>100,0%</b></td></tr>
+              <tr><td>Data de mudança da exposição na BA</td><td><b>31/dez/2025</b></td></tr>
+              <tr><td>Aval/fiança BA — até nov/2025</td><td><b>75,0%</b></td></tr>
+              <tr><td>Aval/fiança BA — a partir de dez/2025</td><td class="lor"><b>25,0%</b></td></tr>
+              <tr><td>Rateio entre acionistas</td><td><b>pró-rata societário</b></td></tr>
+              <tr><td>Caixa da companhia em jun/2026 <i style="color:var(--muted);font-style:normal">(capital investido)</i></td><td><b>R$ 30,0 mi</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card full">
+        <h3>Como se calcula a exposição</h3>
+        <div class="fx">
+          <code>Exposição do acionista</code> = <code>Aporte de capital</code> <b>+</b> <code>Aval / fiança nas dívidas</code><br>
+          <code class="cl">Aval Lorinvest</code> = <b>64%</b> &times; (Dívida PR + RN + Holding) <b>+</b> <b>64%</b> &times; <b>25%</b> &times; Dívida BA<br>
+          <code class="cc">Aval Copa</code> = <b>36%</b> &times; (Dívida PR + RN + Holding) <b>+</b> <b>36%</b> &times; <b>25%</b> &times; Dívida BA
+        </div>
+        <div class="note">
+          O aporte é dinheiro <b>já desembolsado</b>; o aval é uma exposição <b>contingente</b> — só vira caixa se a dívida não for honrada pela companhia.
+          Antes de ago/2025 os percentuais eram 100% Lorinvest / 0% Copa; até nov/2025 a cobertura da BA era de 75%.
+          As dívidas de PR, RN e Holding são avalizadas <b>integralmente</b> (100% do saldo), rateadas entre os acionistas na proporção societária.
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="cmodal" id="cmodal">
+  <div class="cmodal-inner">
+    <div class="cmodal-head"><h3 id="cmTitle"></h3><button class="cmodal-close" id="cmClose">✕</button></div>
+    <div class="cmodal-body"><div class="chartscroll"><div class="chart-box"><canvas id="cmCanvas"></canvas></div></div></div>
+  </div>
+</div>
+
+<footer>
+  <b>LORINVEST</b> · Análise de Investimentos — GNLink · Aportes e exposição dos acionistas · valores em R$ milhões, saldos de final de mês ·
+  fonte: <i>gnlink/Exposicao/Aportes e exposição.xlsx</i> · documento confidencial de uso interno.
+</footer>
+
+<script>
+/* ===================== DADOS ===================== */
+/* [ mês, aporte Lorinvest (acum.), aporte Copa (acum.), dívida PR, dívida BA, dívida RN, dívida Holding ] */
+const ROWS=[["2022-11",5.5,0.0,0.0,0.0,0.0,0.0],
+["2022-12",5.5,0.0,0.0,0.0,0.0,0.0],
+["2023-01",5.5,0.0,0.0,0.0,0.0,0.0],
+["2023-02",5.5,0.0,0.0,0.0,0.0,0.0],
+["2023-03",8.3,0.0,0.0,0.0,0.0,0.0],
+["2023-04",8.3,0.0,0.0,0.0,0.0,0.0],
+["2023-05",24.893,0.0,0.0,0.0,0.0,0.0],
+["2023-06",24.893,0.0,0.0,0.0,0.0,0.0],
+["2023-07",24.893,0.0,0.0,0.0,0.0,0.0],
+["2023-08",24.893,0.0,0.0,0.0,0.0,0.0],
+["2023-09",29.389,0.0,0.0,0.0,0.0,0.0],
+["2023-10",42.389,0.0,0.0,0.0,0.0,0.0],
+["2023-11",42.389,0.0,0.0,0.0,0.0,0.0],
+["2023-12",51.802019,0.0,50.087929,0.0,0.0,0.0],
+["2024-01",51.802019,0.0,50.625951,0.0,0.0,0.0],
+["2024-02",72.288048,0.0,51.093229,0.0,0.0,0.0],
+["2024-03",72.288048,0.0,51.600731,0.0,0.0,0.0],
+["2024-04",72.288048,0.0,52.107604,0.0,0.0,0.0],
+["2024-05",72.288048,0.0,52.609267,0.0,0.0,0.0],
+["2024-06",72.288048,0.0,50.0908149,0.0,0.0,0.0],
+["2024-07",101.0385825,0.0,50.61620655,0.0,0.0,0.0],
+["2024-08",101.0385825,0.0,91.16131323,0.0,0.0,0.0],
+["2024-09",101.0385825,0.0,92.05131745,0.0,0.0,0.0],
+["2024-10",101.0385825,0.0,93.04886537,0.0,0.0,0.0],
+["2024-11",101.0385825,0.0,93.90458355,0.0,0.0,0.0],
+["2024-12",101.0385825,0.0,94.90938652,71.32722967,0.0,0.0],
+["2025-01",101.0385825,0.0,95.17752568,71.97600643,0.0,0.0],
+["2025-02",101.0385825,0.0,96.25901466,72.50202746,0.0,10.0],
+["2025-03",101.0385825,0.0,97.32159703,71.63113361,0.0,30.12321434],
+["2025-04",101.0385825,0.0,98.49621949,72.60213445,0.0,40.54422186],
+["2025-05",101.0385825,0.0,99.77251157,72.46757413,0.0,51.19845181],
+["2025-06",101.0385825,0.0,101.01698007,71.34851124,0.0,61.86805786],
+["2025-07",101.0385825,0.0,152.46912836,71.9858189,45.43638993,62.63380396],
+["2025-08",101.0385825,100.0,90.85904334,72.57737417,46.07328068,0.0],
+["2025-09",101.0385825,100.0,92.14387333,71.35573185,46.6846173,0.0],
+["2025-10",101.0385825,100.0,93.49279467,71.9859471,47.37684505,0.0],
+["2025-11",101.0385825,100.0,94.63555825,72.56360599,47.96397621,0.0],
+["2025-12",101.0385825,100.0,95.97955217,89.09953389,48.65476414,0.0],
+["2026-01",101.0385825,100.0,97.12678949,89.8259651,0.0,49.56684905],
+["2026-02",101.0385825,100.0,98.27628014,90.46562564,75.6,50.15347049],
+["2026-03",101.0385825,100.0,99.67821518,89.07697693,76.4,50.86892164],
+["2026-04",101.0385825,100.0,100.96498538,89.54788312,77.1,51.52560117],
+["2026-05",101.0385825,100.0,102.2459913,89.54788312,75.6,52.17885982],
+["2026-06",101.0385825,100.0,103.6,89.2,76.3,52.9]];
+
+const PREM = {
+  copaIn:'2025-08',      // 1º mês com a Copa no capital
+  pctLorPre:1.00, pctLorPos:0.64, pctCopa:0.36,
+  avalPRN:1.00,          // PR, RN e Holding: 100% avalizados
+  baChange:'2025-12',    // 1º mês com a nova cobertura da BA
+  avalBApre:0.75, avalBApos:0.25,
+  copaTicket:100
+};
+
+const MESES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const lbl = ym => { const [y,m]=ym.split('-'); return MESES[+m-1]+'/'+y.slice(2); };
+const lblLong = ym => { const [y,m]=ym.split('-'); return MESES[+m-1]+'/'+y; };
+
+/* Reproduz exatamente a fórmula da planilha */
+const D = ROWS.map(r=>{
+  const [ym,apL,apC,pr,ba,rn,ho]=r;
+  const pos   = ym >= PREM.copaIn;
+  const baNew = ym >= PREM.baChange;
+  const pL = pos ? PREM.pctLorPos : PREM.pctLorPre;
+  const pC = pos ? PREM.pctCopa   : 0;
+  const pB = baNew ? PREM.avalBApos : PREM.avalBApre;
+  const dTot = pr+ba+rn+ho;
+  const avalBase = pr+rn+ho;                 // 100% avalizado
+  const avalTot  = avalBase + pB*ba;         // dívida efetivamente coberta
+  const avL = pL*avalBase + pL*pB*ba;
+  const avC = pC*avalBase + pC*pB*ba;
+  const apT = apL+apC;
+  const expL = apL+avL, expC = apC+avC;
+  return {ym,apL,apC,apT,pr,ba,rn,ho,dTot,pL,pC,pB,avL,avC,avT:avL+avC,avalTot,
+          expL,expC,expT:expL+expC,
+          shL: (expL+expC)>0 ? expL/(expL+expC) : null,
+          shC: (expL+expC)>0 ? expC/(expL+expC) : null,
+          mult: apT>0 ? (expL+expC)/apT : null,
+          semAval: dTot-avalTot};
+});
+const LAST = D[D.length-1];
+const IDX  = Object.fromEntries(D.map((d,i)=>[d.ym,i]));
+
+/* ===================== FORMATAÇÃO ===================== */
+const nf1 = v => (v==null||isNaN(v))?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const mi  = v => (v==null||isNaN(v))?'—':(v<0?'('+nf1(Math.abs(v))+')':nf1(v));
+const miR = v => 'R$ '+mi(v)+' mi';
+const pct0= v => (v==null||isNaN(v))?'—':(v*100).toFixed(0)+'%';
+const pct1= v => (v==null||isNaN(v))?'—':(v*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const xf  = v => (v==null||isNaN(v))?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'x';
+
+/* ===================== KPIs ===================== */
+document.getElementById('kpiRef').textContent = '· '+lblLong(LAST.ym);
+const CAIXA = 30;   // caixa da companhia em jun/2026 (R$ mi) — premissa informada
+const CAPINV = LAST.apT + LAST.dTot - CAIXA;
+(function(){
+  const add=(alvo,cls,cap,val,sub,split)=>document.getElementById(alvo).insertAdjacentHTML('beforeend',
+    `<div class="kpi ${cls}"><span class="cap">${cap}</span><span class="val">${val}</span>`+
+    (split?`<div class="split">${split}</div>`:'')+`<span class="sub"${split?' style="margin-top:5px"':''}>${sub}</span></div>`);
+
+  /* --- Companhia --- */
+  const prim1=D.find(d=>d.apT>0);
+  add('kpisCia','','Capital aportado',miR(LAST.apT),'equity integralizado desde '+(prim1?lblLong(prim1.ym):'—'),
+      `<span>Lorinvest <b>${mi(LAST.apL)}</b></span><span>Copa Energia <b>${mi(LAST.apC)}</b></span>`);
+  add('kpisCia','','Dívida total',miR(LAST.dTot),'saldo bruto dos 4 tomadores',
+      `<span>Coberta por aval <b>${mi(LAST.avalTot)}</b></span><span>Sem aval <b>${mi(LAST.semAval)}</b></span>`);
+  add('kpisCia','','Capital investido',miR(CAPINV),'capital aportado + dívida bruta − caixa',
+      `<span>Capital aportado <b>${mi(LAST.apT)}</b></span><span>Dívida bruta <b>${mi(LAST.dTot)}</b></span>`+
+      `<span class="minus">(−) Caixa <b>${mi(CAIXA)}</b></span>`);
+
+  /* --- Acionistas --- */
+  add('kpisAc','k-lor','Exposição Lorinvest',miR(LAST.expL),`${pct1(LAST.shL)} da exposição · ${pct0(PREM.pctLorPos)} do capital`,
+      `<span>Aporte <b>${mi(LAST.apL)}</b></span><span>Aval/fiança <b>${mi(LAST.avL)}</b></span>`);
+  add('kpisAc','k-copa','Exposição Copa Energia',miR(LAST.expC),`${pct1(LAST.shC)} da exposição · ${pct0(PREM.pctCopa)} do capital`,
+      `<span>Aporte <b>${mi(LAST.apC)}</b></span><span>Aval/fiança <b>${mi(LAST.avC)}</b></span>`);
+  add('kpisAc','','Exposição total',miR(LAST.expT),'soma dos dois acionistas',
+      `<span>Aportes <b>${mi(LAST.apT)}</b></span><span>Aval/fiança <b>${mi(LAST.avT)}</b></span>`);
+})();
+
+/* ===================== SCRUBBER / FOTO DO MÊS ===================== */
+const rng=document.getElementById('mRange'), mLab=document.getElementById('mLabel');
+rng.max = D.length-1; rng.value = D.length-1;
+document.getElementById('tk0').textContent=lbl(D[0].ym);
+document.getElementById('tk1').textContent=lbl(D[Math.round((D.length-1)/3)].ym);
+document.getElementById('tk2').textContent=lbl(D[Math.round(2*(D.length-1)/3)].ym);
+document.getElementById('tk3').textContent=lbl(LAST.ym);
+
+function fase(d){
+  if(d.ym < PREM.copaIn) return {t:'Lorinvest 100% · aval BA 75%',c:'n'};
+  if(d.ym < PREM.baChange) return {t:'Lorinvest 64% / Copa 36% · aval BA 75%',c:'n'};
+  return {t:'Lorinvest 64% / Copa 36% · aval BA 25%',c:'dn'};
+}
+
+function renderMes(i){
+  const d=D[i];
+  mLab.textContent=lblLong(d.ym);
+  rng.style.setProperty('--fill',(i/(D.length-1)*100)+'%');
+  const f=fase(d); const ph=document.getElementById('mPhase'); ph.textContent=f.t; ph.className='pill '+f.c;
+  document.getElementById('mPrev').disabled=(i===0);
+  document.getElementById('mNext').disabled=(i===D.length-1);
+
+  // cartões laterais
+  const col=(el,nome,cls,ap,av,exp,sh,pp)=>{
+    el.innerHTML=
+      `<div class="bd-h ${cls}">${nome}<small>${pp==null?'—':pct0(pp)+' do capital'}</small></div>`+
+      `<div class="bd-row"><span>Aporte de capital <i>desembolsado</i></span><b>${mi(ap)}</b></div>`+
+      `<div class="bd-row"><span>Aval / fiança <i>contingente</i></span><b>${mi(av)}</b></div>`+
+      `<div class="bd-row tot"><span>Exposição total</span><b>${miR(exp)}</b></div>`+
+      `<div class="bd-row"><span>Fatia da exposição da companhia</span><b>${pct1(sh)}</b></div>`+
+      (exp>0?`<div class="mini-bar"><i style="width:${(ap/exp*100)}%;background:${cls==='lor'?'var(--lor)':'var(--copa)'}"></i><i style="width:${(av/exp*100)}%;background:${cls==='lor'?'var(--lor-soft)':'var(--copa-soft)'}"></i></div>`+
+        `<div class="mini-leg"><em><span class="dot" style="background:${cls==='lor'?'var(--lor)':'var(--copa)'}"></span>Aporte ${pct0(ap/exp)}</em><em><span class="dot" style="background:${cls==='lor'?'var(--lor-soft)':'var(--copa-soft)'}"></span>Aval ${pct0(av/exp)}</em></div>`
+       :`<div class="mini-leg" style="padding-top:10px">Sem exposição neste mês</div>`);
+  };
+  col(document.getElementById('bdLor'),'Lorinvest','lor',d.apL,d.avL,d.expL,d.shL,d.pL);
+  col(document.getElementById('bdCopa'),'Copa Energia','copa',d.apC,d.avC,d.expC,d.shC,d.ym<PREM.copaIn?null:d.pC);
+
+  // tabela didática
+  const tb=document.querySelector('#tblMes tbody'), tf=document.querySelector('#tblMes tfoot');
+  const linha=(nome,saldo,cob,vl,vc)=>`<tr><td>${nome}</td><td>${mi(saldo)}</td><td>${cob==null?'—':pct0(cob)}</td><td class="sep lor">${mi(vl)}</td><td class="copa">${mi(vc)}</td><td>${mi(vl+vc)}</td></tr>`;
+  tb.innerHTML =
+    linha('Dívida PR',d.pr,PREM.avalPRN,d.pL*d.pr,d.pC*d.pr)+
+    linha('Dívida BA',d.ba,d.pB,d.pL*d.pB*d.ba,d.pC*d.pB*d.ba)+
+    linha('Dívida RN',d.rn,PREM.avalPRN,d.pL*d.rn,d.pC*d.rn)+
+    linha('Dívida Holding',d.ho,PREM.avalPRN,d.pL*d.ho,d.pC*d.ho)+
+    `<tr class="mark"><td>Subtotal aval / fiança</td><td>${mi(d.dTot)}</td><td>${d.dTot>0?pct0(d.avalTot/d.dTot):'—'}</td><td class="sep lor">${mi(d.avL)}</td><td class="copa">${mi(d.avC)}</td><td>${mi(d.avT)}</td></tr>`+
+    `<tr><td>Aporte de capital</td><td>—</td><td>—</td><td class="sep lor">${mi(d.apL)}</td><td class="copa">${mi(d.apC)}</td><td>${mi(d.apT)}</td></tr>`;
+  tf.innerHTML=`<tr><td>Exposição total — ${lblLong(d.ym)}</td><td colspan="2"></td><td class="sep">${mi(d.expL)}</td><td>${mi(d.expC)}</td><td>${mi(d.expT)}</td></tr>`;
+
+  const partes=[];
+  partes.push(`Em <b>${lblLong(d.ym)}</b> a exposição consolidada é de <b>${miR(d.expT)}</b>, sendo <b>${mi(d.apT)}</b> de capital já aportado e <b>${mi(d.avT)}</b> de garantias.`);
+  if(d.ba>0) partes.push(`Da dívida da BA (<b>${mi(d.ba)}</b>), apenas <b>${pct0(d.pB)}</b> está avalizada — <b>${mi(d.ba*(1-d.pB))}</b> fica fora da exposição dos acionistas.`);
+  if(d.ym<PREM.copaIn) partes.push(`A Copa ainda não havia entrado no capital: <b>100%</b> da exposição era da Lorinvest.`);
+  else partes.push(`A Lorinvest carrega <b>${pct1(d.shL)}</b> da exposição total contra <b>64%</b> do capital — diferença que vem do ticket de R$ 100 mi aportado pela Copa.`);
+  document.getElementById('mesNote').innerHTML=partes.join(' ');
+}
+rng.addEventListener('input',e=>renderMes(+e.target.value));
+document.getElementById('mPrev').onclick=()=>{rng.value=Math.max(0,+rng.value-1);renderMes(+rng.value);};
+document.getElementById('mNext').onclick=()=>{rng.value=Math.min(D.length-1,+rng.value+1);renderMes(+rng.value);};
+
+/* ===================== CHART.JS ===================== */
+let lblSize = 8;
+const stackTotal={id:'stackTotal',afterDatasetsDraw(chart){
+  const o=chart.options.plugins.stackTotal; if(!o||!o.enabled) return;
+  const ctx=chart.ctx, fs=lblSize; ctx.save(); ctx.font="bold "+fs+"px 'DM Sans',system-ui,sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let i=0;i<chart.data.labels.length;i++){
+    let tot=0, topY=Infinity, x=null;
+    chart.data.datasets.forEach((ds,di)=>{const m=chart.getDatasetMeta(di);
+      if(m.type==='bar'&&!m.hidden){const v=ds.data[i]; if(typeof v==='number')tot+=v; const el=m.data[i]; if(el){x=el.x; if(el.y<topY)topY=el.y;}}});
+    if(x==null||!isFinite(topY)||Math.abs(tot)<0.05) continue;
+    const txt=(o.fmt==='pct')?(tot*100).toFixed(0)+'%':tot.toLocaleString('pt-BR',{maximumFractionDigits:0});
+    const bw=ctx.measureText(txt).width+12, bh=fs+8, cx=x, cy=topY-(bh/2+3);
+    const rx=cx-bw/2, ry=cy-bh/2, r=5;
+    ctx.beginPath();ctx.moveTo(rx+r,ry);ctx.arcTo(rx+bw,ry,rx+bw,ry+bh,r);ctx.arcTo(rx+bw,ry+bh,rx,ry+bh,r);
+    ctx.arcTo(rx,ry+bh,rx,ry,r);ctx.arcTo(rx,ry,rx+bw,ry,r);ctx.closePath();
+    ctx.fillStyle='#EDF1F6';ctx.fill();ctx.lineWidth=1;ctx.strokeStyle='#C7D0DA';ctx.stroke();
+    ctx.fillStyle='#13202E';ctx.fillText(txt,cx,cy);
+  }
+  ctx.restore();
+}};
+/* faixas verticais para os marcos societários/garantia */
+const marcos={id:'marcos',beforeDatasetsDraw(chart){
+  const o=chart.options.plugins.marcos; if(!o||!o.enabled) return;
+  const xs=chart.scales.x, a=chart.chartArea, ctx=chart.ctx;
+  const draw=(ym,cor,txt)=>{
+    const i=chart.data.labels.indexOf(lbl(ym)); if(i<0) return;
+    const x=xs.getPixelForValue(i)-(xs.width/chart.data.labels.length)/2;
+    ctx.save();
+    ctx.strokeStyle=cor;ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(x,a.top);ctx.lineTo(x,a.bottom);ctx.stroke();ctx.setLineDash([]);
+    ctx.font="700 9px 'DM Sans',system-ui,sans-serif";ctx.fillStyle=cor;ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText(txt,x+4,a.top+2);
+    ctx.restore();
+  };
+  draw(PREM.copaIn,'#C25C12','entrada Copa');
+  draw(PREM.baChange,'#2E7D4F','aval BA 25%');
+}};
+Chart.register(ChartDataLabels, stackTotal, marcos);
+Chart.defaults.font.family="'DM Sans',system-ui,sans-serif";
+Chart.defaults.color='#5C6B7A';
+Chart.defaults.plugins.datalabels.display=false;
+
+const L = D.map(d=>lbl(d.ym));
+const charts={};   // instâncias vivas
+const SPEC={};     // fábricas de config — cada chamada devolve options novos (Chart.js muta o objeto)
+const money = v => (v<0?'('+nf1(Math.abs(v))+')':nf1(v));
+
+/* Registro preguiçoso: o gráfico só é criado quando a aba dele aparece pela
+   primeira vez — canvas dentro de painel oculto nasceria com 0px de largura. */
+function register(id,factory){ SPEC[id]=factory; }
+function ensure(id){
+  const el=document.getElementById(id); if(!el||!SPEC[id]) return;
+  if(!charts[id]){ charts[id]=new Chart(el,SPEC[id]()); return; }
+  /* já existe: o painel estava oculto (canvas 0×0), então força novo layout
+     das barras depois que o browser recalcula o tamanho do container */
+  requestAnimationFrame(()=>{ charts[id].resize(); charts[id].update('none'); });
+}
+
+function opts({stack=true,pct=false,y2=null,total=false,mk=true,legend=true}={}){
+  return {
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    layout:{padding:{top:total?26:14}},
+    plugins:{
+      legend:{display:legend,position:'bottom',labels:{boxWidth:12,font:{size:11},padding:12,usePointStyle:true,pointStyle:'rectRounded'}},
+      datalabels:{display:false},
+      stackTotal:{enabled:total,fmt:pct?'pct':'num'},
+      marcos:{enabled:mk},
+      tooltip:{
+        backgroundColor:'rgba(19,32,46,.94)',padding:10,titleFont:{size:12,weight:'700'},bodyFont:{size:11.5},
+        boxPadding:4,usePointStyle:true,
+        callbacks:{
+          label:c=>{const v=c.parsed.y; if(v==null||isNaN(v))return c.dataset.label+': —';
+            const ax=c.dataset.yAxisID||'y';
+            if(pct&&ax==='y') return c.dataset.label+': '+(v*100).toFixed(1)+'%';
+            if(ax==='y2') return c.dataset.label+': '+(y2==='x'?v.toFixed(2)+'x':(v*100).toFixed(1)+'%');
+            return c.dataset.label+': '+money(v);},
+          footer:items=>{
+            const bars=items.filter(i=>i.dataset.type!=='line'&&(i.dataset.yAxisID||'y')==='y');
+            if(bars.length<2) return '';
+            const t=bars.reduce((s,i)=>s+(i.parsed.y||0),0);
+            return 'Total: '+(pct?(t*100).toFixed(0)+'%':money(t));}
+        }
+      }
+    },
+    scales:{
+      x:{stacked:stack,grid:{display:false},ticks:{font:{size:10},maxRotation:60,minRotation:60,autoSkip:false}},
+      y:{stacked:stack,position:'left',border:{display:false},grid:{color:'#EEF2F6'},
+         ticks:{font:{size:10},callback:v=>pct?(v*100).toFixed(0)+'%':v.toLocaleString('pt-BR')}},
+      ...(y2?{y2:{position:'right',border:{display:false},grid:{display:false},
+         ticks:{font:{size:10},callback:v=>y2==='x'?v.toFixed(1)+'x':(v*100).toFixed(0)+'%'}}}:{})
+    }
+  };
+}
+
+/* cor do rótulo dentro da barra, por cor de fundo */
+const LBLC={'#002D5C':'#FFFFFF','#C25C12':'#FFFFFF','#6F94BC':'#0E2438','#F2AE75':'#5A2C05',
+            '#4880A8':'#FFFFFF','#5A9B87':'#FFFFFF','#D89A3F':'#33240A','#8A8CA6':'#FFFFFF',
+            '#E7EEF6':'#33465C'};
+/* rótulo por segmento — some quando a barra não comporta o texto */
+const segLbl = color => ({
+  display(ctx){
+    const v=ctx.dataset.data[ctx.dataIndex];
+    if(typeof v!=='number'||Math.abs(v)<0.5) return false;
+    const el=ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.dataIndex];
+    if(!el) return false;
+    const alt=Math.abs((el.base==null?0:el.base)-el.y);
+    return alt>=lblSize+6 && el.width>=lblSize*2.2;
+  },
+  color:LBLC[color]||'#FFFFFF',
+  anchor:'center',align:'center',clamp:true,
+  font:{size:lblSize,weight:'700'},
+  formatter:v=>Math.round(v).toLocaleString('pt-BR')
+});
+const bar=(label,data,color,extra={})=>Object.assign(
+  {type:'bar',label,data,backgroundColor:color,borderWidth:0,borderRadius:2,
+   barPercentage:.92,categoryPercentage:.86,datalabels:segLbl(color)},extra);
+const line=(label,data,color,extra={})=>Object.assign(
+  {type:'line',label,data,borderColor:color,backgroundColor:color,borderWidth:2,
+   pointRadius:0,pointHoverRadius:4,tension:.25,fill:false,datalabels:{display:false}},extra);
+
+/* --- 1. Exposição total --- */
+register('cExp',()=>({data:{labels:L,datasets:[
+  bar('Exposição Lorinvest',D.map(d=>d.expL),'#002D5C'),
+  bar('Exposição Copa Energia',D.map(d=>d.expC),'#C25C12')
+]},options:opts({total:true})}));
+
+/* --- 2. Composição por acionista --- */
+register('cCompL',()=>({data:{labels:L,datasets:[
+  bar('Aporte Lorinvest',D.map(d=>d.apL),'#002D5C'),
+  bar('Aval/fiança Lorinvest',D.map(d=>d.avL),'#6F94BC')
+]},options:opts({total:true})}));
+register('cCompC',()=>({data:{labels:L,datasets:[
+  bar('Aporte Copa',D.map(d=>d.apC),'#C25C12'),
+  bar('Aval/fiança Copa',D.map(d=>d.avC),'#F2AE75')
+]},options:opts({total:true})}));
+
+/* --- 3. Aportes acumulados --- */
+register('cAp',()=>({data:{labels:L,datasets:[
+  bar('Aporte Lorinvest',D.map(d=>d.apL),'#002D5C'),
+  bar('Aporte Copa Energia',D.map(d=>d.apC),'#C25C12')
+]},options:opts({total:true})}));
+
+/* --- 4. Dívida por projeto --- */
+register('cDiv',()=>({data:{labels:L,datasets:[
+  bar('Dívida PR',D.map(d=>d.pr),'#4880A8'),
+  bar('Dívida BA',D.map(d=>d.ba),'#5A9B87'),
+  bar('Dívida RN',D.map(d=>d.rn),'#D89A3F'),
+  bar('Dívida Holding',D.map(d=>d.ho),'#8A8CA6'),
+  line('Dívida coberta por aval',D.map(d=>d.avalTot),'#B23A3A',{borderWidth:2.4,borderDash:[6,3]})
+]},options:opts({total:true})}));
+
+/* --- 5. Aval por acionista --- */
+register('cAval',()=>({data:{labels:L,datasets:[
+  bar('Aval/fiança Lorinvest',D.map(d=>d.avL),'#002D5C'),
+  bar('Aval/fiança Copa',D.map(d=>d.avC),'#C25C12')
+]},options:opts({total:true})}));
+
+/* --- 6. Múltiplo de exposição --- */
+register('cMult',()=>{
+  const o=opts({stack:false,y2:'x'}); o.scales.y.stacked=false; o.scales.x.stacked=false;
+  /* grouped:false sobrepõe as duas barras na mesma coluna — a clara é o pano de
+     fundo (exposição) e a escura, o capital aportado. Assim cada uma fica larga
+     o bastante para caber o rótulo. */
+  /* o Chart.js desenha os datasets em ordem inversa de `order`: order maior vai
+     ao fundo. Sem isso a barra clara cobriria a escura. */
+  const fundo=bar('Exposição total',D.map(d=>d.expT),'#E7EEF6',{grouped:false,order:3});
+  fundo.datalabels=Object.assign({},fundo.datalabels,{anchor:'end',align:'top',offset:2,color:'#33465C'});
+  const frente=bar('Capital aportado',D.map(d=>d.apT),'#002D5C',{grouped:false,order:2});
+  return {data:{labels:L,datasets:[
+    fundo, frente,
+    line('Exposição / aporte',D.map(d=>d.mult),'#C25C12',{yAxisID:'y2',borderWidth:2.4,order:1})
+  ]},options:o};
+});
+
+/* ===================== SUB-ABAS ===================== */
+function showTab(id){
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.toggle('on',p.id===id));
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  document.querySelectorAll('#'+id+' canvas').forEach(cv=>ensure(cv.id));
+}
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('.tabbtn'); if(b) showTab(b.dataset.tab);
+});
+
+/* ===================== NOTAS DINÂMICAS ===================== */
+const nov25=D[IDX['2025-11']], dez25=D[IDX['2025-12']], jul25=D[IDX['2025-07']], ago25=D[IDX['2025-08']];
+document.getElementById('nExp').innerHTML =
+  `A exposição sobe de <b>${mi(D[0].expT)}</b> em nov/22 para <b>${mi(LAST.expT)}</b> em ${lblLong(LAST.ym)}. `+
+  `A entrada da Copa em ago/25 <b>reduz</b> a exposição da Lorinvest de <b>${mi(jul25.expL)}</b> para <b>${mi(ago25.expL)}</b> `+
+  `(−${mi(jul25.expL-ago25.expL)}), ao mesmo tempo em que a exposição consolidada cai de <b>${mi(jul25.expT)}</b> para <b>${mi(ago25.expT)}</b> — `+
+  `efeito da amortização da dívida da Holding com o ticket recebido. `+
+  `O aval é rateado <b>exatamente</b> na proporção societária (64/36); a distorção vem do aporte — por isso a Copa `+
+  `responde hoje por <b>${pct1(LAST.shC)}</b> da exposição, acima da sua fatia societária de 36%.`;
+let ultAporteL=D[0];
+for(let i=1;i<D.length;i++) if(Math.abs(D[i].apL-D[i-1].apL)>1e-6) ultAporteL=D[i];
+document.getElementById('nAp').innerHTML =
+  `A Lorinvest integraliza <b>${mi(LAST.apL)}</b> ao longo da série, com o último aporte em <b>${lblLong(ultAporteL.ym)}</b>; `+
+  `daí em diante o saldo fica estável e todo o funding novo vem da Copa (<b>${mi(PREM.copaTicket)}</b> em ago/25) e de dívida. `+
+  `Os dois acionistas terminam com aportes praticamente iguais — <b>${mi(LAST.apL)}</b> da Lorinvest contra <b>${mi(LAST.apC)}</b> da Copa — `+
+  `embora a divisão societária seja <b>64% / 36%</b>.`;
+document.getElementById('nDiv').innerHTML =
+  `A dívida total sai de zero (nov/22) e chega a <b>${mi(LAST.dTot)}</b> em ${lblLong(LAST.ym)}. Desde a mudança de dez/25, `+
+  `<b>${mi(LAST.semAval)}</b> (${pct0(LAST.semAval/LAST.dTot)} do saldo) ficam <b>fora</b> do aval dos acionistas — `+
+  `os 75% não avalizados da dívida da BA.`;
+document.getElementById('nMult').innerHTML =
+  `Cada R$ 1,00 aportado hoje carrega <b>${xf(LAST.mult)}</b> de exposição total. O pico do múltiplo foi de `+
+  `<b>${xf(D.filter(d=>d.apT>0).reduce((a,b)=>b.mult>a.mult?b:a).mult)}</b> em `+
+  `<b>${lblLong(D.filter(d=>d.apT>0).reduce((a,b)=>b.mult>a.mult?b:a).ym)}</b>.`;
+
+/* ===================== TABELAS ===================== */
+function rowHtml(nome,d,cls){
+  return `<tr class="${cls||''}"><td>${nome}</td>`+
+    `<td class="lor">${mi(d.apL)}</td><td class="copa">${mi(d.apC)}</td><td>${mi(d.apT)}</td>`+
+    `<td class="sep">${mi(d.pr)}</td><td>${mi(d.ba)}</td><td>${mi(d.rn)}</td><td>${mi(d.ho)}</td><td>${mi(d.dTot)}</td>`+
+    `<td class="sep lor">${mi(d.avL)}</td><td class="copa">${mi(d.avC)}</td><td>${mi(d.avT)}</td>`+
+    `<td class="sep lor">${mi(d.expL)}</td><td class="copa">${mi(d.expC)}</td><td>${mi(d.expT)}</td></tr>`;
+}
+(function(){
+  const anos=[...new Set(D.map(d=>d.ym.slice(0,4)))];
+  const tb=document.querySelector('#tblAno tbody');
+  tb.innerHTML=anos.map(a=>{
+    const sub=D.filter(d=>d.ym.slice(0,4)===a);
+    const d=sub.find(x=>x.ym===a+'-12')||sub[sub.length-1];
+    const rot=lblLong(d.ym);
+    return rowHtml(a+'  <span style="font-weight:400;color:var(--muted)">('+rot+')</span>',d,d===LAST?'last':'');
+  }).join('');
+})();
+
+const MARCOS={'2025-08':1,'2025-12':1,'2022-11':1};
+function renderMensal(filtro){
+  const sub = filtro==='all'?D:D.filter(d=>d.ym.slice(0,4)===filtro);
+  document.querySelector('#tblMensal tbody').innerHTML =
+    sub.map(d=>rowHtml(lbl(d.ym),d,d===LAST?'last':(MARCOS[d.ym]?'mark':''))).join('');
+}
+(function(){
+  const sel=document.getElementById('fAno');
+  [...new Set(D.map(d=>d.ym.slice(0,4)))].forEach(a=>sel.insertAdjacentHTML('beforeend',`<option value="${a}">${a}</option>`));
+  sel.onchange=e=>renderMensal(e.target.value);
+  renderMensal('all');
+})();
+
+document.getElementById('btnCsv').onclick=()=>{
+  const head=['Mes','Aporte Lorinvest','Aporte Copa','Aporte total','Divida PR','Divida BA','Divida RN','Divida Holding','Divida total',
+              '% Lorinvest','% Copa','% aval BA','Aval Lorinvest','Aval Copa','Aval total','Exposicao Lorinvest','Exposicao Copa','Exposicao total'];
+  const n=v=>(v==null?'':String(v).replace('.',','));
+  const csv=[head.join(';')].concat(D.map(d=>[d.ym,d.apL,d.apC,d.apT,d.pr,d.ba,d.rn,d.ho,d.dTot,d.pL,d.pC,d.pB,d.avL,d.avC,d.avT,d.expL,d.expC,d.expT]
+    .map(v=>typeof v==='number'?n(+v.toFixed(4)):v).join(';'))).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='gnlink_aportes_exposicao.csv'; a.click(); URL.revokeObjectURL(a.href);
+};
+
+/* ===================== MODAL AMPLIAR ===================== */
+document.querySelectorAll('.card').forEach(c=>{
+  const cv=c.querySelector('canvas'); if(!cv) return;
+  c.insertAdjacentHTML('afterbegin',
+    '<button class="chart-expand" title="Ampliar" data-cv="'+cv.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></svg></button>');
+});
+let cmChart=null;
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.chart-expand'); if(!b) return;
+  const factory=SPEC[b.dataset.cv]; if(!factory) return;
+  document.getElementById('cmTitle').textContent=b.closest('.card').querySelector('h3').textContent;
+  document.getElementById('cmodal').classList.add('open');
+  cmChart?.destroy();
+  cmChart=new Chart(document.getElementById('cmCanvas'),factory());
+});
+const closeCm=()=>{document.getElementById('cmodal').classList.remove('open');cmChart?.destroy();cmChart=null;};
+document.getElementById('cmClose').onclick=closeCm;
+document.getElementById('cmodal').onclick=e=>{if(e.target.id==='cmodal')closeCm();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCm();});
+
+/* ===================== INIT ===================== */
+renderMes(D.length-1);
+</script>
+</body>
+</html>
