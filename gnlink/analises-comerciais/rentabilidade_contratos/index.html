@@ -7,458 +7,374 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <style>
-    /* === Apple Liquid Glass design tokens === */
-    :root {
-      --bg: #f5f5f7;
-      --text: #1d1d1f;
-      --muted: #6e6e73;
-      --card: rgba(255,255,255,.72);
-      --card-border: rgba(255,255,255,.8);
-      --bd: rgba(0,0,0,.06);
-      --accent: #1d1d1f;
-      --glass-blur: 20px;
-      --glass-saturate: 1.4;
-      --radius: 20px;
-      --radius-sm: 14px;
-      --shadow: 0 4px 24px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-      --shadow-lg: 0 12px 40px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
-      --inner-glow: inset 0 1px 0 rgba(255,255,255,.9);
+    /* ===================================================================
+       Design system GNLink — mesmo padrão da página "Aportes & Exposição".
+       Classes originais preservadas (reskin): o HTML/JS não muda de nomes,
+       só o visual — DM Sans, header com barra gradiente, paleta navy/copre,
+       cards brancos com borda + sombra suave, abas sublinhadas.
+       =================================================================== */
+    :root{
+      --bg:#F4F6F9; --card:#FFFFFF; --ink:#13202E; --text:#13202E; --muted:#5C6B7A;
+      --accent:#002D5C; --accent2:#28477E; --primary:#002D5C;
+      --line:#E2E7EE; --bd:#E2E7EE; --card-border:#E2E7EE;
+      --neg:#B23A3A; --pos:#2E7D4F;
+      --nw-blue:#4880A8; --nw-blue-deep:#0056A7; --nw-mint:#7FC6A2;
+      --lor:#002D5C; --lor-soft:#6F94BC; --lor-bg:#E7EEF6;
+      --copa:#C25C12; --copa-soft:#F2AE75; --copa-bg:#FBEEE2;
+      --tab-mark:#E23A2E;   /* sublinhado da aba ativa */
+      --radius:14px; --radius-sm:10px;
+      --shadow:0 1px 2px rgba(19,32,46,.05),0 4px 14px rgba(19,32,46,.06);
+      --shadow-lg:0 12px 34px rgba(19,32,46,.14),0 2px 8px rgba(19,32,46,.06);
+      --inner-glow:none;
+      --logo:url("data:image/jpeg;base64,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jOnhfZS31/G585+Cf+TMNa/68b3/ANmqr4D/AGe/DfxA+AdncW2nxWfiW4t2eHUVZt3mAkrnnGDgA8V7TpHwd0rR/hdc+BY7u6k02eGWFp3K+bh85PAxnn0re8CeDrXwD4WsdCsppri2tF2rJPje3PfAAreWJtzOm7Nyv8jlhgeZwVaKaULfP+up5p+zX8UbnxTotx4Y14tF4n0M/Z5kmPzyop2hvqMYP50V0998FNJn+Jlv44tL280zVUx50VqyiK44wd4IPUcHBorkrOEpc0OvTszvw0atOHJV1ts+66fM9DqjrtzNZ6NfT243TxwuyD3A4q9SEAgg8g1itGdMk5RaTsfJF1dzT3MkkkrtIzEli3JPrXr/AIc1nUU+Et3KHcNETFHLnlU4yQfbJHtW9qHwd0W+v2uFLwIzbmiQDH4HtXXWuj2dnpY0+OBRZhCnlkZBB659c13VK8JJWR8Tl+S4rD1KkpytdNJp736nyh58hk3b2yT619NfD68ub/wfp010WMxQrubqQCQD+QFcWfBXgoa4Yzqke7d/x77xjOem+vUoII7aCOKJBHEihVVRwAOgFTiKimkkjbIsvq4WrUnOSa2snf7ySiiiuI+yCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigArnfH91PZ+E7+S3JV9mCynBVT1Oe3FdFTJoUuInilQPG4KsrDIIqouzTMa1N1aUqadm01c+RxNL5u7cd2f1r6Y+Hlxc3Xg7TZLoky+WRlupUEhT+WK8hGh2J+JZ0/7OPsfm7fKycYz0znNe/QxJBEkUahI0AVVUYAA7V24makkj43h7CTpVatST0Xu28+4+iiiuA+4CiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/9k=");
     }
-    html, body {
-      margin: 0; padding: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
-      font-size: 15px;
-      -webkit-font-smoothing: antialiased;
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0; padding:0;
+      background:var(--bg); color:var(--ink);
+      font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      font-size:14.5px; line-height:1.45;
+      font-variant-numeric:tabular-nums lining-nums;
+      font-feature-settings:'tnum' 1,'lnum' 1;
+      -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%;
     }
-    /* === App financeiro: fundo em camadas (liquid glass) === */
-    #app-financeiro {
-      min-height: 100vh;
-      background: linear-gradient(180deg, #fafafa 0%, #f0f0f5 50%, #e8e8ed 100%);
-      position: relative;
+    button{font-family:inherit;cursor:pointer;}
+    /* barra de acento no topo — assinatura da Exposição */
+    body::before{
+      content:''; position:fixed; top:0; left:0; right:0; height:3px; z-index:200;
+      background:linear-gradient(90deg,var(--nw-blue-deep),var(--nw-blue) 55%,var(--nw-mint));
     }
-    #app-financeiro::before {
-      content: '';
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120,119,198,.08), transparent),
-                  radial-gradient(ellipse 60% 40% at 100% 50%, rgba(99,102,241,.05), transparent),
-                  radial-gradient(ellipse 50% 30% at 0% 80%, rgba(139,92,246,.05), transparent);
-      pointer-events: none; z-index: 0;
+
+    /* === fundo dos apps (flat, não mais glass) === */
+    #app-financeiro, #app-comercial, #app-indicadores{ background:var(--bg); }
+    #app-financeiro{ min-height:100vh; position:relative; }
+    #app-comercial{ min-height:100vh; position:relative; }
+    #app-financeiro::before, #app-comercial::before{ content:none; }
+    #app-financeiro .wrap, #app-comercial .wrap{ position:relative; z-index:1; }
+    #app-financeiro, #app-comercial{ display:none; }
+
+    /* === marca / logo GNLink === */
+    .brand-logo{ background:var(--logo) no-repeat left center; background-size:contain; }
+
+    /* === header dos sub-apps === */
+    .apphdr{
+      position:sticky; top:0; z-index:50; background:#fff;
+      border-bottom:1px solid var(--line); box-shadow:0 2px 10px rgba(35,39,42,.05);
     }
-    #app-financeiro .wrap { position: relative; z-index: 1; }
+    .apphdr-in{
+      max-width:1240px; margin:0 auto; padding:11px 22px;
+      display:flex; align-items:center; gap:13px; flex-wrap:wrap;
+    }
+    .apphdr .brand-logo{ height:34px; width:120px; flex:none; }
+    .apphdr .hsep{ width:1px; height:26px; background:var(--line); }
+    .apphdr .hsub{
+      font-size:10.5px; font-weight:700; letter-spacing:.17em;
+      text-transform:uppercase; color:var(--nw-blue-deep);
+    }
+    .apphdr .hspace{ flex:1; }
 
     /* === LANDING === */
-    #landing {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100vh;
-      background: linear-gradient(165deg, #f5f5f7 0%, #ebebf0 35%, #e2e2e8 100%);
-      position: relative; overflow: hidden;
+    #landing{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:100vh; padding:40px 20px; position:relative; overflow:hidden;
+      background:
+        radial-gradient(ellipse 70% 45% at 50% -10%, rgba(72,128,168,.12), transparent),
+        radial-gradient(ellipse 55% 40% at 100% 100%, rgba(127,198,162,.10), transparent),
+        var(--bg);
     }
-    #landing::before {
-      content: ''; position: absolute; top: -20%; left: -10%; width: 50%; height: 60%;
-      background: radial-gradient(circle, rgba(120,119,198,.12), transparent 60%);
-      pointer-events: none;
+    #landing::before, #landing::after{ content:none; }
+    .landing-logo{ height:52px; width:190px; margin-bottom:26px; }
+    .landing-title{
+      font-size:30px; font-weight:700; letter-spacing:-.02em; margin:0 0 8px;
+      color:var(--ink); text-align:center; line-height:1.15;
     }
-    #landing::after {
-      content: ''; position: absolute; bottom: -10%; right: -5%; width: 45%; height: 50%;
-      background: radial-gradient(circle, rgba(99,102,241,.08), transparent 55%);
-      pointer-events: none;
+    .landing-sub{ font-size:13px; color:var(--muted); margin-bottom:44px; text-align:center; max-width:520px; }
+    .landing-btns{ display:flex; gap:18px; }
+    @media(max-width:600px){ .landing-btns{ flex-direction:column; gap:14px; width:100%; max-width:320px; } }
+    .glass-btn{
+      position:relative; width:220px; padding:26px 22px; border:1px solid var(--line);
+      border-radius:var(--radius); font-size:15px; font-weight:700; letter-spacing:-.01em;
+      cursor:pointer; color:var(--ink); text-align:center; background:var(--card);
+      box-shadow:var(--shadow);
+      transition:transform .2s cubic-bezier(.25,.1,.25,1), box-shadow .2s ease, border-color .2s ease;
     }
-    .landing-title {
-      font-size: 34px; font-weight: 600; letter-spacing: -.04em; margin-bottom: 64px;
-      color: var(--text); text-align: center; line-height: 1.15;
+    .glass-btn::before{
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      border-radius:var(--radius) var(--radius) 0 0;
+      background:linear-gradient(90deg,var(--nw-blue-deep),var(--nw-mint));
+      opacity:0; transition:opacity .2s;
     }
-    .landing-sub { font-size: 13px; color: var(--muted); margin-bottom: 48px; text-align: center; }
-    .landing-btns { display: flex; gap: 20px; }
-    @media(max-width:600px){ .landing-btns { flex-direction: column; gap: 14px; } }
-    .glass-btn {
-      position: relative; width: 220px; padding: 28px 24px; border: none; border-radius: 22px;
-      font-size: 16px; font-weight: 600; letter-spacing: -.01em; cursor: pointer; color: var(--text);
-      text-align: center;
-      background: rgba(255,255,255,.55);
-      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-      border: 1px solid rgba(255,255,255,.7);
-      box-shadow: var(--shadow), var(--inner-glow);
-      transition: transform .25s cubic-bezier(.25,.1,.25,1), box-shadow .25s ease, background .25s ease;
-    }
-    .glass-btn:hover {
-      transform: translateY(-4px) scale(1.01);
-      background: rgba(255,255,255,.7);
-      box-shadow: var(--shadow-lg), var(--inner-glow);
-    }
-    .glass-btn:active { transform: translateY(0) scale(1); }
-    .glass-btn .btn-icon { font-size: 28px; display: block; margin-bottom: 8px; }
-    .glass-btn .btn-label { font-size: 15px; }
-    #app-financeiro, #app-comercial { display: none; }
-    #app-comercial {
-      min-height: 100vh;
-      background: linear-gradient(180deg, #fafafa 0%, #f0f0f5 50%, #e8e8ed 100%);
-      position: relative;
-    }
-    #app-comercial::before {
-      content: '';
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120,119,198,.06), transparent);
-      pointer-events: none; z-index: 0;
-    }
-    #app-comercial .wrap { position: relative; z-index: 1; }
+    .glass-btn:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:#C9DCEF; }
+    .glass-btn:hover::before{ opacity:1; }
+    .glass-btn:active{ transform:translateY(0); }
+    .glass-btn .btn-icon{ font-size:28px; display:block; margin-bottom:10px; }
+    .glass-btn .btn-label{ font-size:15px; }
 
-    /* === Modal senha === */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.2);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      z-index: 1000; align-items: center; justify-content: center;
+    /* === Modal (senha) — padrão cmodal da Exposição === */
+    .modal-overlay{
+      display:none; position:fixed; inset:0; z-index:1000;
+      background:rgba(19,32,46,.55); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+      align-items:center; justify-content:center; padding:24px;
     }
-    .modal-overlay.active { display: flex; }
-    .modal-box {
-      width: 340px; padding: 32px 28px; border-radius: 24px;
-      background: rgba(255,255,255,.65);
-      backdrop-filter: blur(28px) saturate(1.6);
-      -webkit-backdrop-filter: blur(28px) saturate(1.6);
-      border: 1px solid rgba(255,255,255,.75);
-      box-shadow: var(--shadow-lg), var(--inner-glow);
-      text-align: center;
+    .modal-overlay.active{ display:flex; }
+    .modal-box{
+      width:360px; max-width:96vw; padding:26px 26px; border-radius:14px;
+      background:var(--card); border:1px solid var(--line);
+      box-shadow:0 24px 70px rgba(19,32,46,.4); text-align:center;
     }
-    .modal-box h3 { font-size: 17px; font-weight: 600; margin: 0 0 6px; color: var(--text); }
-    .modal-box p { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
-    .modal-input {
-      width: 100%; padding: 14px 16px; border: 1px solid rgba(0,0,0,.08);
-      border-radius: 14px; font-size: 15px;
-      background: rgba(255,255,255,.6); outline: none; box-sizing: border-box;
-      transition: border-color .2s, box-shadow .2s;
+    .modal-box h3{ font-size:17px; font-weight:700; margin:0 0 6px; color:var(--ink); }
+    .modal-box p{ font-size:13px; color:var(--muted); margin:0 0 20px; }
+    .modal-input{
+      width:100%; padding:12px 14px; border:1px solid var(--line);
+      border-radius:10px; font-size:15px; background:#F6F8FA; outline:none; box-sizing:border-box;
+      transition:border-color .2s, box-shadow .2s; font-family:inherit;
     }
-    .modal-input:focus {
-      border-color: rgba(99,102,241,.4);
-      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    .modal-input:focus{ border-color:var(--accent2); box-shadow:0 0 0 3px rgba(40,71,126,.14); background:#fff; }
+    .modal-error{ font-size:12px; color:var(--neg); margin-top:8px; min-height:18px; }
+    .modal-actions{ display:flex; gap:12px; margin-top:20px; }
+    .modal-actions button{
+      flex:1; padding:11px 0; border-radius:10px; font-size:14px; font-weight:700;
+      cursor:pointer; transition:all .15s;
     }
-    .modal-error { font-size: 12px; color: #dc2626; margin-top: 8px; min-height: 18px; }
-    .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
-    .modal-actions button {
-      flex: 1; padding: 12px 0; border-radius: 14px; font-size: 15px; font-weight: 600;
-      cursor: pointer; transition: transform .15s, box-shadow .15s;
-    }
-    .modal-cancel {
-      border: 1px solid rgba(0,0,0,.1);
-      background: rgba(255,255,255,.5);
-      color: var(--muted);
-    }
-    .modal-cancel:hover { background: rgba(255,255,255,.7); }
-    .modal-confirm {
-      border: none; background: var(--accent); color: #fff;
-      box-shadow: 0 4px 14px rgba(0,0,0,.15);
-    }
-    .modal-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+    .modal-cancel{ border:1px solid var(--line); background:var(--card); color:var(--muted); }
+    .modal-cancel:hover{ background:#F2F5F8; border-color:var(--accent2); color:var(--accent); }
+    .modal-confirm{ border:1px solid var(--accent); background:var(--accent); color:#fff; }
+    .modal-confirm:hover{ background:#013a75; }
 
-    .back-link {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 14px;
-      color: var(--muted); cursor: pointer; border: none; background: none;
-      padding: 8px 0; margin-bottom: 12px; transition: color .2s;
+    /* === back-link (voltar) === */
+    .back-link{
+      display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600;
+      color:var(--muted); cursor:pointer; border:1px solid var(--line); background:var(--card);
+      border-radius:999px; padding:6px 14px; margin:18px 0 4px; transition:all .15s;
     }
-    .back-link:hover { color: var(--text); }
-    .dev-placeholder {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 60vh; color: var(--muted); font-size: 18px; gap: 12px;
+    .back-link:hover{ color:var(--accent); border-color:var(--accent2); background:#F6F8FA; }
+    .dev-placeholder{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:60vh; color:var(--muted); font-size:18px; gap:12px;
     }
-    .sf-input {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--bd);
-      border-radius: 12px; font-size: 14px; box-sizing: border-box;
-      background: rgba(255,255,255,.5);
+    .sf-input{
+      width:100%; padding:9px 12px; border:1px solid var(--line);
+      border-radius:10px; font-size:13.5px; box-sizing:border-box; background:#F6F8FA; font-family:inherit;
     }
-    .sf-sep { border-top: 1px solid var(--bd); margin: 14px 0; padding-top: 10px; }
-    .sf-sep span { font-weight: 600; }
+    .sf-input:focus{ outline:none; border-color:var(--accent2); box-shadow:0 0 0 2px rgba(40,71,126,.12); background:#fff; }
+    .sf-sep{ border-top:1px solid var(--line); margin:14px 0; padding-top:10px; }
+    .sf-sep span{ font-weight:700; }
 
-    /* === Wrap & typography === */
-    .wrap { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
-    h1 { font-size: 24px; font-weight: 600; margin: 0 0 6px; letter-spacing: -.02em; }
-    .muted { color: var(--muted); font-size: 13px; }
+    /* === Wrap & tipografia === */
+    .wrap{ max-width:1240px; margin:0 auto; padding:18px 22px 40px; }
+    h1{ font-size:20px; font-weight:700; margin:0 0 6px; letter-spacing:-.2px; }
+    .muted{ color:var(--muted); font-size:12px; line-height:1.55; }
 
-    /* === Tabs indicadores: scroll horizontal === */
-    #ind-tabs-scroll {
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      -webkit-overflow-scrolling: touch;
-      max-width: 100%;
-      white-space: nowrap;
+    /* === abas (sublinhadas — padrão Exposição) === */
+    #ind-tabs-scroll{
+      overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -ms-overflow-style:none;
+      -webkit-overflow-scrolling:touch; max-width:100%;
     }
-    #ind-tabs-scroll::-webkit-scrollbar { display: none; }
-    #ind-tabs { margin: 20px 0 24px; }
+    #ind-tabs-scroll::-webkit-scrollbar{ display:none; }
+    #ind-tabs{ margin:8px 0 4px; }
+    .tabs{
+      display:flex; gap:2px; flex-wrap:nowrap; border-bottom:2px solid var(--line);
+      margin:22px 0 0; overflow-x:auto; -webkit-overflow-scrolling:touch; touch-action:pan-x;
+      scrollbar-width:none; -ms-overflow-style:none; padding:0; background:none; box-shadow:none; border-radius:0;
+    }
+    .tabs::-webkit-scrollbar{ display:none; }
+    .tabbtn{
+      flex:0 0 auto; background:none; border:none; font-size:13px; font-weight:600; color:var(--muted);
+      padding:9px 14px; border-bottom:2.5px solid transparent; margin-bottom:-2px;
+      white-space:nowrap; cursor:pointer; border-radius:0; transition:color .15s;
+    }
+    .tabbtn:hover{ color:var(--accent); background:none; }
+    .tabbtn.active{ color:var(--accent); background:none; border-bottom-color:var(--tab-mark); box-shadow:none; }
 
-    /* === Tabs: pill glass === */
-    .tabs {
-      display: inline-flex;
-      flex-wrap: nowrap;
-      padding: 4px;
-      border-radius: 16px;
-      margin: 20px 0 24px;
-      background: rgba(255,255,255,.5);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid rgba(255,255,255,.6);
-      box-shadow: 0 2px 12px rgba(0,0,0,.04), var(--inner-glow);
+    /* === Cards === */
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:17px 19px; box-shadow:var(--shadow); min-width:0; position:relative;
     }
-    .tabbtn {
-      flex-shrink: 0;
-      padding: 10px 18px; font-size: 14px; font-weight: 500;
-      border: none; border-radius: 12px;
-      background: transparent; color: var(--muted);
-      cursor: pointer;
-      transition: background .25s ease, color .25s ease;
+    .card h2{ font-size:15px; font-weight:700; margin:0 0 14px; letter-spacing:-.2px; }
+    .card h3{ font-size:14.5px; font-weight:700; margin:0 0 12px; }
+    .row{ margin-bottom:14px; }
+    .row label{ display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px; }
+    .row .slider-num{
+      width:5.5em; padding:4px 8px; font-size:13px; border:1px solid var(--line);
+      border-radius:8px; background:#F6F8FA; text-align:right; box-sizing:border-box; font-family:inherit;
     }
-    .tabbtn:hover { color: var(--text); background: rgba(255,255,255,.4); }
-    .tabbtn.active {
-      background: rgba(255,255,255,.9);
-      color: var(--text);
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    .row .slider-num:focus{ outline:none; border-color:var(--accent2); box-shadow:0 0 0 2px rgba(40,71,126,.12); background:#fff; }
+    .row input[type="range"]{
+      width:100%; accent-color:var(--accent); cursor:pointer;
+      touch-action:none; -webkit-user-select:none; user-select:none;
     }
 
-    /* === Cards: liquid glass panels === */
-    .card {
-      background: var(--card);
-      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow), var(--inner-glow);
+    /* === KPIs === */
+    .kpis{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .kpi{
+      position:relative; border-radius:12px; padding:13px 15px; min-height:96px;
+      display:flex; flex-direction:column; justify-content:flex-start; color:var(--ink);
+      overflow:hidden; background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow);
+      transition:transform .2s cubic-bezier(.25,.1,.25,1), box-shadow .2s ease;
     }
-    .card h2 { font-size: 17px; font-weight: 600; margin: 0 0 14px; letter-spacing: -.02em; }
-    .card h3 { font-size: 15px; font-weight: 600; margin: 0 0 12px; }
-    .row { margin-bottom: 14px; }
-    .row label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
-    .row .slider-num { width: 5.5em; padding: 4px 8px; font-size: 13px; border: 1px solid rgba(0,0,0,.1); border-radius: 8px; background: rgba(255,255,255,.5); text-align: right; box-sizing: border-box; }
-    .row .slider-num:focus { outline: none; border-color: rgba(99,102,241,.4); box-shadow: 0 0 0 2px rgba(99,102,241,.12); }
-    .row input[type="range"] {
-      width: 100%; accent-color: #6366f1; cursor: pointer;
-      touch-action: none; -webkit-user-select: none; user-select: none;
-    }
-
-    /* === KPIs: glass cards === */
-    .kpis { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
-    .kpi {
-      position: relative;
-      border-radius: 20px;
-      padding: 20px 22px;
-      min-height: 100px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      color: var(--text);
-      overflow: hidden;
-      /* Glass card: translucent + blur */
-      background: rgba(255,255,255,.35);
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,.5);
-      box-shadow: 0 8px 32px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.6);
-      transition: transform .25s cubic-bezier(.25,.1,.25,1), box-shadow .25s ease;
-    }
-    .kpi:hover {
-      transform: translateY(-4px) scale(1.01);
-      box-shadow: var(--shadow-lg), var(--inner-glow);
-    }
-    .kpi .cap { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 600; margin-bottom: 6px; }
-    .kpi .val { font-size: 19px; font-weight: 600; letter-spacing: -.02em; line-height: 1.3; word-break: break-word; font-variant-numeric: tabular-nums; }
-    .kpi .sub { font-size: 12px; color: var(--muted); margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,.06); line-height: 1.4; }
-    /* Tinted glass card variants (subtle overlay) */
-    .kpi-ice{ background: rgba(224,242,254,.4); }
-    .kpi-celeste{ background: rgba(219,234,254,.38); }
-    .kpi-sand{ background: rgba(254,243,199,.38); }
-    .kpi-blush{ background: rgba(254,226,226,.4); }
-    .kpi-sage{ background: rgba(220,252,231,.38); }
-    .kpi-stone{ background: rgba(241,245,249,.42); }
-    .kpi-rose{ background: rgba(255,241,242,.38); }
-    .pos { color: #059669; }
+    .kpi:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+    .kpi .cap{ font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:5px; }
+    .kpi .val{ font-size:20px; font-weight:700; letter-spacing:-.4px; line-height:1.25; word-break:break-word; }
+    .kpi .sub{ font-size:10.5px; color:var(--muted); margin-top:7px; padding-top:6px; border-top:1px solid var(--line); line-height:1.45; }
+    /* variantes suaves por tom */
+    .kpi-ice   { background:#EFF6FC; border-color:#D3E4F2; }
+    .kpi-celeste{ background:#EAF2FA; border-color:#C9DCEF; }
+    .kpi-sand  { background:#FDF4E3; border-color:#F1DFBE; }
+    .kpi-blush { background:#FBEDED; border-color:#F1D3D3; }
+    .kpi-sage  { background:#EAF4EE; border-color:#CBE4D5; }
+    .kpi-stone { background:#F1F4F8; border-color:#DEE5EE; }
+    .kpi-rose  { background:#FBEEE2; border-color:#F3D7BC; }
+    .pos{ color:var(--pos); }
+    .neg{ color:var(--neg); }
     @keyframes spin{ to{ transform:rotate(360deg); } }
-    .neg { color: #dc2626; }
 
-    .scenario-layout { display: flex; flex-direction: column; gap: 18px; }
-    .scenario-premissas {
-      width: 100%; min-width: 280px; min-height: 720px; box-sizing: border-box; order: 10;
-      background: var(--card);
-      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow), var(--inner-glow);
+    /* === Layout de cenário === */
+    .scenario-layout{ display:flex; flex-direction:column; gap:16px; }
+    .scenario-premissas{
+      width:100%; min-width:280px; min-height:720px; box-sizing:border-box; order:10;
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
     }
-    .scenario-liqvars { order: 11; }
-    .scenario-outputs .kpis { gap: 14px; }
-    .scenario-outputs .kpi { min-height: 92px; padding: 16px 18px; border-radius: 18px; }
-    .scenario-outputs .kpi .val { font-size: 17px; }
-    .scenario-outputs .kpi .sub { margin-top: 6px; padding-top: 5px; font-size: 11px; }
-    .scenario-table {
-      overflow: auto;
-      background: var(--card);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow), var(--inner-glow);
+    .scenario-liqvars{ order:11; }
+    .scenario-outputs .kpis{ gap:12px; }
+    .scenario-outputs .kpi{ min-height:88px; padding:14px 15px; border-radius:12px; }
+    .scenario-outputs .kpi .val{ font-size:17px; }
+    .scenario-outputs .kpi .sub{ margin-top:6px; padding-top:5px; font-size:10.5px; }
+    .scenario-table{
+      overflow:auto; background:var(--card); border:1px solid var(--line);
+      border-radius:var(--radius); box-shadow:var(--shadow);
     }
-    .scenario-charts .chart-inner { height: 260px; min-width: 400px; }
-    .scenario-charts .card { padding: 18px; }
-    @media(min-width:1024px) {
-      .scenario-layout { display: grid; grid-template-columns: 340px minmax(0,1fr); gap: 18px; align-items: start; }
-      .scenario-premissas { width: 340px; min-width: 340px; grid-column: 1; grid-row: 1 / span 3; order: unset; }
-      .scenario-liqvars { order: unset; }
-      .scenario-outputs { grid-column: 2; grid-row: 1; min-width: 0; }
-      .scenario-table { grid-column: 2; grid-row: 2; min-width: 0; }
-      .scenario-charts { grid-column: 2; grid-row: 3; min-width: 0; }
+    .scenario-charts .chart-inner{ height:260px; min-width:400px; }
+    .scenario-charts .card{ padding:17px 19px; }
+    @media(min-width:1024px){
+      .scenario-layout{ display:grid; grid-template-columns:340px minmax(0,1fr); gap:18px; align-items:start; }
+      .scenario-premissas{ width:340px; min-width:340px; grid-column:1; grid-row:1 / span 3; order:unset; }
+      .scenario-liqvars{ order:unset; }
+      .scenario-outputs{ grid-column:2; grid-row:1; min-width:0; }
+      .scenario-table{ grid-column:2; grid-row:2; min-width:0; }
+      .scenario-charts{ grid-column:2; grid-row:3; min-width:0; }
     }
 
-    /* === Mobile: ajustes específicos ANP combustíveis === */
+    /* === Mobile: ANP combustíveis === */
     @media(max-width:768px){
-      /* Filtros em 2 colunas para não ficar apertado demais */
-      .comb-filtros-grid {
-        display:grid !important;
-        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-        gap:10px !important;
-      }
-      /* KPIs fixos em 2 colunas em telas mobile normais */
-      .comb-kpis-grid {
-        display:grid !important;
-        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-        gap:12px !important;
-      }
-      /* Blocos de gráficos empilhados (1 por linha) */
-      .comb-grid-2 {
-        grid-template-columns:1fr !important;
-      }
-      /* Títulos e legendas com fonte um pouco menor */
-      .comb-card-header h3 {
-        font-size:14px !important;
-      }
-      .comb-card-header span.muted {
-        font-size:11px !important;
-      }
+      .comb-filtros-grid{ display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; }
+      .comb-kpis-grid{ display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; }
+      .comb-grid-2{ grid-template-columns:1fr !important; }
+      .comb-card-header h3{ font-size:14px !important; }
+      .comb-card-header span.muted{ font-size:11px !important; }
     }
 
-    /* === Tables inside glass === */
-    table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-    th, td { text-align: right; padding: 10px 12px; border-top: 1px solid rgba(0,0,0,.06); }
-    th:first-child, td:first-child { text-align: left; }
-    th { font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    /* === Tabelas === */
+    table{ width:100%; border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
+    th, td{ text-align:right; padding:9px 11px; border-top:1px solid #EFF3F7; }
+    th:first-child, td:first-child{ text-align:left; }
+    th{
+      font-weight:700; color:var(--accent2); font-size:10px; text-transform:uppercase;
+      letter-spacing:.06em; border-top:0; border-bottom:1px solid var(--line); background:#F6F8FA;
+    }
+    tbody tr:hover td{ background:#F6F9FC; }
 
-    .flex { display: flex; align-items: center; justify-content: space-between; }
-    .small { font-size: 12px; color: var(--muted); }
-    .note { margin-top: 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
-    .note-warn {
-      background: rgba(254,226,226,.5);
-      border: 1px solid rgba(248,113,113,.3);
-      border-radius: 14px; padding: 14px 18px; font-size: 13px; color: #dc2626;
-      margin-bottom: 16px; line-height: 1.5;
+    .flex{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .small{ font-size:12px; color:var(--muted); }
+    .note{ margin-top:14px; font-size:11.5px; color:#46566A; line-height:1.55; }
+    .note-warn{
+      background:#FBEDED; border:1px solid #F1D3D3; border-radius:10px;
+      padding:12px 16px; font-size:12.5px; color:var(--neg); margin-bottom:16px; line-height:1.5;
     }
 
-    /* === Buttons: glass === */
-    .btn {
-      padding: 10px 16px;
-      border: 1px solid rgba(255,255,255,.6);
-      border-radius: 12px;
-      background: rgba(255,255,255,.5);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      cursor: pointer; font-size: 13px; font-weight: 500;
-      box-shadow: 0 1px 4px rgba(0,0,0,.04), var(--inner-glow);
-      transition: background .2s, transform .15s, box-shadow .15s;
+    /* === Botões === */
+    .btn{
+      padding:8px 14px; border:1px solid var(--line); border-radius:8px; background:var(--card);
+      color:var(--accent); cursor:pointer; font-size:12.5px; font-weight:700;
+      box-shadow:var(--shadow); transition:all .15s;
     }
-    .btn:hover {
-      background: rgba(255,255,255,.75);
-      box-shadow: 0 4px 12px rgba(0,0,0,.06), var(--inner-glow);
-    }
-    .btn-header { padding: 8px 14px; font-size: 12px; }
+    .btn:hover{ background:#F2F5F8; border-color:var(--accent2); }
+    .btn-header{ padding:8px 13px; font-size:12px; }
     .btn[style*="background:var(--accent)"],
-    .btn[style*="background:#047857"] {
-      border-color: transparent;
-      color: #fff !important;
-      box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    .btn[style*="background:#047857"]{ border-color:transparent; color:#fff !important; }
+    .btn[style*="background:var(--accent)"]:hover{ background:#013a75 !important; }
+    .btn[style*="background:#047857"]:hover{ background:#036848 !important; }
+
+    .hidden{ display:none; }
+    .chart-scroll{
+      width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; margin-top:6px;
+      scrollbar-width:thin; scrollbar-color:#B8C2CE #EEF2F6;
     }
-    .btn[style*="background:var(--accent)"]:hover,
-    .btn[style*="background:#047857"]:hover {
-      box-shadow: 0 6px 18px rgba(0,0,0,.2);
+    .chart-scroll::-webkit-scrollbar{ height:9px; }
+    .chart-scroll::-webkit-scrollbar-track{ background:#EEF2F6; border-radius:9px; }
+    .chart-scroll::-webkit-scrollbar-thumb{ background:#B8C2CE; border-radius:9px; border:2px solid #EEF2F6; }
+    .chart-inner{ position:relative; height:320px; min-width:600px; }
+    .chart-inner canvas{ width:100%!important; height:100%!important; display:block; }
+
+    /* === Consolidado === */
+    .consol-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; margin-bottom:16px; }
+    .consol-charts-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+    .consol-charts-grid .card{ min-width:0; }
+    .consol-charts-grid .chart-scroll{ min-width:0; }
+    .consol-charts-grid .chart-inner{ height:280px; min-width:280px; }
+    @media(max-width:720px){ .consol-charts-grid{ grid-template-columns:1fr; } }
+    .consol-card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:18px 19px; box-shadow:var(--shadow);
+    }
+    .consol-card h4{ font-size:14.5px; font-weight:700; margin:0 0 12px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .consol-row{ display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px; }
+    .consol-row .lbl{ color:var(--muted); }
+    .consol-row .v{ font-weight:700; }
+
+    /* === Selects === */
+    select{
+      background:var(--card); border:1px solid var(--line); border-radius:8px;
+      padding:8px 12px; font-size:12.5px; font-weight:600; color:var(--ink); font-family:inherit;
+      -webkit-appearance:none; appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235C6B7A' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 12px center; padding-right:34px;
     }
 
-    .hidden { display: none; }
-    .chart-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .chart-inner { position: relative; height: 320px; min-width: 600px; }
-    .chart-inner canvas { width: 100%!important; height: 100%!important; display: block; }
+    /* === Footer === */
+    footer{
+      max-width:1240px; margin:0 auto; padding:16px 22px 34px;
+      font-size:10.5px; color:var(--muted); border-top:1px solid var(--line);
+    }
+    footer b{ letter-spacing:.12em; }
 
-    /* === Consolidado: consol cards glass === */
-    .consol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
-    .consol-charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .consol-charts-grid .card { min-width: 0; }
-    .consol-charts-grid .chart-scroll { min-width: 0; }
-    .consol-charts-grid .chart-inner { height: 280px; min-width: 280px; }
-    @media(max-width:720px){ .consol-charts-grid { grid-template-columns: 1fr; } }
-    .consol-card {
-      background: rgba(255,255,255,.6);
-      backdrop-filter: blur(16px) saturate(1.3);
-      -webkit-backdrop-filter: blur(16px) saturate(1.3);
-      border: 1px solid rgba(255,255,255,.7);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.04), var(--inner-glow);
+    @media(min-width:720px){ .kpi{ min-height:104px; } .kpi .val{ font-size:20px; } }
+    @media(max-width:768px){
+      .apphdr-in{ padding:10px 14px; gap:8px 10px; }
+      .apphdr .brand-logo{ height:26px; width:92px; }
+      .apphdr .hsub{ font-size:9px; letter-spacing:.1em; }
+      .wrap{ padding:14px 14px 34px; }
+      h1{ font-size:18px; }
+      .tabs{ margin-top:18px; }
+      .tabbtn{ font-size:12.5px; padding:9px 12px; }
+      .card{ padding:14px 12px; }
+      .card h2{ font-size:14px; }
+      .kpis{ grid-template-columns:repeat(2,1fr); gap:12px; }
+      .kpi{ padding:12px 13px; }
+      .kpi .cap{ font-size:10px; }
+      .kpi .val{ font-size:17px; }
+      table{ font-size:11.5px; }
+      th, td{ padding:8px 9px; }
+      footer{ padding:16px 14px 34px; }
     }
-    .consol-card h4 { font-size: 15px; font-weight: 600; margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,.06); }
-    .consol-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
-    .consol-row .lbl { color: var(--muted); }
-    .consol-row .v { font-weight: 600; }
-
-    /* Selects: glass style */
-    select {
-      background: rgba(255,255,255,.5);
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 14px;
-      -webkit-appearance: none; appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236e6e73' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 36px;
+    @media(max-width:480px){
+      .wrap{ padding:14px 12px 30px; }
+      .card{ padding:13px 12px; }
+      table{ font-size:11px; }
+      th, td{ padding:7px 8px; }
     }
-
-    @media(min-width:720px){ .kpi { min-height: 110px; } .kpi .val { font-size: 20px; } }
-    @media(max-width:768px) {
-      .wrap { padding: 0 14px; }
-      .tabs {
-        display: flex;
-        flex-wrap: nowrap;
-        max-width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-      }
-      .tabs::-webkit-scrollbar { height: 6px; }
-      .tabs::-webkit-scrollbar-track { background: rgba(0,0,0,.04); border-radius: 3px; }
-      .tabs::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 3px; }
-      .card { padding: 16px; }
-      .card h2 { font-size: 15px; }
-      .kpis { grid-template-columns: repeat(2, 1fr); grid-gap: 12px; }
-      .kpi { padding: 12px 14px; }
-      .kpi .cap { font-size: 10px; }
-      .kpi .val { font-size: 15px; }
-      table { font-size: 11px; }
-      th, td { padding: 8px 10px; }
-    }
-    @media(max-width:480px) {
-      .wrap { padding: 0 12px; }
-      .card { padding: 14px; }
-      table { font-size: 10px; }
-      th, td { padding: 6px 8px; }
-    }
+    @media(max-width:359px){ .kpis{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
   <!-- LANDING -->
   <div id="landing">
+    <span class="brand-logo landing-logo" role="img" aria-label="GNLink"></span>
     <div class="landing-title">Plataforma de análise contratual GNL</div>
+    <div class="landing-sub">Rentabilidade contratual, exposição financeira e indicadores de mercado — selecione uma visão para começar.</div>
     <div class="landing-btns">
       <button class="glass-btn" onclick="goTo('comercial')">
         <span class="btn-icon">📈</span>
@@ -491,6 +407,12 @@
 
   <!-- COMERCIAL (placeholder) -->
   <div id="app-comercial">
+    <header class="apphdr"><div class="apphdr-in">
+      <span class="brand-logo" role="img" aria-label="GNLink"></span>
+      <span class="hsep"></span>
+      <span class="hsub">Análise contratual GNL · Visão Comercial</span>
+      <div class="hspace"></div>
+    </div></header>
     <div class="wrap">
       <button class="back-link" onclick="goTo('landing')">← Voltar</button>
       <div class="dev-placeholder">
@@ -502,6 +424,12 @@
 
   <!-- PREÇOS E INDICADORES -->
   <div id="app-indicadores" style="display:none">
+    <header class="apphdr"><div class="apphdr-in">
+      <span class="brand-logo" role="img" aria-label="GNLink"></span>
+      <span class="hsep"></span>
+      <span class="hsub">Análise contratual GNL · Preços &amp; Indicadores</span>
+      <div class="hspace"></div>
+    </div></header>
     <div class="wrap">
       <button class="back-link" onclick="goTo('landing')">← Voltar</button>
 
@@ -514,11 +442,19 @@
       <div id="ind-view-combustiveis"><div id="view-combustiveis"></div></div>
       <div id="ind-view-petroleo" class="hidden"><div id="view-petroleo"></div></div>
       <div id="ind-view-macro" class="hidden"><div id="view-macro"></div></div>
+
+      <footer><b>LORINVEST</b> · Análise de Investimentos — GNLink · Preços &amp; indicadores de mercado · documento confidencial de uso interno.</footer>
     </div>
   </div>
 
   <!-- FINANCEIRO -->
   <div id="app-financeiro">
+  <header class="apphdr"><div class="apphdr-in">
+    <span class="brand-logo" role="img" aria-label="GNLink"></span>
+    <span class="hsep"></span>
+    <span class="hsub">Análise contratual GNL · Rentabilidade contratual</span>
+    <div class="hspace"></div>
+  </div></header>
   <div class="wrap">
     <button class="back-link" onclick="goTo('landing')">← Voltar</button>
     <div class="flex">
@@ -530,7 +466,7 @@
         <button class="btn btn-header" id="resetBtn" type="button">Resetar padrões</button>
         <button class="btn btn-header" onclick="showSetupForm()" style="background:var(--accent);color:#fff;border-color:var(--accent);">+ Novo Contrato</button>
         <button class="btn btn-header" onclick="showSetupForm()" type="button">Alterar padrões novos contratos</button>
-        <button class="btn btn-header" id="deleteContractBtn" style="display:none;border-color:#dc2626;color:#dc2626;" onclick="deleteCurrentContract()">Excluir contrato</button>
+        <button class="btn btn-header" id="deleteContractBtn" style="display:none;border-color:#B23A3A;color:#B23A3A;" onclick="deleteCurrentContract()">Excluir contrato</button>
         <button class="btn btn-header" onclick="exportExcel()" style="background:#047857;color:#fff;border-color:#047857;">📥 Exportar Excel</button>
       </div>
     </div>
@@ -547,10 +483,39 @@
     <div id="view-bahiagas" class="hidden"></div>
     <div id="view-cegas" class="hidden"></div>
     <div id="view-newcontract" class="hidden"></div>
+
+    <footer><b>LORINVEST</b> · Análise de Investimentos — GNLink · Simulador de rentabilidade contratual · FCFE descontado a Ke nominal · documento confidencial de uso interno.</footer>
   </div>
   </div>
 
 <script>
+/* ===== Chrome padrão dos gráficos — mesmo visual da página "Exposição" =====
+   DM Sans, texto/eixos em tom neutro, grid discreto, tooltip navy e legenda
+   embaixo com marcadores arredondados. Aplica-se a TODOS os Chart.js da página. */
+(function(){
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.font.family="'DM Sans',system-ui,-apple-system,sans-serif";
+  Chart.defaults.color='#5C6B7A';
+  Chart.defaults.borderColor='#EEF2F6';
+  Chart.defaults.plugins.legend.position='bottom';
+  Object.assign(Chart.defaults.plugins.legend.labels,
+    {boxWidth:12,font:{size:11},padding:12,usePointStyle:true,pointStyle:'rectRounded',color:'#5C6B7A'});
+  Object.assign(Chart.defaults.plugins.tooltip,
+    {backgroundColor:'rgba(19,32,46,.94)',padding:10,titleColor:'#FFFFFF',bodyColor:'#E7EDF3',
+     titleFont:{size:12,weight:'700'},bodyFont:{size:11.5},boxPadding:4,usePointStyle:true,cornerRadius:8});
+  /* rótulos de dados: registra o plugin, mas desligado por padrão — só é ativado
+     explicitamente nos gráficos do contratual (barras e linha), para não poluir
+     as séries mensais densas dos indicadores. */
+  if(typeof ChartDataLabels!=='undefined'){
+    Chart.register(ChartDataLabels);
+    Chart.defaults.plugins.datalabels.display=false;
+    Chart.defaults.plugins.datalabels.color='#13202E';
+    Chart.defaults.plugins.datalabels.font={size:9,weight:'700'};
+  }
+})();
+/* formato compacto para rótulos e eixos (R$ mi/mil) */
+const axFmt=v=>(v==null||isNaN(v))?'':v>=1e6?(v/1e6).toFixed(1)+'M':v<=-1e6?'('+(-v/1e6).toFixed(1)+'M)':v>=1e3?(v/1e3).toFixed(0)+'K':v<=-1e3?'('+(-v/1e3).toFixed(0)+'K)':v<0?'('+(-Math.round(v))+')':''+Math.round(v);
+
 let curScreen='landing';
 function goTo(screen){
   if(screen==='financeiro'){openPwModal();return;}
@@ -1271,7 +1236,7 @@ function rBrent(){
           <span class="muted">Unidade</span>
           <div style="display:inline-flex;border:1px solid rgba(148,163,184,.6);border-radius:999px;overflow:hidden">
             <button id="us_retail_unit_gal" type="button" style="padding:4px 10px;border:none;background:#2563eb;color:#fff;font-size:11px;cursor:pointer">US$/gal</button>
-            <button id="us_retail_unit_bbl" type="button" style="padding:4px 10px;border:none;background:transparent;color:#334155;font-size:11px;cursor:pointer">US$/bbl</button>
+            <button id="us_retail_unit_bbl" type="button" style="padding:4px 10px;border:none;background:transparent;color:#13202E;font-size:11px;cursor:pointer">US$/bbl</button>
           </div>
         </div>
       </div>
@@ -1295,7 +1260,7 @@ function rUsRetail(){
   if(!cont)return;
   if(RETAIL_DATA===null&&!RETAIL_ERROR){
     cont.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-      <div style="width:20px;height:20px;border:2px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
+      <div style="width:20px;height:20px;border:2px solid #002D5C;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
       <p class="muted" style="margin:0;font-size:12px">Carregando preços spot de derivados de petróleo nos EUA…</p>
     </div>`;
     loadRetailWeeklyRaw().then(()=>{if(curScreen==='indicadores'&&curIndTab==='petroleo')rUsRetail();});
@@ -1468,7 +1433,7 @@ function rUsRetail(){
           interaction:{mode:'index',intersect:false},
           scales:{
             x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-            y:{beginAtZero:false,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+            y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
           },
           plugins:{
             legend:{display:false},
@@ -1482,10 +1447,10 @@ function rUsRetail(){
     if(btnGal&&btnBbl){
       if(unit==='gal'){
         btnGal.style.background='#2563eb';btnGal.style.color='#fff';
-        btnBbl.style.background='transparent';btnBbl.style.color='#334155';
+        btnBbl.style.background='transparent';btnBbl.style.color='#13202E';
       }else{
         btnBbl.style.background='#2563eb';btnBbl.style.color='#fff';
-        btnGal.style.background='transparent';btnGal.style.color='#334155';
+        btnGal.style.background='transparent';btnGal.style.color='#13202E';
       }
     }
   }
@@ -1828,7 +1793,7 @@ function rBrentFuturo(){
   if(!cont)return;
   if(BRENT_FUTURO_DATA===null&&!BRENT_FUTURO_ERROR){
     cont.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-      <div style="width:20px;height:20px;border:2px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
+      <div style="width:20px;height:20px;border:2px solid #002D5C;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
       <p class="muted" style="margin:0;font-size:12px">Carregando contratos futuros de Brent…</p>
     </div>`;
     loadBrentFuturoRaw().then(()=>{if(curScreen==='indicadores'&&curIndTab==='petroleo')rBrentFuturo();});
@@ -1932,7 +1897,7 @@ function rBrentFuturo(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -2133,7 +2098,7 @@ function rJkmFuturo(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -2241,7 +2206,7 @@ function rBrentHistorical(){
   if(!cont)return;
   if(BRENT_HISTORICAL_DATA===null&&!BRENT_HISTORICAL_ERROR){
     cont.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-      <div style="width:20px;height:20px;border:2px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
+      <div style="width:20px;height:20px;border:2px solid #002D5C;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
       <p class="muted" style="margin:0;font-size:12px">Carregando dados históricos de Brent…</p>
     </div>`;
     // Define datas padrão se não houver filtros
@@ -2309,11 +2274,11 @@ function rBrentHistorical(){
     <div class="comb-filtros-grid" style="margin-bottom:14px">
       <div>
         <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:500">Data início</label>
-        <input type="date" id="brent_historical_data_ini" value="${dataIniVal}" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;font-size:12px">
+        <input type="date" id="brent_historical_data_ini" value="${dataIniVal}" style="width:100%;padding:6px;border:1px solid #D8DFE8;border-radius:6px;font-size:12px">
       </div>
       <div>
         <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:500">Data fim</label>
-        <input type="date" id="brent_historical_data_fim" value="${dataFimVal}" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;font-size:12px">
+        <input type="date" id="brent_historical_data_fim" value="${dataFimVal}" style="width:100%;padding:6px;border:1px solid #D8DFE8;border-radius:6px;font-size:12px">
       </div>
     </div>
     <div class="kpis comb-kpis-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:14px">
@@ -2385,7 +2350,7 @@ function rBrentHistorical(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -2510,11 +2475,11 @@ function rJkmHistorical(){
     <div class="comb-filtros-grid" style="margin-bottom:14px">
       <div>
         <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:500">Data início</label>
-        <input type="date" id="jkm_historical_data_ini" value="${dataIniVal}" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;font-size:12px">
+        <input type="date" id="jkm_historical_data_ini" value="${dataIniVal}" style="width:100%;padding:6px;border:1px solid #D8DFE8;border-radius:6px;font-size:12px">
       </div>
       <div>
         <label style="display:block;margin-bottom:4px;font-size:12px;font-weight:500">Data fim</label>
-        <input type="date" id="jkm_historical_data_fim" value="${dataFimVal}" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;font-size:12px">
+        <input type="date" id="jkm_historical_data_fim" value="${dataFimVal}" style="width:100%;padding:6px;border:1px solid #D8DFE8;border-radius:6px;font-size:12px">
       </div>
     </div>
     <div class="kpis comb-kpis-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:14px">
@@ -2584,7 +2549,7 @@ function rJkmHistorical(){
         interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:12,autoSkip:true,font:{size:10}},grid:{display:false}},
-          y:{min:min-5,max:max+5,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
+          y:{min:min-5,max:max+5,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'US$ '+v.toFixed(2).replace('.',','),font:{size:10}}}
         },
         plugins:{
           legend:{display:false},
@@ -2730,7 +2695,7 @@ async function rMacroBr(){
           data:{labels:cdiLabels,datasets:[{label:'CDI % a.a.',data:cdiVals,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.12)',tension:.15,fill:true,pointRadius:0,borderWidth:2}]},
           options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
             scales:{x:{ticks:{maxTicksLimit:10,autoSkip:true,font:{size:10}},grid:{display:false}},
-                    y:{beginAtZero:false,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>v.toFixed(1)+'%',font:{size:10}}}},
+                    y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>v.toFixed(1)+'%',font:{size:10}}}},
             plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toFixed(2).replace('.',',')+'% a.a.'}}}
           }
         });
@@ -2755,7 +2720,7 @@ async function rMacroBr(){
           data:{labels:usdLabels,datasets:[{label:'Dólar PTAX (R$/US$)',data:usdVals,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.12)',tension:.15,fill:true,pointRadius:0,borderWidth:2}]},
           options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
             scales:{x:{ticks:{maxTicksLimit:10,autoSkip:true,font:{size:10}},grid:{display:false}},
-                    y:{beginAtZero:false,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'R$ '+v.toFixed(2).replace('.',','),font:{size:10}}}},
+                    y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'R$ '+v.toFixed(2).replace('.',','),font:{size:10}}}},
             plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'R$ '+ctx.parsed.y.toFixed(2).replace('.',',')}}}
           }
         });
@@ -2793,7 +2758,7 @@ async function rMacroBr(){
           data:{labels:ipcaLabels,datasets:[{label:'IPCA 12m (%)',data:ipcaLtmSeries,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.12)',tension:.15,fill:true,pointRadius:0,borderWidth:2,spanGaps:true}]},
           options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
             scales:{x:{ticks:{maxTicksLimit:10,autoSkip:true,font:{size:10}},grid:{display:false}},
-                    y:{beginAtZero:false,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>v.toFixed(1)+'%',font:{size:10}}}},
+                    y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>v.toFixed(1)+'%',font:{size:10}}}},
             plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toFixed(2).replace('.',',')+'% (12m)'}}}
           }
         });
@@ -2836,7 +2801,7 @@ async function rMacroBr(){
           data:{labels:realLabels,datasets:[{label:'CDI real 12m (%)',data:realVals,borderColor:'#0f766e',backgroundColor:'rgba(15,118,110,0.12)',tension:.15,fill:true,pointRadius:0,borderWidth:2,spanGaps:true}]},
           options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
             scales:{x:{ticks:{maxTicksLimit:10,autoSkip:true,font:{size:10}},grid:{display:false}},
-                    y:{beginAtZero:false,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>v.toFixed(1)+'%',font:{size:10}}}},
+                    y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>v.toFixed(1)+'%',font:{size:10}}}},
             plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toFixed(2).replace('.',',')+'% (12m real)'}}}
           }
         });
@@ -3106,23 +3071,23 @@ function combShowUploadFallback(v){
       <div style="background:rgba(238,242,255,.6);border-radius:14px;padding:16px">
         <p style="margin:0 0 10px;font-weight:700;font-size:15px">Opção 1 — ${IS_LOCAL?'Proxy automático (recomendado)':'Tentar novamente'}</p>
         ${IS_LOCAL?`<p class="muted" style="margin:0 0 10px;font-size:13px">Dê duplo-clique no arquivo <strong>Iniciar Proxy ANP.bat</strong> na mesma pasta deste HTML.<br>Deixe a janela aberta e recarregue esta aba.</p>
-        <div style="background:rgba(0,0,0,.04);border-radius:10px;padding:10px 14px;font-size:12px;font-family:monospace;color:#374151">
+        <div style="background:rgba(0,0,0,.04);border-radius:10px;padding:10px 14px;font-size:12px;font-family:monospace;color:#13202E">
           📁 GNLink rentabilidade contratos/<br>
           &nbsp;&nbsp;├─ Rentabilidade contratos.html<br>
-          &nbsp;&nbsp;├─ <strong style="color:#6366f1">Iniciar Proxy ANP.bat</strong> ← duplo-clique aqui<br>
+          &nbsp;&nbsp;├─ <strong style="color:#002D5C">Iniciar Proxy ANP.bat</strong> ← duplo-clique aqui<br>
           &nbsp;&nbsp;└─ proxy_anp.py
         </div>`:`<p class="muted" style="margin:0 0 10px;font-size:13px">Os dados são buscados automaticamente pela função <code>/api/anp</code>. Aguarde alguns instantes e recarregue.</p>`}
-        <button onclick="combRetryProxy()" style="margin-top:12px;padding:10px 20px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">
+        <button onclick="combRetryProxy()" style="margin-top:12px;padding:10px 20px;background:#002D5C;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">
           ↺ Tentar novamente
         </button>
       </div>
       <div style="background:rgba(241,245,249,.6);border-radius:14px;padding:16px">
         <p style="margin:0 0 10px;font-weight:700;font-size:15px">Opção 2 — Carregar arquivo manualmente</p>
         <p class="muted" style="margin:0 0 10px;font-size:13px">
-          <a href="${ANP_URL}" target="_blank" rel="noopener" style="color:#6366f1;font-weight:600">↓ Baixar planilha (.xlsx) da ANP</a>
+          <a href="${ANP_URL}" target="_blank" rel="noopener" style="color:#002D5C;font-weight:600">↓ Baixar planilha (.xlsx) da ANP</a>
           &nbsp;e depois selecione o arquivo abaixo:
         </p>
-        <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(255,255,255,.8);border:1.5px dashed rgba(99,102,241,.4);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer">
+        <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:#ffffff;border:1.5px dashed rgba(0,45,92,.35);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer">
           📂 Selecionar arquivo .xlsx
           <input type="file" id="comb_file_input" accept=".xlsx,.xls" style="display:none">
         </label>
@@ -3160,11 +3125,11 @@ function rCombustiveis(){
     v.innerHTML=`<div style="padding:20px 0"><section class="card">
       <h2>Preços de combustíveis — ANP</h2>
       <div style="display:flex;align-items:center;gap:14px;padding:16px 0">
-        <div style="width:32px;height:32px;border:3px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
+        <div style="width:32px;height:32px;border:3px solid #002D5C;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
         <div><p class="muted" style="margin:0">Carregando dados diretamente da ANP (planilha mensal por estado, desde jan/2013)…</p>
         <p class="muted" style="margin:4px 0 0;font-size:12px">Arquivo pesado (~10 MB). Pode demorar alguns segundos.</p></div>
       </div>
-      <p style="margin:0"><a href="${ANP_URL}" target="_blank" rel="noopener" style="font-size:13px;color:#6366f1">↓ Baixar planilha original (.xlsx)</a></p>
+      <p style="margin:0"><a href="${ANP_URL}" target="_blank" rel="noopener" style="font-size:13px;color:#002D5C">↓ Baixar planilha original (.xlsx)</a></p>
     </section></div>`;
     loadCombustiveisRaw().then(()=>{if(curScreen==='indicadores')rCombustiveis();});
     return;
@@ -3195,7 +3160,7 @@ function rCombustiveis(){
     <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
       <div>
         <h2 style="margin-bottom:4px">Preços de combustíveis — ANP</h2>
-        <p class="muted" style="margin:0;font-size:12px">Fonte: ANP · Série histórica mensal por estado, desde jan/2013 &nbsp;·&nbsp; <a href="${ANP_URL}" target="_blank" rel="noopener" style="color:#6366f1">Baixar planilha (.xlsx)</a></p>
+        <p class="muted" style="margin:0;font-size:12px">Fonte: ANP · Série histórica mensal por estado, desde jan/2013 &nbsp;·&nbsp; <a href="${ANP_URL}" target="_blank" rel="noopener" style="color:#002D5C">Baixar planilha (.xlsx)</a></p>
       </div>
     </div>
     <div class="comb-filtros-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:20px">
@@ -3222,8 +3187,8 @@ function rCombustiveis(){
       <div>
         <label class="muted" style="font-size:12px;display:block;margin-bottom:4px">GLP — Unidade</label>
         <div style="display:inline-flex;border:1px solid rgba(0,0,0,.1);border-radius:9px;overflow:hidden;height:36px">
-          <button id="comb_glp_kg"  onclick="setCombGLP(true)"  style="padding:0 13px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .15s,color .15s;background:${COMB_GLP_KG?'#6366f1':'rgba(255,255,255,.5)'};color:${COMB_GLP_KG?'#fff':'var(--text)'}">R$/kg</button>
-          <button id="comb_glp_13" onclick="setCombGLP(false)" style="padding:0 13px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .15s,color .15s;background:${!COMB_GLP_KG?'#6366f1':'rgba(255,255,255,.5)'};color:${!COMB_GLP_KG?'#fff':'var(--text)'}">R$/13 kg</button>
+          <button id="comb_glp_kg"  onclick="setCombGLP(true)"  style="padding:0 13px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .15s,color .15s;background:${COMB_GLP_KG?'#002D5C':'#F6F8FA'};color:${COMB_GLP_KG?'#fff':'var(--text)'}">R$/kg</button>
+          <button id="comb_glp_13" onclick="setCombGLP(false)" style="padding:0 13px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:background .15s,color .15s;background:${!COMB_GLP_KG?'#002D5C':'#F6F8FA'};color:${!COMB_GLP_KG?'#fff':'var(--text)'}">R$/13 kg</button>
         </div>
       </div>
     </div>
@@ -3297,8 +3262,8 @@ function destroyCombCharts(){Object.values(COMB_CHARTS).forEach(c=>{try{c.destro
 function setCombGLP(kg){
   COMB_GLP_KG=kg;
   const bKg=$('comb_glp_kg'),b13=$('comb_glp_13');
-  if(bKg){bKg.style.background=kg?'#6366f1':'rgba(255,255,255,.5)';bKg.style.color=kg?'#fff':'var(--text)';}
-  if(b13){b13.style.background=!kg?'#6366f1':'rgba(255,255,255,.5)';b13.style.color=!kg?'#fff':'var(--text)';}
+  if(bKg){bKg.style.background=kg?'#002D5C':'#F6F8FA';bKg.style.color=kg?'#fff':'var(--text)';}
+  if(b13){b13.style.background=!kg?'#002D5C':'#F6F8FA';b13.style.color=!kg?'#fff':'var(--text)';}
   updateCombCharts();
 }
 
@@ -3399,7 +3364,7 @@ function updateCombCharts(){
         const ctx=chart.ctx;
         const area=chart.chartArea;
         ctx.save();
-        ctx.strokeStyle='rgba(148,163,184,0.6)';
+        ctx.strokeStyle='rgba(148,163,184,.55)';
         ctx.lineWidth=1;
         meta.data.forEach((pt,idx)=>{
           const val=pt&&pt.parsed&&pt.parsed.y;
@@ -3421,7 +3386,7 @@ function updateCombCharts(){
       options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
         scales:{
           x:{ticks:{maxTicksLimit:16,autoSkip:true,font:{size:11}},grid:{display:false}},
-          y:{beginAtZero:false,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:11}}}
+          y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:11}}}
         },
         plugins:{
           legend:{display:false},
@@ -3470,9 +3435,9 @@ function updateCombCharts(){
     $('comb_kpi_min').textContent=fmt2(stats.min);
     $('comb_kpi_max').textContent=fmt2(stats.max);
     const yoyEl=$('comb_kpi_yoy');
-    if(yoyEl){yoyEl.textContent=stats.yoy!=null?fmtP(stats.yoy*100):'–';if(stats.yoy!=null)yoyEl.style.color=stats.yoy>=0?'#16a34a':'#dc2626';}
+    if(yoyEl){yoyEl.textContent=stats.yoy!=null?fmtP(stats.yoy*100):'–';if(stats.yoy!=null)yoyEl.style.color=stats.yoy>=0?'#16a34a':'#B23A3A';}
     const varEl=$('comb_kpi_var');
-    if(varEl){varEl.textContent=stats.varPct!=null?fmtP(stats.varPct*100):'–';if(stats.varPct!=null)varEl.style.color=stats.varPct>=0?'#16a34a':'#dc2626';}
+    if(varEl){varEl.textContent=stats.varPct!=null?fmtP(stats.varPct*100):'–';if(stats.varPct!=null)varEl.style.color=stats.varPct>=0?'#16a34a':'#B23A3A';}
   }else{
     ['comb_kpi_last','comb_kpi_avg','comb_kpi_min','comb_kpi_max','comb_kpi_yoy','comb_kpi_var'].forEach(id=>{const el=$(id);if(el){el.textContent='–';el.style.color='';}});
   }
@@ -3488,7 +3453,7 @@ function updateCombCharts(){
       data:{labels:estL,datasets:[{label:'Preço médio ('+unit+')',data:estV,backgroundColor:barColors,borderRadius:5}]},
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
         scales:{
-          x:{min:0,max:10,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:10}}},
+          x:{min:0,max:10,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:10}}},
           y:{ticks:{font:{size:10}},grid:{display:false}}
         },
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'R$ '+ctx.parsed.x.toFixed(4).replace('.',',')+' '+unit}}}
@@ -3507,7 +3472,7 @@ function updateCombCharts(){
       data:{labels:regL,datasets:[{label:'Preço médio ('+unit+')',data:regV,backgroundColor:regL.map(r=>regColors[r]||'rgba(148,163,184,.75)'),borderRadius:8}]},
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
         scales:{
-          x:{min:0,max:10,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:11}}},
+          x:{min:0,max:10,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:11}}},
           y:{ticks:{font:{size:12,weight:'500'}},grid:{display:false}}
         },
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'R$ '+ctx.parsed.x.toFixed(4).replace('.',',')+' '+unit}}}
@@ -3526,7 +3491,7 @@ function updateCombCharts(){
       options:{responsive:true,maintainAspectRatio:false,
         scales:{
           x:{ticks:{font:{size:10},maxRotation:30},grid:{display:false}},
-          y:{min:0,max:10,grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:10}}}
+          y:{min:0,max:10,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>'R$'+v.toFixed(2),font:{size:10}}}
         },
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': R$ '+ctx.parsed.y.toFixed(4).replace('.',',')+' '+combUnitLabelFor(ctx.label)}}}
       }
@@ -3544,7 +3509,7 @@ function updateCombCharts(){
       options:{responsive:true,maintainAspectRatio:false,
         scales:{
           x:{ticks:{font:{size:11}},grid:{display:false}},
-          y:{grid:{color:'rgba(148,163,184,.2)'},ticks:{callback:v=>v+'%',font:{size:11}}}
+          y:{grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:v=>v+'%',font:{size:11}}}
         },
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>(ctx.parsed.y>=0?'+':'')+ctx.parsed.y.toFixed(1).replace('.',',')+'%'}}}
       }
@@ -3556,7 +3521,7 @@ function updateCombCharts(){
 function premCO(P){
   return `<section class="card scenario-premissas"><h2>Premissas — Compagás</h2>
   ${sl('mol1','Custo molécula (R$/m³)',P.mol1,1,3,0.0001,4,'')}\
-  <div class="small" style="margin:2px 0 8px;color:#6b7280;">× (1 − ${(CO_ICMS*100).toFixed(2)}% ICMS) = R$ <span id="molCO_eff">${(P.mol1*(1-CO_ICMS)).toFixed(4)}</span>/m³ efetivo</div>\
+  <div class="small" style="margin:2px 0 8px;color:#5C6B7A;">× (1 − ${(CO_ICMS*100).toFixed(2)}% ICMS) = R$ <span id="molCO_eff">${(P.mol1*(1-CO_ICMS)).toFixed(4)}</span>/m³ efetivo</div>\
   ${sl('pCO','Preço de venda (R$/m³)',P.pCO,2,6,0.001,4,'')}\
   ${sl('infCO','Inflação Compagás (% a.a.)',P.infCO*100,0,10,0.1,1,'%')}\
   <div class="row"><label><span>Tipo logística</span></label>
@@ -3853,21 +3818,21 @@ function rCons(){
 
   for(let k in charts)if(charts[k])charts[k].destroy();charts={};
   let cLbl=['Compagás','Bahiagás','Cegás'],cE=[R.c1.tE,R.ba.tE,R.ce.tE],cV=[R.c1.vpl,R.ba.vpl,R.ce.vpl];
-  const ccColors=['#e8d5f5','#d5f5e3','#fce4d6','#d5eef5','#f5f0d5'];
-  const ccBorders=['#7c3aed','#10b981','#f97316','#0ea5e9','#eab308'];
+  const ccColors=['#E7EEF6','#EAF4EE','#FBEEE2','#EFF6FC','#FDF4E3'];
+  const ccBorders=['#6F94BC','#5A9B87','#C25C12','#4880A8','#D89A3F'];
   for(let i=0;i<CC.length;i++){const res=R[CC[i].id];if(!res)continue;cLbl.push(CC[i].name);cE.push(res.tE);cV.push(res.vpl);}
   let ctx1=document.getElementById('chCons1'),ctx2=document.getElementById('chCons2');
-  const bgE=['#d7e4d3','#d6e8f5','#fef7fb',...CC.map((_,i)=>ccColors[i%5])];
-  const bdE=['#059669','#2563eb','#a855f7',...CC.map((_,i)=>ccBorders[i%5])];
-  if(ctx1){charts.a=new Chart(ctx1,{type:'bar',data:{labels:cLbl,datasets:[{data:cE,backgroundColor:bgE,borderColor:bdE,borderWidth:2,borderRadius:8}]},options:barOpts()});}
-  if(ctx2){charts.b=new Chart(ctx2,{type:'bar',data:{labels:cLbl,datasets:[{data:cV,backgroundColor:cV.map(v=>v>=0?'#d7e4d3':'#fde7da'),borderColor:cV.map(v=>v>=0?'#059669':'#dc2626'),borderWidth:2,borderRadius:8}]},options:barOpts()});}
+  const bgE=['#D6DEE9','#F5E1D2','#DDE8F0',...CC.map((_,i)=>ccColors[i%5])];
+  const bdE=['#002D5C','#C25C12','#4880A8',...CC.map((_,i)=>ccBorders[i%5])];
+  if(ctx1){charts.a=new Chart(ctx1,{type:'bar',data:{labels:cLbl,datasets:[{data:cE,backgroundColor:bdE,borderWidth:0,borderRadius:3,barPercentage:.9,categoryPercentage:.82}]},options:barOpts()});}
+  if(ctx2){charts.b=new Chart(ctx2,{type:'bar',data:{labels:cLbl,datasets:[{data:cV,backgroundColor:cV.map(v=>v>=0?'#2E7D4F':'#B23A3A'),borderWidth:0,borderRadius:3,barPercentage:.9,categoryPercentage:.82}]},options:barOpts()});}
 }
 function cr(l,v,n){let c='';if(n!==undefined)c=n>=0?'pos':'neg';return `<div class="consol-row"><span class="lbl">${l}</span><span class="v ${c}">${v}</span></div>`;}
 
 // === CHARTS ===
-function barOpts(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:c=>fmtM(c.raw)}}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#6b7280',font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v<=-1e6?'('+(-v/1e6).toFixed(1)+'M)':v>=1e3?(v/1e3).toFixed(0)+'K':v<=-1e3?'('+(-v/1e3).toFixed(0)+'K)':v<0?'('+(-v)+')':v},grid:{color:'#f3f4f6'}}}};}
-function mkBar(id,lb,dt){for(let k in charts)if(charts[k])charts[k].destroy();charts={};let c=document.getElementById(id);if(!c)return;charts[id]=new Chart(c,{type:'bar',data:{labels:lb,datasets:[{data:dt,backgroundColor:dt.map(v=>v>=0?'#d7e4d3':'#fde7da'),borderColor:dt.map(v=>v>=0?'#059669':'#dc2626'),borderWidth:2,borderRadius:6}]},options:barOpts()});}
-function mkLine(id,lb,fl){let c=document.getElementById(id);if(!c)return;let cum=[],s=0;fl.forEach(v=>{s+=v;cum.push(s);});charts[id]=new Chart(c,{type:'line',data:{labels:['Inv.',...lb],datasets:[{data:cum,borderColor:'#111827',backgroundColor:'rgba(17,24,39,0.06)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#111827',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:c=>fmtM(c.raw)}}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#6b7280',font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v<=-1e6?'('+(-v/1e6).toFixed(1)+'M)':v>=1e3?(v/1e3).toFixed(0)+'K':v<=-1e3?'('+(-v/1e3).toFixed(0)+'K)':v<0?'('+(-v)+')':v},grid:{color:'#f3f4f6'}}}}});}
+function barOpts(){return{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',offset:1,clamp:true,color:'#13202E',font:{size:9,weight:'700'},formatter:v=>axFmt(v)},tooltip:{callbacks:{label:c=>fmtM(c.raw)}}},scales:{x:{ticks:{color:'#5C6B7A',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#5C6B7A',font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v<=-1e6?'('+(-v/1e6).toFixed(1)+'M)':v>=1e3?(v/1e3).toFixed(0)+'K':v<=-1e3?'('+(-v/1e3).toFixed(0)+'K)':v<0?'('+(-v)+')':v},grid:{color:'#EEF2F6'}}}};}
+function mkBar(id,lb,dt){for(let k in charts)if(charts[k])charts[k].destroy();charts={};let c=document.getElementById(id);if(!c)return;charts[id]=new Chart(c,{type:'bar',data:{labels:lb,datasets:[{data:dt,backgroundColor:dt.map(v=>v>=0?'#2E7D4F':'#B23A3A'),borderWidth:0,borderRadius:3,barPercentage:.9,categoryPercentage:.82}]},options:barOpts()});}
+function mkLine(id,lb,fl){let c=document.getElementById(id);if(!c)return;let cum=[],s=0;fl.forEach(v=>{s+=v;cum.push(s);});charts[id]=new Chart(c,{type:'line',data:{labels:['Inv.',...lb],datasets:[{data:cum,borderColor:'#002D5C',backgroundColor:'rgba(0,45,92,.07)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#002D5C',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:22,right:12}},plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'top',offset:4,clamp:true,color:'#002D5C',font:{size:8.5,weight:'700'},formatter:v=>axFmt(v)},tooltip:{callbacks:{label:c=>fmtM(c.raw)}}},scales:{x:{ticks:{color:'#5C6B7A',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#5C6B7A',font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v<=-1e6?'('+(-v/1e6).toFixed(1)+'M)':v>=1e3?(v/1e3).toFixed(0)+'K':v<=-1e3?'('+(-v/1e3).toFixed(0)+'K)':v<0?'('+(-v)+')':v},grid:{color:'#EEF2F6'}}}}});}
 
 const SHARED_IDS=new Set(['infLP','ke','tax']);
 function $h(id){const el=document.querySelector('#_shared [id="'+id+'"]');return el;}
