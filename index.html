@@ -1073,6 +1073,9 @@
     .mc-comp-name { font-size: 13px; font-weight: 700; color: var(--ink); }
     .mc-comp-role { font-size: 10.5px; color: var(--muted); }
     .mc-comp[open] > summary { border-bottom: 1px solid var(--line); }
+    a.mc-comp-link { text-decoration: none; color: var(--accent-3); }
+    a.mc-comp-link::after { content: " ↗"; font-size: 9.5px; opacity: .7; }
+    a.mc-comp-link:hover { text-decoration: underline; }
     .mc-comp-detail { padding: 10px 12px; font-size: 11.5px; color: #46566A; line-height: 1.5; }
     .mc-comp.is-self { border-color: rgba(46,125,79,.5); background: #EAF3EC; }
     .mc-comp.is-self .mc-comp-name, .mc-comp.is-self .mc-comp-role { color: var(--accent-3); font-weight: 700; }
@@ -3431,7 +3434,12 @@
               return '<span class="mc-chip'+(c.self?' self':'')+'">'+c.name+'</span>';
             }
             var comps=C.feature.comps.map(function(k){
-              return '<details class="mc-comp'+(k.self?' is-self':'')+'"><summary><span class="mc-comp-name">'+k.name+'</span><span class="mc-comp-role">'+k.role+'</span></summary><div class="mc-comp-detail">'+k.detail+'</div></details>';
+              // Nome vira link quando o competidor tem página própria; o stopPropagation
+              // evita que o clique no link também abra/feche o <details>.
+              var nm=k.href
+                ? '<a class="mc-comp-name mc-comp-link" href="'+k.href+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+k.name+'</a>'
+                : '<span class="mc-comp-name">'+k.name+'</span>';
+              return '<details class="mc-comp'+(k.self?' is-self':'')+'"><summary>'+nm+'<span class="mc-comp-role">'+k.role+'</span></summary><div class="mc-comp-detail">'+k.detail+'</div></details>';
             }).join('');
             var segs=C.segments.map(function(s){
               var head='<div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:'+s.dot+'"></span>'+s.title+'</div><span class="mc-seg-count">'+s.count+'</span></div>';

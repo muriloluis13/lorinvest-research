@@ -272,7 +272,9 @@
           {name:"Logás",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
           {name:"CTG",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
           {name:"CDGN",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
-          {name:"NEOgás",role:"GNL/GNC",detail:"Informações detalhadas a incluir."}
+          {name:"NEOgás",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
+          {name:"Eneva Small Scale",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
+          {name:"Edge",role:"GNL/GNC",href:"gnlink/competidores/compass/index.html",detail:"Informações detalhadas a incluir."}
         ]},
         segments:[
           {dot:"#8A6D3B",title:"Holdings diversificadas",count:"6 players",chips:[{name:"Compass",href:"gnlink/competidores/compass/index.html"},"Cosan","Energisa","J&amp;F","Mitsui","Ultrapar"]},
@@ -284,7 +286,6 @@
             {label:"Sul",chips:["Compagás","SCGás","Sulgás"]},
             {label:"Centro-Oeste",chips:["MSGás","MTGás","CEBGás","Goiasgás"]}
           ],invest:"Mitsui · Compass/Commit · Energisa"},
-          {dot:"#2E7D4F",title:"Distribuidoras de GNL/GNC",count:"6 players",hl:true,chips:[{name:"GNLink",self:true},"GásLocal","Logás","CTG","CDGN","NEOgás"],invest:"Lorinvest · White Martins · J&amp;F · Copa Energia · Ultragaz"},
           {dot:"#4E8385",title:"Gas-to-Power",count:"4 players",chips:["Eneva","Âmbar Energia","KPS","Origem"],invest:"BTG · J&amp;F · Prisma"},
           {dot:"#6B8299",title:"Logística",count:"3 players",chips:["VirtuGNL","Rumo","Hidrovias do Brasil"],invest:"BTG · Perfin · Cosan · Ultrapar"}
         ]
