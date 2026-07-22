@@ -243,6 +243,18 @@ footer b{letter-spacing:.1em;color:var(--accent)}
 @media(max-width:980px){.kpis{grid-template-columns:repeat(3,1fr)}.mkpis{grid-template-columns:repeat(2,1fr)}.row2,.row3,.row31,.steps{grid-template-columns:1fr}}
 @media(max-width:620px){.kpis{grid-template-columns:repeat(2,1fr);gap:10px}.kpi{min-height:120px;padding:13px 13px 12px;border-radius:15px}.kpi .val{font-size:21px;margin-top:7px}.kpi .pill{font-size:9.5px;padding:4px 9px}}
 @media(max-width:380px){.kpis{grid-template-columns:1fr}}
+/* selo de cotação ao vivo (PASS3.SA · Yahoo Finance) */
+.pxbadge{display:inline-flex;flex-direction:column;align-items:flex-end;gap:1px;padding:6px 12px;border:1px solid var(--line);border-radius:10px;background:#F6F8FA;line-height:1.15;white-space:nowrap;text-decoration:none;transition:border-color .15s,background .15s}
+.pxbadge:hover{border-color:var(--accent);background:#fff}
+.pxbadge .pxb-top{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink)}
+.pxbadge .pxb-tkr{font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.pxbadge .pxb-sub{font-size:9.5px;font-weight:600;color:var(--muted)}
+.pxbadge .pxb-dot{width:7px;height:7px;border-radius:50%;background:#C4CCD6;flex:none}
+.pxbadge.live .pxb-dot{background:#2E9E5B;box-shadow:0 0 0 3px rgba(46,158,91,.16);animation:pxpulse 2s ease-in-out infinite}
+.pxbadge.err .pxb-dot{background:#E23A2E}
+@keyframes pxpulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pxlive{font-size:9px;font-weight:700;letter-spacing:.04em;color:#2E9E5B;margin-left:5px;white-space:nowrap}
+@media(max-width:620px){.pxbadge{padding:5px 9px}.pxbadge .pxb-top{font-size:12px}}
 </style>
 </head>
 <body>
@@ -273,6 +285,10 @@ footer b{letter-spacing:.1em;color:var(--accent)}
     <div><div class="htitle">Guia de Investimento — PASS3</div>
     <div class="hsub">Análise do Sell Side</div></div>
     <div class="hspace"></div>
+    <a class="pxbadge" id="pxbadge" href="https://finance.yahoo.com/quote/PASS3.SA/history/" target="_blank" rel="noopener" title="Cotação PASS3.SA — Yahoo Finance">
+      <span class="pxb-top"><span class="pxb-dot"></span><span class="pxb-tkr">PASS3</span><span id="pxb-val">R$25,00</span></span>
+      <span class="pxb-sub" id="pxb-sub">preço de referência</span>
+    </a>
   </div>
 </header>
 <div class="layout">
@@ -297,7 +313,7 @@ footer b{letter-spacing:.1em;color:var(--accent)}
   </div>
 </div>
 <footer>
-  Guia da Lorinvest. Consolida dados de relatórios de início de cobertura de terceiros (equity research) sobre a Compass (PASS3), todos de 17-jun-2026 (BofA, Bradesco BBI, Itaú BBA, BTG Pactual e Citi), preço de referência ~R$25/ação. As estimativas são dos respectivos bancos e não constituem recomendação da Lorinvest.
+  Guia da Lorinvest. Consolida dados de relatórios de início de cobertura de terceiros (equity research) sobre a Compass (PASS3), todos de 17-jun-2026 (BofA, Bradesco BBI, Itaú BBA, BTG Pactual e Citi). <span id="pxfoot">Preço de referência ~R$25,00/ação.</span> As estimativas são dos respectivos bancos e não constituem recomendação da Lorinvest.
 </footer>
 <script>
 
@@ -307,7 +323,9 @@ const fBn=v=>(v/1000).toFixed(1).replace('.',',')+'bn';
 const fMn=v=>Math.round(v).toLocaleString('pt-BR');
 const fPct=(v,d=1)=>(v*100).toFixed(d).replace('.',',')+'%';
 
-const PRICE=25.00;
+let PRICE=25.00;              // preço da ação (R$/ação) — atualizado ao vivo via /api/pass3 (Yahoo PASS3.SA)
+const PRICE_REF=25.00;        // preço de referência dos bancos na data de cobertura (17-jun-2026)
+let PRICE_LIVE=false, PRICE_TS=null;  // cotação ao vivo carregada? + timestamp
 const BANKS=[
  {id:'bofa',name:'BofA',color:'#0A3E6E',rating:'Buy',tp:33,upside:0.32,irr:0.125,irrTxt:'12,5% real',equity:23474,edgeEq:9419,edgeEv:9419,method:'SOTP via DCF · Ke real 10%',base:'12m'},
  {id:'bbi',name:'Bradesco BBI',color:'#CC092F',rating:'Outperform',tp:37,upside:0.48,irr:0.183,irrTxt:'18,3% @ preço / 10,9% @ TP',equity:26616,edgeEq:12416,edgeEv:13430,method:'DCF/SOTP · Ke 10% LDCs, 12% Edge · g 2,5%',base:'YE26'},
@@ -316,6 +334,9 @@ const BANKS=[
  {id:'citi',name:'Citi',color:'#056DAE',rating:'Buy',tp:38,upside:0.521,irr:0.16,irrTxt:'16,0% real',equity:26866,edgeEq:10296,edgeEv:10296,method:'SOTP/FCFF · Ke real 10% dist. / 12% Edge',base:'YE26'},
 ];
 const SHARES_OUT=714190095;
+// Posições de balanço (R$ mn) e EBITDA (R$ bi) para recalcular market cap / EV / EV/EBITDA
+// a partir do preço vigente (mesma fonte da tela de capitalização).
+const NETDEBT_MN=13090, MINOR_MN=2147, EBITDA26_BI=5.4;
 const EXTRA=[
  {id:'xp',name:'XP',color:'#1F2937',rating:'Buy',tp:36.70},
  {id:'ubs',name:'UBS',color:'#D71921',rating:'Buy',tp:38.00},
@@ -324,6 +345,11 @@ const EXTRA=[
  {id:'jef',name:'Jefferies',color:'#2E4374',rating:'Buy',tp:37.00},
 ].map(b=>Object.assign({},b,{upside:b.tp/PRICE-1,equity:b.tp*SHARES_OUT/1e6,irr:null}));
 const CONS=[...BANKS,...EXTRA];
+// Recalcula o upside de TODOS os bancos a partir do PRICE vigente (fonte única de verdade).
+// Chamado no load e sempre que a cotação ao vivo chega. Só o upside depende do preço:
+// os preços-alvo (tp) e os equity values reportados pelos bancos permanecem fixos.
+function reprice(){ CONS.forEach(b=>{ b.upside=b.tp/PRICE-1; }); }
+reprice();
 const ratingColor=r=>{const x=String(r).toLowerCase();return (x.includes('buy')||x.includes('outperform')||x.includes('overweight'))?'#2E9E5B':(x.includes('hold')||x.includes('neutral')||x.includes('market perform'))?'#C99A15':(x.includes('sell')||x.includes('underperform'))?'#E23A2E':'#5C6B7A';};
 const _min=a=>Math.min(...a),_max=a=>Math.max(...a);
 const _med=a=>{const s=a.slice().sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2;};
@@ -832,7 +858,7 @@ function ptRangeSVG(mn,med,avg,mx){
   s+=`<rect x="${sx(mn).toFixed(1)}" y="${y-7}" width="${(sx(mx)-sx(mn)).toFixed(1)}" height="14" rx="7" fill="#DBEAFB"/>`;
   s+=`<text x="${(sx(lo)-7).toFixed(1)}" y="${y+4.5}" text-anchor="end" font-size="13" fill="#5C6B7A">R$${lo}</text>`;
   s+=`<text x="${(sx(hi)+7).toFixed(1)}" y="${y+4.5}" font-size="13" fill="#5C6B7A">R$${hi}</text>`;
-  const px=sx(25); s+=`<line x1="${px.toFixed(1)}" y1="${y-24}" x2="${px.toFixed(1)}" y2="${y+18}" stroke="#E23A2E" stroke-width="1.6" stroke-dasharray="4 3"/><text x="${px.toFixed(1)}" y="${y+35}" text-anchor="middle" font-size="12" font-weight="700" fill="#E23A2E">Atual R$25,00</text>`;
+  const px=sx(PRICE); s+=`<line x1="${px.toFixed(1)}" y1="${y-24}" x2="${px.toFixed(1)}" y2="${y+18}" stroke="#E23A2E" stroke-width="1.6" stroke-dasharray="4 3"/><text x="${px.toFixed(1)}" y="${y+35}" text-anchor="middle" font-size="12" font-weight="700" fill="#E23A2E">Atual R$${PRICE.toFixed(2).replace('.',',')}</text>`;
   const ax=sx(avg); s+=`<path d="M${(ax-7).toFixed(1)},${y-17} L${(ax+7).toFixed(1)},${y-17} L${ax.toFixed(1)},${y-8} Z" fill="#C79A15"/><text x="${ax.toFixed(1)}" y="${y-22}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#8A6D00">R$${avg.toFixed(1).replace('.',',')}</text>`;
   const mdx=sx(med); s+=`<path d="M${(mdx-7).toFixed(1)},${y+17} L${(mdx+7).toFixed(1)},${y+17} L${mdx.toFixed(1)},${y+8} Z" fill="#2E5496"/><text x="${mdx.toFixed(1)}" y="${y+35}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2E5496">R$${String(med).replace('.',',')}</text>`;
   return s+'</svg>';
@@ -846,7 +872,7 @@ function renderOver(){
     <td><b>R$${b.tp.toFixed(2).replace('.',',')}</b></td><td>${b.base}</td><td>${fPct(b.upside,0)}</td><td>${b.irrTxt}</td><td>${fBn(b.equity)}</td></tr>`).join('');
   const bars=CONS.map(b=>({name:b.name,v:b.tp,color:b.color}));
   const M=(l,v,cls)=>`<div class="m"><div class="l">${l}</div><div class="v${cls||''}">${v}</div></div>`;
-  const strip=`<div class="msbar">${M('Recomendação','Compra')}${M('Preço-alvo (mediano)','R$'+med.toFixed(2).replace('.',','))}${M('Preço atual','R$'+PRICE.toFixed(0)+',00')}${M('Upside','+'+up+'%',' up')}${M('TIR real','12,5–18,3%')}<div class="sep"></div>${M('PA piso','R$'+mn+',00')}${M('PA mediano','R$'+med.toFixed(2).replace('.',','))}${M('PA teto','R$'+mx+',00')}<div class="sep"></div>${M('Cobertura iniciada','17-jun-2026')}${M('Bancos cobrindo','10')}</div>`;
+  const strip=`<div class="msbar">${M('Recomendação','Compra')}${M('Preço-alvo (mediano)','R$'+med.toFixed(2).replace('.',','))}${M('Preço atual'+(PRICE_LIVE?' <span class="pxlive" title="Cotação ao vivo · Yahoo Finance (PASS3.SA)">● ao vivo</span>':''),'R$'+PRICE.toFixed(2).replace('.',','))}${M('Upside','+'+up+'%',' up')}${M('TIR real','12,5–18,3%')}<div class="sep"></div>${M('PA piso','R$'+mn+',00')}${M('PA mediano','R$'+med.toFixed(2).replace('.',','))}${M('PA teto','R$'+mx+',00')}<div class="sep"></div>${M('Cobertura iniciada','17-jun-2026')}${M('Bancos cobrindo','10')}</div>`;
   $('p-over').innerHTML=`
   <div class="cap" style="margin:0 2px 12px">Compass (PASS3) — maior plataforma de gás natural do Brasil, controlada pela Cosan. Consenso de 5 bancos (BofA, Bradesco BBI, Itaú BBA, BTG Pactual e Citi), início de cobertura em 17-jun-2026.</div>
   ${strip}
@@ -876,10 +902,10 @@ function renderOver(){
   </div>
   <div class="card"><h2>Consenso sell-side</h2>
     <div class="twrap"><table><thead><tr><th class="l">Banco</th><th>Rating</th><th>Preço-alvo</th><th>Base</th><th>Upside</th><th>TIR real</th><th>Equity value</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="warn">Upside sobre preço de ~R$25/ação (16-17 jun 2026). TIR real conforme reportada por cada banco.</div>
+    <div class="warn">Upside sobre o preço ${PRICE_LIVE?'atual de R$'+PRICE.toFixed(2).replace('.',',')+'/ação (ao vivo · Yahoo Finance)':'de ~R$'+PRICE.toFixed(2).replace('.',',')+'/ação (16-17 jun 2026)'}. TIR real conforme reportada por cada banco.</div>
   </div>
   <div class="card"><h2>Preço-alvo — faixa do consenso</h2><div class="cap">Barra = faixa mín.–máx. dos 10 bancos · ponto laranja = mediana · linha tracejada = preço atual</div>
-    ${chFootball([{label:'Preço-alvo (R$/ação)',min:mn,max:mx,med:med,ref:PRICE,refTxt:'atual R$25',fmt:v=>'R$'+(Math.round(v*10)/10).toString().replace('.',',')}],{rowH:104})}</div>`;
+    ${chFootball([{label:'Preço-alvo (R$/ação)',min:mn,max:mx,med:med,ref:PRICE,refTxt:'atual R$'+PRICE.toFixed(2).replace('.',','),fmt:v=>'R$'+(Math.round(v*10)/10).toString().replace('.',',')}],{rowH:104})}</div>`;
 }
 
 // ---------- 2. A Empresa ----------
@@ -906,20 +932,22 @@ function renderEmp(){
   </div>
   </div>
   <div id="empp1" class="subpane" style="display:none">
-  <div class="card"><h2>Estrutura de capital &amp; múltiplos</h2>
-    <div class="cap">Ao preço de referência de R$25,00/ação · 714,2 mn ações</div>
+  ${(()=>{const mcapMn=SHARES_OUT*PRICE/1e6, evMn=mcapMn+MINOR_MN+NETDEBT_MN, evEb=(evMn/1000)/EBITDA26_BI;
+    const px=PRICE.toFixed(2).replace('.',','), pxLab=PRICE_LIVE?'atual (ao vivo)':'de referência';
+    return `<div class="card"><h2>Estrutura de capital &amp; múltiplos</h2>
+    <div class="cap">Ao preço ${pxLab} de R$${px}/ação · 714,2 mn ações</div>
     <div class="kpis">
-      ${kpiCard({lbl:'Market cap',val:'R$17,9 bi',pill:'714,2 mn × R$25,00',icon:'dollar'})}
+      ${kpiCard({lbl:'Market cap',val:'R$'+(mcapMn/1000).toFixed(1).replace('.',',')+' bi',pill:'714,2 mn × R$'+px,icon:'dollar'})}
       ${kpiCard({lbl:'Dívida líquida',val:'R$13,1 bi',pill:'Bruta 19,1 − caixa 6,0',icon:'net'})}
-      ${kpiCard({lbl:'Enterprise Value',val:'R$33,1 bi',icon:'layers',feat:true})}
+      ${kpiCard({lbl:'Enterprise Value',val:'R$'+(evMn/1000).toFixed(1).replace('.',',')+' bi',icon:'layers',feat:true})}
       ${kpiCard({lbl:'EBITDA 2026E',val:'R$5,4 bi',pill:'vs 2025A R$5,0 bi',icon:'bars',dir:'up'})}
-      ${kpiCard({lbl:'EV/EBITDA 26E',val:'6,1x',icon:'divide'})}
+      ${kpiCard({lbl:'EV/EBITDA 26E',val:evEb.toFixed(1).replace('.',',')+'x',icon:'divide'})}
       ${kpiCard({lbl:'Dív. líq./EBITDA',val:'2,4x',pill:'2,2x em 2027E',icon:'gauge',dir:'down'})}
     </div>
     <div class="cap" style="margin-top:16px">Ponte de capital — do valor de mercado ao Enterprise Value (R$ bi)</div>
-    ${chBridge([{name:'Market cap',value:17855,color:'#3D4A5C'},{name:'+ Minoritários',value:2147,color:'#8A6D45'},{name:'+ Dívida líq.',value:13090,color:'#B23A2E'}],{name:'Enterprise Value',value:33092,color:'#12294F'},{h:240,yTitle:'R$ bilhões',axFmt:t=>(t/1000).toFixed(0),barFmt:v=>(v/1000).toFixed(1).replace('.',',')+' bi'})}
-    <div class="note">Posições de balanço (dívida bruta R$19,1 bi, caixa R$6,0 bi, minoritários R$2,1 bi) da tela de capitalização/EV; market cap e EV ao preço de referência de R$25/ação. EBITDA 2025A do material da companhia e 2026E pela média do consenso sell-side. <b>Estrutura acionária por investidor (nº de ações, % e Eq.V/EV por acionista): pendente de dados a serem fornecidos.</b></div>
-  </div>
+    ${chBridge([{name:'Market cap',value:mcapMn,color:'#3D4A5C'},{name:'+ Minoritários',value:MINOR_MN,color:'#8A6D45'},{name:'+ Dívida líq.',value:NETDEBT_MN,color:'#B23A2E'}],{name:'Enterprise Value',value:evMn,color:'#12294F'},{h:240,yTitle:'R$ bilhões',axFmt:t=>(t/1000).toFixed(0),barFmt:v=>(v/1000).toFixed(1).replace('.',',')+' bi'})}
+    <div class="note">Posições de balanço (dívida bruta R$19,1 bi, caixa R$6,0 bi, minoritários R$2,1 bi) da tela de capitalização/EV; market cap e EV ao preço ${pxLab} de R$${px}/ação. EBITDA 2025A do material da companhia e 2026E pela média do consenso sell-side. <b>Estrutura acionária por investidor (nº de ações, % e Eq.V/EV por acionista): pendente de dados a serem fornecidos.</b></div>
+  </div>`;})()}
   <div class="card"><h2>Estrutura societária</h2>
     <div class="cap">Organograma da estrutura societária pós-IPO (base: material Lorinvest — Compass IPO, abr/2026).</div>
     <div class="cxorg">
@@ -1152,11 +1180,7 @@ function renderComgas(){
 function subTab(pfx,i,n){for(var k=0;k<n;k++){var p=$(pfx+'p'+k),b=$(pfx+'b'+k);if(p)p.style.display=(k===i?'':'none');if(b)b.classList.toggle('on',k===i);}var ab=$(pfx+'b'+i);if(ab&&ab.parentElement){var bar=ab.parentElement,br=bar.getBoundingClientRect(),tr=ab.getBoundingClientRect();bar.scrollBy({left:(tr.left+tr.width/2)-(br.left+br.width/2),behavior:'smooth'});}window.scrollTo({top:0,behavior:'smooth'});}
 function subBar(pfx,labels){return '<div class="subtabs">'+labels.map(function(l,k){return '<button id="'+pfx+'b'+k+'"'+(k===0?' class="on"':'')+' onclick="subTab(\''+pfx+'\','+k+','+labels.length+')">'+l+'</button>';}).join('')+'</div>';}
 function renderEdge(){
-  const evBars=BANKS.map(b=>({name:b.name,v:b.edgeEv/1000,color:b.color}));
-  const ebSeries=BANKS.map(b=>({name:b.name,color:b.color,vals:EDGE_EBITDA[b.id]}));
   $('p-edge').innerHTML=`
-  ${subBar('edg',['Negócio & Contratos','Valuation'])}
-  <div id="edgp0" class="subpane">
   <div class="card"><h2>Cadeia de valor da Edge — do gás à demanda</h2>
     <div class="cap">A Edge conecta várias fontes de gás a vários mercados, com o TRSP no centro (baseado no slide 17 do Itaú BBA)</div>
     ${valueChainSVG()}
@@ -1165,6 +1189,14 @@ function renderEdge(){
   <div class="card tinted"><h2>Edge — o motor de crescimento e a maior divergência</h2>
     <div class="lead">A Edge é a plataforma de comercialização e infraestrutura da Compass: reúne originação e trading de gás, o terminal de LNG <b>TRSP</b> (14 MMm³/d, em Santos — o único independente do país, não atrelado a uma térmica), LNG off-grid (caminhões) e o biometano (<b>OneBio</b>, JV com a Orizon). É a parte menos madura do negócio — e por isso a de maior discórdia entre os bancos.</div>
     ${bignums([['14 MMm³/d','capacidade do TRSP'],['~6→22 MMm³/d','volume Edge 2026→2030'],['2033','fim do contrato Total'],['96 / 168 MMm³/d','TAM on-grid / off-grid'],['~0,32 → 0,38','Margem média (R$/m³)'],['R$9–13bn','valor (EV) — ver dispersão']])}
+  </div>
+  <div class="card"><h2>A Edge aberta por sub-segmento (modelo Itaú BBA)</h2>
+    <div class="lead">A Edge não é um negócio só — são cinco frentes com volumes e margens bem diferentes. O <b>Small Scale LNG (off-grid)</b> é o motor de valor: começa minúsculo mas escala para 3,8 MMm³/d na maior margem (~R$0,80/m³) e vira <b>~metade do lucro bruto até 2030</b>. O <b>mercado livre</b> é o líder de volume (6,3 MMm³/d), porém de baixa margem (~R$0,20/m³). O <b>contrato com a Comgás</b> é a base estável (2 MMm³/d take-or-pay).</div>
+    ${chStackCat(EDGE_SUB_YRS, EDGE_SUB.map(s=>({n:s.n,c:s.c,v:s.gp})), {h:340,fmt:v=>fMn(v),tip:v=>'R$'+fMn(v)+' mn',unit:'',yTitle:'Lucro bruto (R$ mn)',segLbl:true,segFmt:v=>fMn(v)})}
+    ${legend(EDGE_SUB.map(s=>({name:s.n,color:s.c})))}
+    <div class="twrap" style="margin-top:12px"><table><thead><tr><th class="l">Sub-segmento</th><th>Volume 2030 (MMm³/d)</th><th>Margem (R$/m³)</th><th>Lucro bruto 2027</th><th>Lucro bruto 2030</th><th>% do LB 2030</th></tr></thead><tbody>${(()=>{const tot=EDGE_SUB.reduce((s,x)=>s+x.gp[3],0);return EDGE_SUB.map(s=>`<tr><td class="l"><span class="dot" style="background:${s.c}"></span>${s.n}</td><td>${s.vol[3].toFixed(1).replace('.',',')}</td><td>${s.mrg[0].toFixed(2).replace('.',',')}–${s.mrg[1].toFixed(2).replace('.',',')}</td><td>${fMn(s.gp[0])}</td><td><b>${fMn(s.gp[3])}</b></td><td>${fPct(s.gp[3]/tot,0)}</td></tr>`).join('')+`<tr class="tot"><td class="l">Lucro bruto total</td><td></td><td></td><td>${fMn(EDGE_SUB.reduce((a,x)=>a+x.gp[0],0))}</td><td>${fMn(tot)}</td><td>100%</td></tr>`;})()}</tbody></table></div>
+    <div class="note"><b>Otimização de cargas + contribution:</b> além dos sub-segmentos de volume, a Edge ganha com o trading da carteira Total — ~R$324mn em 2026, normalizando para ~R$80mn/ano até 2033 (split 50/50 com a Total), mais contribution de ~R$90mn/ano. É receita não-volumétrica, tratada como opcionalidade.</div>
+    <div class="warn">Fonte: modelo Compass_Jun26 (Itaú BBA), aba Edge · detalhe por sub-segmento a partir de 2027. Térmica = capacidade contratada (dispatch médio ~0,4 MMm³/d, ~8%); margem = faixa 2027→2030.</div>
   </div>
   <div class="card"><h2>Build-up de volume por segmento</h2><div class="cap">Estimativa Itaú · MMm³/d (ex-térmica disponível)</div>
     ${chStackCat(EDGE_YRS,EDGE_SEG,{h:380,fmt:v=>v.toFixed(0),tip:v=>v.toFixed(1).replace('.',','),unit:' MMm³/d',yTitle:'MMm³/d',segLbl:true})}
@@ -1186,35 +1218,6 @@ function renderEdge(){
       {t:'Economia do SSLNG',m:'US$12–16 <span style="color:var(--muted);font-weight:600">vs</span> 28–32',d:'LNG vs diesel (US$/MMBtu) — o diferencial que destrava a demanda off-grid'},
       {t:'Biometano · OneBio',m:'225 mil m³/d',d:'Planta em Paulínia · JV com a Orizon'},
     ],'tone-market')}
-  </div>
-  </div>
-  <div id="edgp1" class="subpane" style="display:none">
-  <div class="card"><h2>Valor da Edge — dispersão entre os bancos (EV, R$ bn)</h2>
-    ${(()=>{const med=_med(evBars.map(x=>x.v));return chBankBars(evBars,{h:250,fmt:v=>v.toFixed(0),tip:v=>'R$'+v.toFixed(1).replace('.',',')+'bn',yTitle:'Edge — EV (R$ bn)',ref:med,refColor:'#2E7D4F',refTxt:'R$'+med.toFixed(1).replace('.',',')+'bn'});})()}
-    <div class="legend"><span><i style="width:18px;height:0;border-radius:0;background:none;border-top:2px dashed #2E7D4F"></i>Mediana dos 5 bancos</span></div>
-    <div class="note">Em base de <b>Enterprise Value</b>, a Edge vai de ~R$9,4bn (BofA e Itaú) a R$13,4bn (Bradesco BBI) — ~40% de diferença. É essa divergência (não o EBITDA de curto prazo) que explica boa parte do leque de preços-alvo. Como é a parte menos madura e menos regulada, concentra as premissas mais sensíveis (volumes de LNG, margens de LP e a renovação do contrato com a Total em 2033).</div>
-  </div>
-  <div class="card"><h2>EBITDA da Edge — 2026 a 2028 (R$ mn)</h2>
-    ${chGrouped(YRS3,ebSeries,{h:300,yTitle:'EBITDA Edge (R$ mn)',barLbl:true})}
-    ${legend(ebSeries.map(s=>({name:s.name,color:s.color})))}
-    <div class="warn">BofA em R$bn convertido. Térmicas do LRCAP em geral fora do base case (opcionalidade).</div>
-  </div>
-  <div class="card"><h2>A Edge aberta por sub-segmento (modelo Itaú BBA)</h2>
-    <div class="lead">A Edge não é um negócio só — são cinco frentes com volumes e margens bem diferentes. O <b>Small Scale LNG (off-grid)</b> é o motor de valor: começa minúsculo mas escala para 3,8 MMm³/d na maior margem (~R$0,80/m³) e vira <b>~metade do lucro bruto até 2030</b>. O <b>mercado livre</b> é o líder de volume (6,3 MMm³/d), porém de baixa margem (~R$0,20/m³). O <b>contrato com a Comgás</b> é a base estável (2 MMm³/d take-or-pay).</div>
-    ${chStackCat(EDGE_SUB_YRS, EDGE_SUB.map(s=>({n:s.n,c:s.c,v:s.gp})), {h:340,fmt:v=>fMn(v),tip:v=>'R$'+fMn(v)+' mn',unit:'',yTitle:'Lucro bruto (R$ mn)',segLbl:true,segFmt:v=>fMn(v)})}
-    ${legend(EDGE_SUB.map(s=>({name:s.n,color:s.c})))}
-    <div class="twrap" style="margin-top:12px"><table><thead><tr><th class="l">Sub-segmento</th><th>Volume 2030 (MMm³/d)</th><th>Margem (R$/m³)</th><th>Lucro bruto 2027</th><th>Lucro bruto 2030</th><th>% do LB 2030</th></tr></thead><tbody>${(()=>{const tot=EDGE_SUB.reduce((s,x)=>s+x.gp[3],0);return EDGE_SUB.map(s=>`<tr><td class="l"><span class="dot" style="background:${s.c}"></span>${s.n}</td><td>${s.vol[3].toFixed(1).replace('.',',')}</td><td>${s.mrg[0].toFixed(2).replace('.',',')}–${s.mrg[1].toFixed(2).replace('.',',')}</td><td>${fMn(s.gp[0])}</td><td><b>${fMn(s.gp[3])}</b></td><td>${fPct(s.gp[3]/tot,0)}</td></tr>`).join('')+`<tr class="tot"><td class="l">Lucro bruto total</td><td></td><td></td><td>${fMn(EDGE_SUB.reduce((a,x)=>a+x.gp[0],0))}</td><td>${fMn(tot)}</td><td>100%</td></tr>`;})()}</tbody></table></div>
-    <div class="note"><b>Otimização de cargas + contribution:</b> além dos sub-segmentos de volume, a Edge ganha com o trading da carteira Total — ~R$324mn em 2026, normalizando para ~R$80mn/ano até 2033 (split 50/50 com a Total), mais contribution de ~R$90mn/ano. É receita não-volumétrica, tratada como opcionalidade.</div>
-    <div class="warn">Fonte: modelo Compass_Jun26 (Itaú BBA), aba Edge · detalhe por sub-segmento a partir de 2027. Térmica = capacidade contratada (dispatch médio ~0,4 MMm³/d, ~8%); margem = faixa 2027→2030.</div>
-  </div>
-  <div class="card"><h2>Quanto cada peça vale — build-up do BofA</h2>
-    <div class="cap">Único banco que atribui valor (equity, R$ bn) a cada sub-segmento da Edge — build-up até o equity total</div>
-    ${(()=>{const cols=['#3D4A5C','#4E8385','#6E8299','#7FC6A2','#B79A45'];
-      const items=BOFA_EDGE.map((r,i)=>({name:r[0],value:r[1]*1000,color:cols[i%cols.length]}));
-      const tot=items.reduce((s,it)=>s+it.value,0);
-      return chBridge(items,{name:'Equity Edge (BofA)',value:tot,color:'#12294F'},{h:430,yTitle:'Equity value (R$ bn)'});})()}
-    <div class="note">Soma = R$9,4bn de equity. O <b>contrato com a Comgás</b> (R$5,3bn) é o maior valor — fluxo contratado até 2035; a <b>Fase 2 do LNG off-grid</b> (R$2,9bn) é a maior aposta de crescimento.</div>
-  </div>
   </div>`;
 }
 
@@ -1251,7 +1254,7 @@ function renderTP(){
   const tp=CONS.map(b=>b.tp), up=CONS.map(b=>b.upside*100), eq=CONS.map(b=>b.equity/1000), irr=BANKS.map(b=>b.irr*100);
   const fR=v=>'R$'+(Math.round(v*10)/10).toString().replace('.',',');
   const rows=[
-    {label:'Preço-alvo (R$/ação)', min:_min(tp), max:_max(tp), med:_med(tp), ref:PRICE, refTxt:'atual R$25', fmt:fR},
+    {label:'Preço-alvo (R$/ação)', min:_min(tp), max:_max(tp), med:_med(tp), ref:PRICE, refTxt:'atual R$'+PRICE.toFixed(2).replace('.',','), fmt:fR},
     {label:'Upside implícito (%)', min:_min(up), max:_max(up), med:_med(up), ref:0, refTxt:'0%', fmt:v=>Math.round(v)+'%'},
     {label:'TIR real implícita (%)', sub:'apenas 5 bancos c/ estimativa', min:_min(irr), max:_max(irr), med:_med(irr), ref:null, fmt:v=>(Math.round(v*10)/10).toString().replace('.',',')+'%'},
     {label:'Equity value (R$ bi)', min:_min(eq), max:_max(eq), med:_med(eq), ref:PRICE*SHARES_OUT/1e9, refTxt:'atual R$'+(PRICE*SHARES_OUT/1e9).toFixed(1).replace('.',',')+' bi', fmt:v=>fR(v)+' bi'},
@@ -1276,7 +1279,10 @@ function renderSOTP(){
       <div class="lead">${bankDot(b)}<b>${b.name}</b> — ${b.rating}, preço-alvo R$${b.tp}/ação · ${esc(b.method)}. A ponte parte da <b>Comgás</b> (ativo-núcleo) e vai somando o valor de cada ativo — subtraindo a <b>Holding</b>${extra} — até o <b>equity value</b> de R$${(b.equity/1000).toFixed(1).replace('.',',')}bn (barra escura), que ancora o preço-alvo.</div>
       ${chart}${legend(items.map(it=>({name:it.name,color:it.color})).concat([{name:'Equity total',color:'#13202E'}]))}</div>`;
   }).join('');
+  const evBars=BANKS.map(b=>({name:b.name,v:b.edgeEv/1000,color:b.color}));
   $('p-sotp').innerHTML=`
+  ${subBar('sotpv',['Consolidado','Edge'])}
+  <div id="sotpvp0" class="subpane">
   <div class="card"><h2>Soma das partes — ponte por banco</h2>
     <div class="lead">Cada banco constrói o equity value da Compass somando o valor de cada ativo. Selecione o banco para ver a <b>ponte (waterfall)</b>: as barras positivas somam valor e as negativas (Holding e, no Citi, a dívida líquida) subtraem, chegando ao equity total à direita.</div>
     ${subBar('sotp',BANKS.map(b=>b.name))}
@@ -1291,6 +1297,22 @@ function renderSOTP(){
     <div class="cap">Preço-alvo (R$/ação) em função do EV/RAB da Comgás × equity value da Edge. Base do modelo: Edge ~R$8,8bn e Comgás ~1,45x &rarr; ~R$35 (células destacadas). Passe o mouse para ver cada combinação.</div>
     ${sensTable()}
     <div class="warn">Fonte: modelo financeiro do Itaú BBA (aba Sensitivity). O preço-alvo é bem mais sensível ao EV/RAB da Comgás (o ativo-núcleo) e ao valor da Edge do que a outras variáveis — cada +R$2bn de equity na Edge vale ~R$2,8/ação; cada +0,1x no EV/RAB da Comgás, ~R$2,3/ação.</div>
+  </div>
+  </div>
+  <div id="sotpvp1" class="subpane" style="display:none">
+  <div class="card"><h2>Valor da Edge — dispersão entre os bancos (EV, R$ bn)</h2>
+    ${(()=>{const med=_med(evBars.map(x=>x.v));return chBankBars(evBars,{h:250,fmt:v=>v.toFixed(0),tip:v=>'R$'+v.toFixed(1).replace('.',',')+'bn',yTitle:'Edge — EV (R$ bn)',ref:med,refColor:'#2E7D4F',refTxt:'R$'+med.toFixed(1).replace('.',',')+'bn'});})()}
+    <div class="legend"><span><i style="width:18px;height:0;border-radius:0;background:none;border-top:2px dashed #2E7D4F"></i>Mediana dos 5 bancos</span></div>
+    <div class="note">Em base de <b>Enterprise Value</b>, a Edge vai de ~R$9,4bn (BofA e Itaú) a R$13,4bn (Bradesco BBI) — ~40% de diferença. É essa divergência (não o EBITDA de curto prazo) que explica boa parte do leque de preços-alvo. Como é a parte menos madura e menos regulada, concentra as premissas mais sensíveis (volumes de LNG, margens de LP e a renovação do contrato com a Total em 2033).</div>
+  </div>
+  <div class="card"><h2>Quanto cada peça vale — build-up do BofA</h2>
+    <div class="cap">Único banco que atribui valor (equity, R$ bn) a cada sub-segmento da Edge — build-up até o equity total</div>
+    ${(()=>{const cols=['#3D4A5C','#4E8385','#6E8299','#7FC6A2','#B79A45'];
+      const items=BOFA_EDGE.map((r,i)=>({name:r[0],value:r[1]*1000,color:cols[i%cols.length]}));
+      const tot=items.reduce((s,it)=>s+it.value,0);
+      return chBridge(items,{name:'Equity Edge (BofA)',value:tot,color:'#12294F'},{h:430,yTitle:'Equity value (R$ bn)'});})()}
+    <div class="note">Soma = R$9,4bn de equity. O <b>contrato com a Comgás</b> (R$5,3bn) é o maior valor — fluxo contratado até 2035; a <b>Fase 2 do LNG off-grid</b> (R$2,9bn) é a maior aposta de crescimento.</div>
+  </div>
   </div>`;
 }
 // ---------- 10. Projeções ----------
@@ -1813,6 +1835,50 @@ function renderModel(){
 }
 
 renderTabs();renderAll();setTab(0);
+
+/* ===== Cotação ao vivo do PASS3.SA (Yahoo Finance via /api/pass3) =====
+   Atualiza o preço de referência para o último preço de mercado e recalcula tudo
+   que depende dele (upside de cada banco, market cap, EV, EV/EBITDA...). Em produção
+   (Vercel) usa a função serverless /api/pass3; aberto localmente (file://) o endpoint
+   não resolve — o guia continua exibindo o preço de referência (R$25) sem quebrar. */
+const PASS3_ENDPOINT = (location.protocol==='file:') ? null : '/api/pass3';
+const fmtPx = v => 'R$'+Number(v).toFixed(2).replace('.',',');
+function setPxBadge(state){
+  const b=$('pxbadge'); if(!b) return;
+  b.classList.remove('live','err'); if(state) b.classList.add(state);
+  const val=$('pxb-val'), sub=$('pxb-sub'), foot=$('pxfoot');
+  if(val) val.textContent=fmtPx(PRICE);
+  if(state==='live'){
+    let ago='agora';
+    if(PRICE_TS){const dt=Date.parse(PRICE_TS); if(!isNaN(dt)){const m=Math.round((Date.now()-dt)/60000);
+      ago = m<=1?'agora há pouco' : m<60?('há '+m+' min') : ('há '+Math.round(m/60)+' h');}}
+    if(sub) sub.textContent='ao vivo · '+ago;
+    if(foot) foot.textContent='Preço atual (ao vivo · Yahoo Finance): '+fmtPx(PRICE)+'/ação.';
+  }else if(state==='err'){
+    if(sub) sub.textContent='sem conexão · ref.';
+  }else{
+    if(sub) sub.textContent='preço de referência';
+  }
+}
+async function fetchLivePrice(){
+  if(!PASS3_ENDPOINT) return;                 // aberto local: mantém preço de referência
+  try{
+    const r=await fetch(PASS3_ENDPOINT,{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const px=Number(j.price);
+    if(!isFinite(px)||px<=0) throw new Error('preço inválido');
+    PRICE=px; PRICE_LIVE=true; PRICE_TS=j.marketTime||j.fetched_at||null;
+    reprice();                                // recomputa upside de todos os bancos
+    renderAll();                              // re-renderiza todas as abas com o novo preço
+    setPxBadge('live');
+  }catch(e){
+    setPxBadge(PRICE_LIVE?'live':'err');      // se já tínhamos preço ao vivo, mantém
+  }
+}
+setPxBadge(null);
+fetchLivePrice();
+setInterval(fetchLivePrice, 5*60*1000);       // re-checa a cada 5 min
 
 </script>
 </body>
