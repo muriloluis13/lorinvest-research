@@ -114,7 +114,9 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
 }
 .hamburger:hover { background: var(--chip); border-color: var(--accent-2); }
-.logo img { height: 30px; width: auto; display: block; }
+/* A marca da Norsul é quase quadrada (193x178), então pede um pouco mais de
+   altura que o logotipo deitado da Lorinvest usado no painel. */
+.logo img { height: 34px; width: auto; display: block; }
 .hsep { width: 1px; height: 26px; background: var(--line); }
 .hbrand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .htitle { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
@@ -369,7 +371,7 @@ tbody tr.total-row:hover td { background: var(--accent-1-soft); }
 <header class="app-header">
   <div class="hwrap">
     <button class="hamburger" onclick="toggleSidebar()" title="Mostrar/ocultar seções" aria-label="Mostrar/ocultar seções">&#9776;</button>
-    <div class="logo"><img src="../../../logos/lorinvest-logo.png" alt="Lorinvest"></div>
+    <div class="logo"><img src="../../../logos/norsul-logo.jpg" alt="Norsul"></div>
     <span class="hsep"></span>
     <div class="hbrand">
       <div class="htitle">Norsul — Demonstrações Financeiras Auditadas</div>
