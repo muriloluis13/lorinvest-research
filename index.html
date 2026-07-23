@@ -1101,6 +1101,13 @@
     .analise-title::after { content: " ↗"; font-size: 10px; opacity: .7; }
     .analise-meta { font-size: 11.5px; color: #55677C; }
     .analise-date { font-size: 11.5px; font-weight: 600; color: #33424F; white-space: nowrap; background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; }
+    /* Setores & Macro — um card por setor, com as análises da área agrupadas dentro. */
+    .set-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; align-items: start; }
+    .set-kicker { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 3px; }
+    .set-sub { font-size: 11.5px; color: #55677C; line-height: 1.5; }
+    .set-divider { height: 1px; background: var(--line); margin: 1px 0 2px; }
+    /* Etiqueta da empresa que produziu a análise, acima do título do item. */
+    .set-tag { align-self: flex-start; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-1); background: var(--chip); border: 1px solid var(--line); border-radius: 5px; padding: 2px 7px; margin-bottom: 3px; }
     .mc-regions { display: flex; flex-direction: column; gap: 8px; }
     .mc-region-row { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: start; }
     .mc-region-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 6px; }
@@ -3493,6 +3500,96 @@
             </div>
           </div>
 
+          <div class="section-title-row" style="margin-top: 18px;">
+            <div>
+              <div class="section-title">Análises setoriais</div>
+            </div>
+          </div>
+
+          <div class="set-grid" style="margin-top: 10px;">
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="set-kicker">Setor</div>
+                  <div class="card-title">Gás Natural &amp; GNL</div>
+                </div>
+                <span class="card-chip">2 análises</span>
+              </div>
+              <div class="set-sub">Cadeia do gás natural — GNL small-scale, estocagem subterrânea e infraestrutura de suprimento.</div>
+              <div class="set-divider"></div>
+              <div class="card-body">
+                <div class="analise-list">
+                  <a class="analise-item" href="empresas/gnlink/analises-setoriais/global-market/index.html" target="_blank" rel="noopener">
+                    <div class="analise-info">
+                      <span class="set-tag">GNLink</span>
+                      <span class="analise-title">Small-Scale LNG — panorama global</span>
+                      <span class="analise-meta">Fundamentos da cadeia, precificação e comparativo entre regiões</span>
+                    </div>
+                    <span class="analise-date">Abrir</span>
+                  </a>
+                  <a class="analise-item" href="empresas/gbs/analises-setoriais/global-market/index.html" target="_blank" rel="noopener">
+                    <div class="analise-info">
+                      <span class="set-tag">GBS Storage</span>
+                      <span class="analise-title">Estocagem subterrânea de gás — panorama global</span>
+                      <span class="analise-meta">Fundamentos, spreads de preço, modelos de receita e dimensionamento de mercado</span>
+                    </div>
+                    <span class="analise-date">Abrir</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="set-kicker">Setor</div>
+                  <div class="card-title">Combustíveis &amp; Derivados</div>
+                </div>
+                <span class="card-chip">1 análise</span>
+              </div>
+              <div class="set-sub">Refino, distribuição e revenda de derivados de petróleo no mercado brasileiro.</div>
+              <div class="set-divider"></div>
+              <div class="card-body">
+                <div class="analise-list">
+                  <a class="analise-item" href="empresas/gnlink/analises-setoriais/combustiveis/index.html" target="_blank" rel="noopener">
+                    <div class="analise-info">
+                      <span class="set-tag">GNLink</span>
+                      <span class="analise-title">Mercado de derivados de petróleo — Brasil</span>
+                      <span class="analise-meta">Produção, vendas, comércio e logística — base ANP 2024/2026</span>
+                    </div>
+                    <span class="analise-date">Abrir</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="set-kicker">Setor</div>
+                  <div class="card-title">Energia Elétrica</div>
+                </div>
+                <span class="card-chip">1 análise</span>
+              </div>
+              <div class="set-sub">Geração térmica, leilões regulados e a demanda de gás natural que eles originam.</div>
+              <div class="set-divider"></div>
+              <div class="card-body">
+                <div class="analise-list">
+                  <a class="analise-item" href="empresas/gbs/analises-setoriais/lrcap2026/index.html" target="_blank" rel="noopener">
+                    <div class="analise-info">
+                      <span class="set-tag">GBS Storage</span>
+                      <span class="analise-title">LRCAP 2026 — leilões de reserva de capacidade</span>
+                      <span class="analise-meta">2º e 3º leilões (mar/2026) — 106 usinas contratadas e estrutura de suprimento de gás</span>
+                    </div>
+                    <span class="analise-date">Abrir</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
           <div class="row-full" style="margin-top: 14px;">
             <div class="card">
               <div class="card-body">
@@ -4074,13 +4171,31 @@
         });
       });
     }
+    // Links para análises publicadas da empresa. Fonte: data/empresas.js → EMP[x].analises[aba].
+    // Aparecem abaixo do conteúdo da aba; se a aba não tiver conteúdo próprio, substituem o
+    // bloco "em desenvolvimento" em vez de conviver com ele.
+    function renderAnalises(d,tab){
+      var list = d && d.analises && d.analises[tab];
+      if(!list || !list.length) return '';
+      var items = list.map(function(a){
+        return '<a class="analise-item" href="'+esc(a.href)+'" target="_blank" rel="noopener">'
+          +'<div class="analise-info"><span class="analise-title">'+esc(a.title)+'</span>'
+          +(a.meta?'<span class="analise-meta">'+esc(a.meta)+'</span>':'')+'</div>'
+          +'<span class="analise-date">Abrir</span></a>';
+      }).join('');
+      return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Análises</div></div>'
+        +'<div class="card-body"><div class="analise-list">'+items+'</div></div></div></div>';
+    }
     function renderBody(){
-      var d=EMP[e2co];
-      if(e2tab==='aportes' && d) bodyEl.innerHTML=renderAportes(e2co,d);
-      else if(e2tab==='governanca' && d){ bodyEl.innerHTML=renderGov(e2co,d); if(window.renderBoards) window.renderBoards(); }
-      else if(e2tab==='operacional' && d && d.operacional) bodyEl.innerHTML=renderOperacional(e2co,d);
-      else if(e2tab==='resultados' && d && d.financeiro) bodyEl.innerHTML=renderResultados(e2co,d);
-      else bodyEl.innerHTML=renderDev(e2co, labelOf(e2tab));
+      var d=EMP[e2co], main='';
+      if(e2tab==='aportes' && d) main=renderAportes(e2co,d);
+      else if(e2tab==='governanca' && d) main=renderGov(e2co,d);
+      else if(e2tab==='operacional' && d && d.operacional) main=renderOperacional(e2co,d);
+      else if(e2tab==='resultados' && d && d.financeiro) main=renderResultados(e2co,d);
+      var extra=renderAnalises(d,e2tab);
+      if(!main) main = extra ? '' : renderDev(e2co, labelOf(e2tab));
+      bodyEl.innerHTML = main + extra;
+      if(e2tab==='governanca' && d && window.renderBoards) window.renderBoards();
     }
     function applyCompany(name){
       var sc=document.getElementById('section-company');
