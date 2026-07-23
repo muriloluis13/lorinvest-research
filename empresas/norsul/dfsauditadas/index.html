@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Norsul — Demonstrações Financeiras Auditadas</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
@@ -1642,12 +1643,28 @@ function switchTab(s,p){event.target.closest('.tabs').querySelectorAll('.tab-btn
 let dk=false;
 function toggleTheme(){dk=!dk;document.documentElement.setAttribute('data-theme',dk?'dark':'');document.getElementById('themeIcon').textContent=dk?'☀️':'🌙';document.getElementById('themeLabel').textContent=dk?'Modo Claro':'Modo Escuro';Object.values(CH).forEach(c=>{if(c&&c.options){uT(c);c.update('none')}})}
 function gT(){const s=getComputedStyle(document.documentElement);return{g:s.getPropertyValue('--chart-grid').trim(),t:s.getPropertyValue('--chart-text').trim()}}
-function uT(c){const t=gT();['x','y'].forEach(a=>{if(c.options.scales&&c.options.scales[a]){if(c.options.scales[a].ticks)c.options.scales[a].ticks.color=t.t;if(c.options.scales[a].grid)c.options.scales[a].grid.color=t.g}});if(c.options.plugins&&c.options.plugins.legend&&c.options.plugins.legend.labels)c.options.plugins.legend.labels.color=t.t}
+function uT(c){const t=gT();['x','y'].forEach(a=>{if(c.options.scales&&c.options.scales[a]){if(c.options.scales[a].ticks)c.options.scales[a].ticks.color=t.t;if(c.options.scales[a].grid)c.options.scales[a].grid.color=t.g}});if(c.options.plugins&&c.options.plugins.legend&&c.options.plugins.legend.labels)c.options.plugins.legend.labels.color=t.t;if(c.options.plugins&&c.options.plugins.datalabels&&c.options.plugins.datalabels.display&&c.config.type!=='pie'&&c.config.type!=='doughnut')c.options.plugins.datalabels.color=inkColor()}
 
 // ===== CHARTS =====
 const CH={},CI={overview:false};
 const CL=['#1F3B57','#2E7D4F','#C55A17','#E23A2E','#5C7A96','#8FA6BC','#4E8385','#6B8299','#D6B24A','#7C8BA0'];
 Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.font.size=12;
+// ===== Rotulos e formatacao pt-BR (R$ mi, 1 casa) =====
+if(window.ChartDataLabels){Chart.register(ChartDataLabels);}
+Chart.defaults.plugins.datalabels={display:false};
+function nfBR(v,d){return (v==null||v===''||isNaN(v))?'':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+// unidade por grafico: a maioria e dinheiro (mi); estes sao % ou contagem
+const CHART_UNIT={chartEQ3:'pct',chartFL1:'cnt',chartFL2:'cnt'};
+function unitOf(ch){return (ch&&ch.canvas&&CHART_UNIT[ch.canvas.id])||'mi';}
+function fmtVal(v,u){if(v==null||v===''||isNaN(v))return '';if(u==='pct')return nfBR(v,1)+'%';if(u==='cnt')return nfBR(v,0);return nfBR(v,1);}
+function tipRaw(ctx){const p=ctx.parsed;if(p&&typeof p==='object')return ctx.chart.options.indexAxis==='y'?p.x:p.y;return p;}
+Chart.defaults.plugins.tooltip.filter=function(ctx){return ctx.dataset.label!=='Base';};
+Chart.defaults.plugins.tooltip.callbacks.label=function(ctx){const u=unitOf(ctx.chart);const isPie=(ctx.chart.config.type==='pie'||ctx.chart.config.type==='doughnut');const base=isPie?ctx.label:(ctx.dataset.label||'');const pre=(u==='mi')?'R$ ':'';return (base?base+': ':' ')+pre+fmtVal(tipRaw(ctx),u);};
+function inkColor(){return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||'#13202E';}
+// DLB: rotulo de barra (acima/ao lado, na cor da tinta do tema)
+function DLB(u){return {display:true,anchor:'end',align:'end',clamp:true,offset:2,color:inkColor(),font:{size:11,weight:'700'},formatter:function(v){return fmtVal(v,u);}};}
+// DLP: rotulo de fatia de pizza (branco com contorno, dentro da fatia)
+function DLP(u){return {display:true,color:'#fff',textStrokeColor:'rgba(0,0,0,.45)',textStrokeWidth:3,font:{size:11,weight:'700'},formatter:function(v){return fmtVal(v,u);}};}
 function bO(tp,ex={}){const t=gT();const o={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:t.t,boxWidth:12,padding:10}},tooltip:{backgroundColor:'rgba(19,32,46,.92)',padding:10,cornerRadius:6}}};if(tp!=='pie'&&tp!=='doughnut')o.scales={x:{ticks:{color:t.t},grid:{color:t.g}},y:{ticks:{color:t.t},grid:{color:t.g}}};return Object.assign(o,ex)}
 function mc(id,tp,d,ex={}){const x=document.getElementById(id);if(!x)return null;const c=new Chart(x,{type:tp,data:d,options:bO(tp,ex)});CH[id]=c;return c}
 
@@ -1655,7 +1672,7 @@ function initC(s){
   if(s==='overview'){
     mc('chartO1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Receita Líq.',data:[839.209,971.46,1366.541,2189.256,1260.82,1384.082],backgroundColor:'#1F3B57',borderRadius:4},{label:'Lucro Bruto',data:[226.128,333.036,297.159,230.039,200.667,199.463],backgroundColor:'#2E7D4F',borderRadius:4},{label:'Resultado Líq.',data:[159.314,284.656,214.162,187.968,224.087,-26.693],backgroundColor:d=>d.raw<0?'#E23A2E':'#C55A17',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
     mc('chartO2','doughnut',{labels:['Caixa+TVM','Contas receber','Imobilizado','Invest.','Dep.judiciais','IR diferido','Outros'],datasets:[{data:[476.246,269.566,598.044,45.82,136.673,43.606,386.553],backgroundColor:CL,borderWidth:0}]},{cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
-    mc('chartO3','doughnut',{labels:['Passivo Circ.','Passivo Não Circ.','PL'],datasets:[{data:[331.846,107.79,1516.872],backgroundColor:['#E23A2E','#C55A17','#1F3B57'],borderWidth:0}]},{cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
+    mc('chartO3','doughnut',{labels:['Passivo Circ.','Passivo Não Circ.','PL'],datasets:[{data:[331.846,107.79,1516.872],backgroundColor:['#E23A2E','#C55A17','#1F3B57'],borderWidth:0}]},{cutout:'58%',plugins:{datalabels:DLP('mi'),legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
   }
   if(s==='balance'){
     mc('chartBE1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Circ.',data:[796.456,804.001,771.004,959.401,876.989,881.241],backgroundColor:'#1F3B57',borderRadius:4},{label:'Não Circ.',data:[757.731,1092.348,1162.872,997.576,1018.74,1075.267],backgroundColor:'#5C7A96',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v).toFixed(0)+'mi'}}},plugins:{legend:{position:'bottom'}}});
@@ -1674,31 +1691,31 @@ function initC(s){
   }
   if(s==='equity'){
     mc('chartEQ1','doughnut',{labels:['Capital','Res.Legal','AFRMM','ICMS','Livre Distrib.','ORA','Prejuízo Ac.'],datasets:[{data:[624.628,59.188,256.984,7.33,165.492,451.049,47.799],backgroundColor:CL,borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
-    mc('chartEQ2','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'PL',data:[1194.878,1537.021,1617.546,1517.247,1437.827,1516.872],backgroundColor:'#1F3B57',borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
-    mc('chartEQ3','doughnut',{labels:['Lorentzen (76,84%)','Outros PF (23,16%)'],datasets:[{data:[76.84,23.16],backgroundColor:['#13202E','#1F3B57'],borderWidth:0}]},{cutout:'60%',plugins:{legend:{position:'bottom'}}});
+    mc('chartEQ2','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'PL',data:[1194.878,1537.021,1617.546,1517.247,1437.827,1516.872],backgroundColor:'#1F3B57',borderRadius:4}]},{plugins:{datalabels:DLB('mi'),legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
+    mc('chartEQ3','doughnut',{labels:['Lorentzen (76,84%)','Outros PF (23,16%)'],datasets:[{data:[76.84,23.16],backgroundColor:['#13202E','#1F3B57'],borderWidth:0}]},{cutout:'60%',plugins:{datalabels:DLP('pct'),legend:{position:'bottom'}}});
   }
   if(s==='revenue'){
-    mc('chartR1','doughnut',{labels:['Granel Seco (cab.)','Granel Seco (LC)','Cargas Líquidas','Comboios'],datasets:[{data:[1200.345,86.243,152.768,193.695],backgroundColor:['#1F3B57','#5C7A96','#2E7D4F','#C55A17'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:10}}}});
+    mc('chartR1','doughnut',{labels:['Granel Seco (cab.)','Granel Seco (LC)','Cargas Líquidas','Comboios'],datasets:[{data:[1200.345,86.243,152.768,193.695],backgroundColor:['#1F3B57','#5C7A96','#2E7D4F','#C55A17'],borderWidth:0}]},{cutout:'55%',plugins:{datalabels:DLP('mi'),legend:{position:'right',labels:{boxWidth:10}}}});
     mc('chartR2','bar',{labels:['Gr.Seco(cab)','Gr.Seco(LC)','Líquidas','FPSO','Comboios'],datasets:[{label:'2023',data:[782.424,73.386,67.563,177.573,159.874],backgroundColor:'rgba(31,59,87,.28)',borderRadius:4},{label:'2024',data:[1003.511,86.243,128.307,0,166.021],backgroundColor:'#1F3B57',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{font:{size:10}}}}});
     mc('chartC1','bar',{labels:['Afretamento','Viagens','Tripulação','Deprec+Doc','Suprim.','Manutenção','Shipmanager','Outros'],datasets:[{label:'2023',data:[432.948,299.606,147.476,97.995,31.967,22.267,36.908,11.986],backgroundColor:'rgba(226,58,46,.22)',borderRadius:3},{label:'2024',data:[379.046,378.15,171.726,168.633,43.466,24.732,36.567,17.536],backgroundColor:'#E23A2E',borderRadius:3}]},{indexAxis:'y',plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
   }
   if(s==='investments'){
-    mc('chartI1','bar',{labels:['Norwest','Norsulcargo','Norcoast','Mar Azul'],datasets:[{label:'PL',data:[932.375,109.922,45.82,37.434],backgroundColor:['#1F3B57','#2E7D4F','#C55A17','#5C7A96'],borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
-    mc('chartI2','bar',{labels:['2020','2021','2022','2023','2024'],datasets:[{label:'Equiv. Patrimonial Total',data:[121.198,34.964,76.733,48.484,-126.805],backgroundColor:d=>d.raw<0?'#E23A2E':'#2E7D4F',borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
+    mc('chartI1','bar',{labels:['Norwest','Norsulcargo','Norcoast','Mar Azul'],datasets:[{label:'PL',data:[932.375,109.922,45.82,37.434],backgroundColor:['#1F3B57','#2E7D4F','#C55A17','#5C7A96'],borderRadius:4}]},{plugins:{datalabels:DLB('mi'),legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
+    mc('chartI2','bar',{labels:['2020','2021','2022','2023','2024'],datasets:[{label:'Equiv. Patrimonial Total',data:[121.198,34.964,76.733,48.484,-126.805],backgroundColor:d=>d.raw<0?'#E23A2E':'#2E7D4F',borderRadius:4}]},{plugins:{datalabels:DLB('mi'),legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
   }
   if(s==='assets'){
     mc('chartA1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Embarcações',data:[325.46,482.821,581.218,563.971,454.703,571.545],backgroundColor:'#1F3B57',borderRadius:4},{label:'Outros',data:[0,0,0,0,27.548,26.499],backgroundColor:'#2E7D4F',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v).toFixed(0)+'mi'}}},plugins:{legend:{position:'bottom'}}});
-    mc('chartL1','doughnut',{labels:['Embarcações (174.326)','Imóveis (3.190)','Veículos (270)'],datasets:[{data:[174.326,3.19,0.27],backgroundColor:['#1F3B57','#2E7D4F','#C55A17'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right'}}});
-    mc('chartF1','doughnut',{labels:['Fundo Reno','Fundo Faerder'],datasets:[{data:[201.301,275.123],backgroundColor:['#1F3B57','#2E7D4F'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right'}}});
+    mc('chartL1','doughnut',{labels:['Embarcações (174.326)','Imóveis (3.190)','Veículos (270)'],datasets:[{data:[174.326,3.19,0.27],backgroundColor:['#1F3B57','#2E7D4F','#C55A17'],borderWidth:0}]},{cutout:'55%',plugins:{datalabels:DLP('mi'),legend:{position:'right'}}});
+    mc('chartF1','doughnut',{labels:['Fundo Reno','Fundo Faerder'],datasets:[{data:[201.301,275.123],backgroundColor:['#1F3B57','#2E7D4F'],borderWidth:0}]},{cutout:'55%',plugins:{datalabels:DLP('mi'),legend:{position:'right'}}});
   }
   if(s==='financial'){
     mc('chartFR1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Receitas Financ.',data:[48.054,39.048,25.526,61.524,94.827,59.875],backgroundColor:'#2E7D4F',borderRadius:4},{label:'Despesas Financ.',data:[-6.125,-5.323,-8.208,-6.533,-8.248,-17.13],backgroundColor:'#E23A2E',borderRadius:4},{label:'Var.Cambial Líq.',data:[8.839,59.809,37.247,-28.267,-13.046,2.291],backgroundColor:'#C55A17',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
   }
   if(s==='taxes'){
-    mc('chartT1','bar',{labels:['Arrend.arrendador','Prejuízo fiscal','Provisão bônus','Provisão riscos','Arrend.arrendat.','Impairment','Diversas'],datasets:[{label:'Ativo',data:[49.037,34.957,8.182,4.921,4.439,4.633,27.136],backgroundColor:'#1F3B57',borderRadius:4}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+    mc('chartT1','bar',{labels:['Arrend.arrendador','Prejuízo fiscal','Provisão bônus','Provisão riscos','Arrend.arrendat.','Impairment','Diversas'],datasets:[{label:'Ativo',data:[49.037,34.957,8.182,4.921,4.439,4.633,27.136],backgroundColor:'#1F3B57',borderRadius:4}]},{indexAxis:'y',plugins:{datalabels:DLB('mi'),legend:{display:false}}});
   }
   if(s==='fleet'){
-    mc('chartFL1','doughnut',{labels:['Bandeira BR (14)','Bandeira Estrang. (6)'],datasets:[{data:[14,6],backgroundColor:['#13202E','#1F3B57'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right'}}});
+    mc('chartFL1','doughnut',{labels:['Bandeira BR (14)','Bandeira Estrang. (6)'],datasets:[{data:[14,6],backgroundColor:['#13202E','#1F3B57'],borderWidth:0}]},{cutout:'55%',plugins:{datalabels:DLP('cnt'),legend:{position:'right'}}});
     mc('chartFL2','bar',{labels:['2020','2021','2022','2023','2024'],datasets:[{label:'Marítimos',data:[360,356,340,323,307],backgroundColor:'#2E7D4F',borderRadius:4},{label:'Administrativos',data:[182,187,195,199,181],backgroundColor:'#C55A17',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true}},plugins:{legend:{position:'bottom'}}});
   }
 }
