@@ -7,801 +7,847 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
 <style>
+/* ==========================================================================
+   Small-Scale LNG — Global Market
+   Layout e paleta herdados do Painel da Area de Research (index.html), pela
+   mesma receita usada nas DFs da Norsul: os nomes de classe do markup foram
+   preservados (kpi-card, data-card, edu-*, company-*, rm-*...); o que mudou
+   foi a pele — tipografia DM Sans, paleta Compass, header full-width,
+   sidebar clara e abas sublinhadas.
+   ========================================================================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --sidebar-w: 272px;
-  --font-body: 'Source Sans 3', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-display: 'Fraunces', serif;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 248px;
+  --font-body: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: 'DM Sans', system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: 'DM Sans', system-ui, -apple-system, "Segoe UI", sans-serif;
+  --transition: .22s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius: 12px;
+  --hh: 64px;                 /* altura do header, remedida via JS */
 }
 
+/* Paleta Compass — a mesma do painel. Os nomes antigos (--accent, --accent2,
+   --bg-primary...) continuam valendo porque o markup e o Chart.js os leem. */
 [data-theme="light"] {
-  --bg-primary: #F4F5F3;
+  --bg-primary: #F4F6F9;
   --bg-secondary: #FFFFFF;
-  --bg-sidebar: #002D5C;
-  --bg-sidebar-hover: #0A3D6E;
-  --bg-sidebar-active: #28477E;
-  --text-primary: #1A1D23;
-  --text-secondary: #7F7F7F;
-  --text-sidebar: #A8D2BB;
-  --text-sidebar-active: #FFFFFF;
-  --border: #D9DDD6;
-  --accent: #28477E;
-  --accent-light: #E4EAF2;
-  --accent2: #5A9B87;
-  --accent2-light: #E8F3EE;
-  --accent3: #EF7622;
-  --accent3-light: #FDF0E6;
-  --accent4: #77A28A;
-  --accent4-light: #EDF3EF;
-  --kpi-shadow: 0 1px 3px rgba(0,45,92,0.06), 0 1px 2px rgba(0,45,92,0.04);
-  --card-shadow: 0 1px 3px rgba(0,45,92,0.05), 0 4px 12px rgba(0,45,92,0.04);
-  --overlay: rgba(0,45,92,0.4);
-  --source-bg: #F5F7F5;
-  --source-text: #7F7F7F;
-  --badge-bg: #E8ECE9;
+  --bg-card-soft: #F7F9FC;
+  --text-primary: #13202E;
+  --ink: #13202E;
+  --text-secondary: #5C6B7A;
+  --muted: #5C6B7A;
+  --border: #E2E7EE;
+  --line: #E2E7EE;
+  --chip: #EDF1F6;
+  --hover: #EAF0F6;
+
+  --accent: #1F3B57;          /* navy — serie principal */
+  --accent-light: #EAF0F6;
+  --accent2: #2E7D4F;         /* verde */
+  --accent2-light: #E7EEE3;
+  --accent3: #C55A17;         /* ambar */
+  --accent3-light: #FBF0E6;
+  --accent4: #5C7A96;         /* azul acinzentado */
+  --accent4-light: #EDF1F6;
+  --accent-1: #3D4A5C;
+  --accent-2: #55677C;
+
+  --green: #2E7D4F;
+  --green-light: #E7EEE3;
+  --orange: #C55A17;
+  --orange-light: #FBF0E6;
+  --red: #E23A2E;
+  --red-light: #FBECEA;
+
+  --kpi-shadow: 0 1px 2px rgba(19,32,46,.05), 0 4px 14px rgba(19,32,46,.06);
+  --card-shadow: 0 1px 2px rgba(19,32,46,.05), 0 4px 14px rgba(19,32,46,.06);
+  --overlay: rgba(19,32,46,.45);
+  --source-bg: #F7F9FC;
+  --source-text: #7B8794;
+  --badge-bg: #EDF1F6;
+
+  --chart-grid: #E2E7EE;
+  --chart-text: #5C6B7A;
 }
 
+/* O painel e so claro. O modo escuro daqui e uma versao escurecida da mesma
+   paleta, para o botao do rodape da sidebar continuar funcionando. */
 [data-theme="dark"] {
-  --bg-primary: #0A0F14;
-  --bg-secondary: #121921;
-  --bg-sidebar: #001A36;
-  --bg-sidebar-hover: #002D5C;
-  --bg-sidebar-active: #28477E;
-  --text-primary: #E2E8E4;
-  --text-secondary: #8B9490;
-  --text-sidebar: #77A28A;
-  --text-sidebar-active: #A8D2BB;
-  --border: #1E2A32;
-  --accent: #4A6FA5;
-  --accent-light: #111D2E;
-  --accent2: #77A28A;
-  --accent2-light: #0F1E17;
-  --accent3: #EF7622;
-  --accent3-light: #271508;
-  --accent4: #A8D2BB;
-  --accent4-light: #0F1E17;
-  --kpi-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.15);
-  --card-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.15);
-  --overlay: rgba(0,20,40,0.6);
-  --source-bg: #0A1018;
-  --source-text: #5A6B62;
-  --badge-bg: #1A2530;
+  --bg-primary: #0E1620;
+  --bg-secondary: #16202C;
+  --bg-card-soft: #1B2733;
+  --text-primary: #E4EAF1;
+  --ink: #E4EAF1;
+  --text-secondary: #94A3B4;
+  --muted: #94A3B4;
+  --border: #26333F;
+  --line: #26333F;
+  --chip: #1E2A36;
+  --hover: #22303F;
+
+  --accent: #7FA3C4;
+  --accent-light: #1B2B3B;
+  --accent2: #4FA873;
+  --accent2-light: #1C3326;
+  --accent3: #DE8340;
+  --accent3-light: #3A2618;
+  --accent4: #9FB4C7;
+  --accent4-light: #22303F;
+  --accent-1: #C3CEDB;
+  --accent-2: #8FA6BC;
+
+  --green: #4FA873;
+  --green-light: #1C3326;
+  --orange: #DE8340;
+  --orange-light: #3A2618;
+  --red: #F0645A;
+  --red-light: #3A1D1B;
+
+  --kpi-shadow: 0 1px 2px rgba(0,0,0,.35);
+  --card-shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.4);
+  --overlay: rgba(4,10,16,.6);
+  --source-bg: #121B25;
+  --source-text: #7C8A99;
+  --badge-bg: #1E2A36;
+
+  --chart-grid: #26333F;
+  --chart-text: #94A3B4;
 }
 
-html { font-size: 14px; }
+html { font-size: 14px; scroll-behavior: smooth; }
 body {
   font-family: var(--font-body);
   background: var(--bg-primary);
   color: var(--text-primary);
+  font-size: 14.5px;
+  line-height: 1.45;
   min-height: 100vh;
   overflow-x: hidden;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
   transition: background var(--transition), color var(--transition);
 }
+button { font-family: inherit; cursor: pointer; }
 
-/* SIDEBAR */
-.sidebar {
-  position: fixed; top: 0; left: 0; bottom: 0;
-  width: var(--sidebar-w);
-  background: var(--bg-sidebar);
-  z-index: 100;
-  display: flex; flex-direction: column;
-  transition: transform var(--transition);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.1) transparent;
+/* ===== Header full-width ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 600;
+  background: var(--bg-secondary);
+  color: var(--accent-1);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 10px rgba(35,39,42,.05);
 }
-.sidebar.closed { transform: translateX(calc(-1 * var(--sidebar-w))); }
-.sidebar-overlay {
-  position: fixed; inset: 0;
-  background: var(--overlay);
-  z-index: 99;
-  opacity: 0; pointer-events: none;
-  transition: opacity var(--transition);
+.app-header::before {
+  content: ''; display: block; height: 3px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2) 55%, var(--red));
 }
-.sidebar-overlay.visible { opacity: 1; pointer-events: auto; }
-
-.sidebar-header {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  display: flex; align-items: center; gap: 12px;
+.hwrap {
+  max-width: 1680px; margin: 0 auto; padding: 11px 22px;
+  display: flex; align-items: center; gap: 13px; flex-wrap: wrap;
 }
-.sidebar-logo {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, #28477E, #5A9B87);
-  border-radius: 10px;
+.hamburger {
+  background: var(--bg-secondary); border: 1px solid var(--line); border-radius: 8px;
+  font-size: 15px; font-weight: 700; color: var(--accent-1);
+  padding: 3px 10px; line-height: 1.2;
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 700; color: #FFF; font-size: 14px;
-  flex-shrink: 0;
 }
-.sidebar-brand { font-family: var(--font-display); color: #FFF; font-size: 15px; font-weight: 600; line-height: 1.2; }
-.sidebar-brand small { color: var(--text-sidebar); font-size: 11px; font-weight: 400; display: block; margin-top: 2px; }
+.hamburger:hover { background: var(--chip); border-color: var(--accent-2); }
+/* A marca da GNLink e um JPG de fundo branco: no modo escuro ela vira uma
+   plaquinha branca, entao o fundo/padding sao explicitos para parecer
+   intencional nos dois temas. */
+.logo img { height: 26px; width: auto; display: block; background: #fff; padding: 2px 5px; border-radius: 5px; }
+.hsep { width: 1px; height: 26px; background: var(--line); }
+.hbrand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.htitle { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
+.hsub { font-size: 11px; color: var(--muted); }
+.hspace { flex: 1; }
+.chip {
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--chip); border: 1px solid var(--line);
+  font-size: 10.5px; font-weight: 700; color: var(--accent-1); white-space: nowrap;
+}
 
-.sidebar-nav { padding: 12px 10px; flex: 1; }
-.nav-group { margin-bottom: 6px; }
+/* ===== Layout + sidebar ===== */
+.layout { display: flex; max-width: 1680px; margin: 0 auto; align-items: flex-start; }
+.sidebar {
+  width: var(--sidebar-w); flex: none;
+  position: sticky; top: var(--hh, 64px); align-self: flex-start;
+  min-height: calc(100vh - var(--hh, 64px));
+  max-height: calc(100vh - var(--hh, 64px));
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--bg-secondary); color: var(--ink);
+  padding: 8px 8px 26px;
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column;
+  transition: width .18s ease, padding .18s ease;
+}
+.sidebar.closed { width: 0; padding-left: 0; padding-right: 0; border-right-color: transparent; }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(92,107,122,.25); border-radius: 4px; }
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: var(--overlay); z-index: 590;
+}
+.sidebar-overlay.visible { display: block; }
+
+.sidebar-nav { display: block; padding: 2px 0; flex: 1; }
+.nav-group { margin-bottom: 2px; }
 .nav-group-label {
-  padding: 8px 12px 6px;
-  font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 1.2px;
-  color: rgba(255,255,255,0.28);
+  font-size: 9px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--muted); padding: 13px 10px 5px; white-space: nowrap;
 }
 .nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: var(--text-sidebar);
-  cursor: pointer;
-  font-size: 13px; font-weight: 450;
-  transition: all 0.15s;
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  text-align: left; background: none; border: none;
+  border-left: 2.5px solid transparent;
+  font-size: 12.5px; font-weight: 600; color: var(--muted);
+  padding: 7px 11px; border-radius: 0 7px 7px 0;
+  white-space: nowrap; cursor: pointer; text-decoration: none;
   user-select: none;
+  transition: background .12s, color .12s;
 }
-.nav-item:hover { background: var(--bg-sidebar-hover); color: #FFF; }
-.nav-item.active { background: var(--bg-sidebar-active); color: var(--text-sidebar-active); font-weight: 550; }
-.nav-icon { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; opacity: 0.7; }
+.nav-item:hover { color: var(--accent-1); background: var(--chip); }
+.nav-item.active {
+  color: var(--accent-1); border-left-color: var(--red);
+  background: var(--accent-light); font-weight: 700;
+}
+.nav-icon { width: 17px; text-align: center; font-size: 13px; flex-shrink: 0; opacity: .85; }
 .nav-item.active .nav-icon { opacity: 1; }
 .nav-badge {
   margin-left: auto;
-  background: rgba(255,255,255,0.1);
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 10px; font-weight: 600;
-  color: rgba(255,255,255,0.5);
+  background: var(--chip); border: 1px solid var(--line);
+  padding: 1px 6px; border-radius: 5px;
+  font-size: 8.5px; font-weight: 700; letter-spacing: .04em;
+  color: var(--muted);
 }
+.nav-item.active .nav-badge { color: var(--accent-1); border-color: rgba(61,74,92,.22); }
 
 .sidebar-footer {
-  padding: 14px 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  display: flex; align-items: center; gap: 10px;
+  margin: 20px 8px 0; padding: 12px;
+  border-radius: var(--radius); background: var(--bg-card-soft);
+  border: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 8px;
 }
 .theme-toggle {
   display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.06);
-  border: none; border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--text-sidebar);
-  cursor: pointer; font-family: var(--font-body);
-  font-size: 12px; font-weight: 500;
-  width: 100%;
-  transition: all 0.15s;
+  background: none; border: none; padding: 0;
+  color: var(--muted); cursor: pointer;
+  font-size: 11.5px; font-weight: 600; text-align: left;
 }
-.theme-toggle:hover { background: rgba(255,255,255,0.1); color: #FFF; }
+.theme-toggle:hover { color: var(--accent-1); }
+.watermark { font-size: 11px; line-height: 1.5; color: var(--muted); }
 
-/* MAIN */
-.main {
-  margin-left: var(--sidebar-w);
-  min-height: 100vh;
-  transition: margin-left var(--transition);
-  padding: 0;
-}
-.main.expanded { margin-left: 0; }
-
+/* ===== Main ===== */
+.main { flex: 1; min-width: 0; }
 .topbar {
-  position: sticky; top: 0; z-index: 50;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  padding: 0 28px;
-  height: 56px;
-  display: flex; align-items: center; gap: 14px;
+  position: sticky; top: var(--hh, 64px); z-index: 500;
+  padding: 10px 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex-wrap: wrap;
+  background: var(--bg-primary); border-bottom: 1px solid var(--line);
   transition: background var(--transition), border var(--transition);
 }
+.topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.topbar-title { font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: -.1px; }
+.topbar-subtitle { font-size: 11px; color: var(--muted); font-weight: 500; }
+.topbar-badge {
+  font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+  background: var(--green-light); color: var(--green);
+  border: 1px solid rgba(46,125,79,.22); white-space: nowrap;
+}
 .menu-btn {
-  width: 36px; height: 36px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-primary);
-  cursor: pointer;
+  width: 32px; height: 32px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; color: var(--text-secondary);
-  transition: all 0.15s;
-  flex-shrink: 0;
+  font-size: 15px; color: var(--accent-1); flex-shrink: 0;
 }
-.menu-btn:hover { border-color: var(--accent); color: var(--accent); }
-.topbar-title { font-size: 15px; font-weight: 600; }
-.topbar-subtitle { font-size: 12px; color: var(--text-secondary); margin-left: auto; font-weight: 400; }
+.menu-btn:hover { background: var(--chip); border-color: var(--accent-2); }
 
-.content { padding: 24px 28px 60px; max-width: 1440px; }
+.content { padding: 18px 22px 50px; max-width: 1440px; width: 100%; }
 
-/* TAB CONTENT */
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+/* ===== Secoes / abas ===== */
+.tab-panel { display: none; min-width: 0; }
+.tab-panel.active { display: block; animation: fadeIn .2s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-.section-header {
-  margin-bottom: 20px;
-}
+.section-header { margin-bottom: 16px; padding: 0 2px; }
 .section-header h2 {
   font-family: var(--font-display);
-  font-size: 22px; font-weight: 700;
-  margin-bottom: 4px;
+  font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--accent-1); padding-bottom: 5px;
+  border-bottom: 1px solid var(--line); display: inline-block;
+  margin-bottom: 0;
 }
 .section-header p {
-  font-size: 13px; color: var(--text-secondary);
-  max-width: 680px; line-height: 1.5;
+  font-size: 11.5px; color: var(--muted); line-height: 1.5;
+  max-width: 900px; margin-top: 8px;
 }
 
-/* KPI GRID */
+/* Sub-abas: sublinhado, como as abas de empresa do painel */
+.subtab-nav {
+  display: flex; gap: 2px; flex-wrap: wrap;
+  margin: 0 0 16px; padding: 0;
+  background: none; border: none; border-radius: 0;
+  border-bottom: 1px solid var(--line);
+}
+.subtab-btn {
+  padding: 9px 12px; border: none; border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px; background: none; color: var(--muted);
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 600;
+  white-space: nowrap; transition: color .15s; border-radius: 0;
+}
+.subtab-btn:hover:not(.active) { color: var(--accent-1); background: none; }
+.subtab-btn.active { color: var(--accent-1); border-bottom-color: var(--red); background: none; font-weight: 700; }
+.subtab-panel { display: none; }
+.subtab-panel.active { display: block; }
+
+/* ===== KPIs ===== */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 14px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 .kpi-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 20px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 15px 17px 13px;
   box-shadow: var(--kpi-shadow);
-  transition: all var(--transition);
   position: relative;
-  overflow: hidden;
+  min-width: 0;
+  transition: box-shadow var(--transition), border-color var(--transition);
 }
-.kpi-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 3px;
-}
-.kpi-card.blue::before { background: var(--accent); }
-.kpi-card.green::before { background: var(--accent2); }
-.kpi-card.orange::before { background: var(--accent3); }
-.kpi-card.purple::before { background: var(--accent4); }
+.kpi-card:hover { box-shadow: 0 2px 6px rgba(19,32,46,.07), 0 10px 26px rgba(19,32,46,.09); }
 .kpi-label {
-  font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.6px;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted);
+  margin-bottom: 7px;
 }
+/* No lugar da barra colorida no topo do tile, um quadradinho de cor antes do
+   rotulo — o mesmo codigo visual dos itens de navegacao do painel. */
+.kpi-label::before {
+  content: ''; width: 7px; height: 7px; border-radius: 2px;
+  background: var(--accent-1); flex-shrink: 0;
+}
+.kpi-card.blue .kpi-label::before { background: var(--accent); }
+.kpi-card.green .kpi-label::before { background: var(--accent2); }
+.kpi-card.orange .kpi-label::before { background: var(--accent3); }
+.kpi-card.purple .kpi-label::before { background: var(--accent4); }
+.kpi-card.red .kpi-label::before { background: var(--red); }
 .kpi-value {
   font-family: var(--font-display);
-  font-size: 26px; font-weight: 700;
-  line-height: 1.1;
-  margin-bottom: 6px;
+  font-size: 21px; font-weight: 800;
+  letter-spacing: -.4px; line-height: 1.15;
+  margin-bottom: 5px;
+  color: var(--ink);
 }
 .kpi-card.blue .kpi-value { color: var(--accent); }
 .kpi-card.green .kpi-value { color: var(--accent2); }
 .kpi-card.orange .kpi-value { color: var(--accent3); }
 .kpi-card.purple .kpi-value { color: var(--accent4); }
-.kpi-sub {
-  font-size: 11.5px; color: var(--text-secondary);
-  line-height: 1.4;
-}
+.kpi-card.red .kpi-value { color: var(--red); }
+.kpi-sub { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
 .kpi-source {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-  font-size: 9.5px;
-  color: var(--source-text);
-  line-height: 1.45;
+  margin-top: 10px; padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  font-size: 9.5px; color: var(--source-text); line-height: 1.45;
   transition: border-color var(--transition);
 }
-.kpi-source a {
-  color: var(--accent);
-  text-decoration: none;
-}
+.kpi-source a { color: var(--accent); text-decoration: none; }
 .kpi-source a:hover { text-decoration: underline; }
 .kpi-trend {
   display: inline-flex; align-items: center; gap: 3px;
-  font-size: 11px; font-weight: 600;
-  padding: 2px 6px; border-radius: 4px;
+  font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 6px; border: 1px solid transparent;
 }
-.kpi-trend.up { background: var(--accent2-light); color: var(--accent2); }
-.kpi-trend.neutral { background: var(--accent-light); color: var(--accent); }
+.kpi-trend.up { background: var(--green-light); color: var(--green); border-color: rgba(46,125,79,.22); }
+.kpi-trend.down { background: var(--red-light); color: var(--red); border-color: rgba(226,58,46,.25); }
+.kpi-trend.neutral { background: var(--accent-light); color: var(--accent-1); border-color: rgba(61,74,92,.18); }
 
-/* CHART/DATA GRID */
+/* ===== Cards de grafico / dados ===== */
 .data-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
 }
-.data-grid.single { grid-template-columns: 1fr; }
+.data-grid.single { grid-template-columns: minmax(0, 1fr); }
+.data-grid > * { min-width: 0; }
+.data-grid .full-span { grid-column: 1 / -1; }
 
 .data-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   box-shadow: var(--card-shadow);
   overflow: hidden;
-  transition: all var(--transition);
+  min-width: 0;
+  transition: box-shadow var(--transition), border-color var(--transition);
 }
 .data-card-header {
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 18px 11px;
+  border-bottom: 1px solid var(--line);
   display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
 }
-.data-card-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; }
-.data-card-badge {
-  background: var(--badge-bg);
-  padding: 3px 8px;
-  border-radius: 5px;
-  font-size: 10px; font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
+.data-card-title {
+  font-family: var(--font-display);
+  font-size: 14.5px; font-weight: 700; color: var(--ink);
+  letter-spacing: -.1px; line-height: 1.3;
 }
-.data-card-body { padding: 16px 20px; }
-.data-card-body canvas { max-height: 320px; }
-
+.data-card-badge {
+  background: var(--chip); border: 1px solid var(--line);
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 700;
+  color: var(--muted); white-space: nowrap;
+}
+/* As tabelas largas rolam dentro do card, em vez de empurrar o layout inteiro
+   e criar rolagem horizontal na pagina (o que acontecia no mobile). */
+.data-card-body {
+  padding: 15px 18px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: rgba(92,107,122,.30) transparent;
+}
+.data-card-body::-webkit-scrollbar { height: 6px; }
+.data-card-body::-webkit-scrollbar-thumb { background: rgba(92,107,122,.28); border-radius: 99px; }
+.data-card-body canvas { max-height: 320px; max-width: 100%; }
 .data-card-source {
-  padding: 8px 20px 10px;
+  padding: 8px 18px 10px;
   background: var(--source-bg);
-  border-top: 1px solid var(--border);
-  font-size: 10px; color: var(--source-text);
-  line-height: 1.5;
+  border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--source-text); line-height: 1.5;
   transition: background var(--transition);
 }
-.data-card-source a {
-  color: var(--accent);
-  text-decoration: none;
-}
+.data-card-source a { color: var(--accent); text-decoration: none; }
 .data-card-source a:hover { text-decoration: underline; }
 
-/* TABLES */
+/* ===== Tabelas ===== */
 .data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12.5px;
+  width: 100%; border-collapse: collapse;
+  background: var(--bg-secondary);
+  font-size: 12px;
 }
+.data-table thead { background: var(--chip); }
 .data-table th {
-  text-align: left;
-  padding: 10px 14px;
-  font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.6px;
-  color: var(--text-secondary);
-  border-bottom: 2px solid var(--border);
+  text-align: left; padding: 8px 12px;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
   white-space: nowrap;
 }
 .data-table td {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
   vertical-align: top;
+  color: var(--ink);
+  line-height: 1.5;
 }
+.data-table tbody tr:nth-child(even) { background: var(--bg-card-soft); }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tbody tr { transition: background 0.1s; }
-.data-table tbody tr:hover { background: var(--accent-light); }
-.data-table .mono { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
-.data-table .tag {
-  display: inline-block;
-  padding: 2px 7px; border-radius: 4px;
-  font-size: 10px; font-weight: 600;
+.data-table tbody tr { transition: background .1s; }
+.data-table tbody tr:hover td { background: var(--accent-light); }
+.data-table .mono {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
 }
-.tag.blue { background: var(--accent-light); color: var(--accent); }
-.tag.green { background: var(--accent2-light); color: var(--accent2); }
-.tag.orange { background: var(--accent3-light); color: var(--accent3); }
-.tag.purple { background: var(--accent4-light); color: var(--accent4); }
+.data-table .tag, .tag {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 700;
+  border: 1px solid transparent;
+}
+.tag.blue { background: var(--accent-light); color: var(--accent); border-color: rgba(31,59,87,.18); }
+.tag.green { background: var(--accent2-light); color: var(--accent2); border-color: rgba(46,125,79,.22); }
+.tag.orange { background: var(--accent3-light); color: var(--accent3); border-color: rgba(197,90,23,.22); }
+.tag.purple { background: var(--accent4-light); color: var(--accent4); border-color: rgba(92,122,150,.25); }
+.tag.red { background: var(--red-light); color: var(--red); border-color: rgba(226,58,46,.25); }
 
-/* TIMELINE */
+/* ===== Timeline ===== */
 .timeline { position: relative; padding-left: 24px; }
 .timeline::before {
   content: ''; position: absolute;
   left: 7px; top: 4px; bottom: 4px;
-  width: 2px; background: var(--border);
-  border-radius: 2px;
+  width: 2px; background: var(--line); border-radius: 2px;
 }
-.timeline-item { position: relative; padding-bottom: 20px; }
+.timeline-item { position: relative; padding-bottom: 18px; }
 .timeline-item:last-child { padding-bottom: 0; }
 .timeline-dot {
   position: absolute; left: -20px; top: 4px;
-  width: 12px; height: 12px;
-  border-radius: 50%;
+  width: 11px; height: 11px; border-radius: 50%;
   border: 2px solid var(--accent);
   background: var(--bg-secondary);
 }
 .timeline-item.done .timeline-dot { background: var(--accent2); border-color: var(--accent2); }
 .timeline-item.pending .timeline-dot { background: var(--accent3); border-color: var(--accent3); }
-.timeline-date { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
-.timeline-text { font-size: 13px; line-height: 1.5; color: var(--text-primary); }
-.timeline-text small { color: var(--text-secondary); }
-
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-  .main { margin-left: 0; }
-  .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
-  .sidebar.open { transform: translateX(0); }
+.timeline-date {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--accent-1); margin-bottom: 3px;
 }
+.timeline-text { font-size: 12.5px; line-height: 1.55; color: var(--ink); }
+.timeline-text small { color: var(--muted); }
 
-@media (max-width: 768px) {
-  .content { padding: 16px 14px 40px; }
-  .topbar { padding: 0 14px; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .kpi-value { font-size: 20px; }
-  .kpi-card { padding: 14px 14px 10px; }
-  .data-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .section-header h2 { font-size: 18px; }
-}
-
-@media (max-width: 540px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .data-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-/* Chart.js tooltip custom */
-.chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
-.chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
-.chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
-
-/* Full-width card override */
-.data-grid .full-span { grid-column: 1 / -1; }
-
-/* LNG 101 EDUCATIONAL STYLES */
+/* ===== Blocos educativos (LNG 101) ===== */
 .edu-svg { width: 100%; height: auto; display: block; }
 .edu-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
 }
-.edu-row.three { grid-template-columns: repeat(3, 1fr); }
+.edu-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.edu-row > * { min-width: 0; }
 .edu-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   box-shadow: var(--card-shadow);
   overflow: hidden;
-  transition: all var(--transition);
+  transition: box-shadow var(--transition);
 }
 .edu-card-head {
-  padding: 14px 20px 10px;
-  border-bottom: 1px solid var(--border);
+  padding: 13px 18px 10px;
+  border-bottom: 1px solid var(--line);
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 600;
+  font-size: 14.5px; font-weight: 700; color: var(--ink); letter-spacing: -.1px;
 }
-.edu-card-body { padding: 20px; }
-.edu-card-body p { font-size: 13px; line-height: 1.65; color: var(--text-secondary); margin-bottom: 12px; }
+.edu-card-body { padding: 17px 18px; }
+.edu-card-body p { font-size: 12.5px; line-height: 1.65; color: var(--muted); margin-bottom: 11px; }
 .edu-card-body p:last-child { margin-bottom: 0; }
-.edu-card-body strong { color: var(--text-primary); }
+.edu-card-body strong { color: var(--ink); font-weight: 700; }
 .edu-analogy {
-  background: var(--accent-light);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  padding: 12px 16px;
-  margin: 14px 0;
-  font-size: 12.5px; line-height: 1.6;
-  color: var(--text-primary);
+  background: var(--bg-card-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin: 13px 0;
+  font-size: 12px; line-height: 1.6;
+  color: var(--ink);
 }
 .edu-analogy .analogy-label {
   font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.8px;
-  color: var(--accent);
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--accent-1);
   margin-bottom: 4px;
 }
-.edu-stat-row {
-  display: flex; gap: 14px; flex-wrap: wrap;
-  margin: 14px 0;
-}
+.edu-stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 13px 0; }
 .edu-stat {
-  flex: 1; min-width: 100px;
-  text-align: center;
+  flex: 1; min-width: 100px; text-align: center;
   padding: 12px 8px;
-  background: var(--bg-primary);
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  background: var(--bg-card-soft);
+  border-radius: 10px; border: 1px solid var(--line);
 }
-.edu-stat-num { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--accent); }
+.edu-stat-num { font-family: var(--font-display); font-size: 21px; font-weight: 800; letter-spacing: -.4px; color: var(--accent); }
 .edu-stat-num.green { color: var(--accent2); }
 .edu-stat-num.orange { color: var(--accent3); }
 .edu-stat-num.purple { color: var(--accent4); }
-.edu-stat-label { font-size: 10px; color: var(--text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-
+.edu-stat-label {
+  font-size: 9.5px; color: var(--muted); margin-top: 3px;
+  text-transform: uppercase; letter-spacing: .05em; font-weight: 700;
+}
 .edu-vs {
   display: grid; grid-template-columns: 1fr auto 1fr;
-  gap: 12px; align-items: stretch;
-  margin: 14px 0;
+  gap: 12px; align-items: stretch; margin: 13px 0;
 }
 .edu-vs-col {
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-primary);
+  padding: 14px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg-card-soft);
 }
-.edu-vs-col h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.edu-vs-col h4 { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
 .edu-vs-col ul { list-style: none; padding: 0; margin: 0; }
-.edu-vs-col ul li { font-size: 12px; line-height: 1.6; color: var(--text-secondary); padding: 2px 0 2px 14px; position: relative; }
-.edu-vs-col ul li::before { content: '•'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+.edu-vs-col ul li { font-size: 12px; line-height: 1.6; color: var(--muted); padding: 2px 0 2px 14px; position: relative; }
+.edu-vs-col ul li::before { content: '\2022'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
 .edu-vs-col.right ul li::before { color: var(--accent2); }
 .edu-vs-divider {
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; font-weight: 700;
-  color: var(--text-secondary);
-  padding: 0 4px;
+  font-size: 18px; font-weight: 800; color: var(--muted); padding: 0 4px;
 }
 
-@media (max-width: 768px) {
-  .edu-row { grid-template-columns: 1fr; }
-  .edu-row.three { grid-template-columns: 1fr; }
-  .edu-vs { grid-template-columns: 1fr; }
-  .edu-vs-divider { transform: rotate(90deg); padding: 8px 0; }
-}
-
-/* INFOGRAPHIC STYLES */
+/* ===== Infograficos ===== */
 .info-flow { display: flex; gap: 0; align-items: stretch; margin: 12px 0; flex-wrap: nowrap; overflow-x: auto; }
-.info-flow-step { flex: 1; min-width: 120px; padding: 14px 12px; text-align: center; position: relative; background: var(--bg-primary); border: 1px solid var(--border); }
+.info-flow-step { flex: 1; min-width: 120px; padding: 14px 12px; text-align: center; position: relative; background: var(--bg-card-soft); border: 1px solid var(--line); }
 .info-flow-step:first-child { border-radius: 10px 0 0 10px; }
 .info-flow-step:last-child { border-radius: 0 10px 10px 0; }
-.info-flow-step::after { content: '→'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--accent3); font-weight: 700; z-index: 1; }
+.info-flow-step::after { content: '\2192'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); font-size: 17px; color: var(--accent3); font-weight: 700; z-index: 1; }
 .info-flow-step:last-child::after { display: none; }
-.info-flow-num { font-family: var(--font-display); font-size: 22px; font-weight: 800; line-height: 1; }
-.info-flow-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; line-height: 1.3; }
+.info-flow-num { font-family: var(--font-display); font-size: 21px; font-weight: 800; line-height: 1; letter-spacing: -.4px; }
+.info-flow-label { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.3; }
 .info-bar-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
-.info-bar-label { min-width: 100px; font-size: 11px; color: var(--text-secondary); text-align: right; }
-.info-bar-track { flex: 1; height: 22px; background: var(--bg-primary); border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border); }
-.info-bar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; white-space: nowrap; padding: 0 6px; min-width: 30px; }
+.info-bar-label { min-width: 100px; font-size: 11px; color: var(--muted); text-align: right; }
+.info-bar-track { flex: 1; height: 22px; background: var(--bg-card-soft); border-radius: 6px; position: relative; overflow: hidden; border: 1px solid var(--line); }
+.info-bar-fill { height: 100%; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; white-space: nowrap; padding: 0 6px; min-width: 30px; }
 .info-bar-val { font-size: 11px; font-weight: 700; min-width: 55px; text-align: right; }
 .info-tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
-.info-tile { padding: 14px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-primary); text-align: center; }
-.info-tile-icon { font-size: 24px; margin-bottom: 4px; }
-.info-tile-big { font-family: var(--font-display); font-size: 20px; font-weight: 800; }
-.info-tile-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; line-height: 1.3; }
+.info-tile { padding: 14px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-card-soft); text-align: center; }
+.info-tile-icon { font-size: 22px; margin-bottom: 4px; }
+.info-tile-big { font-family: var(--font-display); font-size: 19px; font-weight: 800; letter-spacing: -.3px; }
+.info-tile-sub { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
 .info-timeline { position: relative; padding-left: 24px; margin: 12px 0; }
-.info-timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 2px; }
+.info-timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--line); border-radius: 2px; }
 .info-tl-item { position: relative; padding: 8px 0 8px 16px; }
 .info-tl-item::before { content: ''; position: absolute; left: -20px; top: 14px; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-secondary); }
-.info-tl-year { font-weight: 700; font-size: 12px; color: var(--accent); }
-.info-tl-text { font-size: 12px; color: var(--text-primary); margin-top: 2px; }
+.info-tl-year { font-weight: 700; font-size: 11px; letter-spacing: .05em; color: var(--accent-1); }
+.info-tl-text { font-size: 12px; color: var(--ink); margin-top: 2px; }
 .info-heatmap { display: grid; grid-template-columns: 130px repeat(3, 1fr); gap: 2px; font-size: 11px; margin: 10px 0; }
-.info-hm-header { font-weight: 700; padding: 6px 8px; background: var(--badge-bg); text-align: center; border-radius: 4px; }
-.info-hm-row-label { padding: 8px; font-weight: 600; display: flex; align-items: center; font-size: 11px; }
-.info-hm-cell { padding: 8px; text-align: center; border-radius: 4px; font-weight: 600; font-size: 11px; }
-.hm-high { background: rgba(90,155,135,0.25); color: var(--accent2); }
-.hm-med { background: rgba(239,118,34,0.2); color: var(--accent3); }
-.hm-low { background: rgba(197,90,23,0.15); color: var(--text-secondary); }
-.hm-vhigh { background: rgba(90,155,135,0.4); color: var(--accent2); }
-@media (max-width: 768px) {
-  .info-flow { flex-direction: column; }
-  .info-flow-step::after { content: '↓'; right: 50%; top: auto; bottom: -12px; transform: translateX(50%); }
-  .info-flow-step { border-radius: 8px !important; margin-bottom: 8px; }
-  .info-tile-grid { grid-template-columns: repeat(2, 1fr); }
-  .info-heatmap { grid-template-columns: 90px repeat(3, 1fr); font-size: 10px; }
-  .info-bar-label { min-width: 70px; font-size: 10px; }
-}
+.info-hm-header { font-weight: 700; padding: 6px 8px; background: var(--chip); text-align: center; border-radius: 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-size: 9.5px; }
+.info-hm-row-label { padding: 8px; font-weight: 700; display: flex; align-items: center; font-size: 11px; color: var(--ink); }
+.info-hm-cell { padding: 8px; text-align: center; border-radius: 6px; font-weight: 700; font-size: 11px; }
+.hm-vhigh { background: rgba(46,125,79,.30); color: var(--accent2); }
+.hm-high { background: rgba(46,125,79,.18); color: var(--accent2); }
+.hm-med { background: rgba(197,90,23,.16); color: var(--accent3); }
+.hm-low { background: var(--chip); color: var(--muted); }
 
-/* COMPANY PROFILES */
+/* ===== Perfis de empresa ===== */
 .company-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
 }
-
+.company-grid > * { min-width: 0; }
 .segment-divider {
   grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  display: flex; align-items: center; gap: 13px;
   padding: 18px 0 6px;
 }
 .segment-divider:first-child { padding-top: 0; }
 .segment-icon {
-  width: 42px; height: 42px;
-  border-radius: 12px;
+  width: 38px; height: 38px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
+  font-size: 18px; flex-shrink: 0;
+  border: 1px solid var(--line);
 }
 .segment-icon.seg-tech { background: var(--accent-light); }
 .segment-icon.seg-prod { background: var(--accent2-light); }
 .segment-icon.seg-marine { background: var(--accent3-light); }
 .segment-icon.seg-regas { background: var(--accent4-light); }
 .segment-info { flex: 1; }
-.segment-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-.segment-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
-.segment-line { flex: 1; height: 1px; background: var(--border); min-width: 40px; }
+.segment-title {
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--accent-1); margin-bottom: 3px;
+}
+.segment-desc { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+.segment-line { flex: 1; height: 1px; background: var(--line); min-width: 40px; }
 
 .vc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
 .vc-tag {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px;
-  border-radius: 5px;
-  font-size: 9.5px; font-weight: 600;
-  letter-spacing: 0.3px;
-  background: var(--badge-bg);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  white-space: nowrap;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .03em;
+  background: var(--chip); color: var(--muted);
+  border: 1px solid var(--line); white-space: nowrap;
 }
-.vc-tag.active-seg {
-  background: var(--accent-light);
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.vc-tag.active-seg.green { background: var(--accent2-light); color: var(--accent2); border-color: var(--accent2); }
-.vc-tag.active-seg.orange { background: var(--accent3-light); color: var(--accent3); border-color: var(--accent3); }
-.vc-tag.active-seg.purple { background: var(--accent4-light); color: var(--accent4); border-color: var(--accent4); }
+.vc-tag.active-seg { background: var(--accent-light); color: var(--accent); border-color: rgba(31,59,87,.28); }
+.vc-tag.active-seg.green { background: var(--accent2-light); color: var(--accent2); border-color: rgba(46,125,79,.3); }
+.vc-tag.active-seg.orange { background: var(--accent3-light); color: var(--accent3); border-color: rgba(197,90,23,.3); }
+.vc-tag.active-seg.purple { background: var(--accent4-light); color: var(--accent4); border-color: rgba(92,122,150,.35); }
+
 .company-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   box-shadow: var(--card-shadow);
   overflow: hidden;
-  transition: all var(--transition);
+  transition: box-shadow var(--transition);
 }
 .company-card-head {
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--line);
   display: flex; align-items: center; gap: 12px;
 }
 .company-avatar {
-  width: 40px; height: 40px;
-  border-radius: 10px;
+  width: 36px; height: 36px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700; color: #FFF; font-size: 13px;
+  font-weight: 800; color: #FFF; font-size: 12px; letter-spacing: -.2px;
   flex-shrink: 0;
 }
-.company-avatar.av-blue { background: linear-gradient(135deg, #002D5C, #28477E); }
-.company-avatar.av-green { background: linear-gradient(135deg, #5A9B87, #A8D2BB); }
-.company-avatar.av-orange { background: linear-gradient(135deg, #C55A17, #EF7622); }
-.company-avatar.av-purple { background: linear-gradient(135deg, #28477E, #77A28A); }
-.company-avatar.av-red { background: linear-gradient(135deg, #E74C3C, #F1948A); }
-.company-avatar.av-teal { background: linear-gradient(135deg, #008B8B, #20B2AA); }
-.company-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1.2; }
-.company-name small { display: block; font-size: 11px; font-weight: 400; color: var(--text-secondary); margin-top: 2px; }
+.company-avatar.av-blue { background: #1F3B57; }
+.company-avatar.av-green { background: #2E7D4F; }
+.company-avatar.av-orange { background: #C55A17; }
+.company-avatar.av-purple { background: #5C7A96; }
+.company-avatar.av-red { background: #E23A2E; }
+.company-avatar.av-teal { background: #2F6E6C; }
+.company-name {
+  font-family: var(--font-display);
+  font-size: 14.5px; font-weight: 700; line-height: 1.2; color: var(--ink); letter-spacing: -.1px;
+}
+.company-name small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 2px; }
 .company-tag {
   margin-left: auto;
-  padding: 3px 8px; border-radius: 5px;
-  font-size: 10px; font-weight: 600;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 700;
   white-space: nowrap;
+  border: 1px solid transparent;
 }
-.company-body { padding: 14px 20px; }
-.company-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.company-stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 2px; }
-.company-stat-value { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--accent); }
+.company-body { padding: 14px 18px; }
+.company-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.company-stat-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 2px; }
+.company-stat-value { font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: -.3px; color: var(--accent); }
 .company-stat-value.green { color: var(--accent2); }
 .company-stat-value.orange { color: var(--accent3); }
 .company-stat-value.purple { color: var(--accent4); }
-.company-desc { font-size: 12.5px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 10px; }
+.company-desc { font-size: 12.5px; line-height: 1.6; color: var(--muted); margin-bottom: 10px; }
 .company-highlights { margin: 0; padding: 0; list-style: none; }
 .company-highlights li {
-  font-size: 11.5px; line-height: 1.5; color: var(--text-primary);
-  padding: 4px 0 4px 16px;
-  position: relative;
-  border-bottom: 1px solid var(--border);
+  font-size: 11.5px; line-height: 1.5; color: var(--ink);
+  padding: 5px 0 5px 16px; position: relative;
+  border-bottom: 1px solid var(--line);
 }
 .company-highlights li:last-child { border-bottom: none; }
-.company-highlights li::before {
-  content: '→';
-  position: absolute; left: 0; color: var(--accent);
-  font-weight: 600;
-}
+.company-highlights li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
 .company-source {
-  padding: 8px 20px 10px;
+  padding: 8px 18px 10px;
   background: var(--source-bg);
-  border-top: 1px solid var(--border);
-  font-size: 10px; color: var(--source-text);
-  line-height: 1.5;
+  border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--source-text); line-height: 1.5;
   transition: background var(--transition);
 }
 .company-source a { color: var(--accent); text-decoration: none; }
 .company-source a:hover { text-decoration: underline; }
 
-@media (max-width: 768px) {
-  .company-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .company-stats { grid-template-columns: 1fr 1fr; }
-  .company-stat-value { font-size: 13px; }
-}
-@media (max-width: 540px) {
-  .company-grid { grid-template-columns: 1fr; }
-}
-
-/* Category sub-header for split tables */
-/* Subtab navigation within regional tabs */
-.subtab-nav {
-  display: flex; gap: 6px; flex-wrap: wrap;
-  margin: 0 0 18px 0; padding: 4px; background: var(--card); border-radius: 10px;
-  border: 1px solid var(--border);
-}
-.subtab-btn {
-  padding: 7px 14px; border-radius: 7px; border: none; cursor: pointer;
-  font-family: 'Source Sans 3', sans-serif; font-size: 12.5px; font-weight: 500;
-  background: transparent; color: var(--text-dim); transition: all 0.2s;
-  white-space: nowrap;
-}
-.subtab-btn:hover { background: var(--hover); color: var(--text); }
-.subtab-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
-.subtab-panel { display: none; }
-.subtab-panel.active { display: block; }
-
+/* Rotulo de categoria dentro de grids */
 .cat-label {
   grid-column: 1 / -1;
   display: flex; align-items: center; gap: 10px;
   padding: 10px 0 0;
-  font-size: 13px; font-weight: 700;
-  color: var(--text-primary);
-}
-
-/* Regional comparison matrix */
-.region-matrix {
-  width: 100%; border-collapse: collapse; font-size: 12px;
-}
-.region-matrix th {
-  padding: 10px 12px;
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.6px;
-  color: var(--text-secondary);
-  border-bottom: 2px solid var(--border);
-  text-align: center;
-  white-space: nowrap;
-}
-.region-matrix th:first-child { text-align: left; width: 160px; }
-.region-matrix td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  text-align: center;
-  vertical-align: top;
-  line-height: 1.5;
-}
-.region-matrix td:first-child {
-  text-align: left;
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 11.5px;
-}
-.region-matrix tbody tr:last-child td { border-bottom: none; }
-.region-matrix tbody tr { transition: background 0.1s; }
-.region-matrix tbody tr:hover { background: var(--accent-light); }
-.region-matrix .rm-val {
-  font-family: var(--font-display);
-  font-size: 13px; font-weight: 700;
-  display: block;
-}
-.region-matrix .rm-val.blue { color: var(--accent); }
-.region-matrix .rm-val.green { color: var(--accent2); }
-.region-matrix .rm-val.orange { color: var(--accent3); }
-.region-matrix .rm-val.purple { color: var(--accent4); }
-.region-matrix .rm-sub { font-size: 10px; color: var(--text-secondary); display: block; margin-top: 1px; }
-.region-matrix .rm-bar {
-  height: 5px;
-  border-radius: 3px;
-  margin-top: 5px;
-  background: var(--border);
-  overflow: hidden;
-}
-.region-matrix .rm-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-}
-.rm-tag {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 9.5px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.rm-tag.t-blue { background: var(--accent-light); color: var(--accent); }
-.rm-tag.t-green { background: var(--accent2-light); color: var(--accent2); }
-.rm-tag.t-orange { background: var(--accent3-light); color: var(--accent3); }
-.rm-tag.t-purple { background: var(--accent4-light); color: var(--accent4); }
-.rm-tag.t-gray { background: var(--badge-bg); color: var(--text-secondary); }
-.rm-pills { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
-
-@media (max-width: 768px) {
-  .region-matrix { font-size: 10.5px; }
-  .region-matrix th, .region-matrix td { padding: 8px 6px; }
-  .region-matrix .rm-val { font-size: 11px; }
+  font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--accent-1);
 }
 .cat-label .cat-icon {
-  width: 28px; height: 28px;
-  border-radius: 7px;
+  width: 26px; height: 26px; border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0;
+  font-size: 13px; flex-shrink: 0;
+  border: 1px solid var(--line);
 }
 .cat-label .cat-icon.ci-blue { background: var(--accent-light); }
 .cat-label .cat-icon.ci-green { background: var(--accent2-light); }
 .cat-label .cat-icon.ci-orange { background: var(--accent3-light); }
 .cat-label .cat-icon.ci-purple { background: var(--accent4-light); }
-.cat-label .cat-line { flex: 1; height: 1px; background: var(--border); }
+.cat-label .cat-line { flex: 1; height: 1px; background: var(--line); }
+
+/* ===== Matriz regional ===== */
+.region-matrix { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--bg-secondary); }
+.region-matrix thead { background: var(--chip); }
+.region-matrix th {
+  padding: 8px 12px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+  text-align: center; white-space: nowrap;
+}
+.region-matrix th:first-child { text-align: left; width: 160px; }
+.region-matrix td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: center; vertical-align: top; line-height: 1.5;
+  color: var(--ink);
+}
+.region-matrix td:first-child { text-align: left; font-weight: 700; color: var(--ink); font-size: 11.5px; }
+.region-matrix tbody tr:nth-child(even) { background: var(--bg-card-soft); }
+.region-matrix tbody tr:last-child td { border-bottom: none; }
+.region-matrix tbody tr { transition: background .1s; }
+.region-matrix tbody tr:hover td { background: var(--accent-light); }
+.region-matrix .rm-val { font-family: var(--font-display); font-size: 13px; font-weight: 800; letter-spacing: -.2px; display: block; }
+.region-matrix .rm-val.blue { color: var(--accent); }
+.region-matrix .rm-val.green { color: var(--accent2); }
+.region-matrix .rm-val.orange { color: var(--accent3); }
+.region-matrix .rm-val.purple { color: var(--accent4); }
+.region-matrix .rm-sub { font-size: 10px; color: var(--muted); display: block; margin-top: 1px; }
+.region-matrix .rm-bar { height: 5px; border-radius: 3px; margin-top: 5px; background: var(--chip); overflow: hidden; }
+.region-matrix .rm-bar-fill { height: 100%; border-radius: 3px; }
+.rm-tag {
+  display: inline-block; padding: 2px 7px; border-radius: 6px;
+  font-size: 9.5px; font-weight: 700; white-space: nowrap;
+  border: 1px solid transparent;
+}
+.rm-tag.t-blue { background: var(--accent-light); color: var(--accent); border-color: rgba(31,59,87,.18); }
+.rm-tag.t-green { background: var(--accent2-light); color: var(--accent2); border-color: rgba(46,125,79,.22); }
+.rm-tag.t-orange { background: var(--accent3-light); color: var(--accent3); border-color: rgba(197,90,23,.22); }
+.rm-tag.t-purple { background: var(--accent4-light); color: var(--accent4); border-color: rgba(92,122,150,.25); }
+.rm-tag.t-gray { background: var(--chip); color: var(--muted); border-color: var(--line); }
+.rm-pills { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+
+/* ===== Legenda de grafico ===== */
+.chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+.chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 1200px) {
+  .edu-row.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1024px) {
+  /* A sidebar passa a flutuar sobre o conteudo. */
+  .sidebar {
+    position: fixed; left: 0; top: var(--hh, 64px); z-index: 600;
+    width: var(--sidebar-w); padding: 8px 8px 26px;
+    height: calc(100vh - var(--hh, 64px)); max-height: none; min-height: 0;
+    transform: translateX(-100%);
+    border-right: 1px solid var(--line);
+    box-shadow: 3px 0 16px rgba(19,32,46,.14);
+    transition: transform .25s ease;
+  }
+  .sidebar.closed { width: var(--sidebar-w); padding: 8px 8px 26px; }
+  .sidebar.open { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .app-header .hsub { display: none; }
+  .htitle { font-size: 14px; }
+  .hwrap { padding: 9px 14px; gap: 10px; }
+  .logo img { height: 22px; }
+
+  .topbar { padding: 9px 14px; }
+  .content { padding: 14px 14px 44px; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kpi-card { padding: 13px 13px 11px; }
+  .kpi-value { font-size: 17px; }
+  .data-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .data-card-body { padding: 13px 14px; }
+  .data-card-header { padding: 12px 14px 10px; }
+  .data-card-title { font-size: 13px; }
+  .edu-row, .edu-row.three { grid-template-columns: minmax(0, 1fr); }
+  .edu-vs { grid-template-columns: minmax(0, 1fr); }
+  .edu-vs-divider { transform: rotate(90deg); padding: 8px 0; }
+  .company-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .company-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .company-stat-value { font-size: 13px; }
+  .data-table { font-size: 11.5px; }
+  .data-table th, .data-table td { padding: 6px 8px; }
+  .region-matrix { font-size: 10.5px; }
+  .region-matrix th, .region-matrix td { padding: 8px 6px; }
+  .region-matrix .rm-val { font-size: 11px; }
+  .subtab-btn { padding: 8px 9px; font-size: 11.5px; }
+  .info-flow { flex-direction: column; }
+  .info-flow-step::after { content: '\2193'; right: 50%; top: auto; bottom: -12px; transform: translateX(50%); }
+  .info-flow-step { border-radius: 8px !important; margin-bottom: 8px; }
+  .info-tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .info-heatmap { grid-template-columns: 90px repeat(3, 1fr); font-size: 10px; }
+  .info-bar-label { min-width: 70px; font-size: 10px; }
+}
+
+@media (max-width: 540px) {
+  .company-grid { grid-template-columns: minmax(0, 1fr); }
+  .data-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(92,107,122,.28); border-radius: 99px; }
 </style>
 </head>
 <body>
@@ -809,12 +855,25 @@ body {
 <!-- SIDEBAR OVERLAY -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
+<!-- HEADER FULL-WIDTH (padrao do Painel de Research) -->
+<header class="app-header">
+  <div class="hwrap">
+    <button class="hamburger" onclick="toggleSidebar()" title="Show/hide sections" aria-label="Show/hide sections">&#9776;</button>
+    <div class="logo"><img src="../../../../logos/gnlink-logo.jpg" alt="GNLink"></div>
+    <span class="hsep"></span>
+    <div class="hbrand">
+      <div class="htitle">Small-Scale LNG &mdash; Global Market Intelligence</div>
+      <div class="hsub">GNLink &middot; An&aacute;lises Setoriais &middot; small-scale LNG (&lt;0.5 MTPA)</div>
+    </div>
+    <div class="hspace"></div>
+    <span class="chip">Data as of Q1 2026</span>
+  </div>
+</header>
+
+<div class="layout">
+
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-logo">SS</div>
-    <div class="sidebar-brand">SS-LNG Intel<small>Market Dashboard · 2025</small></div>
-  </div>
   <nav class="sidebar-nav">
     <div class="nav-group">
       <div class="nav-group-label">Learn</div>
@@ -879,6 +938,8 @@ body {
         <span class="nav-icon">🚛</span> LNG Road Transport
         <span class="nav-badge">TRK</span>
       </div>
+    </div>
+    <div class="nav-group">
       <div class="nav-group-label">Special Sections</div>
       <div class="nav-item" data-tab="vpipe" onclick="switchTab(this, 'vpipe')">
         <span class="nav-icon">🛣️</span> Virtual Pipeline
@@ -907,15 +968,20 @@ body {
       <span id="themeIcon">🌙</span>
       <span id="themeLabel">Switch to Dark</span>
     </button>
+    <div class="watermark">Small-scale LNG (&lt;0.5 MTPA) market intelligence &middot; sources linked per chart</div>
   </div>
 </aside>
 
 <!-- MAIN -->
 <div class="main" id="mainContent">
   <div class="topbar">
-    <button class="menu-btn" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
-    <span class="topbar-title" id="topbarTitle">Global Market Overview</span>
-    <span class="topbar-subtitle">Data as of Q1 2026 · Sources linked per chart</span>
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbarTitle">Global Market Overview</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge">Small-scale &lt;0.5 MTPA</span>
+      <span class="topbar-subtitle">Sources linked per chart</span>
+    </div>
   </div>
 
   <div class="content">
@@ -1340,7 +1406,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:22px;">🛢️</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Diesel & Fuel Oil</div>
-                <div style="font-size:20px;font-weight:800;color:#c62828;">$17–26</div>
+                <div style="font-size:20px;font-weight:800;color:#E23A2E;">$17–26</div>
                 <div style="font-size:10px;color:var(--text-secondary);">ULSD US $25.71 · Gasoil EU $24.29 · China gasoil $22.70 · VLSFO $17.13 · HFO $13.92 · <strong>LNG saves 15-50% vs diesel</strong></div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
@@ -1473,7 +1539,7 @@ body {
         <div class="data-card">
           <div class="data-card-header">
             <div class="data-card-title">⚗️ Methanol · 🧪 Ammonia · 💧 Hydrogen</div>
-            <div class="data-card-badge" style="background:#c62828;">$9–78</div>
+            <div class="data-card-badge" style="background:#E23A2E;">$9–78</div>
           </div>
           <div class="data-card-body" style="overflow-x:auto;">
             <table class="data-table">
@@ -1538,8 +1604,8 @@ body {
               <div style="border-left:2px solid var(--accent3);padding-left:8px;"><strong>Oil Products:</strong> Diesel 1 gal = 0.14 MMBtu · 1 mt = 42.7 MMBtu · VLSFO 1 mt = 40.2 MMBtu · HFO 1 mt = 39.5 MMBtu · Crude 1 bbl = 5.8 MMBtu</div>
               <div style="border-left:2px solid var(--accent2);padding-left:8px;"><strong>LPG:</strong> 1 mt = 46.3 MMBtu · 1 gal propane = 0.0916 MMBtu · <strong>Coal:</strong> 6,000 kcal/kg = 24.0 MMBtu/mt · 5,500 kcal/kg = 22.0 MMBtu/mt</div>
               <div style="border-left:2px solid var(--orange);padding-left:8px;"><strong>Alt Fuels:</strong> Methanol 1 mt = 16.8 MMBtu · Ammonia 1 mt = 15.4 MMBtu · H₂ 1 kg = 0.114 MMBtu · <strong>Electricity:</strong> 1 kWh = 0.003412 MMBtu</div>
-              <div style="border-left:2px solid #7F7F7F;padding-left:8px;"><strong>Biomass:</strong> Wood Pellets 1 mt = 17.0 MMBtu · Green Chips 1 mt = 8.5 MMBtu · Bagasse 1 mt = 7.5 MMBtu · Ethanol 1 L = 0.0214 MMBtu</div>
-              <div style="border-left:2px solid #c62828;padding-left:8px;"><strong>FX (Q1 2026):</strong> EUR/USD = 1.08 · BRL/USD = 5.67 · CNY/USD = 7.25 · <em>Sources: EIA STEO · SEA-LNG · S&P Global · Platts · Argus · ICIS · IEA · AFDC</em></div>
+              <div style="border-left:2px solid #7C8BA0;padding-left:8px;"><strong>Biomass:</strong> Wood Pellets 1 mt = 17.0 MMBtu · Green Chips 1 mt = 8.5 MMBtu · Bagasse 1 mt = 7.5 MMBtu · Ethanol 1 L = 0.0214 MMBtu</div>
+              <div style="border-left:2px solid #E23A2E;padding-left:8px;"><strong>FX (Q1 2026):</strong> EUR/USD = 1.08 · BRL/USD = 5.67 · CNY/USD = 7.25 · <em>Sources: EIA STEO · SEA-LNG · S&P Global · Platts · Argus · ICIS · IEA · AFDC</em></div>
             </div>
           </div>
         </div>
@@ -1617,7 +1683,7 @@ body {
                 <div style="font-weight:700;font-size:12px;">🛢️ Associated Gas (Permian)</div>
                 <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">Oil wells produce gas as byproduct. Cannot shut gas without shutting oil. Flaring constrained. Producers <strong>pay to dispose of gas</strong> — WAHA hub goes negative regularly.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
                 <div style="font-weight:700;font-size:12px;">📉 WAHA Negative Prices</div>
                 <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">Permian gas pricing hub. <strong>Regularly goes negative</strong> — gas supply overwhelms takeaway capacity. Higher oil prices → more Permian production → more associated gas → MORE downward pressure on US gas.</div>
               </div>
@@ -1698,7 +1764,7 @@ body {
               <div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:20px;">🚛</div>
                 <div style="font-weight:700;font-size:11px;">5. Last Mile</div>
-                <div style="font-size:18px;font-weight:800;color:#c62828;">+$1–5</div>
+                <div style="font-size:18px;font-weight:800;color:#E23A2E;">+$1–5</div>
                 <div style="font-size:9px;color:var(--text-secondary);">Truck trailer $250-450K. Station $2-5M. Bunkering vessel $50-80M. ISO $80-150K</div>
               </div>
               <div style="display:flex;align-items:center;font-size:18px;color:var(--text-secondary);">→</div>
@@ -1823,14 +1889,14 @@ body {
                 <div style="font-size:22px;font-weight:800;color:var(--orange);margin:4px 0;">1.8–5×</div>
                 <div style="font-size:10px;color:var(--text-secondary);">$21-60/GJ vs $12/GJ fossil. GHG-savings-based. FuelEU pooling creates demand. ZEMBA ~250K mt tender.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
                 <div style="font-weight:700;font-size:12px;">🔒 SS-LNG Take-or-Pay</div>
-                <div style="font-size:22px;font-weight:800;color:#c62828;margin:4px 0;">$200M</div>
+                <div style="font-size:22px;font-weight:800;color:#E23A2E;margin:4px 0;">$200M</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Stabilis DC contract. NFE-Hydro 15-yr. Centrica-Petrobras 0.8 Mtpa × 15 yr. BOOM model: $0 upfront.</div>
               </div>
-              <div style="border-left:3px solid #7F7F7F;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+              <div style="border-left:3px solid #7C8BA0;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
                 <div style="font-weight:700;font-size:12px;">📋 FSRU Charter</div>
-                <div style="font-size:22px;font-weight:800;color:#7F7F7F;margin:4px 0;">>$100K/d</div>
+                <div style="font-size:22px;font-weight:800;color:#7C8BA0;margin:4px 0;">>$100K/d</div>
                 <div style="font-size:10px;color:var(--text-secondary);">5-10+ yr charters. Purchase ($300M) yields lower regas tariff. Regas: $1.68/MMBtu at 1.0 mtpa.</div>
               </div>
             </div>
@@ -1933,7 +1999,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:22px;">🏝️</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Island Power</div>
-                <div style="font-size:24px;font-weight:800;color:#28477E;">25–40%</div>
+                <div style="font-size:24px;font-weight:800;color:#1F3B57;">25–40%</div>
                 <div style="font-size:10px;color:var(--text-secondary);">vs diesel ($30-40/MMBtu remote). Indonesia 17K+ islands. ISO containers. <strong>Niche but high-margin.</strong></div>
               </div>
             </div>
@@ -2074,7 +2140,7 @@ body {
                   <td><span class="rm-val blue">~20%</span><div class="rm-bar"><div class="rm-bar-fill" style="width:20%;background:var(--accent)"></div></div></td>
                   <td><span class="rm-val green">~28%</span><div class="rm-bar"><div class="rm-bar-fill" style="width:28%;background:var(--accent2)"></div></div></td>
                   <td><span class="rm-val orange">~40%</span><div class="rm-bar"><div class="rm-bar-fill" style="width:40%;background:var(--accent3)"></div></div></td>
-                  <td><span class="rm-val purple">~1%</span><div class="rm-bar"><div class="rm-bar-fill" style="width:1%;background:var(--accent4, #9b59b6)"></div></div></td>
+                  <td><span class="rm-val purple">~1%</span><div class="rm-bar"><div class="rm-bar-fill" style="width:1%;background:var(--accent4, #D6B24A)"></div></div></td>
                 </tr>
                 <tr>
                   <td>Growth Outlook</td>
@@ -2937,13 +3003,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">📦</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">EDGE LNG / Galileo</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Private (Argentina)</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Private (Argentina)</div>
                 <div style="font-size:11px;color:var(--text-secondary);">15 Cryobox Trailer 600/750 units. Mobile micro-liquefaction. Cat gas-driven. Flare gas capture + wellhead liquefaction. Permian Basin focus. Virtual pipeline for off-pipeline industrial. Modular = fast deploy.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🔧</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">Chart Industries</div>
-                <div style="font-size:10px;padding:2px 6px;background:#28477E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">NYSE: GTLS</div>
+                <div style="font-size:10px;padding:2px 6px;background:#1F3B57;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">NYSE: GTLS</div>
                 <div style="font-size:11px;color:var(--text-secondary);">OEM = cryogenic equipment for entire SS-LNG chain. Liquefaction, storage, transport, regasification. IPSMR® process. $7M Stabilis strategic investment. Acquired Howden + L.A. Turbine. <strong>THE equipment backbone of US SS-LNG.</strong></div>
               </div>
             </div>
@@ -3565,8 +3631,8 @@ body {
               </tbody>
             </table>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px;">
-              <div style="border-left:3px solid #c62828;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
-                <div style="font-weight:700;font-size:11px;color:#c62828;">⚠ Data Centers (Low Confidence)</div>
+              <div style="border-left:3px solid #E23A2E;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+                <div style="font-weight:700;font-size:11px;color:#E23A2E;">⚠ Data Centers (Low Confidence)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">2026E = first year with material DC volume (~7% of demand). If DC disappoints, 2026E demand drops ~0.4 MMm³/d to ~5.2. Only confirmed: Stabilis $200M take-or-pay. PHMSA ANPRM creates regulatory path but not demand.</div>
               </div>
               <div style="border-left:3px solid var(--orange);padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
@@ -3814,13 +3880,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🇫🇷</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">Elengy / ENGIE</div>
-                <div style="font-size:10px;padding:2px 6px;background:#28477E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">GRTgaz</div>
+                <div style="font-size:10px;padding:2px 6px;background:#1F3B57;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">GRTgaz</div>
                 <div style="font-size:11px;color:var(--text-secondary);">3 LNG terminals (Fos Cavaou, Fos Tonkin, Montoir). ~70 SS loading slots/yr. Bio-LNG truck loading + rail containers. Montoir = Europe's STS transshipment leader. French infrastructure backbone.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🇮🇹</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">Snam</div>
-                <div style="font-size:10px;padding:2px 6px;background:#5A9B87;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">MTA: SRG</div>
+                <div style="font-size:10px;padding:2px 6px;background:#2E7D4F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">MTA: SRG</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Italian gas infrastructure giant. Acquiring Higas (ex-Avenir, Sardinia). Oristano FSRU conversion. Ravenna FSRU (BW Singapore, operational Jun 2025). Italy's first ship-to-ship bio-LNG at Genoa (Axpo/GNV).</div>
               </div>
             </div>
@@ -4391,8 +4457,8 @@ body {
                 <div style="font-weight:700;font-size:11px;color:var(--orange);">⚠ Bio-LNG Supply (Highest Upside)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">If FuelEU premium pulls feedstock toward liquefaction over grid injection, could exceed 1.40 bcm in 2026. Constraint = feedstock availability, not plant capacity. UECC 71% bio share proves demand exists.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
-                <div style="font-weight:700;font-size:11px;color:#c62828;">⚠ HD Trucking (Highest Downside)</div>
+              <div style="border-left:3px solid #E23A2E;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+                <div style="font-weight:700;font-size:11px;color:#E23A2E;">⚠ HD Trucking (Highest Downside)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Only segment declining. EU HDV CO₂ = -45% by 2030. If BEV adoption accelerates (NL/DE ICE bans), 2026E trucking could drop to 0.70 bcm → total demand falls to ~5.0 bcm.</div>
               </div>
               <div style="border-left:3px solid var(--accent);padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
@@ -4553,13 +4619,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🇮🇳</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">India / GAIL / Petronet</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Very Early Stage</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Very Early Stage</div>
                 <div style="font-size:11px;color:var(--text-secondary);">GAIL: 2 SS-LNG liquefaction skids (pilot). Petronet Dahej: truck-loading expanding. Shell Hazira: operational since 2021. 6 LNG import terminals. India = CNG-dominant (4,500+ stations). May skip LNG trucking → CNG → BEV. Bunkering: Kochi + Hazira stations, early stage.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🌏</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">SE Asia Emerging</div>
-                <div style="font-size:10px;padding:2px 6px;background:#28477E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Ground Zero</div>
+                <div style="font-size:10px;padding:2px 6px;background:#1F3B57;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Ground Zero</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Indonesia: Pertamina floating mini-regas for island power. 17K+ islands = massive potential but near-zero infra. Philippines: first LNG terminal (Batangas, 2024). Vietnam: terminals under development. SE Asia LNG market >8% CAGR. Decades from meaningful SS-LNG.</div>
               </div>
             </div>
@@ -5101,8 +5167,8 @@ body {
               </tbody>
             </table>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px;">
-              <div style="border-left:3px solid #c62828;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
-                <div style="font-weight:700;font-size:11px;color:#c62828;">⚠ China Trucking (THE global risk)</div>
+              <div style="border-left:3px solid #E23A2E;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+                <div style="font-weight:700;font-size:11px;color:#E23A2E;">⚠ China Trucking (THE global risk)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">61% of APAC demand. BEV = 20-28% of HDV sales (Q1 2025). Goldman: battery −50% by 2026. If BEV captures 30%+ by 2027, China SS-LNG peaks in 2026-27. <strong>The single most important variable in global SS-LNG.</strong></div>
               </div>
               <div style="border-left:3px solid var(--green);padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
@@ -5295,13 +5361,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🏢</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">Tier-2 Players</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Private/Regional</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Private/Regional</div>
                 <div style="font-size:11px;color:var(--text-secondary);">ENN Energy (only private 3 Mtpa terminal). Guanghui Energy (Xinjiang, largest private). Jovo Group. Shenzhen Gas. Suntien. Beijing Gas. Rising via PipeChina TPA. <strong>SOEs still = 85% of capacity.</strong></div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🚛</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">OEM Ecosystem</div>
-                <div style="font-size:10px;padding:2px 6px;background:#28477E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Manufacturing</div>
+                <div style="font-size:10px;padding:2px 6px;background:#1F3B57;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Manufacturing</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Truck OEMs: Sinotruk, FAW Jiefang, Dongfeng, Shaanxi Auto. Engines: Weichai Power. Cryogenic: CIMC ENRIC (trailers, ISO, bunkering vessels), Chuankong Cryo (30+ liquefaction plants). <strong>Exporting globally.</strong></div>
               </div>
             </div>
@@ -5686,7 +5752,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🔋</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">BEV Displacement</div>
-                <div style="font-size:10px;padding:2px 6px;background:#c62828;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">▼ HEADWIND</div>
+                <div style="font-size:10px;padding:2px 6px;background:#E23A2E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">▼ HEADWIND</div>
                 <div style="font-size:11px;color:var(--text-secondary);">BEV 22-28% of HDV sales (2025). BYD, SANY, XCMG. €58-85K. TCO 10-26% below diesel. CATL battery swap: 1/3 of BEV HDV sales. Wind/solar suppressing gas-fired power in some provinces. <strong>Long-term structural threat to gas.</strong></div>
               </div>
             </div>
@@ -5827,8 +5893,8 @@ body {
               </tbody>
             </table>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px;">
-              <div style="border-left:3px solid #c62828;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
-                <div style="font-weight:700;font-size:11px;color:#c62828;">⚠ HD Trucking Peak Risk (THE risk)</div>
+              <div style="border-left:3px solid #E23A2E;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+                <div style="font-weight:700;font-size:11px;color:#E23A2E;">⚠ HD Trucking Peak Risk (THE risk)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">If BEV HDV reaches 30% by 2027 (Q1 2025: 20%), LNG fleet peaks at ~1.1M vehicles. Caps SS-LNG demand at 52-55 bcm then erodes. Wood Mackenzie + IEEFA flag as likely. <strong>If China trucking peaks, the entire global SS-LNG growth narrative changes.</strong></div>
               </div>
               <div style="border-left:3px solid var(--orange);padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
@@ -5996,13 +6062,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🏠</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">Compass (Cosan/Mitsui)</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Distribution / LDC</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Distribution / LDC</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Acquired Petrobras' Gaspetro → Commit. Cosan terminal (14.2 Mm³/d, SP). TRSP Santos: SS-LNG loading center. Brazil's largest private gas distributor. Pioneer in gas interiorização via SS-LNG logistics.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:26px;">🔬</div>
                 <div style="font-weight:700;font-size:13px;margin:4px 0;">GNLink + SS-LNG Players</div>
-                <div style="font-size:10px;padding:2px 6px;background:#28477E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Small-Scale LNG</div>
+                <div style="font-size:10px;padding:2px 6px;background:#1F3B57;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">Small-Scale LNG</div>
                 <div style="font-size:11px;color:var(--text-secondary);">GNLink: 3 plants (PR + BA + RN), 264K m³/d, R$450M invested, Copa Energia strategic investor. Plans 15 projects. GásLocal (White Martins/Linde): legacy distributor. Edge: entered 2025. Alpha LNG (AL). <strong>SS-LNG market finally has competition.</strong></div>
               </div>
             </div>
@@ -6544,8 +6610,8 @@ body {
                 <div style="font-weight:700;font-size:11px;color:var(--orange);">⚠ LNG-to-Power (Hydro dependent)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">49% of 2026E demand. In wet years, thermal curtailed → LNG drops 20-30%. 2024 drought = high LNG call. 2026E assumes normal hydrology. Climate change = more volatility, not less.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
-                <div style="font-weight:700;font-size:11px;color:#c62828;">⚠ LDC Virtual Pipeline (Highest uncertainty)</div>
+              <div style="border-left:3px solid #E23A2E;padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+                <div style="font-weight:700;font-size:11px;color:#E23A2E;">⚠ LDC Virtual Pipeline (Highest uncertainty)</div>
                 <div style="font-size:10px;color:var(--text-secondary);">95% CAGR but from near zero. Each project = LDC + supply contract + ANP approval + pipe build + customer ramp. Copergás/Petrolina took 3+ years. If only 2-3 of 5-8 materialize, volume drops 60%.</div>
               </div>
               <div style="border-left:3px solid var(--accent);padding:6px 10px;background:var(--source-bg);border-radius:0 6px 6px 0;">
@@ -7852,7 +7918,7 @@ body {
                 <div style="font-weight:700;font-size:12px;">Edge (Cosan) — Mercado Livre</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Launched Jan 2024. First 6 SP industrial migrations. Free market: <strong>15 MMcm/d</strong>. First Argentine gas import via Bolivia (2025, Tecpetrol). "Second wave" approaching as more states open.</div>
               </div>
-              <div style="border-left:3px solid #7F7F7F;padding:8px 12px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+              <div style="border-left:3px solid #7C8BA0;padding:8px 12px;background:var(--source-bg);border-radius:0 6px 6px 0;">
                 <div style="font-weight:700;font-size:12px;">Other CDLs Expanding</div>
                 <div style="font-size:11px;color:var(--text-secondary);">ESGás (ES): new 5-yr tariff. Copergás (PE): polo gesseiro Araripina. Potigás (RN): Gás Sal → Areia Branca salinas. Naturgy: Corredores Sustentáveis RJ-SP. Sulgás (RS): biometano. SCGás (SC): industrial.</div>
               </div>
@@ -8042,7 +8108,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🖥️</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Data Centers</div>
-                <div style="font-size:10px;padding:2px 6px;background:#c62828;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">FASTEST GROWING</div>
+                <div style="font-size:10px;padding:2px 6px;background:#E23A2E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">FASTEST GROWING</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Stabilis $200M take-or-pay. "Five nines" reliability. $0.09-0.14/kWh. Grid wait 3-7 yrs → LNG in months. CNG for backup.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
@@ -8066,7 +8132,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🏝️</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Island + Peak Shaving</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">ESTABLISHED</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">ESTABLISHED</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Islands: diesel $20+/MMBtu. NFE Jamaica/PR. 17K+ islands (Indonesia). ~80 US peak-shaving facilities. Jan 2025 polar vortex record.</div>
               </div>
             </div>
@@ -8173,7 +8239,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🇧🇷</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Brazil</div>
-                <div style="font-size:10px;padding:2px 6px;background:#c62828;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">GLOBAL LAB</div>
+                <div style="font-size:10px;padding:2px 6px;background:#E23A2E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">GLOBAL LAB</div>
                 <div style="font-size:10px;color:var(--text-secondary);">90% off-grid. 200+ cities >100K pop. Copergás Petrolina, Compagas Londrina, Compass TRSP, GNLink 15 projects. Lei do Gás enabled.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
@@ -8203,7 +8269,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🇵🇹</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Portugal (Madeira)</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">ISLAND MODEL</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">ISLAND MODEL</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Gáslink: Sines → ISO containers → ship → Madeira → truck → satellite regas → Vitória power + local distribution. Replicable Atlantic/Pacific.</div>
               </div>
             </div>
@@ -8346,13 +8412,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🌐</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">NFE / Clean Energy / EDGE</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">SPECIALISTS</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">SPECIALISTS</div>
                 <div style="font-size:10px;color:var(--text-secondary);">NFE: integrated LNG-to-power (Barcarena, Jamaica). Clean Energy: 570+ stations, Boron 270K gpd. EDGE: 290 tpd mobile fleet, Permian.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">💨</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Sapphire / Hydria</div>
-                <div style="font-size:10px;padding:2px 6px;background:#28477E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">CNG SPECIALISTS</div>
+                <div style="font-size:10px;padding:2px 6px;background:#1F3B57;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">CNG SPECIALISTS</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Sapphire: CNG/LNG mobile delivery for DCs. Hydria: carbon fiber CNG cylinders, 180-200 per 100 MW DC. "Battery of gas" peak shaving.</div>
               </div>
             </div>
@@ -9596,13 +9662,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🚛</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Transport Equipment</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">LAST MILE</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">LAST MILE</div>
                 <div style="font-size:10px;color:var(--text-secondary);">LNG trailers ($250-450K), ISO containers ($80-150K), bunkering vessels ($50-120M), fueling stations ($1-3M). Chart + CIMC Enric dominant.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🔬</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Methane Slip</div>
-                <div style="font-size:10px;padding:2px 6px;background:#c62828;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">KEY ESG ISSUE</div>
+                <div style="font-size:10px;padding:2px 6px;background:#E23A2E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">KEY ESG ISSUE</div>
                 <div style="font-size:10px;color:var(--text-secondary);">HPDF <0.5% (solved). LPDF 1.1% (NextDF). Legacy 2-4% (contested). IMO WTW from 2027. Bio-LNG = methane-neutral regardless. Industry responding.</div>
               </div>
             </div>
@@ -9668,9 +9734,9 @@ body {
                 <div style="font-size:20px;font-weight:800;color:var(--orange);margin:4px 0;">10–20 tpd/unit</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Modular 40-ft container. Parallel scalable to 490 tpd (33 units). −50% CAPEX. >99% uptime. 70 countries.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
                 <div style="font-weight:700;font-size:12px;">🚛 EDGE Mobile LNG</div>
-                <div style="font-size:20px;font-weight:800;color:#c62828;margin:4px 0;">290 tpd fleet</div>
+                <div style="font-size:20px;font-weight:800;color:#E23A2E;margin:4px 0;">290 tpd fleet</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Trailer-mounted. Rapid deploy to well sites. Permian Basin flare capture. 10+ Galileo Cryoboxes. No gathering systems.</div>
               </div>
             </div>
@@ -9763,13 +9829,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">⚫</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Moss Spherical</div>
-                <div style="font-size:18px;font-weight:800;color:#7F7F7F;">Declining</div>
+                <div style="font-size:18px;font-weight:800;color:#7C8BA0;">Declining</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Best sloshing resistance. Most robust. But larger profile → costlier transit. Losing share to membrane.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">📦</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Type C (SS-LNG)</div>
-                <div style="font-size:18px;font-weight:800;color:#28477E;">Standard</div>
+                <div style="font-size:18px;font-weight:800;color:#1F3B57;">Standard</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Pressure vessels. Bunkering vessels, LNG ships, trucks, ISOs. No secondary barrier. Chart + CIMC Enric dominant.</div>
               </div>
             </div>
@@ -9902,7 +9968,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🔧</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Mobile / Modular</div>
-                <div style="font-size:18px;font-weight:800;color:#c62828;">$5–50M</div>
+                <div style="font-size:18px;font-weight:800;color:#E23A2E;">$5–50M</div>
                 <div style="font-size:10px;color:var(--text-secondary);">0.1-1 bcm/yr. Weeks-months. Truck/skid-mounted. Galileo regas. Aggreko microgrids. ISO → regas → genset. Relocatable.</div>
               </div>
             </div>
@@ -10019,13 +10085,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🇨🇳</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">CIMC Enric (3899.HK)</div>
-                <div style="font-size:10px;padding:2px 6px;background:#c62828;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">CHINA DOMINANT</div>
+                <div style="font-size:10px;padding:2px 6px;background:#E23A2E;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">CHINA DOMINANT</div>
                 <div style="font-size:10px;color:var(--text-secondary);">1,500L twin-cylinder truck fuel systems. LNG trailers, ISO tanks, SS-LNG plants. 50+ countries. China's equipment champion.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🚛</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Cummins + Hexagon</div>
-                <div style="font-size:10px;padding:2px 6px;background:#7F7F7F;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">TRUCK POWERTRAIN</div>
+                <div style="font-size:10px;padding:2px 6px;background:#7C8BA0;color:#fff;border-radius:4px;display:inline-block;margin-bottom:4px;">TRUCK POWERTRAIN</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Cummins X15N 500 HP, 1,200-mi range. Hexagon carbon fiber LNG tanks. IVECO Cursor 13 460 HP. Class 8 HD fleet powertrain.</div>
               </div>
             </div>
@@ -10134,7 +10200,7 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🇷🇺</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Russia</div>
-                <div style="font-size:18px;font-weight:800;color:#c62828;">Uncertain</div>
+                <div style="font-size:18px;font-weight:800;color:#E23A2E;">Uncertain</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Arctic LNG 2 complete but sanctions block exports. Ust-Luga targeted 2027-28. 36→36-56 MTPA. <strong>Sanctions = wild card.</strong></div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
@@ -10441,9 +10507,9 @@ body {
                 <div style="font-size:18px;font-weight:800;color:var(--orange);margin:4px 0;">DISRUPTED</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Strait of Hormuz crisis (Mar 2026). 20% of global LNG flows. Qatar halted production. Cargoes rerouted via Cape of Good Hope (+$0.20-0.40).</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
                 <div style="font-weight:700;font-size:12px;">🇷🇺→🇨🇳 Russia → China</div>
-                <div style="font-size:18px;font-weight:800;color:#c62828;margin:4px 0;">Redirected</div>
+                <div style="font-size:18px;font-weight:800;color:#E23A2E;margin:4px 0;">Redirected</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Arctic LNG 2 → China via Northern Sea Route. Russian LNG barred from EU. Ukrainian transit stopped Dec 2024. Structural not temporary.</div>
               </div>
               <div style="border-left:3px solid var(--accent2);padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
@@ -10560,13 +10626,13 @@ body {
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">📈</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">IPOs & Public Markets</div>
-                <div style="font-size:18px;font-weight:800;color:#c62828;">$65B</div>
+                <div style="font-size:18px;font-weight:800;color:#E23A2E;">$65B</div>
                 <div style="font-size:10px;color:var(--text-secondary);">Venture Global IPO valuation. Largest energy IPO ever. Cheniere $45B mkt cap. GTT asset-light royalty model. SLNG pure-play SS-LNG.</div>
               </div>
               <div style="border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--bg-primary);">
                 <div style="font-size:24px;">🏛️</div>
                 <div style="font-weight:700;font-size:12px;margin:3px 0;">Sovereign Wealth / PE</div>
-                <div style="font-size:18px;font-weight:800;color:#28477E;">Dominant</div>
+                <div style="font-size:18px;font-weight:800;color:#1F3B57;">Dominant</div>
                 <div style="font-size:10px;color:var(--text-secondary);">GIC (Singapore), Mubadala (Abu Dhabi), CPP (Canada). Blackstone $7B. KKR + CPP $10B for Sempra Infra. 20-yr contracted cash flows.</div>
               </div>
             </div>
@@ -10794,16 +10860,16 @@ body {
                 <div style="font-weight:700;font-size:12px;color:var(--accent3);">🟢 BULL: Capital</div>
                 <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">$80B+ since 2019. VG IPO $65B. Blackstone, KKR, GIP/BlackRock investing billions. Sovereign wealth sees 20-yr contracted cash flows.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
-                <div style="font-weight:700;font-size:12px;color:#c62828;">🔴 BEAR: Displacement</div>
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+                <div style="font-weight:700;font-size:12px;color:#E23A2E;">🔴 BEAR: Displacement</div>
                 <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">EU gas peaked. BEV 20% of China HDV. Batteries -15%/yr. Heat pumps killing gas heating. Japan nuclear restarts. Korea -20% by mid-2030s.</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
-                <div style="font-weight:700;font-size:12px;color:#c62828;">🔴 BEAR: Oversupply</div>
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+                <div style="font-weight:700;font-size:12px;color:#E23A2E;">🔴 BEAR: Oversupply</div>
                 <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">65 bcm surplus by 2030. Compressed TTF-HH spreads. US LNG may exceed JKM by 2028. Stranded assets. Construction delays. Geopolitics (Hormuz).</div>
               </div>
-              <div style="border-left:3px solid #c62828;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
-                <div style="font-weight:700;font-size:12px;color:#c62828;">🔴 BEAR: Regulation</div>
+              <div style="border-left:3px solid #E23A2E;padding:8px 12px;background:var(--source-bg);border-radius:0 8px 8px 0;">
+                <div style="font-weight:700;font-size:12px;color:#E23A2E;">🔴 BEAR: Regulation</div>
                 <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">IMO 2040 (-70-80% GHG) may kill fossil LNG post-2035. EU banning gas boilers. CARB ACT mandates ZEV trucks. Methane slip criticism.</div>
               </div>
             </div>
@@ -12360,7 +12426,7 @@ body {
                 <div style="font-weight:700;font-size:12px;">🇳🇱 Netherlands</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Blending mandate = strongest demand signal. Gate terminal truck-loading for SS-LNG/bio-LNG. Nordsol (Shell + Renewi JV). Rotterdam bio-LNG bunkering pioneer. Platts daily bio-LNG price assessment (Nov 2024).</div>
               </div>
-              <div style="border-left:3px solid #7F7F7F;padding:8px 12px;background:var(--source-bg);border-radius:0 6px 6px 0;">
+              <div style="border-left:3px solid #7C8BA0;padding:8px 12px;background:var(--source-bg);border-radius:0 6px 6px 0;">
                 <div style="font-weight:700;font-size:12px;">🇸🇪 Nordics (Gasum)</div>
                 <div style="font-size:11px;color:var(--text-secondary);">Gasum: 5 bio-LNG plants in Sweden. Nordic bio-LNG bunkering leader. Chart Industries: largest bio-LNG station in continental Europe (Kallhäll, Sweden). Finland: 225 plants. Early SECA compliance drove LNG→bio-LNG adoption.</div>
               </div>
@@ -13580,6 +13646,7 @@ body {
 
   </div><!-- /content -->
 </div><!-- /main -->
+</div><!-- /layout -->
 
 <script>
 // ============ SIDEBAR & THEME ============
@@ -13677,7 +13744,7 @@ function switchTab(el, tabId) {
 }
 
 // ============ CHART.JS ============
-Chart.defaults.font.family = "'Source Sans 3', -apple-system, sans-serif";
+Chart.defaults.font.family = "'DM Sans', system-ui, -apple-system, sans-serif";
 Chart.defaults.font.size = 12;
 Chart.register(ChartDataLabels);
 Chart.defaults.plugins.datalabels = {
@@ -13815,7 +13882,7 @@ function rebuildCharts() {
       labels: ['Australia', 'Qatar', 'Russia (LNG)', 'Malaysia', 'Indonesia', 'US & Other'],
       datasets: [{
         data: [35.8, 25.2, 12, 10.5, 4.9, 17.8],
-        backgroundColor: ['#A8D2BB', c.accent3, '#C55A17', c.accent2, '#8D6E63', '#9E9E9E'],
+        backgroundColor: ['#4E8385', c.accent3, '#C55A17', c.accent2, '#D6B24A', '#7C8BA0'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -13848,7 +13915,7 @@ function rebuildCharts() {
       labels: ['Hydropower', 'Wind', 'Solar', 'Natural Gas / LNG', 'Biomass', 'Nuclear', 'Coal & Other'],
       datasets: [{
         data: [56, 13, 8, 10, 8, 2, 3],
-        backgroundColor: [c.accent, c.accent2, '#A8D2BB', c.accent3, '#8D6E63', c.accent4, '#9E9E9E'],
+        backgroundColor: [c.accent, c.accent2, '#4E8385', c.accent3, '#D6B24A', c.accent4, '#7C8BA0'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -13863,7 +13930,7 @@ function rebuildCharts() {
       datasets: [{
         label: 'LNG Imports 2023 (MMT)',
         data: [71, 66, 47, 22, 17, 12, 6, 5, 4],
-        backgroundColor: [c.accent+'CC', '#C55A17CC', c.accent+'AA', c.accent3+'CC', c.accent2+'CC', c.accent4+'CC', c.accent2+'AA', '#9E9E9E', '#607D8B'],
+        backgroundColor: [c.accent+'CC', '#C55A17CC', c.accent+'AA', c.accent3+'CC', c.accent2+'CC', c.accent4+'CC', c.accent2+'AA', '#7C8BA0', '#2F6E6C'],
         borderRadius: 4
       }]
     },
@@ -14008,7 +14075,7 @@ function rebuildCharts() {
       labels: ['Natural Gas', 'Renewables (Wind+Solar+Hydro)', 'Nuclear', 'Coal', 'Other'],
       datasets: [{
         data: [42, 24, 18, 15, 1],
-        backgroundColor: [c.accent3, '#4CAF50', c.accent4, '#795548', '#9E9E9E'],
+        backgroundColor: [c.accent3, '#2E7D4F', c.accent4, '#8FA6BC', '#7C8BA0'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -14051,7 +14118,7 @@ function rebuildCharts() {
       labels: ['Wind', 'Solar', 'Hydropower', 'Nuclear', 'Natural Gas', 'Coal', 'Biomass & Other'],
       datasets: [{
         data: [17, 11, 13, 25, 16, 10, 8],
-        backgroundColor: [c.accent2, '#A8D2BB', c.accent, c.accent4, c.accent3, '#795548', '#8D6E63'],
+        backgroundColor: [c.accent2, '#4E8385', c.accent, c.accent4, c.accent3, '#8FA6BC', '#D6B24A'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -14124,7 +14191,7 @@ function rebuildCharts() {
       datasets: [{
         label: 'Gravimetric Energy Density (MJ/kg)',
         data: [120, 50, 46.4, 45.6, 24, 20, 18.6, 16],
-        backgroundColor: ['#A8D2BBCC', c.accent+'CC', c.accent2+'CC', '#795548CC', '#9E9E9ECC', c.accent3+'CC', c.accent4+'CC', '#8D6E63CC'],
+        backgroundColor: ['#4E8385CC', c.accent+'CC', c.accent2+'CC', '#8FA6BCCC', '#7C8BA0CC', c.accent3+'CC', c.accent4+'CC', '#D6B24ACC'],
         borderRadius: 6
       }]
     },
@@ -14144,7 +14211,7 @@ function rebuildCharts() {
       datasets: [{
         label: 'Cost Multiple vs HFO',
         data: [1.0, 1.3, 2.0, 2.5, 4.0, 4.0, 5.0],
-        backgroundColor: ['#9E9E9ECC', '#795548CC', c.accent+'CC', c.accent3+'CC', '#4CAF50CC', c.accent4+'CC', '#A8D2BBCC'],
+        backgroundColor: ['#7C8BA0CC', '#8FA6BCCC', c.accent+'CC', c.accent3+'CC', '#2E7D4FCC', c.accent4+'CC', '#4E8385CC'],
         borderRadius: 6
       }]
     },
@@ -14179,7 +14246,7 @@ function rebuildCharts() {
       labels: ['Industrial Off-Grid', 'Remote Power Gen.', 'Mining & O&G', 'Data Centers', 'Island / Coastal', 'Peak Shaving / Utility', 'Construction / Temp.'],
       datasets: [{
         data: [25, 22, 18, 12, 10, 8, 5],
-        backgroundColor: [c.accent, c.accent2, c.accent3, c.accent4, '#A8D2BB', '#8D6E63', '#9E9E9E'],
+        backgroundColor: [c.accent, c.accent2, c.accent3, c.accent4, '#4E8385', '#D6B24A', '#7C8BA0'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -14246,7 +14313,7 @@ function rebuildCharts() {
     type: 'doughnut',
     data: {
       labels: ['LNG (incl. carriers)', 'Methanol', 'LPG', 'Ammonia', 'Hydrogen', 'Other'],
-      datasets: [{ data: [350, 119, 45, 22, 12, 15], backgroundColor: [c.accent, c.accent2, c.accent3, c.accent4, '#E91E63', '#9E9E9E'], borderWidth: 0, hoverOffset: 8 }]
+      datasets: [{ data: [350, 119, 45, 22, 12, 15], backgroundColor: [c.accent, c.accent2, c.accent3, c.accent4, '#E23A2E', '#7C8BA0'], borderWidth: 0, hoverOffset: 8 }]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: c.text, padding: 12, usePointStyle: true, pointStyle: 'circle' } } } }
   });
@@ -14396,7 +14463,7 @@ function rebuildCharts() {
       labels: ['Mercedes-Benz', 'Volvo', 'MAN', 'IVECO', 'Scania', 'DAF', 'Renault', 'Others'],
       datasets: [{
         data: [18.2, 14.4, 14.3, 12.2, 12.4, 9.7, 8.0, 10.9],
-        backgroundColor: ['#1A1D23', c.accent, c.accent3, c.accent2, c.accent4, '#9E9E9E', '#607D8B', '#BDBDBD'],
+        backgroundColor: ['#13202E', c.accent, c.accent3, c.accent2, c.accent4, '#7C8BA0', '#2F6E6C', '#B9C4D0'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -14410,7 +14477,7 @@ function rebuildCharts() {
       labels: ['Off-Grid & Remote Power', 'Utility Peak Shaving', 'Industrial Feedstock (Heat/Steam)', 'Data Centers & Tech', 'Flare Gas Monetization', 'Island/Microgrid Power', 'Aerospace & Specialty'],
       datasets: [{
         data: [28, 22, 20, 10, 9, 7, 4],
-        backgroundColor: [c.accent, c.accent3, c.accent2, c.accent4, '#FF9800', '#607D8B', '#E91E63'],
+        backgroundColor: [c.accent, c.accent3, c.accent2, c.accent4, '#D6B24A', '#2F6E6C', '#E23A2E'],
         borderWidth: 0, hoverOffset: 8
       }]
     },
@@ -14425,7 +14492,7 @@ function rebuildCharts() {
       datasets: [{
         label: 'Levelized Cost ($/kWh)',
         data: [0.05, 0.07, 0.11, 0.12, 0.15, 0.25],
-        backgroundColor: [c.accent+'CC', c.accent2+'CC', c.accent3+'CC', c.accent3+'AA', '#A8D2BBCC', '#C55A17CC'],
+        backgroundColor: [c.accent+'CC', c.accent2+'CC', c.accent3+'CC', c.accent3+'AA', '#4E8385CC', '#C55A17CC'],
         borderRadius: 6
       }]
     },
@@ -14494,7 +14561,7 @@ function rebuildCharts() {
       datasets: [{
         label: 'DC Demand 2025 (GW)',
         data: [12.1, 9.7, 4.2, 3.8, 2.5, 2.1, 5.5],
-        backgroundColor: [c.accent+'CC', c.accent3+'CC', c.accent2+'CC', c.accent4+'CC', c.accent+'AA', c.accent2+'AA', '#7F7F7FAA'],
+        backgroundColor: [c.accent+'CC', c.accent3+'CC', c.accent2+'CC', c.accent4+'CC', c.accent+'AA', c.accent2+'AA', '#7C8BA0AA'],
         borderRadius: 6
       }]
     },
@@ -14543,10 +14610,10 @@ function rebuildCharts() {
             { x: 7.5, y: 8.2, r: 12, name: 'bp' },
             { x: 7.0, y: 8.5, r: 10, name: 'ExxonMobil' }
           ],
-          backgroundColor: 'rgba(41, 98, 255, 0.55)',
-          borderColor: 'rgba(41, 98, 255, 0.9)',
+          backgroundColor: 'rgba(31, 59, 87, 0.55)',
+          borderColor: 'rgba(31, 59, 87, 0.9)',
           borderWidth: 2,
-          hoverBackgroundColor: 'rgba(41, 98, 255, 0.75)'
+          hoverBackgroundColor: 'rgba(31, 59, 87, 0.75)'
         },
         {
           label: '🏛️ State NOCs / Infra Giants',
@@ -14557,10 +14624,10 @@ function rebuildCharts() {
             { x: 6.5, y: 3.5, r: 10, name: 'KOGAS' },
             { x: 5.5, y: 2.0, r: 7, name: 'GAIL' }
           ],
-          backgroundColor: 'rgba(233, 30, 99, 0.50)',
-          borderColor: 'rgba(233, 30, 99, 0.9)',
+          backgroundColor: 'rgba(226, 58, 46, 0.50)',
+          borderColor: 'rgba(226, 58, 46, 0.9)',
           borderWidth: 2,
-          hoverBackgroundColor: 'rgba(233, 30, 99, 0.70)'
+          hoverBackgroundColor: 'rgba(226, 58, 46, 0.70)'
         },
         {
           label: '🏭 Regional SS-LNG Champions',
@@ -14573,10 +14640,10 @@ function rebuildCharts() {
             { x: 7.5, y: 4.0, r: 8, name: 'Guanghui Energy' },
             { x: 7.0, y: 3.0, r: 8, name: 'ENN Energy' }
           ],
-          backgroundColor: 'rgba(255, 152, 0, 0.50)',
-          borderColor: 'rgba(255, 152, 0, 0.9)',
+          backgroundColor: 'rgba(197, 90, 23, 0.50)',
+          borderColor: 'rgba(197, 90, 23, 0.9)',
           borderWidth: 2,
-          hoverBackgroundColor: 'rgba(255, 152, 0, 0.70)'
+          hoverBackgroundColor: 'rgba(197, 90, 23, 0.70)'
         },
         {
           label: '⚙️ Technology / Equipment OEMs',
@@ -14588,10 +14655,10 @@ function rebuildCharts() {
             { x: 2.5, y: 6.0, r: 6, name: 'Galileo Tech' },
             { x: 2.0, y: 7.5, r: 7, name: 'CIMC ENRIC' }
           ],
-          backgroundColor: 'rgba(156, 39, 176, 0.50)',
-          borderColor: 'rgba(156, 39, 176, 0.9)',
+          backgroundColor: 'rgba(214, 178, 74, 0.50)',
+          borderColor: 'rgba(214, 178, 74, 0.9)',
           borderWidth: 2,
-          hoverBackgroundColor: 'rgba(156, 39, 176, 0.70)'
+          hoverBackgroundColor: 'rgba(214, 178, 74, 0.70)'
         },
         {
           label: '🚛 Pure-Play Distributors',
@@ -14604,10 +14671,10 @@ function rebuildCharts() {
             { x: 5.0, y: 2.2, r: 9, name: 'Compass/Cosan' },
             { x: 3.5, y: 3.5, r: 5, name: 'Alternoil' }
           ],
-          backgroundColor: 'rgba(76, 175, 80, 0.50)',
-          borderColor: 'rgba(76, 175, 80, 0.9)',
+          backgroundColor: 'rgba(46, 125, 79, 0.50)',
+          borderColor: 'rgba(46, 125, 79, 0.9)',
           borderWidth: 2,
-          hoverBackgroundColor: 'rgba(76, 175, 80, 0.70)'
+          hoverBackgroundColor: 'rgba(46, 125, 79, 0.70)'
         },
         {
           label: '🚢 Marine Bunkering Specialists',
@@ -14619,10 +14686,10 @@ function rebuildCharts() {
             { x: 3.5, y: 4.8, r: 5, name: 'Gasnor/Equinor' },
             { x: 6.0, y: 5.5, r: 6, name: 'Skangas/Gasum' }
           ],
-          backgroundColor: 'rgba(0, 188, 212, 0.50)',
-          borderColor: 'rgba(0, 188, 212, 0.9)',
+          backgroundColor: 'rgba(78, 131, 133, 0.50)',
+          borderColor: 'rgba(78, 131, 133, 0.9)',
           borderWidth: 2,
-          hoverBackgroundColor: 'rgba(0, 188, 212, 0.70)'
+          hoverBackgroundColor: 'rgba(78, 131, 133, 0.70)'
         }
       ]
     },
@@ -14684,6 +14751,19 @@ function rebuildCharts() {
 
 // Init charts
 rebuildCharts();
+
+// ============ HEADER HEIGHT ============
+// Mantem --hh igual a altura real do header, que e o offset do sticky da
+// sidebar e da topbar. Sem isso elas grudam no lugar errado quando o header
+// quebra em duas linhas.
+(function () {
+  var h = document.querySelector('.app-header');
+  if (!h) return;
+  function setHH() { document.documentElement.style.setProperty('--hh', h.offsetHeight + 'px'); }
+  setHH();
+  window.addEventListener('resize', setHH);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(setHH);
+})();
 </script>
 </body>
 </html>
