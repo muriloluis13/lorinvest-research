@@ -25,3 +25,6 @@ Thumbs.db
 
 # Claude Code local memory
 memory/
+
+# Especificacao tecnica local (nao versionar)
+SPEC.md
