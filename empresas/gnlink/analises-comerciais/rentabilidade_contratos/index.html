@@ -852,19 +852,10 @@ function render(){
   else{const cc=CC.find(c=>c.id===curTab);if(cc)rCustom(cc);}
 }
 
-// === RESOLVEDOR DE ENDPOINTS (Vercel /api  vs.  proxy Python local) ===
-// Em produção (site publicado na Vercel) usamos funções serverless em /api/* —
-// não precisa de proxy local nem do .bat aberto. Rodando local (localhost/file://)
-// caímos no proxy_anp.py em http://localhost:3001, mantendo o fluxo antigo de dev.
-const PROXY_LOCAL='http://localhost:3001';
-const IS_LOCAL=(location.protocol==='file:')||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-// apiPath = caminho relativo na Vercel; localPath = rota equivalente no proxy Python.
-function proxyUrl(apiPath,localPath){return IS_LOCAL?PROXY_LOCAL+localPath:apiPath;}
-
 // === DASHBOARD PREÇOS COMBUSTÍVEIS (ANP) ===
 const ANP_URL='https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis/shlp/mensal/mensal-estados-desde-jan2013.xlsx';
-const ANP_PROXY_URL=proxyUrl('/api/anp','/anp.xlsx');
-const ANP_PROXY_PING=proxyUrl('/api/ping','/ping');
+const ANP_PROXY_URL='/api/anp';
+const ANP_PROXY_PING='/api/ping';
 let COMB_DATA=null,COMB_HEADERS=null,COMB_META=null,COMB_LOAD_ERROR=null,COMB_LOADING=false;
 let COMB_CHARTS={};
 // Filtro padrão: produto = Óleo Diesel (produto base de diesel)
@@ -987,8 +978,8 @@ let RETAIL_FILTRO={serieKey:'__ALL__',anoIni:'__ALL__',anoFim:'__ALL__'};
 
 // Brent Futuro — Barchart (requer proxy devido a CORS)
 const BRENT_FUTURO_URL='https://www.barchart.com/futures/quotes/CB*0/futures-prices?page=all';
-const BRENT_FUTURO_PROXY_URL=proxyUrl('/api/brent-futuro','/barchart-brent-futuro');
-const BRENT_FUTURO_PROXY_PING=proxyUrl('/api/ping','/ping');
+const BRENT_FUTURO_PROXY_URL='/api/brent-futuro';
+const BRENT_FUTURO_PROXY_PING='/api/ping';
 let BRENT_FUTURO_DATA=null,BRENT_FUTURO_LOADING=false,BRENT_FUTURO_ERROR=null,BRENT_FUTURO_CHART=null;
 let BRENT_FUTURO_UPDATE_INTERVAL=null; // Intervalo de atualização automática
 let BRENT_FUTURO_LAST_UPDATE=null; // Timestamp da última atualização
@@ -996,20 +987,20 @@ const BRENT_FUTURO_UPDATE_INTERVAL_MS=5*60*1000; // Atualiza a cada 5 minutos
 
 // JKM Futuro (LNG asiático — Platts) — Barchart
 const JKM_FUTURO_URL='https://www.barchart.com/futures/quotes/JKM*1/futures-prices';
-const JKM_FUTURO_PROXY_URL=proxyUrl('/api/jkm-futuro','/barchart-jkm-futuro');
+const JKM_FUTURO_PROXY_URL='/api/jkm-futuro';
 let JKM_FUTURO_DATA=null,JKM_FUTURO_LOADING=false,JKM_FUTURO_ERROR=null,JKM_FUTURO_CHART=null;
 let JKM_FUTURO_UPDATE_INTERVAL=null;
 let JKM_FUTURO_LAST_UPDATE=null;
 
 // Brent Histórico — Yahoo Finance (BZ=F, requer proxy)
 const BRENT_HISTORICAL_URL='https://finance.yahoo.com/quote/BZ=F/history/';
-const BRENT_HISTORICAL_PROXY_URL=proxyUrl('/api/brent-historical','/yahoo-brent-historical');
+const BRENT_HISTORICAL_PROXY_URL='/api/brent-historical';
 let BRENT_HISTORICAL_DATA=null,BRENT_HISTORICAL_LOADING=false,BRENT_HISTORICAL_ERROR=null,BRENT_HISTORICAL_CHART=null;
 let BRENT_HISTORICAL_FILTRO={dataIni:null,dataFim:null}; // Filtros de data (formato YYYY-MM-DD)
 
 // JKM Histórico — Barchart (JKM*1, perpetual M2)
 const JKM_HISTORICAL_URL='https://www.barchart.com/futures/quotes/JKM*1/price-history/historical';
-const JKM_HISTORICAL_PROXY_URL=proxyUrl('/api/jkm-historical','/barchart-jkm-historical');
+const JKM_HISTORICAL_PROXY_URL='/api/jkm-historical';
 let JKM_HISTORICAL_DATA=null,JKM_HISTORICAL_LOADING=false,JKM_HISTORICAL_ERROR=null,JKM_HISTORICAL_CHART=null;
 let JKM_HISTORICAL_FILTRO={dataIni:null,dataFim:null};
 
@@ -1801,9 +1792,9 @@ function rBrentFuturo(){
   }
   if(BRENT_FUTURO_ERROR==='proxy_offline'){
     cont.innerHTML=`<div style="background:rgba(254,243,199,.5);border:1px solid rgba(251,191,36,.3);border-radius:14px;padding:16px;margin-bottom:24px">
-      <p style="margin:0 0 6px;font-weight:600;color:#92400e">${IS_LOCAL?'Proxy local não detectado':'Fonte de dados (Barchart) indisponível'}</p>
-      <p class="muted" style="margin:0;font-size:13px">O site Barchart bloqueia downloads diretos (política CORS)${IS_LOCAL?', então usamos um proxy local.':', então o site usa uma função serverless em /api. A fonte pode ter recusado a requisição momentaneamente.'}</p>
-      <p class="muted" style="margin:8px 0 0;font-size:12px">${IS_LOCAL?'Verifique se o proxy está rodando em <code>http://localhost:3001</code> e tente novamente.':'Tente novamente em alguns instantes.'}</p>
+      <p style="margin:0 0 6px;font-weight:600;color:#92400e">Fonte de dados (Barchart) indisponível</p>
+      <p class="muted" style="margin:0;font-size:13px">O site Barchart bloqueia downloads diretos (política CORS), então o site usa uma função serverless em /api. A fonte pode ter recusado a requisição momentaneamente.</p>
+      <p class="muted" style="margin:8px 0 0;font-size:12px">Tente novamente em alguns instantes.</p>
       <button onclick="BRENT_FUTURO_DATA=null;BRENT_FUTURO_ERROR=null;rBrentFuturo();" style="margin-top:12px;padding:6px 12px;background:#f59e0b;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Tentar novamente</button>
     </div>`;
     return;
@@ -2003,9 +1994,9 @@ function rJkmFuturo(){
   }
   if(JKM_FUTURO_ERROR==='proxy_offline'){
     cont.innerHTML=`<div style="background:rgba(254,243,199,.5);border:1px solid rgba(251,191,36,.3);border-radius:14px;padding:16px;margin-bottom:24px">
-      <p style="margin:0 0 6px;font-weight:600;color:#92400e">${IS_LOCAL?'Proxy local não detectado':'Fonte de dados (Barchart) indisponível'}</p>
-      <p class="muted" style="margin:0;font-size:13px">O site Barchart bloqueia downloads diretos (política CORS)${IS_LOCAL?', então usamos um proxy local.':', então o site usa uma função serverless em /api. A fonte pode ter recusado a requisição momentaneamente.'}</p>
-      <p class="muted" style="margin:8px 0 0;font-size:12px">${IS_LOCAL?'Verifique se o proxy está rodando em <code>http://localhost:3001</code> e tente novamente.':'Tente novamente em alguns instantes.'}</p>
+      <p style="margin:0 0 6px;font-weight:600;color:#92400e">Fonte de dados (Barchart) indisponível</p>
+      <p class="muted" style="margin:0;font-size:13px">O site Barchart bloqueia downloads diretos (política CORS), então o site usa uma função serverless em /api. A fonte pode ter recusado a requisição momentaneamente.</p>
+      <p class="muted" style="margin:8px 0 0;font-size:12px">Tente novamente em alguns instantes.</p>
       <button onclick="JKM_FUTURO_DATA=null;JKM_FUTURO_ERROR=null;rJkmFuturo();" style="margin-top:12px;padding:6px 12px;background:#f59e0b;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Tentar novamente</button>
     </div>`;
     return;
@@ -3064,19 +3055,13 @@ function combShowUploadFallback(v){
   v.innerHTML=`<div style="padding:20px 0"><section class="card">
     <h2>Preços de combustíveis — ANP</h2>
     <div style="background:rgba(254,243,199,.5);border:1px solid rgba(251,191,36,.3);border-radius:14px;padding:16px;margin-bottom:24px">
-      <p style="margin:0 0 6px;font-weight:600;color:#92400e">${IS_LOCAL?'Proxy local não detectado':'Fonte de dados (ANP) indisponível'}</p>
-      <p class="muted" style="margin:0;font-size:13px">O servidor da ANP bloqueia downloads diretos (política CORS)${IS_LOCAL?', então usamos o proxy local incluso neste projeto.':', então o site usa a função serverless /api/anp. A fonte pode estar temporariamente fora do ar.'}</p>
+      <p style="margin:0 0 6px;font-weight:600;color:#92400e">Fonte de dados (ANP) indisponível</p>
+      <p class="muted" style="margin:0;font-size:13px">O servidor da ANP bloqueia downloads diretos (política CORS), então o site usa a função serverless /api/anp. A fonte pode estar temporariamente fora do ar.</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:20px">
       <div style="background:rgba(238,242,255,.6);border-radius:14px;padding:16px">
-        <p style="margin:0 0 10px;font-weight:700;font-size:15px">Opção 1 — ${IS_LOCAL?'Proxy automático (recomendado)':'Tentar novamente'}</p>
-        ${IS_LOCAL?`<p class="muted" style="margin:0 0 10px;font-size:13px">Dê duplo-clique no arquivo <strong>Iniciar Proxy ANP.bat</strong> na mesma pasta deste HTML.<br>Deixe a janela aberta e recarregue esta aba.</p>
-        <div style="background:rgba(0,0,0,.04);border-radius:10px;padding:10px 14px;font-size:12px;font-family:monospace;color:#13202E">
-          📁 GNLink rentabilidade contratos/<br>
-          &nbsp;&nbsp;├─ Rentabilidade contratos.html<br>
-          &nbsp;&nbsp;├─ <strong style="color:#002D5C">Iniciar Proxy ANP.bat</strong> ← duplo-clique aqui<br>
-          &nbsp;&nbsp;└─ proxy_anp.py
-        </div>`:`<p class="muted" style="margin:0 0 10px;font-size:13px">Os dados são buscados automaticamente pela função <code>/api/anp</code>. Aguarde alguns instantes e recarregue.</p>`}
+        <p style="margin:0 0 10px;font-weight:700;font-size:15px">Opção 1 — Tentar novamente</p>
+        <p class="muted" style="margin:0 0 10px;font-size:13px">Os dados são buscados automaticamente pela função <code>/api/anp</code>. Aguarde alguns instantes e recarregue.</p>
         <button onclick="combRetryProxy()" style="margin-top:12px;padding:10px 20px;background:#002D5C;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">
           ↺ Tentar novamente
         </button>
