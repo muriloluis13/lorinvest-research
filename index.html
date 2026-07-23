@@ -1039,22 +1039,23 @@
     .emp-menu-pop a { font-size: 12px; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
     .emp-menu-pop a:hover { color: var(--accent-1); }
 
-    /* ===== Abas da empresa ===== */
+    /* ===== Abas da empresa (padrão .subtab-bar/.subtab do GBS Global Market) ===== */
     .emp-tabs {
-      display: flex; gap: 2px; flex-wrap: nowrap;
-      border-bottom: 2px solid var(--line); margin: 16px 0 0;
+      display: flex; gap: 2px; flex-wrap: wrap; margin: 16px 0 0;
+      background: var(--bg-main); border-bottom: 1px solid var(--line);
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
       scrollbar-width: none; -ms-overflow-style: none;
     }
     .emp-tabs::-webkit-scrollbar { display: none; }
     .emp-tab {
-      background: none; border: none; font-size: 12.5px; font-weight: 600; color: var(--muted);
-      padding: 9px 12px; border-bottom: 2.5px solid transparent; margin-bottom: -2px; white-space: nowrap;
-      transition: color 0.15s; flex: 0 0 auto;
+      padding: 9px 12px; border: none; border-bottom: 2.5px solid transparent;
+      margin-bottom: -1px; background: transparent; border-radius: 0;
+      font-size: 12.5px; font-weight: 600; color: var(--muted);
+      white-space: nowrap; cursor: pointer; transition: color 0.15s;
     }
-    .emp-tab:hover { color: var(--accent-1); }
-    .emp-tab.active { color: var(--accent-1); border-bottom-color: var(--accent-danger); }
+    .emp-tab:hover { color: var(--accent-1); background: transparent; border-color: transparent; border-bottom-color: transparent; }
+    .emp-tab.active { color: var(--accent-1); background: transparent; border-bottom-color: var(--accent-danger); font-weight: 700; }
     .emp-panel { display: none; margin-top: 14px; }
     .emp-panel.active { display: block; }
 
@@ -1213,6 +1214,11 @@
     @media (max-width: 700px) {
       .e2-hold { grid-template-columns: 1fr; justify-items: center; }
       .e2-header { flex-direction: column; }
+      /* abas: no mobile viram faixa rolável (igual ao GBS Global Market).
+         O par .ov-tabs/.ov-tab tem override próprio no <style> do Panorama,
+         que vem depois deste bloco na cascata. */
+      .emp-tabs { gap: 2px; flex-wrap: nowrap; overflow-x: auto; }
+      .emp-tab { padding: 8px 9px; font-size: 11.5px; flex-shrink: 0; }
     }
 
   </style>
@@ -1482,11 +1488,16 @@
             .org-legend .sw{width:13px;height:13px;border-radius:3px;display:inline-block}
             .org-legend .dotk{width:9px;height:9px;border-radius:50%;background:#F2C200;border:1px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.12);display:inline-block}
             .org-scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:74vh}
-            .ov-tabs{display:flex;gap:2px;flex-wrap:nowrap;border-bottom:2px solid var(--line);margin:2px 0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none;-ms-overflow-style:none}
+            /* abas do Panorama — padrão .subtab-bar/.subtab do GBS Global Market */
+            .ov-tabs{display:flex;gap:2px;flex-wrap:wrap;margin:2px 0 16px;background:var(--bg-main);border-bottom:1px solid var(--line);overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none;-ms-overflow-style:none}
             .ov-tabs::-webkit-scrollbar{display:none}
-            .ov-tab{background:none;border:none;font-size:13px;font-weight:600;color:var(--muted);padding:9px 14px;border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;cursor:pointer;transition:color .15s;flex:0 0 auto}
-            .ov-tab:hover{color:var(--accent-1)}
-            .ov-tab.active{color:var(--accent-1);border-bottom-color:var(--accent-danger)}
+            .ov-tab{padding:9px 12px;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;background:transparent;border-radius:0;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer;transition:color .15s}
+            .ov-tab:hover{color:var(--accent-1);background:transparent;border-color:transparent;border-bottom-color:transparent}
+            .ov-tab.active{color:var(--accent-1);background:transparent;border-bottom-color:var(--accent-danger);font-weight:700}
+            @media (max-width:700px){
+              .ov-tabs{gap:2px;flex-wrap:nowrap;overflow-x:auto}
+              .ov-tab{padding:8px 9px;font-size:11.5px;flex-shrink:0}
+            }
             .ov-panel{display:none}
             .ov-panel.active{display:block}
             .org-controls{display:flex;justify-content:flex-end;margin-bottom:8px}
