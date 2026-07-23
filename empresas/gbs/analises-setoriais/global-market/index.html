@@ -6,399 +6,610 @@
 <title>Underground Natural Gas Storage — Market Intelligence Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
 <style>
+/* ==========================================================================
+   Underground Natural Gas Storage — Market Intelligence
+   Layout e paleta herdados do Painel da Area de Research (index.html), pela
+   mesma receita usada nas DFs da Norsul e no Small-Scale LNG da GNLink: os
+   nomes de classe do markup foram preservados (kpi-card, card, flow-step,
+   narrative-box, stat-visual...); o que mudou foi a pele — tipografia DM Sans,
+   paleta Compass, header full-width, sidebar clara e abas sublinhadas.
+   ========================================================================== */
 :root {
-  --accent: #002D5C;
-  --accent2: #28477E;
-  --accent3: #EF7622;
+  /* Paleta Compass — os nomes antigos das variaveis continuam valendo porque
+     o markup inline e o Chart.js os leem. */
+  --accent: #1F3B57;          /* navy — serie principal */
+  --accent-light: #EAF0F6;
+  --accent2: #5C7A96;         /* azul acinzentado */
+  --accent2-light: #EDF1F6;
+  --accent3: #C55A17;         /* ambar (era laranja) */
+  --accent3-light: #FBF0E6;
+  --accent4: #8FA6BC;         /* azul claro (era menta) */
+  --accent4-light: #EDF1F6;
+  --accent-1: #3D4A5C;        /* slate do painel */
+  --accent-2: #55677C;
   --orange: #C55A17;
-  --green: #77A28A;
-  --accent4: #A8D2BB;
-  --gray: #7F7F7F;
-  --teal-dark: #5A9B87;
-  --bg: #F5F6F8;
+  --orange-light: #FBF0E6;
+  --green: #2E7D4F;
+  --green-light: #E7EEE3;
+  --red: #E23A2E;
+  --red-light: #FBECEA;
+  --gray: #7C8BA0;
+  --teal-dark: #4E8385;
+  --gold: #D6B24A;
+
+  --bg: #F4F6F9;
   --bg-card: #FFFFFF;
-  --bg-sidebar: #001B38;
-  --text: #1A1A2E;
-  --text-secondary: #555770;
-  --text-muted: #8A8CA5;
-  --border: #E2E4EA;
-  --shadow: 0 1px 3px rgba(0,45,92,0.06), 0 1px 2px rgba(0,45,92,0.04);
-  --shadow-lg: 0 4px 16px rgba(0,45,92,0.08);
-  --radius: 10px;
-  --sidebar-width: 270px;
-  --font-body: 'DM Sans', sans-serif;
-  --font-display: 'DM Serif Display', serif;
+  --bg-card-soft: #F7F9FC;
+  --bg-sidebar: #FFFFFF;
+  --text: #13202E;
+  --ink: #13202E;
+  --text-secondary: #5C6B7A;
+  --text-muted: #7B8794;
+  --border: #E2E7EE;
+  --line: #E2E7EE;
+  --chip: #EDF1F6;
+
+  --shadow: 0 1px 2px rgba(19,32,46,.05), 0 4px 14px rgba(19,32,46,.06);
+  --shadow-lg: 0 2px 6px rgba(19,32,46,.07), 0 10px 26px rgba(19,32,46,.09);
+  --radius: 12px;
+  --sidebar-width: 252px;
+  --font-body: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: 'DM Sans', system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hh: 64px;                 /* altura do header, remedida via JS */
 }
+
+/* O painel e so claro. O modo escuro daqui e uma versao escurecida da mesma
+   paleta, para o botao de tema continuar funcionando. */
 [data-theme="dark"] {
-  --bg: #0D1117;
-  --bg-card: #161B22;
-  --bg-sidebar: #010409;
-  --text: #E6EDF3;
-  --text-secondary: #8B949E;
-  --text-muted: #6E7681;
-  --border: #30363D;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-lg: 0 4px 16px rgba(0,0,0,0.4);
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-html { overflow-x:hidden; }
-body { font-family: var(--font-body); background: var(--bg); color: var(--text); display:flex; min-height:100vh; transition: background .3s, color .3s; overflow-x:hidden; }
+  --accent: #7FA3C4;
+  --accent-light: #1B2B3B;
+  --accent2: #9FB4C7;
+  --accent2-light: #22303F;
+  --accent3: #DE8340;
+  --accent3-light: #3A2618;
+  --accent4: #C3CEDB;
+  --accent4-light: #22303F;
+  --accent-1: #C3CEDB;
+  --accent-2: #8FA6BC;
+  --orange: #DE8340;
+  --orange-light: #3A2618;
+  --green: #4FA873;
+  --green-light: #1C3326;
+  --red: #F0645A;
+  --red-light: #3A1D1B;
+  --gray: #8B99A8;
+  --teal-dark: #6FA3A1;
+  --gold: #E0C368;
 
-/* SIDEBAR */
+  --bg: #0E1620;
+  --bg-card: #16202C;
+  --bg-card-soft: #1B2733;
+  --bg-sidebar: #16202C;
+  --text: #E4EAF1;
+  --ink: #E4EAF1;
+  --text-secondary: #94A3B4;
+  --text-muted: #7C8A99;
+  --border: #26333F;
+  --line: #26333F;
+  --chip: #1E2A36;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.5);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.45;
+  min-height: 100vh;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  transition: background .25s ease, color .25s ease;
+}
+button { font-family: inherit; cursor: pointer; }
+
+/* ===== Header full-width ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 600;
+  background: var(--bg-card);
+  color: var(--accent-1);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 10px rgba(35,39,42,.05);
+}
+.app-header::before {
+  content: ''; display: block; height: 3px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2) 55%, var(--red));
+}
+.hwrap {
+  max-width: 1680px; margin: 0 auto; padding: 11px 22px;
+  display: flex; align-items: center; gap: 13px; flex-wrap: wrap;
+}
+.hamburger {
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px;
+  font-size: 15px; font-weight: 700; color: var(--accent-1);
+  padding: 3px 10px; line-height: 1.2;
+  display: flex; align-items: center; justify-content: center;
+}
+.hamburger:hover { background: var(--chip); border-color: var(--accent-2); }
+/* A marca da GBS e um JPG de fundo branco: no modo escuro ela vira uma
+   plaquinha branca, entao o fundo/padding sao explicitos. */
+/* A marca da GBS e quase quadrada (142x139) e tem bastante respiro interno,
+   entao pede mais altura que o logotipo deitado da Lorinvest usado no painel.
+   O fundo branco explicito e para ela nao virar uma mancha no modo escuro. */
+.logo img { height: 38px; width: auto; display: block; background: #fff; padding: 1px 3px; border-radius: 5px; }
+.hsep { width: 1px; height: 26px; background: var(--line); }
+.hbrand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.htitle { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
+.hsub { font-size: 11px; color: var(--text-secondary); }
+.hspace { flex: 1; }
+.chip {
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--chip); border: 1px solid var(--line);
+  font-size: 10.5px; font-weight: 700; color: var(--accent-1); white-space: nowrap;
+}
+
+/* ===== Layout + sidebar ===== */
+.layout { display: flex; max-width: 1680px; margin: 0 auto; align-items: flex-start; }
 .sidebar {
-  width: var(--sidebar-width); background: var(--bg-sidebar); color:#cdd6e4;
-  display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0;
-  z-index:100; transition: transform .3s cubic-bezier(.4,0,.2,1);
-  overflow-y:auto; scrollbar-width:thin;
+  width: var(--sidebar-width); flex: none;
+  position: sticky; top: var(--hh, 64px); align-self: flex-start;
+  min-height: calc(100vh - var(--hh, 64px));
+  max-height: calc(100vh - var(--hh, 64px));
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--bg-sidebar); color: var(--ink);
+  padding: 8px 8px 26px;
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column;
+  transition: width .18s ease, padding .18s ease;
 }
-.sidebar.closed { transform: translateX(calc(-1 * var(--sidebar-width))); }
-.sidebar-header { padding:22px 20px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
-.sidebar-header h1 { font-family:var(--font-display); font-size:1.15rem; color:#fff; line-height:1.3; }
-.sidebar-header .subtitle { font-size:.72rem; color:var(--accent4); margin-top:4px; letter-spacing:.5px; text-transform:uppercase; font-weight:600; }
-.nav-group { padding:10px 0; }
-.nav-group-title { font-size:.65rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent4); padding:6px 20px; font-weight:700; opacity:.7; }
-.nav-item {
-  display:flex; align-items:center; gap:10px; padding:8px 20px; cursor:pointer;
-  font-size:.82rem; color:#aab4c6; transition: all .15s; border-left:3px solid transparent; font-weight:500;
-}
-.nav-item:hover { background:rgba(255,255,255,.04); color:#fff; }
-.nav-item.active { background:rgba(239,118,34,.08); color:var(--accent3); border-left-color:var(--accent3); font-weight:600; }
-.nav-item .icon { font-size:1rem; width:22px; text-align:center; }
-.nav-item .code { font-size:.62rem; color:var(--gray); font-weight:600; background:rgba(255,255,255,.06); padding:1px 5px; border-radius:3px; margin-left:auto; font-family:monospace; }
-.nav-sub { margin-left:32px; }
-.nav-sub .nav-item { font-size:.78rem; padding:5px 14px; }
-.sidebar-footer { margin-top:auto; padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); font-size:.68rem; color:var(--text-muted); }
+.sidebar.closed { width: 0; padding-left: 0; padding-right: 0; border-right-color: transparent; }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(92,107,122,.25); border-radius: 4px; }
 
-/* OVERLAY */
 .sidebar-overlay {
-  display:none; position:fixed; inset:0; background:rgba(0,0,0,.5);
-  z-index:99; cursor:pointer;
+  display: none; position: fixed; inset: 0;
+  background: rgba(19,32,46,.45); z-index: 590; cursor: pointer;
 }
-.sidebar-overlay.show { display:block; }
+.sidebar-overlay.show { display: block; }
 
-/* MAIN */
-.main {
-  flex:1; margin-left:var(--sidebar-width); transition: margin-left .3s cubic-bezier(.4,0,.2,1);
-  min-height:100vh; overflow-x:hidden; max-width:100vw;
+.nav-group { margin-bottom: 2px; }
+.nav-group-title {
+  font-size: 9px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-secondary); padding: 13px 10px 5px; white-space: nowrap; opacity: 1;
 }
-.main.expanded { margin-left:0; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  background: none; border: none;
+  border-left: 2.5px solid transparent;
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  padding: 7px 11px; border-radius: 0 7px 7px 0;
+  /* Rotulos longos ("Substitutes & Competing Tech") quebram em duas linhas em
+     vez de empurrarem o codigo para fora da sidebar. */
+  text-align: left; line-height: 1.35; cursor: pointer; user-select: none;
+  transition: background .12s, color .12s;
+}
+.nav-item:hover { background: var(--chip); color: var(--accent-1); }
+.nav-item.active {
+  background: var(--accent-light); color: var(--accent-1);
+  border-left-color: var(--red); font-weight: 700;
+}
+.nav-item .icon { font-size: 13px; width: 17px; text-align: center; flex-shrink: 0; opacity: .85; }
+.nav-item.active .icon { opacity: 1; }
+.nav-item .code {
+  flex-shrink: 0; font-size: 8.5px; font-weight: 700; letter-spacing: .04em;
+  color: var(--text-secondary); background: var(--chip);
+  border: 1px solid var(--line);
+  padding: 1px 6px; border-radius: 5px; margin-left: auto; font-family: var(--font-body);
+}
+.nav-item.active .code { color: var(--accent-1); border-color: rgba(61,74,92,.22); }
+.nav-sub { margin-left: 22px; }
+.nav-sub .nav-item { font-size: 12px; padding: 6px 11px; }
 
-/* TOP BAR */
+.sidebar-footer {
+  margin: 20px 8px 0; padding: 12px;
+  border-radius: var(--radius); background: var(--bg-card-soft);
+  border: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 8px;
+  font-size: 11px; line-height: 1.5; color: var(--text-secondary);
+}
+.theme-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; padding: 0;
+  color: var(--text-secondary); cursor: pointer;
+  font-family: var(--font-body); font-size: 11.5px; font-weight: 600; text-align: left;
+}
+.theme-toggle:hover { color: var(--accent-1); border-color: transparent; }
+
+/* ===== Main =====
+   Sem overflow-x aqui: overflow-x:hidden faz o .main virar um scroll container
+   (o eixo Y passa a 'auto'), e a topbar sticky passaria a se ancorar nele — ela
+   aparecia deslocada para baixo, por cima do titulo da aba. Quem segura a
+   rolagem horizontal e o html + os .table-wrap. */
+.main { flex: 1; min-width: 0; }
 .topbar {
-  position:sticky; top:0; z-index:50; background:var(--bg-card);
-  border-bottom:1px solid var(--border); padding:0 28px; height:54px;
-  display:flex; align-items:center; gap:14px; box-shadow:var(--shadow);
+  position: sticky; top: var(--hh, 64px); z-index: 500;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 10px 22px; height: auto; box-shadow: none;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.topbar-title { font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: -.1px; flex: 1; }
+.topbar-badge {
+  font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+  background: var(--green-light); color: var(--green);
+  border: 1px solid rgba(46,125,79,.22); white-space: nowrap;
 }
 .menu-btn {
-  background:none; border:none; cursor:pointer; font-size:1.3rem;
-  color:var(--text); padding:4px; display:flex; align-items:center;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px;
+  font-size: 15px; color: var(--accent-1); padding: 3px 10px;
+  display: flex; align-items: center;
 }
-.topbar-title { font-size:.92rem; font-weight:600; color:var(--text); flex:1; }
-.theme-toggle {
-  background:var(--bg); border:1px solid var(--border); border-radius:20px;
-  padding:5px 14px; font-size:.76rem; cursor:pointer; color:var(--text-secondary);
-  font-family:var(--font-body); font-weight:500; display:flex; align-items:center; gap:6px;
-}
-.theme-toggle:hover { border-color:var(--accent3); }
+.menu-btn:hover { background: var(--chip); }
 
-/* SUBTABS */
+/* ===== Abas (sublinhado, como as abas de empresa do painel) ===== */
 .subtab-bar {
-  display:flex; gap:8px; background:var(--bg); border-bottom:1px solid var(--border);
-  padding:12px 28px; overflow-x:auto; scrollbar-width:none; flex-wrap:wrap;
-  -webkit-overflow-scrolling:touch;
+  display: flex; gap: 2px; flex-wrap: wrap;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 0 22px; overflow-x: auto; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
-.subtab-bar::-webkit-scrollbar { display:none; }
+.subtab-bar::-webkit-scrollbar { display: none; }
 .subtab {
-  padding:7px 18px; font-size:.78rem; font-weight:600; cursor:pointer;
-  color:var(--text-secondary); border-radius:20px; white-space:nowrap;
-  transition: all .15s; background:transparent; border:1px solid var(--border);
+  padding: 9px 12px; border: none; border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px; background: transparent; border-radius: 0;
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  white-space: nowrap; cursor: pointer; transition: color .15s;
 }
-.subtab:hover { color:var(--text); background:var(--bg-card); border-color:var(--text-muted); }
-.subtab.active { color:#fff; background:var(--accent); border-color:var(--accent); }
+.subtab:hover { color: var(--accent-1); background: transparent; border-color: transparent; border-bottom-color: transparent; }
+.subtab.active { color: var(--accent-1); background: transparent; border-bottom-color: var(--red); font-weight: 700; }
 
-/* TAB HEADER */
-.tab-header {
-  padding:28px 28px 0; background:var(--bg);
-}
+/* ===== Cabecalho de aba ===== */
+.tab-header { padding: 18px 22px 0; background: var(--bg); }
 .tab-header h2 {
-  font-family:var(--font-display); font-size:1.55rem; color:var(--text); margin-bottom:6px;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--accent-1); padding-bottom: 5px; margin-bottom: 0;
+  border-bottom: 1px solid var(--line); display: inline-block;
 }
 .tab-header p {
-  font-size:.85rem; color:var(--text-secondary); line-height:1.6; max-width:800px; margin-bottom:4px;
+  font-size: 11.5px; color: var(--text-secondary); line-height: 1.5;
+  max-width: 900px; margin-top: 8px; margin-bottom: 0;
 }
 
-/* CONTENT */
-.content { padding:24px 28px 60px; max-width:1480px; overflow-x:hidden; }
+.content { padding: 18px 22px 50px; max-width: 1480px; overflow-x: hidden; }
 
-/* KPI CARDS */
+/* ===== KPIs ===== */
 .kpi-grid {
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
-  gap:14px; margin-bottom:24px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px; margin-bottom: 24px;
 }
 .kpi-card {
-  background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 15px 17px 13px; box-shadow: var(--shadow);
+  position: relative; overflow: hidden; min-width: 0;
+  transition: box-shadow .22s ease;
 }
-.kpi-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+.kpi-card:hover { box-shadow: var(--shadow-lg); }
+/* No lugar da barra colorida no topo do tile, um quadradinho de cor antes do
+   rotulo — o mesmo codigo visual dos itens de navegacao do painel. */
+.kpi-card::before { content: none; }
+.kpi-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-secondary); font-weight: 700;
 }
-.kpi-card.navy::before { background:var(--accent); }
-.kpi-card.orange::before { background:var(--accent3); }
-.kpi-card.green::before { background:var(--green); }
-.kpi-card.teal::before { background:var(--teal-dark); }
-.kpi-card.blue::before { background:var(--accent2); }
-.kpi-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); font-weight:600; }
-.kpi-value { font-family:var(--font-display); font-size:1.7rem; color:var(--text); margin:4px 0 2px; }
-.kpi-sub { font-size:.72rem; color:var(--text-secondary); }
-.kpi-badge { display:inline-block; font-size:.65rem; font-weight:700; padding:2px 7px; border-radius:4px; margin-left:6px; }
-.kpi-badge.up { background:rgba(119,162,138,.15); color:var(--green); }
-.kpi-badge.down { background:rgba(197,90,23,.12); color:var(--orange); }
+.kpi-label::before {
+  content: ''; width: 7px; height: 7px; border-radius: 2px;
+  background: var(--accent-1); flex-shrink: 0;
+}
+.kpi-card.navy .kpi-label::before { background: var(--accent); }
+.kpi-card.orange .kpi-label::before { background: var(--accent3); }
+.kpi-card.green .kpi-label::before { background: var(--green); }
+.kpi-card.teal .kpi-label::before { background: var(--teal-dark); }
+.kpi-card.blue .kpi-label::before { background: var(--accent2); }
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 21px; font-weight: 800; letter-spacing: -.4px; line-height: 1.15;
+  color: var(--ink); margin: 6px 0 4px;
+}
+.kpi-card.navy .kpi-value { color: var(--accent); }
+.kpi-card.orange .kpi-value { color: var(--accent3); }
+.kpi-card.green .kpi-value { color: var(--green); }
+.kpi-card.teal .kpi-value { color: var(--teal-dark); }
+.kpi-card.blue .kpi-value { color: var(--accent2); }
+.kpi-sub { font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; }
+.kpi-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 6px; margin-left: 6px;
+  border: 1px solid transparent;
+}
+.kpi-badge.up { background: var(--green-light); color: var(--green); border-color: rgba(46,125,79,.22); }
+.kpi-badge.down { background: var(--orange-light); color: var(--orange); border-color: rgba(197,90,23,.22); }
 
-/* SECTION TITLE */
+/* ===== Titulos de secao ===== */
 .section-title {
-  font-family:var(--font-display); font-size:1.25rem; color:var(--text);
-  margin:28px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--accent-1);
+  margin: 26px 0 12px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--line); display: block;
 }
-.section-desc { font-size:.82rem; color:var(--text-secondary); margin:-8px 0 18px; line-height:1.6; }
+.section-desc { font-size: 11.5px; color: var(--text-secondary); margin: -6px 0 16px; line-height: 1.55; }
 
-/* CARD GRID */
-.card-grid {
-  display:grid; grid-template-columns:repeat(2, 1fr); gap:18px; margin-bottom:24px;
-}
-.card-grid.cols-1 { grid-template-columns:1fr; }
-.card-grid.cols-3 { grid-template-columns:repeat(3, 1fr); }
+/* ===== Cards ===== */
+.card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+.card-grid.cols-1 { grid-template-columns: minmax(0, 1fr); }
+.card-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.card-grid > * { min-width: 0; }
 .card {
-  background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:20px; box-shadow:var(--shadow); overflow:hidden;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 17px 19px; box-shadow: var(--shadow); overflow: hidden; min-width: 0;
+  transition: box-shadow .22s ease;
 }
-.card-title { font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-.card-title .icon { color:var(--accent3); }
-.chart-container { position:relative; width:100%; min-height:260px; }
-.chart-container canvas { max-width:100%!important; }
+.card-title {
+  font-size: 14.5px; font-weight: 700; color: var(--ink); letter-spacing: -.1px;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.card-title .icon { color: var(--accent-1); font-size: 14px; }
+.chart-container { position: relative; width: 100%; min-height: 260px; }
+.chart-container canvas { max-width: 100% !important; }
 
-/* TABLES */
-.table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
-table { width:100%; border-collapse:collapse; font-size:.78rem; table-layout:auto; }
-th { text-align:left; padding:10px 12px; background:var(--accent); color:#fff; font-weight:600; font-size:.7rem; text-transform:uppercase; letter-spacing:.4px; white-space:nowrap; }
-td { padding:9px 12px; border-bottom:1px solid var(--border); color:var(--text-secondary); word-break:break-word; }
-tr:hover td { background:rgba(0,45,92,.02); }
-[data-theme="dark"] th { background:var(--accent2); }
+/* ===== Tabelas ===== */
+.table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%;
+  scrollbar-width: thin; scrollbar-color: rgba(92,107,122,.30) transparent;
+}
+.table-wrap::-webkit-scrollbar { height: 6px; }
+.table-wrap::-webkit-scrollbar-thumb { background: rgba(92,107,122,.28); border-radius: 99px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--bg-card); table-layout: auto; }
+th {
+  text-align: left; padding: 8px 11px;
+  background: var(--chip); color: var(--text-secondary);
+  font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  white-space: nowrap; border-bottom: 2px solid var(--line);
+}
+td { padding: 8px 11px; border-bottom: 1px solid var(--line); color: var(--ink); word-break: break-word; line-height: 1.5; }
+tbody tr:nth-child(even) td { background: var(--bg-card-soft); }
+tbody tr:hover td { background: var(--accent-light); }
+tbody tr:last-child td { border-bottom: none; }
+[data-theme="dark"] th { background: var(--chip); color: var(--text-secondary); }
 
-/* SOURCE FOOTNOTES */
+/* ===== Notas de fonte ===== */
 .source {
-  font-size:.64rem; color:var(--text-muted); margin-top:8px; padding-top:6px;
-  border-top:1px solid var(--border); line-height:1.5;
+  font-size: 10px; color: var(--text-muted); margin-top: 10px; padding-top: 8px;
+  border-top: 1px dashed var(--line); line-height: 1.5;
 }
-.source a { color:var(--teal-dark); text-decoration:none; }
-.source a:hover { text-decoration:underline; }
+.source a { color: var(--accent); text-decoration: none; }
+.source a:hover { text-decoration: underline; }
 
-/* TABS CONTENT */
-.tab-content { display:none; overflow-x:hidden; }
-.tab-content.active { display:block; }
-.sub-content { display:none; overflow-x:hidden; }
-.sub-content.active { display:block; }
+/* ===== Abas / paineis ===== */
+.tab-content { display: none; overflow-x: hidden; }
+.tab-content.active { display: block; animation: fadeIn .2s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.sub-content { display: none; overflow-x: hidden; }
+.sub-content.active { display: block; }
 
-/* RESPONSIVE */
-@media(max-width:1024px) {
-  .card-grid { grid-template-columns:repeat(2,1fr); }
-  .card-grid.cols-3 { grid-template-columns:repeat(2,1fr); }
-}
-@media(max-width:768px) {
-  .sidebar { transform:translateX(calc(-1 * var(--sidebar-width))); }
-  .sidebar.open { transform:translateX(0); }
-  .main { margin-left:0!important; max-width:100vw; }
-  .topbar { padding:0 12px; height:48px; }
-  .topbar-title { font-size:.82rem; }
-  .tab-header { padding:18px 16px 0; overflow:hidden; }
-  .tab-header h2 { font-size:1.25rem; }
-  .tab-header p { font-size:.78rem; max-width:100%; }
-  .subtab-bar { padding:10px 16px; gap:6px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .subtab { padding:6px 12px; font-size:.72rem; flex-shrink:0; }
-  .content { padding:14px 16px 48px; max-width:100%; }
-  .section-title { font-size:1.05rem; margin:20px 0 10px; }
-  .kpi-grid { grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
-  .kpi-card { padding:12px 14px; }
-  .kpi-value { font-size:1.3rem; word-break:break-word; }
-  .kpi-label { font-size:.63rem; }
-  .kpi-sub { font-size:.65rem; word-break:break-word; }
-  .card-grid { grid-template-columns:1fr!important; gap:14px; margin-bottom:16px; }
-  .card-grid.cols-3 { grid-template-columns:1fr!important; }
-  .card { padding:16px; overflow-x:auto; }
-  .card-title { font-size:.8rem; flex-wrap:wrap; }
-  .chart-container { min-height:220px; }
-  table { font-size:.7rem; }
-  th { padding:7px 8px; font-size:.63rem; }
-  td { padding:7px 8px; word-break:break-word; }
-  .stat-visual { grid-template-columns:repeat(2,1fr); gap:8px; }
-  .stat-visual-item { padding:10px 8px; }
-  .stat-visual-item .sv-value { font-size:.92rem; }
-  .stat-visual-item .sv-label { font-size:.6rem; }
-  .stat-visual-item .sv-narrative { font-size:.62rem; }
-  .narrative-box { padding:12px 14px; font-size:.75rem; word-break:break-word; overflow-wrap:break-word; }
-  .narrative-box .narrative-label { font-size:.58rem; }
-  .flow-row { flex-direction:column; }
-  .flow-arrow { transform:rotate(90deg); padding:4px 0; font-size:.9rem; }
-  .flow-step { min-width:unset; width:100%; padding:10px; }
-  .flow-step h5 { font-size:.72rem; }
-  .flow-step p { font-size:.64rem; }
-  .player-card { flex-direction:column; gap:8px; }
-  .player-logo { width:36px; height:36px; font-size:.7rem; }
-  .player-info h4 { font-size:.8rem; }
-  .player-info p { font-size:.7rem; word-break:break-word; }
-  .player-stat { font-size:.62rem; padding:2px 6px; }
-  .info-box { padding:12px 14px; }
-  .info-box p { font-size:.75rem; }
-  .metric-strip { gap:6px; }
-  .metric-pill { padding:4px 10px; font-size:.66rem; }
-  .source { font-size:.6rem; }
-  .timeline { padding-left:20px; }
-  .timeline-item .desc { font-size:.72rem; }
-}
-@media(max-width:500px) {
-  .kpi-grid { grid-template-columns:1fr 1fr; gap:8px; }
-  .kpi-card { padding:10px 12px; }
-  .kpi-value { font-size:1.05rem; }
-  .kpi-label { font-size:.58rem; }
-  .kpi-sub { font-size:.58rem; }
-  .kpi-badge { font-size:.52rem; padding:1px 4px; margin-left:2px; display:block; margin-top:2px; }
-  .stat-visual { grid-template-columns:1fr; }
-  .card { padding:12px; }
-  .card-title { font-size:.74rem; gap:5px; }
-  .chart-container { min-height:170px; }
-  table { font-size:.6rem; }
-  th { padding:5px 4px; font-size:.55rem; letter-spacing:0; white-space:normal; }
-  td { padding:5px 4px; font-size:.58rem; }
-  .narrative-box { padding:10px 12px; font-size:.7rem; line-height:1.5; }
-  .section-title { font-size:.92rem; }
-  .subtab { padding:5px 10px; font-size:.64rem; }
-  .tab-header { padding:14px 12px 0; }
-  .tab-header h2 { font-size:1.05rem; }
-  .tab-header p { font-size:.68rem; max-width:100%; }
-  .flow-step { padding:8px; }
-  .flow-step .step-num { width:20px; height:20px; font-size:.58rem; line-height:20px; }
-  .flow-step h5 { font-size:.68rem; }
-  .flow-step p { font-size:.6rem; }
-  .flow-step div[style*="font-size:.62rem"] { font-size:.56rem!important; }
-  .player-info p { font-size:.66rem; }
-  .content { padding:10px 12px 40px; }
-}
-@media(max-width:380px) {
-  .kpi-grid { grid-template-columns:1fr; gap:6px; }
-  .kpi-value { font-size:.95rem; }
-  .tab-header h2 { font-size:.95rem; }
-  .subtab { padding:4px 8px; font-size:.6rem; }
-  .chart-container { min-height:150px; }
-  th { font-size:.5rem; }
-  td { font-size:.54rem; }
-}
-
-/* SCROLLBAR */
-::-webkit-scrollbar { width:6px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-
-/* FLOW DIAGRAM */
-.flow-row { display:flex; gap:0; align-items:stretch; flex-wrap:wrap; margin:8px 0; }
+/* ===== Diagrama de fluxo ===== */
+.flow-row { display: flex; gap: 0; align-items: stretch; flex-wrap: wrap; margin: 10px 0; }
 .flow-step {
-  flex:1; min-width:120px; background:var(--bg); border:1px solid var(--border);
-  border-radius:var(--radius); padding:14px 12px; text-align:center; position:relative;
+  flex: 1; min-width: 120px; background: var(--bg-card-soft); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 12px; text-align: center; position: relative;
 }
 .flow-step .step-num {
-  display:inline-block; width:24px; height:24px; border-radius:50%; background:var(--accent);
-  color:#fff; font-size:.7rem; font-weight:700; line-height:24px; margin-bottom:6px;
+  display: inline-block; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 11px; font-weight: 700; line-height: 24px; margin-bottom: 6px;
 }
-.flow-step .step-num.orange { background:var(--accent3); }
-.flow-step .step-num.green { background:var(--green); }
-.flow-step .step-num.teal { background:var(--teal-dark); }
-.flow-step h5 { font-size:.76rem; color:var(--text); margin-bottom:3px; }
-.flow-step p { font-size:.68rem; color:var(--text-secondary); line-height:1.4; }
+.flow-step .step-num.orange { background: var(--accent3); }
+.flow-step .step-num.green { background: var(--green); }
+.flow-step .step-num.teal { background: var(--teal-dark); }
+.flow-step h5 { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.flow-step p { font-size: 11px; color: var(--text-secondary); line-height: 1.45; }
 .flow-arrow {
-  display:flex; align-items:center; justify-content:center; padding:0 4px; color:var(--accent3);
-  font-size:1.1rem; flex-shrink:0;
+  display: flex; align-items: center; justify-content: center; padding: 0 5px;
+  color: var(--accent-2); font-size: 16px; flex-shrink: 0;
 }
 
-/* NARRATIVE BOX */
+/* ===== Caixas de narrativa =====
+   Painel de texto corrido: fundo suave e rotulo colorido, sem a barra lateral
+   colorida — bull/bear se distinguem pelo tom do painel e pela cor do rotulo. */
 .narrative-box {
-  background:linear-gradient(135deg, rgba(0,45,92,.03), rgba(239,118,34,.03));
-  border-left:4px solid var(--accent3); border-radius:0 var(--radius) var(--radius) 0;
-  padding:14px 18px; margin:12px 0; font-size:.8rem; color:var(--text-secondary); line-height:1.65;
+  background: var(--bg-card-soft); border: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-radius: 10px; padding: 13px 16px; margin: 12px 0;
+  font-size: 12.5px; color: var(--text-secondary); line-height: 1.65;
 }
-[data-theme="dark"] .narrative-box { background:linear-gradient(135deg, rgba(0,45,92,.12), rgba(239,118,34,.06)); }
 .narrative-box .narrative-label {
-  display:inline-block; font-size:.62rem; text-transform:uppercase; letter-spacing:.8px;
-  font-weight:700; color:var(--accent3); margin-bottom:4px;
+  display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+  font-weight: 700; color: var(--accent-1); margin-bottom: 4px;
 }
-.narrative-box.bull { border-left-color:var(--green); }
-.narrative-box.bull .narrative-label { color:var(--green); }
-.narrative-box.bear { border-left-color:var(--orange); }
-.narrative-box.bear .narrative-label { color:var(--orange); }
+.narrative-box strong { color: var(--ink); }
+.narrative-box.bull { background: var(--green-light); border-color: rgba(46,125,79,.22); }
+.narrative-box.bull .narrative-label { color: var(--green); }
+.narrative-box.bear { background: var(--orange-light); border-color: rgba(197,90,23,.22); }
+.narrative-box.bear .narrative-label { color: var(--orange); }
+[data-theme="dark"] .narrative-box { background: var(--bg-card-soft); }
+[data-theme="dark"] .narrative-box.bull { background: var(--green-light); }
+[data-theme="dark"] .narrative-box.bear { background: var(--orange-light); }
 
-/* METRIC STRIP */
-.metric-strip { display:flex; gap:12px; flex-wrap:wrap; margin:10px 0; }
+/* ===== Faixa de metricas ===== */
+.metric-strip { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
 .metric-pill {
-  display:flex; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--border);
-  border-radius:20px; padding:6px 14px; font-size:.72rem;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-card-soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; font-size: 11.5px; color: var(--text-secondary);
 }
-.metric-pill .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.metric-pill strong { color:var(--text); }
+.metric-pill .dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.metric-pill strong { color: var(--ink); font-weight: 700; }
 
-/* VISUAL STAT GRID */
-.stat-visual {
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
-  gap:10px; margin:10px 0;
-}
+/* ===== Grade de estatisticas ===== */
+.stat-visual { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
 .stat-visual-item {
-  background:var(--bg); border:1px solid var(--border); border-radius:8px;
-  padding:12px; text-align:center;
+  background: var(--bg-card-soft); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px; text-align: center;
 }
-.stat-visual-item .sv-icon { font-size:1.4rem; margin-bottom:4px; }
-.stat-visual-item .sv-value { font-family:var(--font-display); font-size:1.1rem; color:var(--text); }
-.stat-visual-item .sv-label { font-size:.66rem; color:var(--text-muted); margin-top:2px; text-transform:uppercase; letter-spacing:.4px; }
-.stat-visual-item .sv-narrative { font-size:.68rem; color:var(--text-secondary); margin-top:4px; line-height:1.4; font-style:italic; }
+.stat-visual-item .sv-icon { font-size: 20px; margin-bottom: 4px; }
+.stat-visual-item .sv-value { font-family: var(--font-display); font-size: 17px; font-weight: 800; letter-spacing: -.3px; color: var(--ink); }
+.stat-visual-item .sv-label {
+  font-size: 9.5px; color: var(--text-secondary); margin-top: 3px;
+  text-transform: uppercase; letter-spacing: .05em; font-weight: 700;
+}
+.stat-visual-item .sv-narrative { font-size: 11px; color: var(--text-secondary); margin-top: 5px; line-height: 1.45; font-style: normal; }
 
-/* PLAYER CARDS */
-.player-card { display:flex; gap:14px; align-items:flex-start; }
-.player-logo { width:48px; height:48px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.8rem; flex-shrink:0; }
-.player-info h4 { font-size:.85rem; color:var(--text); margin-bottom:2px; }
-.player-info p { font-size:.74rem; color:var(--text-secondary); line-height:1.5; }
-.player-stat { display:inline-block; background:var(--bg); padding:2px 8px; border-radius:4px; font-size:.68rem; font-weight:600; color:var(--accent2); margin:3px 3px 0 0; border:1px solid var(--border); }
+/* ===== Cards de player ===== */
+.player-card { display: flex; gap: 13px; align-items: flex-start; }
+.player-logo {
+  width: 42px; height: 42px; border-radius: 10px; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 12px; letter-spacing: -.2px; flex-shrink: 0;
+}
+.player-info h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.player-info p { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+.player-stat {
+  display: inline-block; background: var(--chip); padding: 2px 8px; border-radius: 6px;
+  font-size: 10.5px; font-weight: 700; color: var(--accent-1);
+  margin: 4px 4px 0 0; border: 1px solid var(--line);
+}
 
-/* INFO BOX */
+/* ===== Info box ===== */
 .info-box {
-  background:linear-gradient(135deg, rgba(0,45,92,.04), rgba(168,210,187,.06));
-  border:1px solid var(--accent4); border-radius:var(--radius); padding:16px 18px;
-  margin-bottom:18px;
+  background: var(--bg-card-soft); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
 }
-[data-theme="dark"] .info-box { background:linear-gradient(135deg, rgba(0,45,92,.15), rgba(168,210,187,.08)); }
-.info-box p { font-size:.82rem; color:var(--text-secondary); line-height:1.65; }
-.info-box strong { color:var(--text); }
+[data-theme="dark"] .info-box { background: var(--bg-card-soft); }
+.info-box p { font-size: 12.5px; color: var(--text-secondary); line-height: 1.65; }
+.info-box strong { color: var(--ink); }
 
-/* TAGS */
-.tag { display:inline-block; font-size:.65rem; font-weight:600; padding:3px 8px; border-radius:4px; margin:2px; }
-.tag.navy { background:rgba(0,45,92,.08); color:var(--accent); }
-.tag.orange { background:rgba(239,118,34,.1); color:var(--accent3); }
-.tag.green { background:rgba(119,162,138,.12); color:var(--teal-dark); }
+/* ===== Tags ===== */
+.tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 6px; margin: 2px; border: 1px solid transparent;
+}
+.tag.navy { background: var(--accent-light); color: var(--accent); border-color: rgba(31,59,87,.18); }
+.tag.orange { background: var(--accent3-light); color: var(--accent3); border-color: rgba(197,90,23,.22); }
+.tag.green { background: var(--green-light); color: var(--green); border-color: rgba(46,125,79,.22); }
 
-/* TIMELINE */
-.timeline { position:relative; padding-left:24px; }
-.timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:var(--border); }
-.timeline-item { position:relative; margin-bottom:18px; }
-.timeline-item::before { content:''; position:absolute; left:-20px; top:4px; width:12px; height:12px; border-radius:50%; background:var(--accent3); border:2px solid var(--bg-card); }
-.timeline-item .date { font-size:.68rem; color:var(--accent3); font-weight:700; }
-.timeline-item .desc { font-size:.78rem; color:var(--text-secondary); margin-top:2px; line-height:1.5; }
-.timeline-item .amount { font-weight:700; color:var(--text); }
+/* ===== Timeline ===== */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--line); border-radius: 2px; }
+.timeline-item { position: relative; margin-bottom: 16px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -20px; top: 4px;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--bg-card);
+}
+.timeline-item .date { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent-1); }
+.timeline-item .desc { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; line-height: 1.55; }
+.timeline-item .amount { font-weight: 700; color: var(--ink); }
+
+/* ===== Responsivo ===== */
+@media (max-width: 1024px) {
+  .card-grid, .card-grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .app-header .hsub { display: none; }
+  .htitle { font-size: 14px; }
+  .hwrap { padding: 9px 14px; gap: 10px; }
+  .logo img { height: 22px; }
+
+  /* A sidebar passa a flutuar sobre o conteudo. */
+  .sidebar {
+    position: fixed; left: 0; top: var(--hh, 64px); z-index: 600;
+    width: var(--sidebar-width); padding: 8px 8px 26px;
+    height: calc(100vh - var(--hh, 64px)); max-height: none; min-height: 0;
+    transform: translateX(-100%);
+    box-shadow: 3px 0 16px rgba(19,32,46,.14);
+    transition: transform .25s ease;
+  }
+  .sidebar.closed { width: var(--sidebar-width); padding: 8px 8px 26px; }
+  .sidebar.open { transform: translateX(0); }
+
+  .topbar { padding: 9px 14px; }
+  .topbar-title { font-size: 12.5px; }
+  .tab-header { padding: 14px 14px 0; overflow: hidden; }
+  .tab-header p { font-size: 11px; max-width: 100%; }
+  .subtab-bar { padding: 0 14px; gap: 2px; flex-wrap: nowrap; overflow-x: auto; }
+  .subtab { padding: 8px 9px; font-size: 11.5px; flex-shrink: 0; }
+  .content { padding: 14px 14px 44px; max-width: 100%; }
+  .section-title { margin: 20px 0 10px; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .kpi-card { padding: 13px 13px 11px; }
+  .kpi-value { font-size: 17px; word-break: break-word; }
+  .kpi-sub { font-size: 11px; word-break: break-word; }
+  .card-grid, .card-grid.cols-3 { grid-template-columns: minmax(0, 1fr) !important; gap: 12px; margin-bottom: 16px; }
+  .card { padding: 14px; overflow-x: auto; }
+  .card-title { font-size: 13px; flex-wrap: wrap; }
+  .chart-container { min-height: 220px; }
+  table { font-size: 11.5px; }
+  th { padding: 6px 8px; font-size: 9.5px; }
+  td { padding: 6px 8px; word-break: break-word; }
+  .stat-visual { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .stat-visual-item { padding: 10px 8px; }
+  .stat-visual-item .sv-value { font-size: 14px; }
+  .narrative-box { padding: 12px 14px; font-size: 12px; word-break: break-word; overflow-wrap: break-word; }
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); padding: 4px 0; }
+  .flow-step { min-width: unset; width: 100%; padding: 11px; }
+  .player-card { flex-direction: column; gap: 8px; }
+  .player-logo { width: 36px; height: 36px; font-size: 11px; }
+  .metric-pill { padding: 5px 10px; font-size: 11px; }
+  .timeline { padding-left: 20px; }
+}
+@media (max-width: 500px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .kpi-card { padding: 11px 12px; }
+  .kpi-value { font-size: 15px; }
+  .kpi-badge { font-size: 9px; padding: 1px 6px; margin-left: 0; display: block; margin-top: 4px; }
+  .stat-visual { grid-template-columns: minmax(0, 1fr); }
+  .card { padding: 12px; }
+  .chart-container { min-height: 190px; }
+  table { font-size: 10.5px; }
+  th { padding: 5px 6px; font-size: 9px; letter-spacing: 0; white-space: normal; }
+  td { padding: 5px 6px; }
+  .content { padding: 12px 12px 40px; }
+}
+@media (max-width: 380px) {
+  .kpi-grid { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .chart-container { min-height: 160px; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(92,107,122,.28); border-radius: 99px; }
 </style>
 </head>
 <body>
 
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- HEADER FULL-WIDTH (padrao do Painel de Research) -->
+<header class="app-header">
+  <div class="hwrap">
+    <button class="hamburger" onclick="toggleSidebar()" title="Show/hide sections" aria-label="Show/hide sections">&#9776;</button>
+    <div class="logo"><img src="../../../../logos/gbs-logo.jpg" alt="GBS"></div>
+    <span class="hsep"></span>
+    <div class="hbrand">
+      <div class="htitle">Underground Gas Storage &mdash; Market Intelligence</div>
+      <div class="hsub">GBS &middot; An&aacute;lises Setoriais &middot; CEDIGAZ, IEA, EIA, GIE &amp; IGU</div>
+    </div>
+    <div class="hspace"></div>
+    <span class="chip">437 bcm &middot; 681 facilities</span>
+  </div>
+</header>
+
+<div class="layout">
+
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <h1>Underground Gas<br>Storage Dashboard</h1>
-    <div class="subtitle">Market Intelligence Platform</div>
-  </div>
   <nav>
     <div class="nav-group">
       <div class="nav-group-title">Foundations</div>
@@ -465,22 +676,18 @@ tr:hover td { background:rgba(0,45,92,.02); }
     </div>
   </nav>
   <div class="sidebar-footer">
-    Lorinvest — Energy Sector Research<br>
-    Data compiled from CEDIGAZ, IEA, EIA, GIE, IGU & industry filings
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
+    </button>
+    <div>Lorinvest — Energy Sector Research<br>Data compiled from CEDIGAZ, IEA, EIA, GIE, IGU &amp; industry filings</div>
   </div>
 </aside>
-
-<!-- OVERLAY -->
-<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
 <!-- MAIN -->
 <div class="main" id="main">
   <div class="topbar">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <span class="topbar-title" id="topbarTitle">UGS 101 — Sector Primer</span>
-    <button class="theme-toggle" onclick="toggleTheme()">
-      <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
-    </button>
+    <span class="topbar-badge">Working gas 437 bcm</span>
   </div>
 
   <!-- ============================================================ -->
@@ -1081,7 +1288,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
     </div>
 
     <!-- FOOTNOTES -->
-    <div style="margin:0 28px 20px;padding:16px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border);font-size:.72rem;color:var(--text-secondary);line-height:1.8;">
+    <div style="margin:0 28px 20px;padding:16px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);font-size:.72rem;color:var(--text-secondary);line-height:1.8;">
       <strong>Unit Conversion Notes:</strong><br>
       ¹ <strong>MMBtu</strong> = Million British Thermal Units. 1 MMBtu ≈ 1,000 cubic feet (Mcf).<br>
       ² <strong>€/MWh → $/MMBtu:</strong> (€ price ÷ 3.412) × EUR/USD. At €50/MWh, 1.04: ≈ <strong>$15.22/MMBtu</strong>. At €30: ~$9.14. At €12: ~$3.65.<br>
@@ -1192,7 +1399,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
             <div class="card-title"><span class="icon">🚨</span> No-Notice — "The Insurance Premium"</div>
             <p style="font-size:.78rem;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">Right to inject or withdraw <strong>at any time without prior nomination or penalty</strong>. Operator must maintain dedicated standby inventory and deliverability at all times — an expensive obligation that justifies the premium.</p>
             <div class="stat-visual">
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">1.5–3×</div>
                 <div class="sv-label">Premium Over Firm</div>
                 <div class="sv-narrative">Highest $/unit service in the entire storage market</div>
@@ -4251,8 +4458,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <p>Castor offshore UGS built off Vinaròs coast (Mediterranean). Depleted Amposta oil field. Developer: Escal UGS. Concession guaranteed compensation if project failed.</p>
               </div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">2013</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">2013</div>
                 <h5>Earthquakes</h5>
                 <p>Hundreds of seismic events (up to 4.1 Richter) caused by gas injection. Operations halted permanently. EU Parliament passed motion for area compensation.</p>
               </div>
@@ -6739,7 +6946,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <div class="sv-label">of EU imports (H1 2025)</div>
                 <div class="sv-narrative">Up from 23% in H1 2021; EU LNG regas capacity now 3× projected 2030 demand (IEEFA)</div>
               </div>
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">€381 Bn</div>
                 <div class="sv-label">Spent on Pipeline Imports</div>
                 <div class="sv-narrative">Since Jan 2022: €176B Norway, €83B Russia, €49B Algeria, €40B UK, €29B Azerbaijan (IEEFA)</div>
@@ -7214,20 +7421,20 @@ tr:hover td { background:rgba(0,45,92,.02); }
           <div class="card">
             <div class="card-title"><span class="icon">⚠️</span> What Must Change for Storage to Gain Market Value</div>
             <div class="flow-row">
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">1</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">1</div>
                 <h5>TPA Enforcement</h5>
                 <p><strong>Problem:</strong> TPA mandated since 2014 but "NOCs' reluctance to share infrastructure with competitors and claimed lack of spare capacity led to lack of progress" (Oxford). <strong>Required:</strong> Enforceable TPA rules with penalties. NEA needs real enforcement power.</p>
               </div>
               <div class="flow-arrow">+</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">2</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">2</div>
                 <h5>Price Liberalization</h5>
                 <p><strong>Problem:</strong> City-gate price cap prevents market-clearing prices. No S-W spread to arbitrage. NDRC's Liu Manping: "if Beijing abolished price controls without midstream reforms, there wouldn't be enough suppliers to form competitive prices." <strong>Required:</strong> Hub-based pricing (Shanghai exchange).</p>
               </div>
               <div class="flow-arrow">+</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">3</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">3</div>
                 <h5>NOC Dominance</h5>
                 <p><strong>Problem:</strong> CNPC/PetroChina controls ~85% of UGS. PipeChina controls pipelines but NOCs retain upstream + storage. Private/foreign entry exists legally but not practically. <strong>Required:</strong> Operational separation of storage from production; competitive storage auctions.</p>
               </div>
@@ -7277,8 +7484,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
           <div class="card">
             <div class="card-title"><span class="icon">📉</span> 2025: Fading Seasonality & Structural Shift</div>
             <div class="flow-row">
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">↓</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">↓</div>
                 <h5>LNG Imports −20%</h5>
                 <p>H1 2025 (steepest since 2022 crisis). Q1: −25%. Chinese buyers resold contract volumes to Europe.</p>
               </div>
@@ -7301,7 +7508,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <div class="sv-label">Self-Sufficiency (2025)</div>
                 <div class="sv-narrative">Above 55% for 5th straight year. Seven-Year Action Plan concluded. Upstream capex sustained</div>
               </div>
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">Gas-to-Coal Switching</div>
                 <div class="sv-label">Price-Induced Demand Loss</div>
                 <div class="sv-narrative">High LNG prices in H1 2025 triggered coal substitution in industrial + power sectors — China's "balancing role" in global gas</div>
@@ -7596,8 +7803,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
         <div class="card">
           <div class="card-title"><span class="icon">🎯</span> Russia vs Ukraine vs Kazakhstan — Three Assets, Three Narratives</div>
           <div class="flow-row">
-            <div class="flow-step" style="border-color:#c0392b;">
-              <div class="step-num" style="background:#c0392b;">RU</div>
+            <div class="flow-step" style="border-color:#E23A2E;">
+              <div class="step-num" style="background:#E23A2E;">RU</div>
               <h5>Russia: Strategic Weapon</h5>
               <p>76 bcm Gazprom monopoly. Integrated into UGSS. Storage = geopolitical leverage, not commercial asset. Sanctions bar Western investment.</p>
             </div>
@@ -7637,7 +7844,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
             </tbody>
           </table></div>
           <div class="stat-visual">
-            <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+            <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
               <div class="sv-value">73.034 bcm</div>
               <div class="sv-label">2024-25 Winter Reserve (Record)</div>
               <div class="sv-narrative">"High level of reserves allows Gazprom to successfully cope with seasonal fluctuations. During sharp cold snaps, the company can quickly increase gas supplies" — Gazprom</div>
@@ -7736,7 +7943,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <div class="sv-label">Bilche-Volytsko-Uherske</div>
                 <div class="sv-narrative">55% of Ukraine's total capacity in a single facility. Located in Lviv — near Poland/Slovakia borders and far from frontline. EU-facing strategic asset</div>
               </div>
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">2.5 bcm → ~0</div>
                 <div class="sv-label">Foreign Trader Volumes Collapsed</div>
                 <div class="sv-narrative">2023: 2.5 bcm stored by foreigners. 2024: "ten times less" (Naftogaz CEO). Russian attacks damaged reputation — not the gas itself</div>
@@ -7794,8 +8001,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
           <div class="card">
             <div class="card-title"><span class="icon">🎯</span> Three Regulatory Regimes, Three Value Implications</div>
             <div class="flow-row">
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">RU</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">RU</div>
                 <h5>Russia: Closed System</h5>
                 <p>Gazprom UGSS monopoly. No independent regulator. No TPA. No market pricing. Storage = internal cost center. Sanctions bar Western access.</p>
               </div>
@@ -7910,8 +8117,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <p>Cold winter. Electricity companies + oil industry + housing/utilities + agriculture (gasification programs). All-time high consumption.</p>
               </div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">↓EU</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">↓EU</div>
                 <h5>Export Collapse</h5>
                 <p>EU: 157→54 bcm (−66%). TurkStream sole pipe. EU ban by 2027. Pivot: China (30→38 bcm), Uzbekistan (5.6 bcm), LNG (~40 bcm).</p>
               </div>
@@ -7922,7 +8129,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <div class="sv-label">Gazprom Domestic Growth Forecast</div>
                 <div class="sv-narrative">Regional gasification programs + CNG expansion (464+ stations). Power sector stable. Housing/utilities growing</div>
               </div>
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">~100 bcm Stranded</div>
                 <div class="sv-label">Lost EU Export Capacity</div>
                 <div class="sv-narrative">EU imports fell by ~103 bcm (2021→2024). Not fully replaced by China/CA/LNG. Surplus = flaring + shut-in + storage cycling</div>
@@ -7970,8 +8177,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <p>EU: 157 bcm (pipeline + LNG). China: 16 bcm. Turkey: 27 bcm. CIS/Other: ~40 bcm.</p>
               </div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">2025</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">2025</div>
                 <h5>Collapsed: ~135 bcm</h5>
                 <p>EU: 33 bcm (−79%). China: 39 bcm. Turkey: 21 bcm. Uzbekistan: 7.7 bcm. LNG: ~35 bcm. Transit halted.</p>
               </div>
@@ -8027,7 +8234,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <tr><td><strong>Domestic Production</strong></td><td>18.5</td><td>18.7</td><td>19.1</td><td>~19</td><td>~20–25 (reconstruction + PSAs)</td></tr>
                 <tr><td><strong>Domestic Consumption</strong></td><td>~25</td><td>~22</td><td>~20</td><td>~19</td><td>~25–30 (industrial recovery)</td></tr>
                 <tr><td><strong>Net Import Need</strong></td><td>~7</td><td>~3</td><td>~1</td><td>~0</td><td>~5–10 (reverse flow from EU)</td></tr>
-                <tr><td><strong>Transit Volumes</strong></td><td>~16</td><td>~16</td><td>~16</td><td style="font-weight:700;color:#c0392b;">0</td><td>~0 (unless new transit deal)</td></tr>
+                <tr><td><strong>Transit Volumes</strong></td><td>~16</td><td>~16</td><td>~16</td><td style="font-weight:700;color:#E23A2E;">0</td><td>~0 (unless new transit deal)</td></tr>
                 <tr><td><strong>UGS Capacity</strong></td><td>31</td><td>31</td><td>31</td><td>31</td><td>31 (expandable to ~35 with modernization)</td></tr>
                 <tr><td><strong>UGS Working Gas (end winter)</strong></td><td>~10</td><td>~9</td><td>~7.8</td><td>~4-5</td><td>Target: 15-20 (EU + domestic)</td></tr>
                 <tr><td><strong>Foreign Trader Gas in UA Storage</strong></td><td>~3</td><td>2.5</td><td>~0.3</td><td>~1</td><td>Target: 5-10 bcm</td></tr>
@@ -8105,7 +8312,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
               </tbody>
             </table></div>
             <div class="stat-visual">
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">28 bcm Flared</div>
                 <div class="sv-label">Russia = 19% of Global Flaring</div>
                 <div class="sv-narrative">More flaring than any other country; increased after EU export loss eliminated demand for processed associated gas</div>
@@ -8398,8 +8605,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
           <div class="card">
             <div class="card-title"><span class="icon">🇮🇳</span> What India Needs Before UGS Becomes Investable</div>
             <div class="flow-row">
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">1</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">1</div>
                 <h5>UGS Regulation</h5>
                 <p>PNGRB must develop UGS-specific licensing, tariff methodology, and TPA framework. Currently nonexistent. 2-3 year process.</p>
               </div>
@@ -8485,7 +8692,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <div class="sv-label">IEA Import Projection</div>
                 <div class="sv-narrative">More than double 2023 levels. Gap between contracted supply and demand widens significantly after 2028</div>
               </div>
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">Price Sensitivity Risk</div>
                 <div class="sv-label">Demand Drops 17% on Spot Spikes</div>
                 <div class="sv-narrative">2022: LNG imports −17% when spot hit $84/MMBtu. Recovery only +9% (2023). Infrastructure expansion ≠ guaranteed consumption (IEEFA)</div>
@@ -8542,8 +8749,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <p>APAC ex-China consumes >400 bcm/yr. Growing ~3-4% annually outside Japan. India alone reaches 103 bcm by 2030.</p>
               </div>
               <div class="flow-arrow">vs</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">~15</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">~15</div>
                 <h5>Storage (bcm)</h5>
                 <p>Iran 9 + Australia 2 + Japan 1 + Saudi 0.5 + others ≈ 0. Ratio: <2% outside Iran (vs 26% EU, 15% US).</p>
               </div>
@@ -8569,7 +8776,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
               <thead><tr><th>Country</th><th>2024 Demand (bcm)</th><th>2030E Demand</th><th>Domestic Production</th><th>Import Dependency</th><th>UGS Capacity</th><th>Storage/Demand</th><th>UGS Gap to 10%</th></tr></thead>
               <tbody>
                 <tr><td><strong>Japan</strong></td><td>~92</td><td>~85 (declining)</td><td>~3</td><td>97%</td><td>~1</td><td>1.1%</td><td>~8 bcm (but geology limits + declining demand = low priority)</td></tr>
-                <tr><td><strong>India</strong></td><td>~72</td><td>~103</td><td>~35</td><td>~50% (→65% by 2030)</td><td>0</td><td style="font-weight:700;color:#c0392b;">0%</td><td style="font-weight:700;">~10 bcm (largest greenfield opportunity globally)</td></tr>
+                <tr><td><strong>India</strong></td><td>~72</td><td>~103</td><td>~35</td><td>~50% (→65% by 2030)</td><td>0</td><td style="font-weight:700;color:#E23A2E;">0%</td><td style="font-weight:700;">~10 bcm (largest greenfield opportunity globally)</td></tr>
                 <tr><td><strong>South Korea</strong></td><td>~56</td><td>~52 (flat/declining)</td><td>~1</td><td>98%</td><td>0</td><td>0%</td><td>No suitable geology; LNG terminal = only option</td></tr>
                 <tr><td><strong>Australia</strong></td><td>~45</td><td>~48</td><td>~150 (net exporter)</td><td>Net exporter</td><td>~2</td><td>4.4%</td><td>~3 bcm (brownfield Iona expansion + eastern gas market)</td></tr>
                 <tr><td><strong>Iran</strong></td><td>~270</td><td>~290</td><td>~260</td><td>~4% (small import)</td><td>~9</td><td>3.3%</td><td>~18 bcm (sanctions prevent development)</td></tr>
@@ -8605,7 +8812,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <div class="sv-label">"Sweet Spot" for Storage Investment</div>
                 <div class="sv-narrative">High enough that seasonal/spot avoidance justifies storage capex. Low enough that gas demand grows. Most analysts' base case for 2026-2028</div>
               </div>
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">Post-2030 Tightening</div>
                 <div class="sv-label">IEA Warning</div>
                 <div class="sv-narrative">"Prolonged low prices could reduce incentive for new LNG FIDs → potential market tightening post-2030." Storage built now captures future scarcity premium</div>
@@ -8999,20 +9206,20 @@ tr:hover td { background:rgba(0,45,92,.02); }
           <div class="card">
             <div class="card-title"><span class="icon">⚠️</span> Three Unresolved Issues for Storage</div>
             <div class="flow-row">
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">1</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">1</div>
                 <h5>UGS-Specific Rules</h5>
                 <p>New Gas Law enables storage but ANP hasn't codified: licensing process, tariff methodology, storage TPA rules, or quality/safety standards for UGS operations.</p>
               </div>
               <div class="flow-arrow">+</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">2</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">2</div>
                 <h5>Flexibility Pricing</h5>
                 <p>GT Serviços: "lack of gas backup is the main barrier to unlocking the market." Petrobras must offer flexibility services (CNPE 16/2019) but pricing mechanism for flexibility/balancing not defined.</p>
               </div>
               <div class="flow-arrow">+</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">3</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">3</div>
                 <h5>Transport Availability</h5>
                 <p>Petrobras retained long-term transport contracts despite TAG/NTS sale. "Even though new owners offered capacity, transport availability was relatively small" (ScienceDirect).</p>
               </div>
@@ -9054,8 +9261,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <p>ONS dispatches gas-fired plants at full capacity. 19 GW contracted in Mar 2026 LRCAP. GNA II alone: +6 MMm³/d. Gas demand surges 30-50%.</p>
               </div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">3</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">3</div>
                 <h5>LNG Spike</h5>
                 <p>Domestic supply can't flex fast enough. Petrobras buys LNG spot ($15-25/MMBtu). 2021: LNG imports surged from 0.2→0.9 Bcf/d (4.5× above average).</p>
               </div>
@@ -9096,7 +9303,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
           <div class="card">
             <div class="card-title"><span class="icon">⚠️</span> Reservoir Levels at Critical Threshold</div>
             <div class="stat-visual">
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">45% National / 42% SE</div>
                 <div class="sv-label">Reservoir Levels (End 2025)</div>
                 <div class="sv-narrative">If 2026 dry season inflows drop to 55% of long-term average = lowest in ~100 years. Below 40% = "severe strain, thermal at full capacity, stricter water conservation"</div>
@@ -9143,8 +9350,8 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <p>Jan 2026 (+20% YoY). Pre-salt ~80%. Rising: Búzios P-78/P-79, Mero-4, new FPSOs. Oil forecast 4.4 Mb/d by 2034 → more associated gas.</p>
               </div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step" style="border-color:#c0392b;">
-                <div class="step-num" style="background:#c0392b;">~85</div>
+              <div class="flow-step" style="border-color:#E23A2E;">
+                <div class="step-num" style="background:#E23A2E;">~85</div>
                 <h5>Reinjected (~44%)</h5>
                 <p>CO₂ content 5-45%. EOR necessity. Infrastructure gaps. Lula decree (Aug 2024) capping at new wells. Declining % but rising absolute volume.</p>
               </div>
@@ -9184,7 +9391,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
                 <tr style="background:rgba(119,162,138,.03);"><td><strong>Total Supply</strong></td><td><strong>~65-75</strong></td><td><strong>~75-85</strong></td><td><strong>~85-110</strong></td><td>Wide range reflects hydrology + LNG. Domestic growing; Bolivia falling; LNG elastic</td></tr>
                 <tr style="background:rgba(239,118,34,.06);"><td><strong>Normal Demand</strong></td><td>~75 avg</td><td>~80-85</td><td>~90-100</td><td>Industry + CGD + normal thermal dispatch. Growing steadily at 4-5%/yr</td></tr>
                 <tr style="background:rgba(192,57,43,.08);"><td><strong>Peak Demand (Drought)</strong></td><td>~90-100</td><td>~95-110</td><td>~110-130</td><td>19 GW LRCAP + existing thermal fleet at full dispatch + industrial. Exceeds marketed domestic by 30-50 MMm³/d</td></tr>
-                <tr style="background:rgba(0,45,92,.08);"><td><strong>UGS Capacity</strong></td><td style="font-weight:700;color:#c0392b;">0</td><td style="font-weight:700;color:#c0392b;">0</td><td>~1-3 bcm target</td><td>First facility under construction (Recôncavo). 3-5 bcm by 2035 could eliminate 50%+ of LNG spot need during droughts</td></tr>
+                <tr style="background:rgba(0,45,92,.08);"><td><strong>UGS Capacity</strong></td><td style="font-weight:700;color:#E23A2E;">0</td><td style="font-weight:700;color:#E23A2E;">0</td><td>~1-3 bcm target</td><td>First facility under construction (Recôncavo). 3-5 bcm by 2035 could eliminate 50%+ of LNG spot need during droughts</td></tr>
               </tbody>
             </table></div>
           </div>
@@ -9274,7 +9481,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
               <thead><tr><th>Component</th><th>Volume (MMm³/d)</th><th>% of Gross</th><th>Detail</th></tr></thead>
               <tbody>
                 <tr style="background:rgba(0,45,92,.03);"><td><strong>Gross Production</strong></td><td style="font-weight:700;">~158</td><td>100%</td><td>Nov 2024 (ANP). Offshore = 84.3% of gas. Pre-salt = ~80% of total. Petrobras = 89.4% of production</td></tr>
-                <tr><td><strong>Reinjection</strong></td><td style="font-weight:700;">~70–80</td><td style="font-weight:700;color:#c0392b;">~45–50%</td><td>🔴 <strong>World's highest major-producer rate.</strong> Santos Pre-salt: CO₂ content 5–45%; EOR required; infrastructure gaps. Búzios, Mero, Atapu, Sépia, Lapa >80% reinjected. Solimões: Urucu 49%, Leste de Urucu 64%. "More than 50% of national rich gas is being reinjected due to lack of infrastructure" (GT Gás)</td></tr>
+                <tr><td><strong>Reinjection</strong></td><td style="font-weight:700;">~70–80</td><td style="font-weight:700;color:#E23A2E;">~45–50%</td><td>🔴 <strong>World's highest major-producer rate.</strong> Santos Pre-salt: CO₂ content 5–45%; EOR required; infrastructure gaps. Búzios, Mero, Atapu, Sépia, Lapa >80% reinjected. Solimões: Urucu 49%, Leste de Urucu 64%. "More than 50% of national rich gas is being reinjected due to lack of infrastructure" (GT Gás)</td></tr>
                 <tr><td><strong>Burn (Flaring)</strong></td><td>~6.2</td><td>~4%</td><td>Nov 2024: 6.21 MMm³/d (+73% MoM, +69% YoY). Flaring increased as new FPSOs ramp up ahead of processing capacity</td></tr>
                 <tr><td><strong>E&P Own Consumption + Losses</strong></td><td>~8–10</td><td>~5–6%</td><td>Compression, processing, pipeline fuel on offshore platforms</td></tr>
                 <tr style="background:rgba(119,162,138,.03);"><td><strong>= Marketed / Available</strong></td><td style="font-weight:700;">~48–51</td><td style="font-weight:700;">~30–32%</td><td>What actually reaches the onshore pipeline system. Only ~⅓ of produced gas is marketed</td></tr>
@@ -9289,7 +9496,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
               </tbody>
             </table></div>
             <div class="stat-visual">
-              <div class="stat-visual-item" style="border-left:3px solid #c0392b;">
+              <div class="stat-visual-item" style="border-left:3px solid #E23A2E;">
                 <div class="sv-value">45–50% Reinjected</div>
                 <div class="sv-label">The Infrastructure Gap</div>
                 <div class="sv-narrative">More gas goes back underground than reaches consumers. Lack of offshore evacuation pipelines + processing units = Brazil reinjects gas it could sell</div>
@@ -9621,6 +9828,7 @@ tr:hover td { background:rgba(0,45,92,.02); }
   </div>
 
 </div><!-- /main -->
+</div><!-- /layout -->
 
 <script>
 // ===== NAVIGATION =====
@@ -9692,10 +9900,10 @@ let chartInstances = {};
 function getColors() {
   const cs = getComputedStyle(document.documentElement);
   return {
-    text: cs.getPropertyValue('--text').trim() || '#1A1A2E',
-    muted: cs.getPropertyValue('--text-muted').trim() || '#8A8CA5',
-    border: cs.getPropertyValue('--border').trim() || '#E2E4EA',
-    grid: cs.getPropertyValue('--border').trim() || '#E2E4EA',
+    text: cs.getPropertyValue('--text').trim() || '#13202E',
+    muted: cs.getPropertyValue('--text-muted').trim() || '#7B8794',
+    border: cs.getPropertyValue('--border').trim() || '#E2E7EE',
+    grid: cs.getPropertyValue('--border').trim() || '#E2E7EE',
     bg: cs.getPropertyValue('--bg-card').trim() || '#FFFFFF'
   };
 }
@@ -9729,7 +9937,7 @@ function mk(id,type,data,options){
 }
 
 function initCharts(ctx) {
-  const P=['#002D5C','#28477E','#EF7622','#C55A17','#77A28A','#A8D2BB','#7F7F7F','#5A9B87','#3B6B8A','#D4956A'];
+  const P=['#1F3B57','#5C7A96','#C55A17','#D6B24A','#2E7D4F','#8FA6BC','#7C8BA0','#4E8385','#6B8299','#E23A2E'];
   // PRIMER
   if(ctx==='primer'||ctx==='all') {
     mk('chartStorageType','doughnut',{
@@ -9990,7 +10198,21 @@ function initCharts(ctx) {
 }
 
 // Initialize on load
+Chart.defaults.font.family = "'DM Sans', system-ui, -apple-system, sans-serif";
 window.addEventListener('DOMContentLoaded', () => { initCharts('primer'); });
+
+// ===== HEADER HEIGHT =====
+// Mantem --hh igual a altura real do header, que e o offset do sticky da
+// sidebar e da topbar. Sem isso elas grudam no lugar errado quando o header
+// quebra em duas linhas.
+(function () {
+  var h = document.querySelector('.app-header');
+  if (!h) return;
+  function setHH() { document.documentElement.style.setProperty('--hh', h.offsetHeight + 'px'); }
+  setHH();
+  window.addEventListener('resize', setHH);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(setHH);
+})();
 </script>
 </body>
 </html>
