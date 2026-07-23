@@ -274,10 +274,10 @@
           {name:"CDGN",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
           {name:"NEOgás",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
           {name:"Eneva Small Scale",role:"GNL/GNC",detail:"Informações detalhadas a incluir."},
-          {name:"Edge",role:"GNL/GNC",href:"gnlink/competidores/compass/index.html",detail:"Informações detalhadas a incluir."}
+          {name:"Edge",role:"GNL/GNC",href:"empresas/gnlink/analises-setoriais/competidores/compass/index.html",detail:"Informações detalhadas a incluir."}
         ]},
         segments:[
-          {dot:"#8A6D3B",title:"Holdings diversificadas",count:"6 players",chips:[{name:"Compass",href:"gnlink/competidores/compass/index.html"},"Cosan","Energisa","J&amp;F","Mitsui","Ultrapar"]},
+          {dot:"#8A6D3B",title:"Holdings diversificadas",count:"6 players",chips:[{name:"Compass",href:"empresas/gnlink/analises-setoriais/competidores/compass/index.html"},"Cosan","Energisa","J&amp;F","Mitsui","Ultrapar"]},
           {dot:"#55677C",title:"Distribuidoras de combustíveis",count:"4 players",chips:["Raízen","Ipiranga","Vibra Energia","Ultracargo"],invest:"Ultrapar · Cosan"},
           {dot:"#C55A17",title:"Distribuidoras de GLP",count:"4 players",chips:["Ultragaz","Copa Energia","Supergasbras","Nacional Gás"],invest:"Ultrapar · Itaúsa · SHV Energy · Edson Queiroz"},
           {dot:"#3D4A5C",title:"Distribuidoras de gás natural",count:"19+ players",regions:[

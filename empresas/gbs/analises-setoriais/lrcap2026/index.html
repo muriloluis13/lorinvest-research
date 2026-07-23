@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LRCAP 2026 — Painel de Inteligência</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F4F1EC;--bg2:#FFFFFF;--bg3:#EDE9E3;--bg4:#E5E0D8;
+  --tx:#1A1714;--tx2:#4A453D;--tx3:#8A857D;
+  --accent:#C05621;--accent2:#D97706;--accent3:#059669;--accent4:#2563EB;
+  --red:#DC2626;--green:#16A34A;--purple:#7C3AED;
+  --border:#D6D0C8;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow2:0 4px 16px rgba(0,0,0,.08);
+  --radius:10px;--radius2:14px;
+  --sidebar-w:272px;
+  --font:'DM Sans',system-ui,sans-serif;
+  --serif:'DM Serif Display',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"]{
+  --bg:#121110;--bg2:#1C1A18;--bg3:#252320;--bg4:#302D29;
+  --tx:#F0ECE6;--tx2:#B8B3AB;--tx3:#7A756D;
+  --border:#3A3733;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow2:0 4px 16px rgba(0,0,0,.4);
+}
+html{font-size:15px;scroll-behavior:smooth;overflow-x:hidden}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--tx);
+  min-height:100vh;overflow-x:hidden;
+  transition:background .25s,color .25s;
+}
+
+/* ═══ LAYOUT via body class ═══ */
+.sidebar{
+  position:fixed;top:0;left:0;z-index:100;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transform:translateX(calc(-1 * var(--sidebar-w)));
+  transition:transform .3s cubic-bezier(.4,0,.2,1),background .25s,border-color .25s;
+  overflow-y:auto;overflow-x:hidden;
+}
+body.sb-open .sidebar{transform:translateX(0)}
+
+.sidebar-toggle{
+  position:fixed;top:16px;left:16px;z-index:200;
+  width:40px;height:40px;border-radius:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:var(--shadow2);
+  transition:left .3s cubic-bezier(.4,0,.2,1),background .25s,border-color .25s;
+}
+body.sb-open .sidebar-toggle{left:calc(var(--sidebar-w) + 16px)}
+.sidebar-toggle:hover{background:var(--accent);border-color:var(--accent)}
+.sidebar-toggle:hover svg{stroke:#fff}
+.sidebar-toggle svg{width:20px;height:20px;stroke:var(--tx2);stroke-width:2;fill:none;transition:stroke .15s}
+
+.overlay{
+  position:fixed;inset:0;z-index:90;
+  background:rgba(0,0,0,.45);backdrop-filter:blur(2px);
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+
+.main{
+  min-height:100vh;
+  padding:28px 32px 60px;
+  margin-left:0;
+  transition:margin-left .3s cubic-bezier(.4,0,.2,1);
+  overflow-x:hidden;
+}
+body.sb-open .main{margin-left:var(--sidebar-w)}
+
+/* ─── SIDEBAR INTERNALS ─── */
+.sidebar-header{padding:22px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-header h1{font-family:var(--serif);font-size:1.25rem;color:var(--accent);line-height:1.25;letter-spacing:-.02em}
+.sidebar-header p{font-size:.72rem;color:var(--tx3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+.sidebar-nav{flex:1;padding:10px 10px 20px}
+.nav-group{margin-bottom:6px}
+.nav-group-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);padding:10px 10px 4px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--tx2);transition:background .15s,color .15s}
+.nav-item:hover{background:var(--bg3);color:var(--tx)}
+.nav-item.active{background:var(--bg3);color:var(--tx);font-weight:600}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.theme-toggle{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--tx3);cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;transition:border-color .15s,color .15s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:15px;height:15px}
+
+/* ─── TABS ─── */
+.tab-content{display:none;overflow-x:hidden}
+.tab-content.active{display:block}
+
+
+/* ─── SECTION ─── */
+.section-header{margin-bottom:24px}
+.section-header h2{font-family:var(--serif);font-size:1.65rem;color:var(--tx);line-height:1.2}
+.section-header p{font-size:.88rem;color:var(--tx2);margin-top:4px;line-height:1.55}
+.section-tag{display:inline-block;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.section-divider{border:none;border-top:2px dashed var(--border);margin:32px 0 28px}
+.section-sub{font-family:var(--serif);font-size:1.2rem;color:var(--tx);margin-bottom:16px}
+
+/* ─── KPI CARDS ─── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+.kpi-row>*{min-width:0}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:box-shadow .2s,transform .2s}
+.kpi:hover{box-shadow:var(--shadow2);transform:translateY(-2px)}
+.kpi-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);font-weight:600;margin-bottom:6px}
+.kpi-value{font-family:var(--serif);font-size:1.7rem;color:var(--tx);line-height:1.1}
+.kpi-sub{font-size:.75rem;color:var(--tx2);margin-top:4px}
+.kpi-stripe{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-icon{position:absolute;top:14px;right:16px;font-size:1.3rem;opacity:.35}
+
+/* ─── CARDS & CHARTS ─── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden;min-width:0}
+.card-title{font-weight:700;font-size:.92rem;color:var(--tx);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chart-wrap{position:relative;width:100%;max-height:360px;overflow:hidden}
+.chart-wrap canvas{max-width:100%!important}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-2>*{min-width:0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.grid-3>*{min-width:0}
+
+/* ─── TABLE ─── */
+.table-wrap{border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+table.table-full{min-width:1020px}
+thead{background:var(--bg3);position:sticky;top:0;z-index:2}
+th{padding:10px 12px;text-align:left;font-weight:600;color:var(--tx2);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--accent)}
+th .sort-icon{font-size:.6rem;margin-left:4px;opacity:.4}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--tx2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.66rem;font-weight:600;white-space:nowrap}
+.badge-gas{background:#FEF3C7;color:#92400E}
+.badge-coal{background:#FEE2E2;color:#991B1B}
+.badge-hydro{background:#DBEAFE;color:#1E40AF}
+.badge-bio{background:#D1FAE5;color:#065F46}
+.badge-oil{background:#F3E8FF;color:#6B21A8}
+.badge-round{background:var(--bg4);color:var(--tx2);font-family:var(--mono);font-size:.65rem}
+
+/* ─── MISC ─── */
+.callout{background:var(--bg3);border-left:4px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin-bottom:18px;font-size:.84rem;line-height:1.6;color:var(--tx2)}
+.callout strong{color:var(--tx)}
+.callout.warn{border-left-color:var(--red)}
+.callout.info{border-left-color:var(--accent4)}
+.callout.success{border-left-color:var(--green)}
+
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-dot{position:absolute;left:-24px;top:4px;width:14px;height:14px;border-radius:50%;border:3px solid var(--accent);background:var(--bg2)}
+.tl-year{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent)}
+.tl-desc{font-size:.82rem;color:var(--tx2);margin-top:2px;line-height:1.5}
+.tl-badge{display:inline-block;font-size:.68rem;font-weight:600;background:var(--bg3);padding:2px 8px;border-radius:10px;margin-top:4px;color:var(--tx3)}
+
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:16px 0}
+.flow-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.78rem;text-align:center;min-width:100px;color:var(--tx2)}
+.flow-box strong{display:block;color:var(--tx);font-size:.85rem}
+.flow-arrow{color:var(--accent);font-size:1.2rem;font-weight:bold;flex-shrink:0}
+
+.stakeholder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stake-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:18px;box-shadow:var(--shadow);transition:box-shadow .2s}
+.stake-card:hover{box-shadow:var(--shadow2)}
+.stake-name{font-weight:700;font-size:.95rem;color:var(--tx)}
+.stake-val{font-family:var(--serif);font-size:1.4rem;color:var(--accent);margin:4px 0}
+.stake-detail{font-size:.78rem;color:var(--tx2);line-height:1.5}
+
+.filters-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px;align-items:center}
+.filter-input{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font);font-size:.82rem;color:var(--tx);outline:none;transition:border-color .15s,box-shadow .15s;grid-column:span 2}
+.filter-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,86,33,.12)}
+.filter-input::placeholder{color:var(--tx3)}
+.filter-select{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:var(--font);font-size:.78rem;color:var(--tx);outline:none;cursor:pointer;appearance:auto;min-width:0}
+.filter-select:focus{border-color:var(--accent)}
+.filter-count{font-size:.78rem;color:var(--tx3);font-weight:500;text-align:right;grid-column:span 2}
+.scrollable-table{max-height:70vh;overflow:auto;margin-top:8px;-webkit-overflow-scrolling:touch}
+.mw-num{font-family:var(--mono);font-weight:500;color:var(--tx);text-align:right}
+.plant-name{font-weight:600;color:var(--tx)}
+
+/* ─── COMPANY SUB-TABS ─── */
+.subtab-nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;border-bottom:2px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.subtab-nav::-webkit-scrollbar{height:4px}
+.subtab-nav::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.subtab-btn{
+  flex-shrink:0;padding:7px 14px;border-radius:8px 8px 0 0;border:1px solid transparent;
+  background:transparent;font-family:var(--font);font-size:.78rem;font-weight:500;
+  color:var(--tx3);cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+  white-space:nowrap;display:flex;align-items:center;gap:6px;
+}
+.subtab-btn:hover{background:var(--bg3);color:var(--tx)}
+.subtab-btn.active{background:var(--bg3);color:var(--accent);border-color:var(--border);border-bottom-color:var(--bg3);font-weight:700}
+.subtab-btn .st-mw{font-family:var(--mono);font-size:.68rem;color:var(--tx3);background:var(--bg4);padding:1px 6px;border-radius:6px}
+.subtab-content{display:none}
+.subtab-content.active{display:block}
+.co-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:20px;flex-wrap:wrap}
+.co-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0}
+.co-info h3{font-family:var(--serif);font-size:1.3rem;color:var(--tx);line-height:1.2}
+.co-info p{font-size:.84rem;color:var(--tx2);margin-top:2px}
+.co-tag{display:inline-block;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.05em;margin-right:4px;margin-top:4px}
+.co-narrative{font-size:.84rem;color:var(--tx2);line-height:1.7;margin-bottom:18px}
+.co-narrative strong{color:var(--tx)}
+.co-plant-table{margin-top:12px}
+.co-plant-table table{min-width:600px}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:1024px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .main{padding:20px 16px 50px}
+}
+@media(max-width:768px){
+  :root{--sidebar-w:280px}
+  /* Sidebar = overlay mode, main never shifts */
+  body.sb-open .main{margin-left:0}
+  body.sb-open .overlay{opacity:1;pointer-events:auto}
+  body.sb-open .sidebar-toggle{left:calc(var(--sidebar-w) + 16px)}
+  .main{padding:64px 14px 50px}
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .kpi-value{font-size:1.3rem}
+  .section-header h2{font-size:1.3rem}
+  .flow{flex-direction:column;align-items:stretch}
+  .flow-arrow{text-align:center;transform:rotate(90deg)}
+  .filters-bar{grid-template-columns:1fr 1fr;gap:6px}
+  .filter-input{grid-column:span 2;font-size:.8rem}
+  .filter-select{font-size:.76rem}
+  .filter-count{grid-column:span 2;text-align:center}
+}
+@media(max-width:480px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .kpi{padding:14px 16px}
+  .kpi-value{font-size:1.2rem}
+  .kpi-icon{display:none}
+}
+</style>
+</head>
+<body class="sb-open">
+
+<!-- TOGGLE -->
+<button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">
+<svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<!-- OVERLAY (mobile only) -->
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>LRCAP 2026</h1>
+    <p>Painel de Inteligência · Março 2026</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label">Resultados</div>
+      <div class="nav-item active" onclick="showTab('visao')" data-tab="visao"><span class="nav-dot" style="background:#C05621"></span>Visão Geral & Agentes</div>
+      <div class="nav-item" onclick="showTab('usinas')" data-tab="usinas"><span class="nav-dot" style="background:#B45309"></span>Usinas Contratadas</div>
+      <div class="nav-item" onclick="showTab('leiloes')" data-tab="leiloes"><span class="nav-dot" style="background:#D97706"></span>Leilões (2º e 3º)</div>
+      <div class="nav-item" onclick="showTab('empresas')" data-tab="empresas"><span class="nav-dot" style="background:#4F46E5"></span>Empresas</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Análise</div>
+      <div class="nav-item" onclick="showTab('suprimento')" data-tab="suprimento"><span class="nav-dot" style="background:#EA580C"></span>Suprimento de Gás</div>
+      <div class="nav-item" onclick="showTab('tech')" data-tab="tech"><span class="nav-dot" style="background:#7C3AED"></span>Mix Tecnológico</div>
+      <div class="nav-item" onclick="showTab('cronograma')" data-tab="cronograma"><span class="nav-dot" style="background:#059669"></span>Cronograma de Entregas</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Impactos</div>
+      <div class="nav-item" onclick="showTab('gasodutos')" data-tab="gasodutos"><span class="nav-dot" style="background:#92400E"></span>Tarifas de Gasodutos</div>
+      <div class="nav-item" onclick="showTab('gnl')" data-tab="gnl"><span class="nav-dot" style="background:#0D9488"></span>GNL & Gas-to-Wire</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Perspectivas</div>
+      <div class="nav-item" onclick="showTab('baterias')" data-tab="baterias"><span class="nav-dot" style="background:#6D28D9"></span>Baterias & BESS</div>
+      <div class="nav-item" onclick="showTab('opiniao')" data-tab="opiniao"><span class="nav-dot" style="background:#DC2626"></span>Análises & Opinião</div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <span style="font-size:.7rem;color:var(--tx3)">Fonte: Agência Eixos</span>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span id="themeLabel">Claro</span>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══ VISÃO GERAL & AGENTES (merged) ═══ -->
+<div class="tab-content active" id="tab-visao">
+  <div class="section-header">
+    <span class="section-tag" style="background:#FEF3C7;color:#92400E">Resumo Executivo</span>
+    <h2>Visão Geral — LRCAP 2026</h2>
+    <p>Consolidação dos resultados do 2º e 3º Leilão de Reserva de Capacidade (18 e 20 de março de 2026).</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><span class="kpi-icon">⚡</span><div class="kpi-label">Potência Total</div><div class="kpi-value">19,5 GW</div><div class="kpi-sub">18.977 MW (2º) + 501 MW (3º)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">🏭</span><div class="kpi-label">Empreendimentos</div><div class="kpi-value">106</div><div class="kpi-sub">100 (2º) + 6 (3º LRCAP)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">💰</span><div class="kpi-label">Investimento Total</div><div class="kpi-value">R$ 64,5 bi</div><div class="kpi-sub">Projetos do 2º LRCAP</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><span class="kpi-icon">📊</span><div class="kpi-label">Receita Fixa Anual</div><div class="kpi-value">R$ 39,2 bi</div><div class="kpi-sub">R$ 38,96 bi + R$ 229,9 mi</div></div>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#D97706"></div><span class="kpi-icon">🔥</span><div class="kpi-label">Preço Médio (2º)</div><div class="kpi-value">R$ 2,33 mi</div><div class="kpi-sub">MW.ano · Deságio 5,52%</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#059669"></div><span class="kpi-icon">🛢️</span><div class="kpi-label">Preço Médio (3º)</div><div class="kpi-value">R$ 831 mil</div><div class="kpi-sub">MW.ano · Deságio 50,14%</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#DC2626"></div><span class="kpi-icon">📈</span><div class="kpi-label">Impacto Tarifário</div><div class="kpi-value">+10%</div><div class="kpi-sub">R$ 40 bi/ano (estimativa Abrace)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#0D9488"></div><span class="kpi-icon">🔋</span><div class="kpi-label">Gás Natural</div><div class="kpi-value">80%</div><div class="kpi-sub">15,2 GW · 92 usinas</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#C05621"></span>Potência por Leilão</div><div class="chart-wrap"><canvas id="chartOv1"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#2563EB"></span>Distribuição por Combustível (2º LRCAP)</div><div class="chart-wrap"><canvas id="chartOv2"></canvas></div></div>
+  </div>
+
+  <div class="callout"><strong>Contexto:</strong> Potência contratada equivale a ~10% do parque gerador do SIN. O governo defende redução de 24% na tarifa com novos contratos flexíveis; a Abrace projeta alta de 10%. Riscos geopolíticos e pressão logística impactaram preços.</div>
+
+  <!-- ─── MERGED: AGENTES & VENCEDORES ─── -->
+  <hr class="section-divider">
+  <div class="section-header">
+    <span class="section-tag" style="background:#DBEAFE;color:#1E40AF">Agentes</span>
+    <h2>Principais Vencedores</h2>
+    <p>Eneva, Petrobras e J&F dominaram ~50% da potência total contratada.</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><div class="kpi-label">Eneva</div><div class="kpi-value">5,06 GW</div><div class="kpi-sub">17 usinas · R$ 18,2 bi invest.</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><div class="kpi-label">Petrobras</div><div class="kpi-value">2,57 GW</div><div class="kpi-sub">10 usinas · R$ 4 bi receita/ano</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><div class="kpi-label">J&F</div><div class="kpi-value">2,14 GW</div><div class="kpi-sub">5 usinas · 917 MW em 2026</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><div class="kpi-label">EPP (Ion)</div><div class="kpi-value">1,69 GW</div><div class="kpi-sub">9 usinas novas</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#2563EB"></span>Top Agentes por Potência (GW)</div><div class="chart-wrap"><canvas id="chartAg1"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#16A34A"></span>Estratégia: Novas vs. Existentes</div><div class="chart-wrap"><canvas id="chartAg2"></canvas></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#7C3AED"></span>Ampliação de Hidrelétricas</div>
+    <div class="stakeholder-grid">
+      <div class="stake-card"><div class="stake-name">Copel</div><div class="stake-val">1,86 GW</div><div class="stake-detail">Segredo (1.172 MW) e Foz do Areia (690 MW), PR.</div></div>
+      <div class="stake-card"><div class="stake-name">Spic Brasil</div><div class="stake-val">253 MW</div><div class="stake-detail">São Simão UG07 (MG/GO). Invest. &gt; R$ 1 bi.</div></div>
+      <div class="stake-card"><div class="stake-name">Engie</div><div class="stake-val">196 MW</div><div class="stake-detail">UHE Jaguara (MG/SP). Invest. ~R$ 1,2 bi.</div></div>
+      <div class="stake-card"><div class="stake-name">Axia</div><div class="stake-val">190 MW</div><div class="stake-detail">Luiz Gonzaga UG09 (PE). Invest. R$ 1 bi.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USINAS CONTRATADAS ═══ -->
+<div class="tab-content" id="tab-usinas">
+  <div class="section-header">
+    <span class="section-tag" style="background:#FEF3C7;color:#92400E">Dados Completos</span>
+    <h2>Usinas Contratadas</h2>
+    <p>Todas as 106 usinas vencedoras do 2º e 3º LRCAP. Use os filtros para explorar os dados.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><span class="kpi-icon">🏭</span><div class="kpi-label">Total de Usinas</div><div class="kpi-value">106</div><div class="kpi-sub">2º LRCAP (100) + 3º LRCAP (6)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">⚡</span><div class="kpi-label">Potência Total</div><div class="kpi-value">19.478 MW</div><div class="kpi-sub">Disponibilidade contratada</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">📍</span><div class="kpi-label">Estados Atendidos</div><div class="kpi-value">20</div><div class="kpi-sub">Todas as regiões do Brasil</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><span class="kpi-icon">🔥</span><div class="kpi-label">Agentes Distintos</div><div class="kpi-value">35+</div><div class="kpi-sub">De grandes utilities a produtores onshore</div></div>
+  </div>
+  <div class="card" style="padding:16px 20px">
+    <div class="filters-bar" id="filtersBar">
+      <input type="text" class="filter-input" id="searchPlant" placeholder="🔍 Buscar usina, agente, UF..." oninput="filterTable()">
+      <select class="filter-select" id="filterRegion" onchange="onRegionChange()"><option value="">Todas as Regiões</option><option value="Norte">Norte</option><option value="Nordeste">Nordeste</option><option value="Centro-Oeste">Centro-Oeste</option><option value="Sudeste">Sudeste</option><option value="Sul">Sul</option></select>
+      <select class="filter-select" id="filterUF" onchange="filterTable()"><option value="">Todos os UFs</option></select>
+      <select class="filter-select" id="filterAgent" onchange="filterTable()"><option value="">Todos os Agentes</option></select>
+      <select class="filter-select" id="filterFuel" onchange="filterTable()"><option value="">Todos os Combustíveis</option><option value="Gás Natural">Gás Natural</option><option value="Carvão">Carvão</option><option value="Hidrelétrica">Hidrelétrica</option><option value="Biometano">Biometano</option><option value="Diesel">Diesel</option><option value="Óleo Combustível">Óleo Combustível</option><option value="Biodiesel">Biodiesel</option></select>
+      <select class="filter-select" id="filterRound" onchange="filterTable()"><option value="">Todas as Rodadas</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option></select>
+      <select class="filter-select" id="filterLeilao" onchange="filterTable()"><option value="">Todos os Leilões</option><option value="2">2º LRCAP</option><option value="3">3º LRCAP</option></select>
+      <select class="filter-select" id="filterTipo" onchange="filterTable()"><option value="">Todos os Tipos</option><option value="Nova">Nova</option><option value="Existente">Existente</option><option value="Ampliação">Ampliação</option></select>
+      <span class="filter-count" id="plantCount">106 usinas</span>
+    </div>
+    <div class="scrollable-table">
+      <div class="table-wrap">
+        <table id="plantTable" class="table-full">
+          <thead><tr>
+            <th onclick="sortTable(0)">#<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(1)">Usina<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(2)">UF<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(3)">Região<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(4)">Agente<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(5)">Combustível<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(6)">Potência (MW)<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(7)">Rodada<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(8)">Leilão<span class="sort-icon">▼</span></th>
+            <th onclick="sortTable(9)">Tipo<span class="sort-icon">▼</span></th>
+          </tr></thead>
+          <tbody id="plantBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#C05621"></span>Potência por UF (Top 10)</div><div class="chart-wrap"><canvas id="chartUF"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#2563EB"></span>Nº de Usinas por Agente (Top 10)</div><div class="chart-wrap"><canvas id="chartAgCount"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ═══ LEILÕES ═══ -->
+<div class="tab-content" id="tab-leiloes">
+  <div class="section-header">
+    <span class="section-tag" style="background:#FEF3C7;color:#92400E">Resultados</span>
+    <h2>Resultados dos Leilões</h2>
+    <p>Comparativo entre o 2º LRCAP (gás, carvão, hidro) e o 3º LRCAP (diesel, óleo, biodiesel).</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><div class="kpi-label">2º LRCAP — Potência</div><div class="kpi-value">18.977 MW</div><div class="kpi-sub">100 empreendimentos · 18/03</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><div class="kpi-label">2º LRCAP — Deságio</div><div class="kpi-value">5,52%</div><div class="kpi-sub">Baixa competição</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><div class="kpi-label">3º LRCAP — Potência</div><div class="kpi-value">501 MW</div><div class="kpi-sub">6 empreendimentos · 20/03</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><div class="kpi-label">3º LRCAP — Deságio</div><div class="kpi-value">50,14%</div><div class="kpi-sub">Disputa acirrada</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#C05621"></span>Preço Médio (R$ mil/MW.ano)</div><div class="chart-wrap"><canvas id="chartLe1"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#16A34A"></span>Deságio (%)</div><div class="chart-wrap"><canvas id="chartLe2"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#2563EB"></span>Detalhamento — 3º LRCAP (Diesel / Óleo / Biodiesel)</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Usina</th><th>UF</th><th>Agente</th><th>Combustível</th><th>Potência (MW)</th><th>Receita (R$ mi/ano)</th><th>Início</th></tr></thead><tbody>
+        <tr><td>UTE Canoas</td><td>RS</td><td>Petrobras</td><td><span class="badge badge-oil">Diesel</span></td><td class="mw-num">157,8</td><td>75,0</td><td>2026</td></tr>
+        <tr><td>UTE Termoceará</td><td>CE</td><td>Petrobras</td><td><span class="badge badge-oil">Diesel</span></td><td class="mw-num">174,7</td><td>77,0</td><td>2027</td></tr>
+        <tr><td>UTE Petrolina</td><td>PE</td><td>CEP</td><td><span class="badge badge-oil">Óleo Comb.</span></td><td class="mw-num">20,0</td><td>11,8</td><td>2026</td></tr>
+        <tr><td>UTE Petrolina Bio</td><td>PE</td><td>CEP</td><td><span class="badge badge-bio">Biodiesel</span></td><td class="mw-num">48,0</td><td>22,4</td><td>2030</td></tr>
+        <tr><td>UTE Xavantes Aruanã</td><td>GO</td><td>OnCorp</td><td><span class="badge badge-oil">Diesel</span></td><td class="mw-num">50,4</td><td>25,1</td><td>2026</td></tr>
+        <tr><td>UTE Xavantes Aruanã Bio</td><td>GO</td><td>OnCorp</td><td><span class="badge badge-bio">Biodiesel</span></td><td class="mw-num">50,4</td><td>18,9</td><td>2030</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="callout success"><strong>Marco histórico:</strong> O 3º LRCAP viabilizou as primeiras térmicas a biodiesel do SIN (OnCorp e CEP). Deságio ~50% mostra competição muito superior.</div>
+</div>
+
+<!-- ═══ SUPRIMENTO DE GÁS ═══ -->
+<div class="tab-content" id="tab-suprimento">
+  <div class="section-header">
+    <span class="section-tag" style="background:#FFF7ED;color:#C2410C">Suprimento</span>
+    <h2>Suprimento de Gás Natural</h2>
+    <p>Como cada empresa vencedora do LRCAP está estruturando o fornecimento de gás: GNL importado, gás nacional, gas-to-wire, conexão com gasodutos e modalidades contratuais.</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#EA580C"></div><span class="kpi-icon">🔥</span><div class="kpi-label">Gás Nacional / Malha</div><div class="kpi-value">~4,5 GW</div><div class="kpi-sub">Petrobras, J&F, Delta, Suzano</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#0D9488"></div><span class="kpi-icon">🚢</span><div class="kpi-label">GNL Importado</div><div class="kpi-value">~7+ GW</div><div class="kpi-sub">Eneva, KPS, OnCorp, New Fortress</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">⛽</span><div class="kpi-label">Gas-to-Wire (onshore)</div><div class="kpi-value">~1,5 GW</div><div class="kpi-sub">Eneva (Parnaíba), Origem, Imetame, PetroReconcavo</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><span class="kpi-icon">❓</span><div class="kpi-label">A Definir / Misto</div><div class="kpi-value">~2+ GW</div><div class="kpi-sub">EPP e diversos projetos menores</div></div>
+  </div>
+
+  <div class="callout info"><strong>Regra do LRCAP:</strong> Térmicas conectadas à malha de gasodutos devem comprovar contratação firme de transporte para <strong>70% da capacidade</strong> (flexibilizado de 100% em jan/2026), apenas na <strong>saída</strong> (dispensa entrada). Desconto de 15% nas tarifas de saída para contratos firmes &gt;10 anos (ANP). A TBG estima ~14 milhões m³/dia de gás movimentados pelas vencedoras.</div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#EA580C"></span>Mapa de Suprimento por Empresa</div>
+    <div class="scrollable-table"><div class="table-wrap"><table class="table-full">
+      <thead><tr><th>Empresa</th><th>Potência</th><th>Modelo</th><th>Origem do Gás</th><th>Malha</th><th>Infraestrutura</th><th>Status Contratos</th></tr></thead>
+      <tbody id="supBody"></tbody>
+    </table></div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#EA580C"></span>Distribuição por Modelo de Suprimento (GW)</div><div class="chart-wrap"><canvas id="chartSup1"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#0D9488"></span>Conexão com Malha de Gasodutos</div><div class="chart-wrap"><canvas id="chartSup2"></canvas></div></div>
+  </div>
+
+  <hr class="section-divider">
+  <div class="section-sub">Terminais de GNL no Brasil</div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#0D9488"></div><span class="kpi-icon">🚢</span><div class="kpi-label">Terminais em Operação</div><div class="kpi-value">7</div><div class="kpi-sub">+ 1 desativado (Pecém/Petrobras)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#EA580C"></div><span class="kpi-icon">🏗️</span><div class="kpi-label">Novos (LRCAP)</div><div class="kpi-value">3</div><div class="kpi-sub">Pecém, Sudeste, Suape</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">📊</span><div class="kpi-label">Capacidade Total</div><div class="kpi-value">120 mi m³/d</div><div class="kpi-sub">Terminais operacionais somados</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><span class="kpi-icon">⚠️</span><div class="kpi-label">Desconectados da Malha</div><div class="kpi-value">3 de 7</div><div class="kpi-sub">Açu, TRSP, Barcarena</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#0D9488"></span>Terminais de GNL em Operação</div>
+    <div class="scrollable-table"><div class="table-wrap"><table class="table-full">
+      <thead><tr><th>Terminal</th><th>UF</th><th>Operador</th><th>Cap. (mi m³/d)</th><th>Tipo</th><th>Malha</th><th>Principais Clientes / Usinas</th></tr></thead>
+      <tbody id="gnlTermBody"></tbody>
+    </table></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#EA580C"></span>Novos Terminais Ancorados pelo LRCAP</div>
+    <div class="scrollable-table"><div class="table-wrap"><table class="table-full">
+      <thead><tr><th>Terminal (Projeto)</th><th>UF</th><th>Desenvolvedor</th><th>Tipo</th><th>Previsão</th><th>Usinas Atendidas</th><th>Status</th></tr></thead>
+      <tbody id="gnlNewBody"></tbody>
+    </table></div></div>
+  </div>
+
+  <hr class="section-divider">
+  <div class="section-sub">Premissas de Custo & Preços de Referência</div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#DC2626"></div><span class="kpi-icon">📈</span><div class="kpi-label">CVU Teto (Gás Natural)</div><div class="kpi-value">R$ 1.434/MWh</div><div class="kpi-sub">PMO out/2025 · ~US$ 28,6/MMBtu</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#D97706"></div><span class="kpi-icon">🇺🇸</span><div class="kpi-label">Henry Hub (abr/2026)</div><div class="kpi-value">~US$ 2,8/MMBtu</div><div class="kpi-sub">Volátil pós-conflito Oriente Médio</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">🚢</span><div class="kpi-label">GNL Delivered Brasil</div><div class="kpi-value">US$ 7-10/MMBtu</div><div class="kpi-sub">Condições normais (fórmula HH)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">⛽</span><div class="kpi-label">Gás Onshore Próprio</div><div class="kpi-value">US$ 1-3/MMBtu</div><div class="kpi-sub">Parnaíba, Recôncavo, Alagoas</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#D97706"></span>Custo do Gás por Fonte (US$/MMBtu)</div><div class="chart-wrap"><canvas id="chartPrice1"></canvas></div></div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#DC2626"></span>Fórmula do CVU no LRCAP</div>
+      <div style="font-size:.84rem;color:var(--tx2);line-height:1.8">
+        <p style="margin-bottom:8px">O CVU é indexado a referências internacionais via fórmula declarada pelo empreendedor:</p>
+        <p style="font-family:var(--mono);font-size:.78rem;background:var(--bg3);padding:10px 14px;border-radius:8px;margin-bottom:10px;color:var(--tx)">PC = a×HH + b×Brent + c×TTF + d×JKM + e + f</p>
+        <p style="margin-bottom:6px"><strong style="color:var(--tx)">Repasse automático:</strong> variações de preço são repassadas ao consumidor via CVU quando a usina é despachada — sem renegociação.</p>
+        <p style="margin-bottom:6px"><strong style="color:var(--tx)">Contratos pós-leilão:</strong> supridores de gás só formalizam contratos na fase de implementação. Lances no LRCAP são sobre Receita Fixa, não sobre CVU.</p>
+        <p><strong style="color:var(--tx)">Fórmula EPE (GNL internado):</strong> 1,15 × HH + 3,5 (liquefação) + 0,3 (frete) + 0,88 (regaseificação)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#2563EB"></span>Referências de Preço do Gás Natural</div>
+    <div class="scrollable-table"><div class="table-wrap"><table class="table-full">
+      <thead><tr><th>Referência</th><th>Preço (US$/MMBtu)</th><th>Contexto</th><th>Quem usa</th></tr></thead>
+      <tbody id="priceRefBody"></tbody>
+    </table></div></div>
+  </div>
+
+  <hr class="section-divider">
+  <div class="section-sub">Heat Rate & Consumo de Gás por Usina</div>
+
+  <div class="callout info"><strong>Premissas:</strong> Heat Rate estimado por tipo de turbina (CCGT, OCGT, Reciprocating, Carvão). Conversão: 1 MMBtu ≈ 28,32 m³ de GN. <strong>Despacho médio: 11,5%</strong> do ano (4h/dia × 252 dias úteis = 1.008 h/ano).</div>
+
+  <div class="kpi-row" id="hrKpis"></div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#C05621"></span>Consumo Máx. de Gás por Tipo de Turbina (mi m³/dia)</div><div class="chart-wrap"><canvas id="chartHR1"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#16A34A"></span>Heat Rate Médio por Tipo (MMBtu/MWh)</div><div class="chart-wrap"><canvas id="chartHR2"></canvas></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#EA580C"></span>Consumo de Gás por Usina</div>
+    <div class="scrollable-table"><div class="table-wrap"><table class="table-full">
+      <thead><tr>
+        <th onclick="sortHR(0)">Usina<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(1)">Agente<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(2)">MW<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(3)">Combustível<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(4)">Turbina<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(5)">HR (MMBtu/MWh)<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(6)">Máx. Gás (mil m³/dia)<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(7)">Média 11,5% (mil m³/dia)<span class="sort-icon">▼</span></th>
+        <th onclick="sortHR(8)">Máx. Anual (mi m³)<span class="sort-icon">▼</span></th>
+      </tr></thead>
+      <tbody id="hrBody"></tbody>
+      <tfoot id="hrFoot"></tfoot>
+    </table></div></div>
+  </div>
+
+  <div class="callout warn"><strong>Riscos abertos:</strong> Contratos de suprimento para térmicas novas serão formalizados <strong>pós-leilão</strong>. EPP (~1,7 GW) e projetos menores sem arranjo divulgado. Conflito no Oriente Médio adiciona risco ao GNL (preços spot +50-70%). Debate na ANP sobre interligação obrigatória de terminais de GNL à malha. Bernstein projetava excesso de oferta em 2026, mas guerra alterou cenário.</div>
+</div>
+
+<!-- ═══ MIX TECNOLÓGICO ═══ -->
+<div class="tab-content" id="tab-tech">
+  <div class="section-header">
+    <span class="section-tag" style="background:#F3E8FF;color:#5B21B6">Tecnologia</span>
+    <h2>Mix Tecnológico</h2>
+    <p>Distribuição da potência contratada por fonte no 2º LRCAP.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><span class="kpi-icon">🔥</span><div class="kpi-label">Gás Natural</div><div class="kpi-value">15,2 GW</div><div class="kpi-sub">90 usinas · 80%</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#DC2626"></div><span class="kpi-icon">⛏️</span><div class="kpi-label">Carvão</div><div class="kpi-value">1,26 GW</div><div class="kpi-sub">3 usinas</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">💧</span><div class="kpi-label">Hidrelétrica</div><div class="kpi-value">2,5 GW</div><div class="kpi-sub">5 projetos</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">🌱</span><div class="kpi-label">Biometano</div><div class="kpi-value">9,2 MW</div><div class="kpi-sub">2 usinas Cocal (SP)</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#C05621"></span>Potência por Fonte (GW)</div><div class="chart-wrap"><canvas id="chartTc1"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot" style="background:#7C3AED"></span>Nº de Usinas por Fonte</div><div class="chart-wrap"><canvas id="chartTc2"></canvas></div></div>
+  </div>
+  <div class="callout info"><strong>Baixa competição:</strong> Deságio médio das térmicas a gás existentes foi de 0,7% (Instituto Acende Brasil). Mais de 120 GW cadastrados não resultaram em disputa acirrada.</div>
+</div>
+
+<!-- ═══ CRONOGRAMA ═══ -->
+<div class="tab-content" id="tab-cronograma">
+  <div class="section-header">
+    <span class="section-tag" style="background:#D1FAE5;color:#065F46">Cronograma</span>
+    <h2>Cronograma de Entregas</h2>
+    <p>Potência contratada por rodada de entrada em operação.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><div class="kpi-label">Rodadas</div><div class="kpi-value">6</div><div class="kpi-sub">2026 a 2031</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><div class="kpi-label">Maior Rodada</div><div class="kpi-value">2028</div><div class="kpi-sub">51 vencedores</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><div class="kpi-label">Tipos</div><div class="kpi-value">3</div><div class="kpi-sub">Existentes, novas, ampliação</div></div>
+  </div>
+  <div class="card"><div class="card-title"><span class="dot" style="background:#059669"></span>Potência por Rodada (MW) — Empilhado por Fonte</div><div class="chart-wrap"><canvas id="chartCr1"></canvas></div></div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#2563EB"></span>Timeline</div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:#C05621"></div><div class="tl-year">2026</div><div class="tl-desc">10 térmicas existentes a gás. EDF Norte Fluminense (787 MW), Nova Piratininga (345 MW).</div><div class="tl-badge">~1.955 MW</div></div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:#2563EB"></div><div class="tl-year">2027</div><div class="tl-desc">4 usinas. Seropédica (817 MW), Porto do Pecém I carvão (635 MW).</div><div class="tl-badge">~1.704 MW</div></div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:#16A34A"></div><div class="tl-year">2028</div><div class="tl-desc">51 vencedores — maior rodada. Porto de Sergipe II, Uruguaiana, Araucária.</div><div class="tl-badge">~7.100 MW</div></div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:#7C3AED"></div><div class="tl-year">2029</div><div class="tl-desc">22 usinas. Jandaia II/III (Eneva), Campo Grande, Santa Clara.</div><div class="tl-badge">~2.800 MW</div></div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:#0D9488"></div><div class="tl-year">2030</div><div class="tl-desc">4 ampliações hidrelétricas: Segredo, Foz do Areia, São Simão, Jaguara.</div><div class="tl-badge">~2.311 MW</div></div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:#DC2626"></div><div class="tl-year">2031</div><div class="tl-desc">9 usinas: Jandaia 1, carvão Itaqui/Pecém II, hidro Luiz Gonzaga.</div><div class="tl-badge">~2.646 MW</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GASODUTOS ═══ -->
+<div class="tab-content" id="tab-gasodutos">
+  <div class="section-header">
+    <span class="section-tag" style="background:#FEF3C7;color:#92400E">Gasodutos</span>
+    <h2>Impacto nas Tarifas de Gasodutos</h2>
+    <p>Recontratação das térmicas e seus efeitos no sistema de transporte de gás.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><div class="kpi-label">Recontratadas</div><div class="kpi-value">6,35 GW</div><div class="kpi-sub">32 usinas existentes a gás</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><div class="kpi-label">Deságio (existentes)</div><div class="kpi-value">0,7%</div><div class="kpi-sub">Baixíssima competição</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#DC2626"></div><div class="kpi-label">Contrib. Antes</div><div class="kpi-value">~50%</div><div class="kpi-sub">Reserva nos gasodutos</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><div class="kpi-label">Contrib. Após</div><div class="kpi-value">~18%</div><div class="kpi-sub">Remuneração em base firme</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#92400E"></span>Mudanças Regulatórias</div>
+    <div class="flow">
+      <div class="flow-box"><strong>Reserva</strong>100% → 70%</div><span class="flow-arrow">→</span>
+      <div class="flow-box"><strong>Contratação</strong>Só saída</div><span class="flow-arrow">→</span>
+      <div class="flow-box"><strong>Desconto ANP</strong>15% (&gt;10 anos)</div><span class="flow-arrow">→</span>
+      <div class="flow-box"><strong>Resultado</strong>~18% remuneração</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#C05621"></span>Contribuição na Remuneração</div><div class="chart-wrap"><canvas id="chartGs1"></canvas></div></div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#2563EB"></span>Incertezas Pendentes</div>
+      <div style="font-size:.84rem;color:var(--tx2);line-height:1.7">
+        <p style="margin-bottom:10px"><strong style="color:var(--tx)">Denominador:</strong> Quanto os agentes contratarão de fato. Mínimo 70%, mas conservadores podem ampliar. Multiplicadores de curto prazo indefinidos.</p>
+        <p><strong style="color:var(--tx)">Numerador:</strong> Revisão da BRA das transportadoras em consulta pública. ANP propõe cortes. Debate metodológico em aberto.</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout warn"><strong>Redistribuição:</strong> Usuários não-termelétricos assumirão fatia maior dos custos. ANP poderá usar saldo da conta regulatória para compensar desconto.</div>
+</div>
+
+<!-- ═══ GNL ═══ -->
+<div class="tab-content" id="tab-gnl">
+  <div class="section-header">
+    <span class="section-tag" style="background:#CCFBF1;color:#115E59">Infraestrutura</span>
+    <h2>GNL & Gas-to-Wire</h2>
+    <p>Novos terminais de GNL e reafirmação do modelo gas-to-wire.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#0D9488"></div><div class="kpi-label">Novos Terminais GNL</div><div class="kpi-value">2+</div><div class="kpi-sub">Ceará e Sudeste (Eneva)</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><div class="kpi-label">Hub Ceará</div><div class="kpi-value">1,2 GW</div><div class="kpi-sub">Jandaia · Eneva+Diamante · 2029</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><div class="kpi-label">Hub Sudeste</div><div class="kpi-value">1,1 GW</div><div class="kpi-sub">RJ/ES · 2031</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><div class="kpi-label">OnCorp Suape</div><div class="kpi-value">90%+</div><div class="kpi-sub">Capacidade contratada</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#0D9488"></span>Terminais de GNL</div>
+    <div class="stakeholder-grid">
+      <div class="stake-card" style="border-top:3px solid #C05621"><div class="stake-name">Eneva + Diamante — Ceará</div><div class="stake-val">1,2 GW</div><div class="stake-detail">Projeto Jandaia. Terminal GNL 14 mi m³/d + FSRU + píer exclusivo (R$ 430 mi). Invest. R$ 6,5 bi. Obras 1º sem. 2026. Op.: 2029. Eneva vendeu Pecém II à Diamante por ~R$ 1 bi.</div></div>
+      <div class="stake-card" style="border-top:3px solid #2563EB"><div class="stake-name">Eneva — Sudeste</div><div class="stake-val">1,1 GW</div><div class="stake-detail">Novo terminal RJ/ES. Porto NF II e Presidente Kennedy. Op.: 2031.</div></div>
+      <div class="stake-card" style="border-top:3px solid #16A34A"><div class="stake-name">Eneva — Sergipe</div><div class="stake-val">1,3 GW</div><div class="stake-detail">Ampliação hub Barra dos Coqueiros. 5,5 mi m³/dia para terceiros.</div></div>
+      <div class="stake-card" style="border-top:3px solid #7C3AED"><div class="stake-name">OnCorp — Suape</div><div class="stake-val">20 MW</div><div class="stake-detail">UTE Frevo + 11 contratos. Obras meados 2026, op. fim 2027. R$ 103 mi.</div></div>
+      <div class="stake-card" style="border-top:3px solid #B45309"><div class="stake-name">New Fortress</div><div class="stake-val">802 MW</div><div class="stake-detail">Barcarena II (101 MW, 2029) e Lins II (701 MW, 2031).</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#C05621"></span>Gas-to-Wire</div>
+    <div class="stakeholder-grid">
+      <div class="stake-card"><div class="stake-name">Origem Energia</div><div class="stake-val">380 MW</div><div class="stake-detail">7 térmicas em Pilar (AL). Gás próprio Polo Alagoas. Estocagem subterrânea. R$ 2 bi.</div></div>
+      <div class="stake-card"><div class="stake-name">Imetame</div><div class="stake-val">26 MW</div><div class="stake-detail">Prosperidade (BA). Gás da Bacia do Recôncavo.</div></div>
+      <div class="stake-card"><div class="stake-name">PetroReconcavo</div><div class="stake-val">142,5 MW</div><div class="stake-detail">Suprimento de gás para UTEs Corcovado 4, 5, 6 (Brasil GTW).</div></div>
+    </div>
+  </div>
+  <div class="callout warn"><strong>Geopolítica:</strong> Guerra no Oriente Médio atingiu infraestrutura do Catar. Eneva coberta para 2026 (gás dos EUA), mas contratos para novas térmicas ainda abertos.</div>
+</div>
+
+<!-- ═══ BATERIAS ═══ -->
+<div class="tab-content" id="tab-baterias">
+  <div class="section-header">
+    <span class="section-tag" style="background:#EDE9FE;color:#5B21B6">Próximos Passos</span>
+    <h2>Baterias (BESS)</h2>
+    <p>LRCAP de Armazenamento previsto para abril de 2026.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#6D28D9"></div><span class="kpi-icon">🔋</span><div class="kpi-label">Leilão BESS</div><div class="kpi-value">Abr/2026</div><div class="kpi-sub">Primeiro do país</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">⏱️</span><div class="kpi-label">Requisito</div><div class="kpi-value">4 horas</div><div class="kpi-sub">Pico 18h-22h</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">📅</span><div class="kpi-label">Operação</div><div class="kpi-value">Ago/2028</div><div class="kpi-sub">Entrada prevista</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#6D28D9"></span>Framework do Leilão</div>
+    <div class="flow">
+      <div class="flow-box"><strong>Consulta</strong>Concluída (MME)</div><span class="flow-arrow">→</span>
+      <div class="flow-box"><strong>Portaria</strong>Diretrizes</div><span class="flow-arrow">→</span>
+      <div class="flow-box"><strong>Leilão</strong>Abril 2026</div><span class="flow-arrow">→</span>
+      <div class="flow-box"><strong>Operação</strong>Agosto 2028</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#16A34A"></span>Objetivos</div>
+      <div style="font-size:.84rem;color:var(--tx2);line-height:1.7">
+        <p style="margin-bottom:8px">• Armazenar energia renovável (hidro, solar, eólica)</p>
+        <p style="margin-bottom:8px">• Combater desperdício por excesso de geração</p>
+        <p style="margin-bottom:8px">• Substituir termoelétricas gradativamente</p>
+        <p>• Ampliar estabilidade do SIN</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#7C3AED"></span>KPS — Projeto Piloto</div>
+      <div style="font-size:.84rem;color:var(--tx2);line-height:1.7">
+        <p>Karpowership desenvolve baterias no <strong style="color:var(--tx)">Amapá</strong> (infraestrutura da UTE Santana). Estreia global da KPS em armazenamento se bem-sucedida.</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout info"><strong>Financiamento:</strong> Custo rateado via ERCAP (Decreto 10.707/2021), regulamentado pela ANEEL.</div>
+</div>
+
+<!-- ═══ OPINIÃO ═══ -->
+<div class="tab-content" id="tab-opiniao">
+  <div class="section-header">
+    <span class="section-tag" style="background:#FEE2E2;color:#991B1B">Análise</span>
+    <h2>Análises & Opinião</h2>
+    <p>Debates regulatórios, impacto tarifário e política industrial.</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-stripe" style="background:#DC2626"></div><div class="kpi-label">Debate Tarifário</div><div class="kpi-value">+10% vs −24%</div><div class="kpi-sub">Abrace vs. Governo</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><div class="kpi-label">Cadastro</div><div class="kpi-value">126 GW</div><div class="kpi-sub">Mas baixo deságio efetivo</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#7C3AED"></div><div class="kpi-label">Judicialização</div><div class="kpi-value">Superada</div><div class="kpi-sub">Após LRCAP 2025 cancelado</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title"><span class="dot" style="background:#DC2626"></span>Impacto Tarifário</div><div class="chart-wrap"><canvas id="chartOp1"></canvas></div></div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#2563EB"></span>Cronologia Regulatória</div>
+      <div class="timeline" style="font-size:.82rem">
+        <div class="tl-item"><div class="tl-dot" style="border-color:#DC2626"></div><div class="tl-year">2025</div><div class="tl-desc">Cancelamento do 1º LRCAP por judicialização.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="border-color:#C05621"></div><div class="tl-year">Jan/2026</div><div class="tl-desc">Separação de produtos; flexibilização de reserva (100% → 70%).</div></div>
+        <div class="tl-item"><div class="tl-dot" style="border-color:#2563EB"></div><div class="tl-year">Fev/2026</div><div class="tl-desc">ANP aprova desconto 15%. TCU questiona segmentação.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="border-color:#16A34A"></div><div class="tl-year">Mar/2026</div><div class="tl-desc">2º e 3º LRCAP realizados. 19,5 GW contratados.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#DC2626"></span>Opinião: Política Industrial e Baterias</div>
+    <div style="font-size:.84rem;color:var(--tx2);line-height:1.7">
+      <p style="margin-bottom:10px">André Tokarski (Unialfa/Ineep) argumenta que a minuta do LRCAP BESS é <strong style="color:var(--tx)">omissa em política industrial</strong>. Sem cláusulas de conteúdo local, P&D ou transferência de tecnologia.</p>
+      <p style="margin-bottom:10px">O desenho favorece a <strong style="color:var(--tx)">cadeia global dominada por poucos fornecedores</strong>. Brasil entra como tomador de tecnologia.</p>
+      <p>Contrasta com a <strong style="color:var(--tx)">Nova Indústria Brasil (NIB)</strong>, que prioriza baterias e minerais críticos. Proposta: bonificação para encadeamento local, P&D no CRCAP, parcerias com ICTs.</p>
+    </div>
+  </div>
+  <div class="callout warn"><strong>Reflexão:</strong> ONS indicou ao TCU que alternativas ao leilão deixariam energia mais cara. Apesar das críticas, LRCAP é necessário para garantir potência frente ao crescimento de renováveis intermitentes.</div>
+</div>
+
+<!-- ═══ EMPRESAS ═══ -->
+<div class="tab-content" id="tab-empresas">
+  <div class="section-header">
+    <span class="section-tag" style="background:#EEF2FF;color:#4338CA">Empresas</span>
+    <h2>Perfil das Empresas</h2>
+    <p>Perfil detalhado de cada empresa que contratou usinas no LRCAP 2026, com dados operacionais e contexto estratégico.</p>
+  </div>
+  <div class="kpi-row" id="empresasKpis"></div>
+  <div class="subtab-nav" id="coNav"></div>
+  <div id="coContent"></div>
+</div>
+
+</main>
+
+<script>
+// ═══ PLANT DATA ═══
+const plants=[
+{n:"UTE Luiz Oscar Rodrigues de Melo",uf:"ES",ag:"Eneva",fuel:"Gás Natural",mw:26.6,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Povoação 1",uf:"ES",ag:"Eneva",fuel:"Gás Natural",mw:71.6,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Viana 1",uf:"ES",ag:"Eneva",fuel:"Gás Natural",mw:35.7,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Santa Cruz",uf:"RJ",ag:"J&F",fuel:"Gás Natural",mw:130.3,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Juiz de Fora",uf:"MG",ag:"Petrobras",fuel:"Gás Natural",mw:78.6,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Nova Piratininga",uf:"SP",ag:"Petrobras",fuel:"Gás Natural",mw:345.6,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Seropédica",uf:"RJ",ag:"Petrobras",fuel:"Gás Natural",mw:325,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Termobahia",uf:"BA",ag:"Petrobras",fuel:"Gás Natural",mw:132.9,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Paulínia Verde",uf:"SP",ag:"PV",fuel:"Gás Natural",mw:21.3,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE EDF Norte Fluminense",uf:"RJ",ag:"J&F",fuel:"Gás Natural",mw:787.8,round:"2026",leilao:"2",tipo:"Existente"},
+{n:"UTE Seropédica",uf:"RJ",ag:"Petrobras",fuel:"Gás Natural",mw:817.6,round:"2027",leilao:"2",tipo:"Existente"},
+{n:"UTE Três Lagoas",uf:"MS",ag:"Petrobras",fuel:"Gás Natural",mw:234.4,round:"2027",leilao:"2",tipo:"Existente"},
+{n:"UTE Porto do Pecém I",uf:"CE",ag:"Porto do Pecém 1",fuel:"Carvão",mw:635.7,round:"2027",leilao:"2",tipo:"Existente"},
+{n:"UTE CELPAV IV",uf:"SP",ag:"Suzano",fuel:"Gás Natural",mw:16.7,round:"2027",leilao:"2",tipo:"Existente"},
+{n:"UTE Trombudo II",uf:"SC",ag:"Blue",fuel:"Gás Natural",mw:4.95,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Biribeira I",uf:"BA",ag:"CB2026",fuel:"Gás Natural",mw:78.2,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE GDE Cuiabá B2",uf:"MT",ag:"CBG",fuel:"Gás Natural",mw:26.7,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE GDE Rio Branco 1",uf:"AC",ag:"CBG",fuel:"Gás Natural",mw:26.7,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE GDE Sinop B2",uf:"MT",ag:"CBG",fuel:"Gás Natural",mw:26.7,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Corcovado 04",uf:"BA",ag:"CC 2",fuel:"Gás Natural",mw:47.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Corcovado 05",uf:"BA",ag:"CC 3",fuel:"Gás Natural",mw:47.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Corcovado 06",uf:"BA",ag:"CC 3",fuel:"Gás Natural",mw:47.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Monte Fuji M1",uf:"PE",ag:"CEC",fuel:"Gás Natural",mw:290.6,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Nova Era",uf:"RJ",ag:"CNE2026",fuel:"Gás Natural",mw:166.2,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Cocal Biometano NRD",uf:"SP",ag:"Cocal",fuel:"Biometano",mw:4.6,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Cocal Biometano PPT",uf:"SP",ag:"Cocal",fuel:"Biometano",mw:4.6,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE São Mateus I",uf:"ES",ag:"Consórcio SMI",fuel:"Gás Natural",mw:31.2,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE São Mateus II",uf:"ES",ag:"Consórcio SMI",fuel:"Gás Natural",mw:31.2,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto de Sergipe II (a)",uf:"SE",ag:"Eneva",fuel:"Gás Natural",mw:574.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto de Sergipe II (b)",uf:"SE",ag:"Eneva",fuel:"Gás Natural",mw:446.8,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto de Sergipe II (c)",uf:"SE",ag:"Eneva",fuel:"Gás Natural",mw:223.4,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto Norte Fluminense 1D",uf:"RJ",ag:"Engekogreen",fuel:"Gás Natural",mw:51.3,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Termo João Pessoa",uf:"PB",ag:"Epasa",fuel:"Gás Natural",mw:53.7,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Termonordeste",uf:"PB",ag:"Epasa",fuel:"Gás Natural",mw:279.3,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar III",uf:"AL",ag:"FP",fuel:"Gás Natural",mw:48,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar IV",uf:"AL",ag:"FP",fuel:"Gás Natural",mw:48,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar V",uf:"AL",ag:"FP",fuel:"Gás Natural",mw:29.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Prosperidade IV",uf:"BA",ag:"Imetame",fuel:"Gás Natural",mw:8.8,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Altos I",uf:"PI",ag:"Ion 1",fuel:"Gás Natural",mw:60,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Teresina EPP",uf:"PI",ag:"ION III A 1",fuel:"Gás Natural",mw:250,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Amarração EPP",uf:"PI",ag:"ION III A 2",fuel:"Gás Natural",mw:250,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Portinho BEP",uf:"PI",ag:"ION III B 2",fuel:"Gás Natural",mw:250,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Aracati",uf:"CE",ag:"ION IV",fuel:"Gás Natural",mw:250,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Uruguaiana I",uf:"RS",ag:"J&F",fuel:"Gás Natural",mw:550.3,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Porsud I",uf:"RJ",ag:"KPS",fuel:"Gás Natural",mw:110.1,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Porsud II",uf:"RJ",ag:"KPS",fuel:"Gás Natural",mw:72,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Santana C",uf:"AP",ag:"KPS",fuel:"Gás Natural",mw:229.2,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Karkey 013",uf:"RJ",ag:"KPS",fuel:"Gás Natural",mw:244.8,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Karkey 019",uf:"RJ",ag:"KPS",fuel:"Gás Natural",mw:110.1,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Porto Norte Fluminense I C",uf:"RJ",ag:"Opala",fuel:"Gás Natural",mw:59.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:125.6,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar Nova",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:173.9,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Vale do Açú",uf:"RN",ag:"Petrobras",fuel:"Gás Natural",mw:106.62,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Maranhão IV",uf:"MA",ag:"PGC 1 (Eneva)",fuel:"Gás Natural",mw:324.13,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Maranhão V",uf:"MA",ag:"PGC 2 (Eneva)",fuel:"Gás Natural",mw:319.6,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Apoena V2",uf:"BA",ag:"SFE 1",fuel:"Gás Natural",mw:142.5,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE SFE Guarani V2",uf:"BA",ag:"SFE 2",fuel:"Gás Natural",mw:150.8,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Termocabo Gás",uf:"PE",ag:"Termocabo",fuel:"Gás Natural",mw:47,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Araucária",uf:"PR",ag:"UEG (J&F)",fuel:"Gás Natural",mw:451.5,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE Araucária II",uf:"PR",ag:"UEG (J&F)",fuel:"Gás Natural",mw:220,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Tacaimbó 1 2B",uf:"PE",ag:"UTE Tacaimbó I",fuel:"Gás Natural",mw:92,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Tacaimbó",uf:"PE",ag:"UTE Termo Agreste",fuel:"Gás Natural",mw:91,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE William Arjona II",uf:"MS",ag:"UTE WA II",fuel:"Gás Natural",mw:62.9,round:"2028",leilao:"2",tipo:"Existente"},
+{n:"UTE ASJA João Pessoa",uf:"PB",ag:"UTEPB",fuel:"Gás Natural",mw:4.8,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE ASJA Jaboatão",uf:"PE",ag:"UTEPE",fuel:"Gás Natural",mw:26.9,round:"2028",leilao:"2",tipo:"Nova"},
+{n:"UTE Corcovado 03",uf:"BA",ag:"CC2",fuel:"Gás Natural",mw:47.5,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Novo Tempo Barcarena II",uf:"PA",ag:"Celba (New Fortress)",fuel:"Gás Natural",mw:100.8,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Jandaia II",uf:"CE",ag:"Eneva",fuel:"Gás Natural",mw:860.8,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Jandaia III",uf:"CE",ag:"Eneva",fuel:"Gás Natural",mw:286.9,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar I",uf:"AL",ag:"FP",fuel:"Gás Natural",mw:47.9,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Pilar II",uf:"AL",ag:"FP",fuel:"Gás Natural",mw:47.9,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Tupã",uf:"RJ",ag:"GPE",fuel:"Gás Natural",mw:171.4,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Expansão Prosperidade IV",uf:"BA",ag:"Imetame",fuel:"Gás Natural",mw:17.6,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto Norte Fluminense II C",uf:"RJ",ag:"Ion II 1",fuel:"Gás Natural",mw:55,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto Norte Fluminense I B",uf:"RJ",ag:"Ion II 2",fuel:"Gás Natural",mw:40,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Sergipe V",uf:"SE",ag:"Ion III B1",fuel:"Gás Natural",mw:250,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Santa Clara",uf:"MA",ag:"ION V A",fuel:"Gás Natural",mw:280,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Frevo",uf:"PE",ag:"OnCorp",fuel:"Gás Natural",mw:18.1,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Manguaba I",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:9.3,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Manguaba II",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:9.3,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Manguaba III",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:9.3,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Manguaba IV",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:9.3,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Manguaba V",uf:"AL",ag:"Origem Energia",fuel:"Gás Natural",mw:9.3,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE MC2 Nova Venécia 2",uf:"MA",ag:"P2 (Eneva)",fuel:"Gás Natural",mw:167.2,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Suape IV B",uf:"PE",ag:"Suape II",fuel:"Gás Natural",mw:119.2,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Garuva",uf:"SC",ag:"Termog",fuel:"Gás Natural",mw:88,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UTE Campo Grande",uf:"MS",ag:"UTE Campo Grande",fuel:"Gás Natural",mw:157.2,round:"2029",leilao:"2",tipo:"Nova"},
+{n:"UHE Jaguara",uf:"SP",ag:"CEJA (Engie)",fuel:"Hidrelétrica",mw:195.7,round:"2030",leilao:"2",tipo:"Ampliação"},
+{n:"UHE Ampliação GNB Segredo",uf:"PR",ag:"Copel",fuel:"Hidrelétrica",mw:1172,round:"2030",leilao:"2",tipo:"Ampliação"},
+{n:"UHE Ampliação GBM Foz do Areia",uf:"PR",ag:"FDA (Copel)",fuel:"Hidrelétrica",mw:690.4,round:"2030",leilao:"2",tipo:"Ampliação"},
+{n:"UHE São Simão UG07",uf:"GO",ag:"Spic Brasil",fuel:"Hidrelétrica",mw:253.3,round:"2030",leilao:"2",tipo:"Ampliação"},
+{n:"UTE Jandaia 1",uf:"CE",ag:"Eneva",fuel:"Gás Natural",mw:441.4,round:"2031",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto Norte Fluminense II B",uf:"RJ",ag:"Eneva",fuel:"Gás Natural",mw:219.2,round:"2031",leilao:"2",tipo:"Nova"},
+{n:"UTE Presidente Kennedy",uf:"ES",ag:"Eneva",fuel:"Gás Natural",mw:216.4,round:"2031",leilao:"2",tipo:"Nova"},
+{n:"UTE Presidente Kennedy I",uf:"ES",ag:"Eneva",fuel:"Gás Natural",mw:136,round:"2031",leilao:"2",tipo:"Nova"},
+{n:"UTE Porto do Itaqui",uf:"MA",ag:"Itaqui",fuel:"Carvão",mw:311.7,round:"2031",leilao:"2",tipo:"Existente"},
+{n:"UTE Porto do Pecém II",uf:"CE",ag:"Pecém II",fuel:"Carvão",mw:746,round:"2031",leilao:"2",tipo:"Existente"},
+{n:"UTE Termoceará",uf:"CE",ag:"Petrobras",fuel:"Gás Natural",mw:194,round:"2031",leilao:"2",tipo:"Existente"},
+{n:"UTE Lins 2",uf:"SP",ag:"UTE Lins (New Fortress)",fuel:"Gás Natural",mw:191,round:"2031",leilao:"2",tipo:"Nova"},
+{n:"UHE Luiz Gonzaga UG09",uf:"PE",ag:"Axia (ex-Eletrobras)",fuel:"Hidrelétrica",mw:190,round:"2031",leilao:"2",tipo:"Ampliação"},
+{n:"UTE Canoas",uf:"RS",ag:"Petrobras",fuel:"Diesel",mw:157.8,round:"2026",leilao:"3",tipo:"Existente"},
+{n:"UTE Termoceará (diesel)",uf:"CE",ag:"Petrobras",fuel:"Diesel",mw:174.7,round:"2027",leilao:"3",tipo:"Existente"},
+{n:"UTE Petrolina",uf:"PE",ag:"CEP",fuel:"Óleo Combustível",mw:20,round:"2026",leilao:"3",tipo:"Existente"},
+{n:"UTE Petrolina Bio",uf:"PE",ag:"CEP",fuel:"Biodiesel",mw:48,round:"2030",leilao:"3",tipo:"Existente"},
+{n:"UTE Xavantes Aruanã",uf:"GO",ag:"OnCorp",fuel:"Diesel",mw:50.4,round:"2026",leilao:"3",tipo:"Existente"},
+{n:"UTE Xavantes Aruanã Bio",uf:"GO",ag:"OnCorp",fuel:"Biodiesel",mw:50.4,round:"2030",leilao:"3",tipo:"Existente"},
+];
+
+// ═══ REGION MAPPING ═══
+const ufRegion={
+  AC:'Norte',AM:'Norte',AP:'Norte',PA:'Norte',RO:'Norte',RR:'Norte',TO:'Norte',
+  AL:'Nordeste',BA:'Nordeste',CE:'Nordeste',MA:'Nordeste',PB:'Nordeste',PE:'Nordeste',PI:'Nordeste',RN:'Nordeste',SE:'Nordeste',
+  DF:'Centro-Oeste',GO:'Centro-Oeste',MT:'Centro-Oeste',MS:'Centro-Oeste',
+  ES:'Sudeste',MG:'Sudeste',RJ:'Sudeste',SP:'Sudeste',
+  PR:'Sul',RS:'Sul',SC:'Sul'
+};
+plants.forEach(p=>p.region=ufRegion[p.uf]||'');
+
+// Populate dynamic selects
+function populateSelects(){
+  // Agents
+  const agents=[...new Set(plants.map(p=>p.ag))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const agSel=document.getElementById('filterAgent');
+  agents.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;agSel.appendChild(o)});
+  // UFs
+  populateUFSelect('');
+}
+function populateUFSelect(region){
+  const ufSel=document.getElementById('filterUF');
+  const prev=ufSel.value;
+  ufSel.innerHTML='<option value="">Todos os UFs</option>';
+  let ufs=[...new Set(plants.map(p=>p.uf))];
+  if(region) ufs=ufs.filter(u=>ufRegion[u]===region);
+  ufs.sort().forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;ufSel.appendChild(o)});
+  // Keep previous selection if still valid
+  if(ufs.includes(prev)) ufSel.value=prev; else ufSel.value='';
+}
+function onRegionChange(){
+  populateUFSelect(document.getElementById('filterRegion').value);
+  filterTable();
+}
+populateSelects();
+
+// ═══ TABLE RENDERING ═══
+function getBadge(f){if(f==='Gás Natural')return'badge-gas';if(f==='Carvão')return'badge-coal';if(f==='Hidrelétrica')return'badge-hydro';if(f==='Biometano'||f==='Biodiesel')return'badge-bio';return'badge-oil'}
+function getFiltered(){
+  const q=document.getElementById('searchPlant').value.toLowerCase();
+  const reg=document.getElementById('filterRegion').value;
+  const uf=document.getElementById('filterUF').value;
+  const ag=document.getElementById('filterAgent').value;
+  const f=document.getElementById('filterFuel').value;
+  const r=document.getElementById('filterRound').value;
+  const l=document.getElementById('filterLeilao').value;
+  const t=document.getElementById('filterTipo').value;
+  return plants.filter(p=>{
+    if(q&&!(p.n.toLowerCase().includes(q)||p.ag.toLowerCase().includes(q)||p.uf.toLowerCase().includes(q)||p.fuel.toLowerCase().includes(q)||p.tipo.toLowerCase().includes(q)))return false;
+    if(reg&&p.region!==reg)return false;
+    if(uf&&p.uf!==uf)return false;
+    if(ag&&p.ag!==ag)return false;
+    if(f&&p.fuel!==f)return false;
+    if(r&&p.round!==r)return false;
+    if(l&&p.leilao!==l)return false;
+    if(t&&p.tipo!==t)return false;
+    return true;
+  });
+}
+function renderTable(data){
+  document.getElementById('plantBody').innerHTML=data.map((p,i)=>`<tr>
+    <td style="color:var(--tx3);font-family:var(--mono);font-size:.7rem">${i+1}</td>
+    <td class="plant-name">${p.n}</td>
+    <td><span class="badge badge-round">${p.uf}</span></td>
+    <td style="font-size:.74rem;color:var(--tx3)">${p.region}</td>
+    <td>${p.ag}</td>
+    <td><span class="badge ${getBadge(p.fuel)}">${p.fuel}</span></td>
+    <td class="mw-num">${p.mw.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2})}</td>
+    <td><span class="badge badge-round">${p.round}</span></td>
+    <td>${p.leilao==='2'?'2º':'3º'}</td>
+    <td>${p.tipo}</td>
+  </tr>`).join('');
+  document.getElementById('plantCount').textContent=`${data.length} usina${data.length!==1?'s':''}`;
+}
+function filterTable(){renderTable(getFiltered())}
+let sortDir=1,lastCol=-1;
+function sortTable(col){
+  const keys=['','n','uf','region','ag','fuel','mw','round','leilao','tipo'];
+  if(col===lastCol)sortDir*=-1;else{sortDir=1;lastCol=col}
+  let d=getFiltered();
+  const k=keys[col];
+  if(k)d.sort((a,b)=>{let va=a[k],vb=b[k];if(typeof va==='number')return(va-vb)*sortDir;return String(va).localeCompare(String(vb),'pt-BR')*sortDir});
+  renderTable(d);
+}
+renderTable(plants);
+
+// ═══ SIDEBAR (body class approach) ═══
+function isMobile(){return window.innerWidth<=768}
+
+function toggleSidebar(){
+  const open=document.body.classList.toggle('sb-open');
+  if(isMobile()){
+    document.querySelector('.overlay').style.opacity=open?'1':'0';
+    document.querySelector('.overlay').style.pointerEvents=open?'auto':'none';
+  }
+}
+
+// Resize charts only AFTER CSS transition finishes (sidebar toggle)
+document.querySelector('.main').addEventListener('transitionend',function(e){
+  if(e.propertyName==='margin-left') resizeVisibleCharts(true);
+});
+
+// Light resize: just tell Chart.js to re-measure (for tab switches)
+// Heavy resize: reset canvas attrs first (for sidebar toggle where container width changes)
+function resizeVisibleCharts(heavy){
+  const activeTab=document.querySelector('.tab-content.active');
+  if(!activeTab) return;
+  const canvases=activeTab.querySelectorAll('canvas');
+  canvases.forEach(canvas=>{
+    const id=canvas.id;
+    // Find the chart instance for this canvas
+    const chart=Object.values(charts).find(c=>c.canvas===canvas);
+    if(!chart) return;
+    try{
+      if(heavy){
+        canvas.style.width='';
+        canvas.style.height='';
+        canvas.removeAttribute('width');
+        canvas.removeAttribute('height');
+        const p=canvas.parentNode;
+        p.style.width='';
+        p.style.height='';
+        p.offsetWidth; // force reflow
+      }
+      chart.resize();
+    }catch(e){}
+  });
+}
+
+function toggleTheme(){
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'':'dark');
+  document.getElementById('themeLabel').textContent=d?'Claro':'Escuro';
+  updateChartColors();
+}
+
+function showTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`).classList.add('active');
+  if(isMobile())toggleSidebar();
+  // Light resize only for charts in the newly active tab
+  requestAnimationFrame(()=>resizeVisibleCharts(false));
+}
+
+// Init: desktop=open, mobile=closed
+function initLayout(){
+  if(isMobile()){
+    document.body.classList.remove('sb-open');
+  }else{
+    document.body.classList.add('sb-open');
+  }
+}
+initLayout();
+window.addEventListener('resize',()=>{
+  if(!isMobile()){
+    document.body.classList.add('sb-open');
+    document.querySelector('.overlay').style.opacity='0';
+    document.querySelector('.overlay').style.pointerEvents='none';
+  }
+  resizeVisibleCharts(true);
+});
+
+// ═══ CHARTS ═══
+const A='#C05621',B='#2563EB',G='#16A34A',P='#7C3AED',R='#DC2626',T='#0D9488',Am='#D97706';
+function gc(){const s=getComputedStyle(document.documentElement);return{tx2:s.getPropertyValue('--tx2').trim(),tx3:s.getPropertyValue('--tx3').trim(),border:s.getPropertyValue('--border').trim(),tx:s.getPropertyValue('--tx').trim(),bg2:s.getPropertyValue('--bg2').trim()}}
+let charts={};
+
+function bo(t){const c=gc();const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.tx2,font:{family:'DM Sans',size:11}},position:'bottom'},tooltip:{backgroundColor:c.tx,titleColor:c.bg2,bodyColor:c.bg2,cornerRadius:8,padding:10}}};if(t==='doughnut')return base;base.scales={x:{ticks:{color:c.tx3,font:{family:'DM Sans',size:11}},grid:{color:c.border+'40'}},y:{ticks:{color:c.tx3,font:{family:'DM Sans',size:11}},grid:{color:c.border+'40'}}};return base}
+
+function updateChartColors(){const c=gc();Object.values(charts).forEach(ch=>{if(ch.options.plugins?.legend?.labels)ch.options.plugins.legend.labels.color=c.tx2;if(ch.options.scales?.x){ch.options.scales.x.ticks.color=c.tx3;ch.options.scales.x.grid.color=c.border+'40'}if(ch.options.scales?.y){ch.options.scales.y.ticks.color=c.tx3;ch.options.scales.y.grid.color=c.border+'40'}ch.update()})}
+
+// Aggregations for usinas tab
+const ufAgg={};plants.forEach(p=>{ufAgg[p.uf]=(ufAgg[p.uf]||0)+p.mw});
+const ufSorted=Object.entries(ufAgg).sort((a,b)=>b[1]-a[1]).slice(0,10);
+const agCnt={};plants.forEach(p=>{const k=p.ag.replace(/ ?\(.*\)/,'');agCnt[k]=(agCnt[k]||0)+1});
+const agSorted=Object.entries(agCnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+function init(){
+  const pal=[A,B,G,T,P,Am,R,A+'99',B+'99',G+'99'];
+  charts.ov1=new Chart(document.getElementById('chartOv1'),{type:'bar',data:{labels:['2º LRCAP','3º LRCAP'],datasets:[{label:'MW',data:[18977,501],backgroundColor:[A+'CC',T+'CC'],borderColor:[A,T],borderWidth:2,borderRadius:6}]},options:{...bo(),indexAxis:'y',plugins:{...bo().plugins,legend:{display:false}}}});
+  charts.ov2=new Chart(document.getElementById('chartOv2'),{type:'doughnut',data:{labels:['Gás Natural','Carvão','Hidrelétrica','Biometano'],datasets:[{data:[15200,1260,2500,9.2],backgroundColor:[A,R,B,G],borderWidth:0}]},options:{...bo('doughnut'),cutout:'55%'}});
+  charts.ag1=new Chart(document.getElementById('chartAg1'),{type:'bar',data:{labels:['Eneva','Petrobras','J&F','Copel','EPP (Ion)','KPS','Origem','Spic','Engie','Axia'],datasets:[{label:'GW',data:[5.06,2.57,2.14,1.86,1.69,0.77,0.38,0.25,0.20,0.19],backgroundColor:pal.map(c=>c+'CC'),borderRadius:5}]},options:{...bo(),indexAxis:'y',plugins:{...bo().plugins,legend:{display:false}}}});
+  charts.ag2=new Chart(document.getElementById('chartAg2'),{type:'bar',data:{labels:['Eneva','Petrobras','J&F','EPP','KPS','Copel'],datasets:[{label:'Novas',data:[3.7,0.11,0.55,1.69,0.23,0],backgroundColor:A+'CC',borderRadius:4},{label:'Recontratação',data:[0.81,2.46,0.92,0,0.54,0],backgroundColor:B+'CC',borderRadius:4},{label:'Ampliação',data:[0,0,0,0,0,1.86],backgroundColor:T+'CC',borderRadius:4}]},options:{...bo(),scales:{x:{...bo().scales.x,stacked:true},y:{...bo().scales.y,stacked:true}}}});
+  charts.le1=new Chart(document.getElementById('chartLe1'),{type:'bar',data:{labels:['2º LRCAP','3º LRCAP'],datasets:[{label:'R$ mil/MW.ano',data:[2334.7,831.3],backgroundColor:[A+'CC',T+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}}}});
+  charts.le2=new Chart(document.getElementById('chartLe2'),{type:'bar',data:{labels:['2º LRCAP','3º LRCAP'],datasets:[{label:'%',data:[5.52,50.14],backgroundColor:[Am+'CC',G+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}},scales:{...bo().scales,y:{...bo().scales.y,max:60}}}});
+  charts.tc1=new Chart(document.getElementById('chartTc1'),{type:'bar',data:{labels:['Gás Natural','Hidrelétrica','Carvão','Biometano'],datasets:[{label:'GW',data:[15.2,2.5,1.26,0.009],backgroundColor:[A+'CC',B+'CC',R+'CC',G+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}}}});
+  charts.tc2=new Chart(document.getElementById('chartTc2'),{type:'doughnut',data:{labels:['Gás Natural (90)','Carvão (3)','Hidrelétrica (5)','Biometano (2)'],datasets:[{data:[90,3,5,2],backgroundColor:[A,R,B,G],borderWidth:0}]},options:{...bo('doughnut'),cutout:'50%'}});
+  charts.cr1=new Chart(document.getElementById('chartCr1'),{type:'bar',data:{labels:['2026','2027','2028','2029','2030','2031'],datasets:[{label:'Gás Natural',data:[1955,1069,6200,2600,0,1398],backgroundColor:A+'CC',borderRadius:4},{label:'Carvão',data:[0,636,0,0,0,1058],backgroundColor:R+'CC',borderRadius:4},{label:'Hidrelétrica',data:[0,0,0,0,2311,190],backgroundColor:B+'CC',borderRadius:4},{label:'Biometano',data:[0,0,9.2,0,0,0],backgroundColor:G+'CC',borderRadius:4}]},options:{...bo(),scales:{x:{...bo().scales.x,stacked:true},y:{...bo().scales.y,stacked:true}}}});
+  charts.gs1=new Chart(document.getElementById('chartGs1'),{type:'bar',data:{labels:['Antes','Após LRCAP'],datasets:[{label:'Térmicas',data:[50,18],backgroundColor:A+'CC',borderRadius:4},{label:'Não-Térmicas',data:[50,82],backgroundColor:B+'CC',borderRadius:4}]},options:{...bo(),scales:{x:{...bo().scales.x,stacked:true},y:{...bo().scales.y,stacked:true,max:100}}}});
+  charts.op1=new Chart(document.getElementById('chartOp1'),{type:'bar',data:{labels:['Abrace (consumidores)','Governo'],datasets:[{label:'%',data:[10,-24],backgroundColor:[R+'CC',G+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}}}});
+  charts.uf1=new Chart(document.getElementById('chartUF'),{type:'bar',data:{labels:ufSorted.map(e=>e[0]),datasets:[{label:'MW',data:ufSorted.map(e=>Math.round(e[1])),backgroundColor:ufSorted.map((_,i)=>pal[i]+'CC'),borderRadius:5}]},options:{...bo(),indexAxis:'y',plugins:{...bo().plugins,legend:{display:false}}}});
+  charts.ac1=new Chart(document.getElementById('chartAgCount'),{type:'bar',data:{labels:agSorted.map(e=>e[0]),datasets:[{label:'Nº',data:agSorted.map(e=>e[1]),backgroundColor:agSorted.map((_,i)=>pal[i]+'CC'),borderRadius:5}]},options:{...bo(),indexAxis:'y',plugins:{...bo().plugins,legend:{display:false}}}});
+
+  // Suprimento de Gás charts
+  charts.sup1=new Chart(document.getElementById('chartSup1'),{type:'bar',data:{labels:['Gás Nacional\n(Malha)','GNL\nImportado','Gas-to-Wire\n(Onshore)','A Definir\n/ Misto'],datasets:[{label:'GW',data:[4.5,7.0,1.5,2.0],backgroundColor:[A+'CC',T+'CC',G+'CC',P+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}},scales:{...bo().scales,y:{...bo().scales.y}}}});
+  charts.sup2=new Chart(document.getElementById('chartSup2'),{type:'doughnut',data:{labels:['Conectada à Malha (~4,6 GW)','Desconectada (~10,5 GW)','Variável (~2 GW)'],datasets:[{data:[4.6,10.5,2.0],backgroundColor:[G,A,'#78716C'],borderWidth:0}]},options:{...bo('doughnut'),cutout:'55%'}});
+  charts.price1=new Chart(document.getElementById('chartPrice1'),{type:'bar',data:{labels:['Gás Próprio\n(onshore)','Bolívia\n(GASBOL)','GNL Contrato\n(HH longo prazo)','Petrobras\n(city gate)','GNL Spot\n(pós-conflito)','CVU Teto\n(LRCAP)'],datasets:[{label:'US$/MMBtu',data:[2,7,8.5,10,14,28.6],backgroundColor:[G+'CC',T+'CC',Am+'CC',B+'CC',R+'CC','#78716C'+'CC'],borderRadius:6}]},options:{...bo(),indexAxis:'y',plugins:{...bo().plugins,legend:{display:false}}}});
+}
+init();
+
+// Force correct chart sizes after everything renders
+window.addEventListener('load',()=>{
+  setTimeout(()=>resizeVisibleCharts(true),100);
+  setTimeout(()=>resizeVisibleCharts(true),500);
+});
+
+// ═══ EMPRESAS TAB ═══
+const agentToCompany={
+  'Eneva':'Eneva','PGC 1 (Eneva)':'Eneva','PGC 2 (Eneva)':'Eneva','P2 (Eneva)':'Eneva',
+  'Petrobras':'Petrobras',
+  'J&F':'J&F','UEG (J&F)':'J&F',
+  'Ion 1':'EPP','ION III A 1':'EPP','ION III A 2':'EPP','ION III B 2':'EPP','ION IV':'EPP',
+  'Ion II 1':'EPP','Ion II 2':'EPP','Ion III B1':'EPP','ION V A':'EPP',
+  'KPS':'KPS',
+  'Copel':'Copel','FDA (Copel)':'Copel',
+  'Origem Energia':'Origem Energia','Origem':'Origem Energia',
+  'OnCorp':'OnCorp',
+  'CEJA (Engie)':'Engie',
+  'Spic Brasil':'Spic Brasil',
+  'Axia (ex-Eletrobras)':'Axia',
+  'CEP':'CEP',
+  'Cocal':'Cocal',
+  'Celba (New Fortress)':'New Fortress','UTE Lins (New Fortress)':'New Fortress',
+  'Imetame':'Imetame',
+  'FP':'FP',
+  'UTE Campo Grande':'Delta Energia','UTE WA II':'Delta Energia',
+  'Consórcio SMI':'Urca Gás',
+  'Epasa':'EBrasil',
+  'Porto do Pecém 1':'Diamante Energia','PV':'Mercurio Partners',
+  'Pecém II':'Diamante Energia','Itaqui':'Eneva',
+  'Suzano':'Suzano',
+  'Blue':'Blue',
+  'CBG':'CBG',
+  'CB2026':'CB2026',
+  'CC 2':'Brasil GTW','CC2':'Brasil GTW','CC 3':'Brasil GTW',
+  'CEC':'CEC',
+  'CNE2026':'CNE2026',
+  'Engekogreen':'Engekogreen',
+  'Opala':'Opala',
+  'SFE 1':'São Francisco Energia','SFE 2':'São Francisco Energia',
+  'Suape II':'Suape II',
+  'Termocabo':'Termocabo',
+  'Termog':'Termog',
+  'UTE Tacaimbó I':'Tacaimbó','UTE Termo Agreste':'Tacaimbó',
+  'UTEPB':'ASJA Brasil','UTEPE':'ASJA Brasil',
+  'GPE':'GPE',
+};
+
+const coProfiles={
+  'Eneva':{
+    color:'#C05621',icon:'EN',sector:'Geração Termelétrica · Gás & Carvão',
+    desc:'Maior vencedora: <strong>5,06 GW</strong> em 17 usinas, R$ 18,2 bi investimento. Amplia portfólio para 10,8 GW. Vendeu Pecém II (carvão) para a Diamante Energia por até R$ 1 bi e assegurou terminal de GNL no Pecém.',
+    highlights:[
+      '<strong>Hub Ceará (Jandaia):</strong> Parceria Eneva + Diamante. Investimento R$ 6,5 bi. Jandaia II + III = 1.199 MW. Terminal de GNL com 14 mi m³/dia, FSRU, píer exclusivo (R$ 430 mi). Obras: 1º sem. 2026. Operação: ago/2029.',
+      '<strong>Vendeu Pecém II</strong> (365 MW carvão) à Diamante Energia por R$ 872 mi (+ R$ 149 mi earn-out). Mantém Porto do Itaqui (MA, 312 MW carvão).',
+      'Novo terminal de GNL no <strong>Sudeste</strong> (RJ/ES): 1,1 GW. Operação: 2031.',
+      'Ampliou hub <strong>Sergipe</strong> em 1,3 GW. Contratos de 5,5 mi m³/dia a terceiros.',
+      'Recontratou <strong>Parnaíba I e III</strong> (811 MW, gas-to-wire) por +10 anos.',
+      'Demanda GNL 2026 coberta (Qatar Energy, gás dos EUA). Novas térmicas: contratos em negociação.',
+    ]
+  },
+  'Petrobras':{
+    color:'#2563EB',icon:'PB',sector:'Geração Termelétrica · Gás & Diesel',
+    desc:'Recontratou parque existente: <strong>2,57 GW</strong> em 10 usinas. Receita fixa ~R$ 4 bi/ano. ~1 GW disponível já em 2026.',
+    highlights:[
+      '2º LRCAP: 8 usinas a gás recontratadas (Seropédica, Nova Piratininga, Termobahia, etc.).',
+      '3º LRCAP: 2 usinas a diesel — Canoas (RS) e Termoceará (CE), 332 MW.',
+      'Foco exclusivo em recontratação. Conectada à malha de gasodutos.',
+    ]
+  },
+  'J&F':{
+    color:'#16A34A',icon:'JF',sector:'Geração Termelétrica · Gás Natural',
+    desc:'Grupo dos irmãos Batista recontratou 4 de suas termelétricas a gás e negociou um projeto novo, totalizando <strong>2,14 GW</strong>. Cerca de 917 MW ficam disponíveis já em 2026.',
+    highlights:[
+      'Recontratou Norte Fluminense (788 MW) e Santa Cruz (130 MW) no RJ para 2026.',
+      'Projeto novo: <strong>Uruguaiana I</strong> (550 MW) no RS, para 2028.',
+      'Recontratação de Araucária (452 MW) e Araucária II (220 MW) no PR.',
+      'Também foi vencedora do leilão emergencial (PCS) de 2021, adquirindo 343 MW da EPP.',
+    ]
+  },
+  'EPP':{
+    color:'#7C3AED',icon:'EP',sector:'Geração Termelétrica · Gás Natural (GNL)',
+    desc:'A Evolution Power Partners (EPP) se destacou com foco em <strong>projetos novos</strong>, negociando 9 usinas num total de <strong>1,69 GW</strong>, nos estados do Ceará, Rio de Janeiro, Sergipe, Maranhão e Piauí.',
+    highlights:[
+      'Possui histórico em leilões: participação no desenvolvimento de UTE Porto de Sergipe e UTE Barcarena.',
+      'Também vencedora do PCS de 2021 com 343 MW — posteriormente negociados com a J&F.',
+      'Opera sob marcas ION nos leilões. Projetos incluem Teresina EPP (250 MW), Amarração EPP (250 MW), Aracati (250 MW), entre outros.',
+      'Projetos concentrados no <strong>Nordeste e Norte</strong>, utilizando GNL como combustível principal.',
+    ]
+  },
+  'Copel':{
+    color:'#0D9488',icon:'CO',sector:'Geração Hidrelétrica · Ampliação',
+    desc:'Maior vencedora em hidrelétricas, contratou a expansão de <strong>1,86 GW</strong> nas usinas de Foz do Areia e Segredo, no Paraná. Primeiro leilão a viabilizar ampliação de hidrelétricas em anos.',
+    highlights:[
+      '<strong>Ampliação GNB Segredo (PR)</strong>: 1.172 MW de potência — maior projeto individual de ampliação.',
+      '<strong>Ampliação GBM Foz do Areia (PR)</strong>: 690 MW, via SPE FDA.',
+      'Ambos os projetos previstos para entrar em operação na rodada 2030.',
+      'A ampliação de hidrelétricas é inédita neste formato de leilão e abre precedente para futuros certames.',
+    ]
+  },
+  'KPS':{
+    color:'#D97706',icon:'KP',sector:'Powerships · GNL',
+    desc:'Empresa turca recontratou <strong>powerships</strong> no RJ e negociou projeto novo no AP: <strong>766 MW</strong>. Projeto piloto de baterias.',
+    highlights:[
+      'Recontratou powerships do PCS 2021 (Porsud I/II, Karkey 013/019).',
+      'Projeto novo: UTE Santana C (229 MW), Amapá.',
+      'Projeto de <strong>baterias no AP</strong> — possível estreia global da KPS em armazenamento.',
+      'Portfólio global previsto: 10 GW entre 2027-2028.',
+    ]
+  },
+  'Origem Energia':{
+    color:'#059669',icon:'OE',sector:'Gas-to-Wire · Gás Onshore',
+    desc:'7 térmicas em Pilar (AL): <strong>380 MW</strong>, R$ 2 bi. Modelo gas-to-wire com gás próprio do Polo Alagoas.',
+    highlights:[
+      'Gás próprio do Polo Alagoas — verticalização total (E&P + geração).',
+      'Conectadas a projeto de <strong>estocagem subterrânea de gás</strong> em AL.',
+      '330 MW em 2028 + 50 MW em 2029.',
+    ]
+  },
+  'OnCorp':{
+    color:'#B45309',icon:'OC',sector:'GNL · Biodiesel · Gás Natural',
+    desc:'Atuou em ambos os leilões. UTE Frevo (Suape/PE) no 2º. Primeiras térmicas a <strong>biodiesel</strong> do SIN no 3º.',
+    highlights:[
+      'UTE Frevo (20 MW, Suape/PE) — R$ 103 mi. Terminal de regás em construção.',
+      '11 contratos de suprimento a terceiros; >90% capacidade do terminal contratada.',
+      'UTE Xavantes Aruanã Bio (50,4 MW) — 1ª usina a biodiesel do SIN.',
+      'Obras GNL meados 2026, operação fim 2027.',
+    ]
+  },
+  'Engie':{
+    color:'#4F46E5',icon:'EG',sector:'Geração Hidrelétrica · Ampliação',
+    desc:'Vai ampliar em 232 MW a potência da hidrelétrica Jaguara (MG/SP), com investimento total de <strong>~R$ 1,2 bilhão</strong>. Contratação na rodada 2030.',
+    highlights:[
+      '<strong>UHE Jaguara</strong> (SP): 195,7 MW de potência contratada via SPE CEJA.',
+      'Investimento significativo em ampliação hidrelétrica, segmento inédito no LRCAP.',
+    ]
+  },
+  'Spic Brasil':{
+    color:'#6366F1',icon:'SP',sector:'Geração Hidrelétrica · Ampliação',
+    desc:'Contratou a expansão em <strong>253 MW</strong> da usina São Simão (MG/GO), com aporte superior a <strong>R$ 1 bilhão</strong>. Rodada 2030.',
+    highlights:[
+      '<strong>UHE São Simão UG07 (GO)</strong>: ampliação de uma das maiores hidrelétricas do país.',
+      'Investimento acima de R$ 1 bilhão para a nova unidade geradora.',
+    ]
+  },
+  'Axia':{
+    color:'#8B5CF6',icon:'AX',sector:'Geração Hidrelétrica · Ampliação',
+    desc:'A Axia (ex-Eletrobras) vai investir <strong>R$ 1 bilhão</strong> para ampliar a usina Luiz Gonzaga (PE/BA) em <strong>190 MW</strong>. Rodada 2031.',
+    highlights:[
+      '<strong>UHE Luiz Gonzaga UG09 (PE)</strong>: ampliação de 190 MW de potência instalada.',
+      'Única ampliação hidrelétrica prevista para a rodada 2031.',
+    ]
+  },
+  'New Fortress':{
+    color:'#0891B2',icon:'NF',sector:'GNL · Geração Termelétrica',
+    desc:'Dona dos terminais de Barcarena (PA) e TGS (SC, atualmente inativo), monetizou sua infraestrutura negociando <strong>802 MW</strong> em duas térmicas.',
+    highlights:[
+      '<strong>UTE Novo Tempo Barcarena II (101 MW)</strong> — expansão do complexo atual no PA, prevista para 2029.',
+      '<strong>UTE Lins 2 (191 MW)</strong> em São Paulo, prevista para 2031.',
+      'Terminal TGS (SC) permanece inativo; navio foi transferido para o Egito.',
+    ]
+  },
+  'CEP':{
+    color:'#DC2626',icon:'CE',sector:'Óleo Combustível · Biodiesel',
+    desc:'A Companhia Energética de Petrolina contratou <strong>68 MW</strong> com receita fixa de R$ 34,2 milhões/ano. Viabilizou uma das primeiras térmicas a biodiesel do país.',
+    highlights:[
+      '<strong>UTE Petrolina (20 MW)</strong> a óleo combustível — início em 2026, por 3 anos.',
+      '<strong>UTE Petrolina Bio (48 MW)</strong> a biodiesel — início em 2030, por 10 anos.',
+    ]
+  },
+  'Imetame':{
+    color:'#059669',icon:'IM',sector:'Gas-to-Wire · Gás Onshore',
+    desc:'Negociou a expansão do projeto Prosperidade (BA), com gás da Bacia do Recôncavo. Recontratação + ampliação somando <strong>26 MW</strong>.',
+    highlights:[
+      'Recontratou UTE Prosperidade IV (8,8 MW) para 2028.',
+      'Expansão de 17,6 MW adicional (Expansão Prosperidade IV) para 2029.',
+      'Modelo gas-to-wire com gás próprio produzido na Bacia do Recôncavo (BA).',
+    ]
+  },
+  'Delta Energia':{
+    color:'#92400E',icon:'DE',sector:'Geração Termelétrica · Gás Nacional',
+    desc:'Recontratou a UTE William Arjona (MS) e negociou expansão via UTE Campo Grande, totalizando <strong>220 MW</strong>. Consome gás nacional.',
+    highlights:[
+      'Recontratou <strong>UTE William Arjona II (63 MW)</strong> em MS.',
+      'Projeto novo: <strong>UTE Campo Grande (157 MW)</strong> em MS, para 2029.',
+      'Usinas consomem gás nacional (não GNL importado).',
+    ]
+  },
+  'Urca Gás':{
+    color:'#6D28D9',icon:'UG',sector:'Gás Natural · Espírito Santo',
+    desc:'Arrematou duas usinas no Espírito Santo: São Mateus I e II, somando <strong>62 MW</strong>.',
+    highlights:[
+      '<strong>UTE São Mateus I e II</strong> (31,2 MW cada) no ES, via Consórcio SMI.',
+      'Projetos novos previstos para a rodada 2028.',
+    ]
+  },
+  'Cocal':{
+    color:'#16A34A',icon:'CC',sector:'Biometano',
+    desc:'Primeira empresa a negociar termelétricas a <strong>biometano</strong> no LRCAP, com duas usinas em SP somando <strong>9,2 MW</strong>.',
+    highlights:[
+      '<strong>UTE Cocal Biometano NRD (4,6 MW)</strong> e <strong>PPT (4,6 MW)</strong> em São Paulo.',
+      'Rodada 2028. Representa a entrada do biometano no mercado regulado de capacidade.',
+    ]
+  },
+  'EBrasil':{
+    color:'#B91C1C',icon:'EB',sector:'Geração Termelétrica · Gás Natural',
+    desc:'A EBrasil (ex-Epasa) negociou duas termelétricas na Paraíba, somando <strong>333 MW</strong> de potência nova para 2028.',
+    highlights:[
+      '<strong>UTE Termo João Pessoa (54 MW)</strong> e <strong>UTE Termonordeste (279 MW)</strong> na PB.',
+      'Projetos novos a gás natural com entrada em operação na rodada 2028.',
+    ]
+  },
+  'Brasil GTW':{
+    color:'#CA8A04',icon:'BG',sector:'Gas-to-Wire · Gás Natural',
+    desc:'Negociou as UTEs Corcovado no modelo gas-to-wire, com suprimento de gás pela PetroReconcavo. Total de <strong>190 MW</strong>.',
+    highlights:[
+      'UTEs Corcovado 03, 04, 05 e 06 na Bahia.',
+      '<strong>PetroReconcavo</strong> assumiu compromisso de fornecimento de gás para as Corcovado 4, 5 e 6 (142,5 MW, 2028).',
+    ]
+  },
+  'Suzano':{
+    color:'#65A30D',icon:'SZ',sector:'Papel & Celulose · Cogeração',
+    desc:'Recontratou a <strong>UTE CELPAV IV (17 MW)</strong> em São Paulo, rodada 2027.',
+    highlights:['Usina de cogeração a gás natural integrada à operação industrial da Suzano.']
+  },
+  'FP':{
+    color:'#0D9488',icon:'FP',sector:'Geração Termelétrica · Gás Natural',
+    desc:'Negociou 5 usinas no município de Pilar (AL), somando <strong>221 MW</strong> entre 2028 e 2029.',
+    highlights:['Pilar III (48 MW), IV (48 MW), V (29,5 MW) para 2028.','Pilar I (47,9 MW) e II (47,9 MW) para 2029.']
+  },
+  'Mercurio Partners':{
+    color:'#78716C',icon:'MP',sector:'Energia · Biometano',
+    desc:'Grupo de energia com foco em inovação. Desenvolve projetos de biometano. Controlava a Energia Pecém (Pecém I), vendida à Diamante Energia em 2025.',
+    highlights:[
+      'UTE Paulínia Verde (21 MW) — biometano de aterro, parceria Orizon VR/Gera Energia.',
+      'Ex-controladora da Energia Pecém (Pecém I, 720 MW carvão), alienada à Diamante Energia.',
+    ]
+  },
+  'São Francisco Energia':{
+    color:'#CA8A04',icon:'SF',sector:'Geração Termelétrica · Gás Natural',
+    desc:'A São Francisco Energia negociou duas termelétricas na Bahia, totalizando <strong>293 MW</strong> de potência nova para 2028.',
+    highlights:[
+      '<strong>UTE Apoena V2 (142,5 MW)</strong> e <strong>UTE SFE Guarani V2 (150,8 MW)</strong> na Bahia.',
+      'Projetos novos a gás natural na rodada 2028.',
+    ]
+  },
+  'CBG':{
+    color:'#78716C',icon:'CB',sector:'Geração Distribuída · Gás Natural',
+    desc:'Negociou 3 usinas em MT e AC, totalizando <strong>80 MW</strong>. Projetos novos para 2028.',
+    highlights:['GDE Cuiabá B2 (27 MW) e GDE Sinop B2 (27 MW) em MT.','GDE Rio Branco 1 (27 MW) no AC — única usina contratada no Acre.']
+  },
+  'Diamante Energia':{
+    color:'#991B1B',icon:'DI',sector:'Geração Termelétrica · Carvão Mineral',
+    desc:'Consolidou-se como a maior operadora de carvão mineral do Brasil. Adquiriu <strong>Pecém I</strong> (720 MW) da EDP em 2025 e <strong>Pecém II</strong> (365 MW) da Eneva em março de 2026 por até R$ 1 bi. Também detém o Complexo Jorge Lacerda (SC).',
+    highlights:[
+      '<strong>Pecém I</strong> (636 MW recontratados, rodada 2027) — adquirido da EDP Brasil em 2025. Recontratado no LRCAP para 2027-2037.',
+      '<strong>Pecém II</strong> (746 MW recontratados, rodada 2031) — adquirido da Eneva por R$ 872 mi + R$ 149 mi earn-out. Contrato LRCAP 2031-2041.',
+      '<strong>Parceria com Eneva</strong> no Projeto Jandaia: hub de gás natural no Pecém (CE) com R$ 6,5 bi de investimento. Eneva operará terminal GNL.',
+      'Também detém o <strong>Complexo Jorge Lacerda</strong> (SC), adquirido da Engie em 2021.',
+      'Sócio: Pedro Grünauer Kassab. Controla três complexos termelétricos a carvão, atendendo ~20 mi residências.',
+    ]
+  },
+};
+
+// Build company data
+function buildCompanies(){
+  const coMap={};
+  plants.forEach(p=>{
+    const key=agentToCompany[p.ag]||p.ag;
+    if(!coMap[key]) coMap[key]={key,plants:[],totalMW:0,fuels:new Set(),ufs:new Set(),rounds:new Set(),newCount:0,existCount:0,ampCount:0,mwNew:0,mwExist:0,mwAmp:0};
+    const co=coMap[key];
+    co.plants.push(p);
+    co.totalMW+=p.mw;
+    co.fuels.add(p.fuel);
+    co.ufs.add(p.uf);
+    co.rounds.add(p.round);
+    if(p.tipo==='Nova'){co.newCount++;co.mwNew+=p.mw}
+    else if(p.tipo==='Existente'){co.existCount++;co.mwExist+=p.mw}
+    else{co.ampCount++;co.mwAmp+=p.mw}
+  });
+  return Object.values(coMap).sort((a,b)=>b.totalMW-a.totalMW);
+}
+
+function renderEmpresas(){
+  const companies=buildCompanies();
+  const nav=document.getElementById('coNav');
+  const content=document.getElementById('coContent');
+  const kpis=document.getElementById('empresasKpis');
+
+  // Aggregate new vs existing across all plants
+  const totNew=plants.filter(p=>p.tipo==='Nova');
+  const totExist=plants.filter(p=>p.tipo==='Existente');
+  const mwNew=totNew.reduce((s,p)=>s+p.mw,0);
+  const mwExist=totExist.reduce((s,p)=>s+p.mw,0);
+
+  kpis.innerHTML=`
+    <div class="kpi"><div class="kpi-stripe" style="background:#4F46E5"></div><span class="kpi-icon">🏢</span><div class="kpi-label">Empresas / Grupos</div><div class="kpi-value">${companies.length}</div><div class="kpi-sub">Com usinas contratadas</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><span class="kpi-icon">🏆</span><div class="kpi-label">Top 3 por Potência</div><div class="kpi-value">${companies.slice(0,3).map(c=>c.key).join(', ')}</div><div class="kpi-sub">${(companies.slice(0,3).reduce((s,c)=>s+c.totalMW,0)/1000).toFixed(1)} GW combinados</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">🏭</span><div class="kpi-label">Maior Nº de Usinas</div><div class="kpi-value">${companies.sort((a,b)=>b.plants.length-a.plants.length)[0].key}</div><div class="kpi-sub">${companies[0].plants.length} usinas</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#D97706"></div><span class="kpi-icon">🆕</span><div class="kpi-label">Usinas Novas</div><div class="kpi-value">${totNew.length}</div><div class="kpi-sub">${(mwNew/1000).toFixed(1)} GW de potência nova</div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">🔄</span><div class="kpi-label">Usinas Existentes</div><div class="kpi-value">${totExist.length}</div><div class="kpi-sub">${(mwExist/1000).toFixed(1)} GW recontratados</div></div>
+  `;
+  // Re-sort by MW
+  companies.sort((a,b)=>b.totalMW-a.totalMW);
+
+  // Nav buttons
+  nav.innerHTML=companies.map((co,i)=>{
+    const prof=coProfiles[co.key];
+    const color=prof?.color||'#78716C';
+    return `<button class="subtab-btn${i===0?' active':''}" onclick="showCompany('${co.key.replace(/'/g,"\\'")}')" data-co="${co.key}">
+      <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></span>
+      ${co.key}
+      <span class="st-mw">${co.totalMW>=1000?(co.totalMW/1000).toFixed(1)+'GW':Math.round(co.totalMW)+'MW'}</span>
+    </button>`;
+  }).join('');
+
+  // Content panels
+  content.innerHTML=companies.map((co,i)=>{
+    const prof=coProfiles[co.key]||{};
+    const color=prof.color||'#78716C';
+    const icon=prof.icon||co.key.substring(0,2).toUpperCase();
+    const sector=prof.sector||co.plants[0]?.fuel||'Geração';
+    const ufs=[...co.ufs].sort().join(', ');
+    const fuels=[...co.fuels].sort().join(', ');
+    const rounds=[...co.rounds].sort().join(', ');
+
+    let tags='';
+    if(co.newCount) tags+=`<span class="co-tag" style="background:#FEF3C7;color:#92400E">${co.newCount} nova${co.newCount>1?'s':''}</span>`;
+    if(co.existCount) tags+=`<span class="co-tag" style="background:#DBEAFE;color:#1E40AF">${co.existCount} existente${co.existCount>1?'s':''}</span>`;
+    if(co.ampCount) tags+=`<span class="co-tag" style="background:#D1FAE5;color:#065F46">${co.ampCount} ampliação</span>`;
+
+    let narrative='';
+    if(prof.desc) narrative+=`<div class="co-narrative">${prof.desc}</div>`;
+    if(prof.highlights && prof.highlights.length){
+      narrative+=`<div class="card" style="margin-bottom:18px"><div class="card-title"><span class="dot" style="background:${color}"></span>Destaques & Estratégia</div><div style="font-size:.84rem;color:var(--tx2);line-height:1.8">${prof.highlights.map(h=>'<p style="margin-bottom:6px">• '+h+'</p>').join('')}</div></div>`;
+    }
+
+    const plantRows=co.plants.sort((a,b)=>a.round.localeCompare(b.round)||b.mw-a.mw).map(p=>`<tr>
+      <td class="plant-name">${p.n}</td>
+      <td><span class="badge badge-round">${p.uf}</span></td>
+      <td><span class="badge ${getBadge(p.fuel)}">${p.fuel}</span></td>
+      <td class="mw-num">${p.mw.toLocaleString('pt-BR',{minimumFractionDigits:1})}</td>
+      <td><span class="badge badge-round">${p.round}</span></td>
+      <td>${p.tipo}</td>
+    </tr>`).join('');
+
+    return `<div class="subtab-content${i===0?' active':''}" id="co-${co.key.replace(/[^a-zA-Z0-9]/g,'_')}">
+      <div class="co-header">
+        <div class="co-icon" style="background:${color}">${icon}</div>
+        <div class="co-info">
+          <h3>${co.key}</h3>
+          <p>${sector}</p>
+          ${tags}
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-stripe" style="background:${color}"></div><div class="kpi-label">Potência Total</div><div class="kpi-value">${co.totalMW>=1000?(co.totalMW/1000).toFixed(2)+' GW':co.totalMW.toFixed(1)+' MW'}</div><div class="kpi-sub">${co.plants.length} usina${co.plants.length>1?'s':''}</div></div>
+        <div class="kpi"><div class="kpi-stripe" style="background:#D97706"></div><div class="kpi-label">Usinas Novas</div><div class="kpi-value">${co.newCount}</div><div class="kpi-sub">${co.mwNew>=1000?(co.mwNew/1000).toFixed(2)+' GW':co.mwNew.toFixed(1)+' MW'}</div></div>
+        <div class="kpi"><div class="kpi-stripe" style="background:var(--accent4)"></div><div class="kpi-label">Usinas Existentes</div><div class="kpi-value">${co.existCount}</div><div class="kpi-sub">${co.mwExist>=1000?(co.mwExist/1000).toFixed(2)+' GW':co.mwExist.toFixed(1)+' MW'}</div></div>
+        ${co.ampCount?`<div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-label">Ampliação</div><div class="kpi-value">${co.ampCount}</div><div class="kpi-sub">${co.mwAmp>=1000?(co.mwAmp/1000).toFixed(2)+' GW':co.mwAmp.toFixed(1)+' MW'}</div></div>`:''}
+        <div class="kpi"><div class="kpi-stripe" style="background:var(--border)"></div><div class="kpi-label">Combustível</div><div class="kpi-value" style="font-size:1rem">${fuels}</div></div>
+        <div class="kpi"><div class="kpi-stripe" style="background:var(--border)"></div><div class="kpi-label">Estados</div><div class="kpi-value" style="font-size:1rem">${ufs}</div><div class="kpi-sub">Rodadas: ${rounds}</div></div>
+      </div>
+      ${narrative}
+      <div class="card co-plant-table">
+        <div class="card-title"><span class="dot" style="background:${color}"></span>Usinas Contratadas</div>
+        <div class="scrollable-table"><div class="table-wrap"><table>
+          <thead><tr><th>Usina</th><th>UF</th><th>Combustível</th><th>Potência (MW)</th><th>Rodada</th><th>Tipo</th></tr></thead>
+          <tbody>${plantRows}</tbody>
+        </table></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showCompany(key){
+  document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active',b.dataset.co===key));
+  document.querySelectorAll('.subtab-content').forEach(c=>c.classList.remove('active'));
+  const id='co-'+key.replace(/[^a-zA-Z0-9]/g,'_');
+  const el=document.getElementById(id);
+  if(el) el.classList.add('active');
+}
+
+// ═══ SUPRIMENTO TABLE ═══
+const supData=[
+{g:'',h:'Conectadas à Malha — Gás Nacional / Bolívia'},
+{e:'Petrobras',mw:'2.235',m:'Gás Nacional',o:'Pré-sal + campos onshore',c:1,i:'Malha TAG, NTS, TBG',s:'Contratos firmes (saída)'},
+{e:'J&F / Âmbar',mw:'2.140',m:'Gás Nacional + Bolívia',o:'Gás doméstico (RJ, PR) · Uruguaiana: TBG',c:1,i:'Malha NTS (RJ), TBG (RS/PR)',s:'Contratos firmes'},
+{g:'',h:'GNL — Terminais Próprios (Desconectadas)'},
+{e:'Eneva — Sergipe',mw:'1.245',m:'GNL Importado',o:'Qatar Energy (gás dos EUA) · 2026 coberto',c:0,i:'Terminal regás Barra dos Coqueiros (SE)',s:'Gás flexível · 5,5 mi m³/dia a terceiros'},
+{e:'Eneva — Ceará (Jandaia)',mw:'1.199',m:'GNL Importado',o:'Parceria Eneva+Diamante · R$ 6,5 bi',c:0,i:'Terminal Pecém 14 mi m³/d · FSRU · Píer R$ 430 mi',s:'Obras 1º sem. 2026 · GNL em negociação'},
+{e:'Eneva — Sudeste',mw:'572',m:'GNL Importado',o:'A negociar',c:0,i:'Novo terminal RJ/ES',s:'Não fechados · Op. 2031'},
+{e:'KPS',mw:'766',m:'GNL (Powerships)',o:'GNL spot / médio prazo',c:0,i:'FSRU a bordo dos navios · AP',s:'PCS 2021 + projeto novo'},
+{e:'OnCorp',mw:'18',m:'GNL Terminal Próprio',o:'GNL importado via Suape',c:0,i:'Planta regás Suape (PE)',s:'11 contratos · >90% contratado'},
+{e:'New Fortress',mw:'292',m:'GNL Terminal Próprio',o:'GNL importado',c:0,i:'Barcarena (PA) · TGS (SC) inativo',s:'Barcarena operacional'},
+{g:'',h:'Gas-to-Wire — Gás Onshore Próprio'},
+{e:'Eneva — Parnaíba',mw:'644',m:'Gás Próprio',o:'Bacia do Parnaíba (MA)',c:0,i:'Complexo Parnaíba · E&P própria',s:'Recontratação +10 anos'},
+{e:'Origem Energia',mw:'380',m:'Gás Próprio',o:'Polo Alagoas · Verticalização',c:0,i:'Estocagem subterrânea AL',s:'Gás próprio = sem dependência'},
+{e:'Imetame',mw:'26',m:'Gás Próprio',o:'Bacia do Recôncavo (BA)',c:0,i:'Projeto Prosperidade (BA)',s:'Gás próprio'},
+{e:'Brasil GTW',mw:'190',m:'Suprimento Onshore',o:'PetroReconcavo · Recôncavo',c:0,i:'UTEs Corcovado (BA)',s:'Compromisso de fornecimento'},
+{g:'',h:'Conectadas — Menor Porte'},
+{e:'Delta Energia',mw:'220',m:'Gás Nacional',o:'Gás doméstico (MS)',c:1,i:'Malha TBG (MS)',s:'Contratos firmes'},
+{e:'Suzano',mw:'17',m:'Gás Nacional',o:'Distribuidora · Cogeração',c:1,i:'Industrial (SP)',s:'Mercado doméstico'},
+{g:'',h:'A Definir / Misto'},
+{e:'EPP (Ion)',mw:'1.685',m:'GNL (provável)',o:'Hubs Eneva/New Fortress',c:2,i:'CE, RJ, SE, MA, PI',s:'Não divulgados'},
+{e:'Demais',mw:'~1.500',m:'Variável',o:'GNL terceiros / distribuidoras',c:2,i:'Diversos',s:'Pós-leilão'},
+];
+function renderSupTable(){
+  const bc={1:['#D1FAE5','#065F46','✓ Conectada'],0:['#FEE2E2','#991B1B','✗ Desconectada'],2:['#FEF3C7','#92400E','~ Variável']};
+  const mc={'Gás Nacional':'badge-gas','Gás Nacional + Bolívia':'badge-gas','GNL Importado':0,'GNL (Powerships)':0,'GNL Terminal Próprio':0,'Gás Próprio':1,'Suprimento Onshore':1,'GNL (provável)':2,'Variável':2};
+  const ms={0:['#CCFBF1','#115E59'],1:['#D1FAE5','#065F46'],2:['#F3E8FF','#6B21A8']};
+  document.getElementById('supBody').innerHTML=supData.map(r=>{
+    if(r.g!==undefined) return `<tr style="background:var(--bg3)"><td colspan="7" style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);padding:12px">${r.h}</td></tr>`;
+    const cv=bc[r.c];
+    const mt=mc[r.m];
+    const mstyle=typeof mt==='string'?`class="badge ${mt}"`:`style="background:${ms[mt][0]};color:${ms[mt][1]}" class="badge"`;
+    return `<tr><td class="plant-name">${r.e}</td><td class="mw-num">${r.mw} MW</td><td><span ${mstyle}>${r.m}</span></td><td>${r.o}</td><td><span class="badge" style="background:${cv[0]};color:${cv[1]}">${cv[2]}</span></td><td>${r.i}</td><td>${r.s}</td></tr>`;
+  }).join('');
+}
+renderSupTable();
+
+// ═══ GNL TERMINALS TABLE ═══
+const gnlTerminals=[
+{t:'Baía de Guanabara',uf:'RJ',op:'Petrobras (Transpetro)',cap:'20',tipo:'FSRU',malha:'✓ TAG/NTS',cli:'Térmicas Petrobras SE + mercado'},
+{t:'Baía de Todos os Santos (TRBA)',uf:'BA',op:'Petrobras / Excelerate',cap:'14',tipo:'FSRU',malha:'✓ GASCAC',cli:'Térmicas BA + mercado industrial'},
+{t:'Barra dos Coqueiros',uf:'SE',op:'Eneva',cap:'21',tipo:'FSRU',malha:'Parcial (GASFOR)',cli:'Porto de Sergipe I e II + 5,5 mi m³/d a terceiros'},
+{t:'Porto do Açu',uf:'RJ',op:'GNA (Prumo/BP/Siemens)',cap:'21',tipo:'FSRU',malha:'✗ Desconectado',cli:'UTE GNA I (1,3 GW) e GNA II (1,7 GW)'},
+{t:'TRSP (São Paulo)',uf:'SP',op:'Edge (Compass/Cosan)',cap:'14',tipo:'FSRU',malha:'✗ Desconectado',cli:'Mercado industrial (Gerdau, CSN, etc.)'},
+{t:'Barcarena',uf:'PA',op:'Celba (New Fortress)',cap:'15',tipo:'FSRU',malha:'✗ Isolado',cli:'Hydro Alunorte + UTE Novo Tempo (624 MW)'},
+{t:'TGS – Baía de Babitonga',uf:'SC',op:'New Fortress',cap:'15',tipo:'FSRU',malha:'✓ GASBOL',cli:'Reativando · Suprirá UTE Lins 2 (2031)'},
+{t:'Porto do Pecém (desativado)',uf:'CE',op:'Petrobras (ex)',cap:'—',tipo:'—',malha:'—',cli:'Desativado em 2023'},
+];
+document.getElementById('gnlTermBody').innerHTML=gnlTerminals.map(r=>{
+  const mc=r.malha.startsWith('✓')?'background:#D1FAE5;color:#065F46':r.malha.startsWith('✗')?'background:#FEE2E2;color:#991B1B':'background:#FEF3C7;color:#92400E';
+  return `<tr><td class="plant-name">${r.t}</td><td><span class="badge badge-round">${r.uf}</span></td><td>${r.op}</td><td class="mw-num">${r.cap}</td><td>${r.tipo}</td><td><span class="badge" style="${mc}">${r.malha}</span></td><td>${r.cli}</td></tr>`;
+}).join('');
+
+// ═══ NEW GNL TERMINALS TABLE ═══
+const gnlNew=[
+{t:'Porto do Pecém (novo)',uf:'CE',dev:'Eneva + Diamante',tipo:'FSRU + píer exclusivo',prev:'2029',usi:'Jandaia II + III (1.199 MW) · Invest. R$ 6,5 bi',st:'Obras 1º sem. 2026 · 14 mi m³/d · Píer R$ 430 mi'},
+{t:'Sudeste (RJ ou ES)',uf:'RJ/ES',dev:'Eneva',tipo:'FSRU (novo)',prev:'2031',usi:'Porto NF II, Pres. Kennedy (1,1 GW)',st:'Localização em definição'},
+{t:'Porto de Suape',uf:'PE',dev:'OnCorp',tipo:'Planta de regás',prev:'Fim 2027',usi:'UTE Frevo + 11 contratos a terceiros',st:'Obras meados 2026 · >90% contratado'},
+];
+document.getElementById('gnlNewBody').innerHTML=gnlNew.map(r=>`<tr><td class="plant-name">${r.t}</td><td><span class="badge badge-round">${r.uf}</span></td><td>${r.dev}</td><td>${r.tipo}</td><td><span class="badge badge-round">${r.prev}</span></td><td>${r.usi}</td><td>${r.st}</td></tr>`).join('');
+
+// ═══ PRICE REFERENCES TABLE ═══
+const priceRefs=[
+{ref:'Henry Hub (futuro abr/2026)',pr:'~2,8',ctx:'Deprimido pré-conflito, volátil agora',who:'Base para fórmulas de GNL dos EUA'},
+{ref:'Henry Hub (previsão longo prazo)',pr:'8–9',ctx:'Consenso pós-conflito Oriente Médio (CBIE)',who:'Contratos de longo prazo'},
+{ref:'JKM Spot (Ásia)',pr:'+50% desde conflito',ctx:'Alta por bloqueio do Estreito de Ormuz',who:'Referência spot asiática'},
+{ref:'TTF (Europa)',pr:'+70% desde conflito',ctx:'Forte alta pós-guerra',who:'Referência europeia'},
+{ref:'GNL Delivered Brasil (fórmula HH)',pr:'7–10',ctx:'1,15×HH + 3,5 + 0,3 + 0,88 (EPE)',who:'Eneva, KPS, OnCorp, New Fortress'},
+{ref:'GNL Delivered Brasil (cenário tensão)',pr:'12–15+',ctx:'Com guerra no Oriente Médio',who:'Projeção pessimista para novos contratos'},
+{ref:'Gás Petrobras (contratos CDLs)',pr:'~R$ 2,05/m³',ctx:'11,9% Brent até 2025; mix HH a partir 2026',who:'Distribuidoras, térmicas Petrobras'},
+{ref:'Gás Bolívia (GASBOL)',pr:'6–8',ctx:'Contratual, indexado',who:'Térmicas J&F (Uruguaiana), Delta (MS)'},
+{ref:'Gás onshore próprio (Parnaíba, Recôncavo)',pr:'1–3',ctx:'Custo de produção, sem transporte',who:'Eneva, Origem, Imetame, PetroReconcavo'},
+{ref:'CVU Teto LRCAP (gás)',pr:'~28,6',ctx:'R$ 1.433,92/MWh convertido',who:'Limite máximo para habilitação'},
+{ref:'CVU Teto LRCAP (óleo/biodiesel)',pr:'~50,4',ctx:'R$ 2.517,79/MWh convertido',who:'3º LRCAP'},
+];
+document.getElementById('priceRefBody').innerHTML=priceRefs.map(r=>`<tr><td class="plant-name">${r.ref}</td><td class="mw-num" style="white-space:nowrap">${r.pr}</td><td>${r.ctx}</td><td>${r.who}</td></tr>`).join('');
+
+// ═══ HEAT RATE & GAS CONSUMPTION ═══
+const M3_PER_MMBTU=28.32;
+const HRS_MAX=8760;
+const HRS_AVG=1008; // 4h × 252 dias
+
+// Known turbine overrides {plant name substring → [type, HR]}
+const hrOverrides={
+'Porto de Sergipe':['CCGT',6.5],'Celse':['CCGT',6.5],'CELSE':['CCGT',6.5],
+'Parnaíba':['CCGT',7.0],'Parnaiba':['CCGT',7.0],
+'Norte Fluminense':['CCGT',7.0],'Araucária':['CCGT',7.2],
+'Seropédica':['CCGT',7.0],'Nova Piratininga':['CCGT',7.0],
+'Termobahia':['CCGT',7.5],'Termoceará':['CCGT',7.5],
+'Juiz de Fora':['CCGT',7.3],'Três Lagoas':['CCGT',7.2],
+'Santa Cruz':['CCGT',7.3],
+'Termofortaleza':['CCGT',7.0],'CGTF':['CCGT',7.0],
+'Termomacaé':['CCGT',7.0],'TermoRio':['CCGT',7.2],
+'William Arjona':['CCGT',7.5],
+'Porsud':['Recip',7.8],'Karkey':['Recip',7.8],'KPS':['Recip',7.8],
+'Prosperidade':['Recip',8.2],'Corcovado':['Recip',8.0],
+'GDE ':['Recip',8.3],'Pilar':['Recip',8.0],'Manguaba':['Recip',8.0],
+'Paulínia':['Recip',8.5],'CELPAV':['Recip',8.5],
+'Pecém':['Carvão ST',10.0],'Itaqui':['Carvão ST',10.0],
+'Jorge Lacerda':['Carvão ST',10.2],
+};
+
+function classifyPlant(p){
+  // Check overrides first
+  for(const[k,v]of Object.entries(hrOverrides)){
+    if(p.n.includes(k))return{turb:v[0],hr:v[1]};
+  }
+  // Classify by fuel and MW
+  if(p.fuel==='Carvão')return{turb:'Carvão ST',hr:10.0};
+  if(p.fuel==='Biometano')return{turb:'Recip (Bio)',hr:8.5};
+  if(p.fuel==='Diesel'||p.fuel==='Óleo')return{turb:'Diesel/Óleo',hr:9.8};
+  if(p.fuel==='Biodiesel')return{turb:'Diesel/Óleo',hr:10.2};
+  // Gas plants by MW
+  if(p.mw>=300)return{turb:'CCGT',hr:6.8};
+  if(p.mw>=150)return{turb:'CCGT',hr:7.2};
+  if(p.mw>=80)return{turb:'OCGT',hr:9.5};
+  if(p.mw>=40)return{turb:'OCGT',hr:9.8};
+  return{turb:'Recip',hr:8.0};
+}
+
+// Augment plants with HR data
+const hrPlants=plants.filter(p=>p.fuel!=='Hidrelétrica').map(p=>{
+  const c=classifyPlant(p);
+  const isGas=p.fuel==='Gás Natural'||p.fuel==='Biometano';
+  const maxDay=p.mw*c.hr*24*M3_PER_MMBTU/1000; // mil m³/dia
+  const avgDay=p.mw*c.hr*4*M3_PER_MMBTU/1000; // mil m³/dia (4h/dia)
+  const maxYear=p.mw*c.hr*HRS_MAX*M3_PER_MMBTU/1e6; // mi m³/ano
+  return{...p,...c,isGas,maxDay,avgDay,maxYear};
+});
+
+// Render table
+// Sort state for HR table
+let hrSortDir=1,hrLastCol=-1;
+const hrKeys=['n','ag','mw','fuel','turb','hr','maxDay','avgDay','maxYear'];
+
+function renderHR(data){
+  document.getElementById('hrBody').innerHTML=data.map(r=>{
+    const turbBadge=r.turb==='CCGT'?'badge-gas':r.turb.includes('Carvão')?'badge-coal':r.turb==='OCGT'?'badge-round':'';
+    return `<tr>
+      <td class="plant-name">${r.n}</td>
+      <td style="font-size:.74rem">${r.ag}</td>
+      <td class="mw-num">${r.mw.toLocaleString('pt-BR',{minimumFractionDigits:1})}</td>
+      <td><span class="badge ${getBadge(r.fuel)}">${r.fuel}</span></td>
+      <td><span class="badge ${turbBadge}">${r.turb}</span></td>
+      <td class="mw-num">${r.hr.toFixed(1)}</td>
+      <td class="mw-num">${r.isGas?r.maxDay.toFixed(0):'—'}</td>
+      <td class="mw-num">${r.isGas?r.avgDay.toFixed(0):'—'}</td>
+      <td class="mw-num">${r.isGas?r.maxYear.toFixed(1):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function sortHR(col){
+  if(col===hrLastCol)hrSortDir*=-1;else{hrSortDir=1;hrLastCol=col}
+  const k=hrKeys[col];
+  const sorted=[...hrPlants].sort((a,b)=>{
+    let va=a[k],vb=b[k];
+    if(typeof va==='number')return(va-vb)*hrSortDir;
+    return String(va).localeCompare(String(vb),'pt-BR')*hrSortDir;
+  });
+  renderHR(sorted);
+}
+
+// Initial render sorted by MW desc
+renderHR([...hrPlants].sort((a,b)=>b.mw-a.mw));
+
+// Totals
+const gasPlants=hrPlants.filter(r=>r.isGas);
+const totMW=gasPlants.reduce((s,r)=>s+r.mw,0);
+const totMaxDay=gasPlants.reduce((s,r)=>s+r.maxDay,0);
+const totAvgDay=gasPlants.reduce((s,r)=>s+r.avgDay,0);
+const totMaxYear=gasPlants.reduce((s,r)=>s+r.maxYear,0);
+const avgHR=gasPlants.reduce((s,r)=>s+r.hr*r.mw,0)/totMW;
+document.getElementById('hrFoot').innerHTML=`<tr style="font-weight:700;background:var(--bg3)">
+  <td colspan="2">TOTAL (gás natural)</td>
+  <td class="mw-num">${totMW.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+  <td></td><td></td>
+  <td class="mw-num">${avgHR.toFixed(1)}</td>
+  <td class="mw-num">${(totMaxDay/1000).toFixed(1)} mi</td>
+  <td class="mw-num">${(totAvgDay/1000).toFixed(1)} mi</td>
+  <td class="mw-num">${totMaxYear.toFixed(0)}</td>
+</tr>`;
+
+// KPIs
+document.getElementById('hrKpis').innerHTML=`
+  <div class="kpi"><div class="kpi-stripe" style="background:#C05621"></div><span class="kpi-icon">🔥</span><div class="kpi-label">HR Médio Ponderado (Gás)</div><div class="kpi-value">${avgHR.toFixed(2)}</div><div class="kpi-sub">MMBtu/MWh · ${gasPlants.length} usinas a gás</div></div>
+  <div class="kpi"><div class="kpi-stripe" style="background:#DC2626"></div><span class="kpi-icon">📈</span><div class="kpi-label">Consumo Máx. (24h/365d)</div><div class="kpi-value">${(totMaxDay/1000).toFixed(1)} mi</div><div class="kpi-sub">m³/dia · Despacho 100%</div></div>
+  <div class="kpi"><div class="kpi-stripe" style="background:#16A34A"></div><span class="kpi-icon">📊</span><div class="kpi-label">Consumo Médio (11,5%)</div><div class="kpi-value">${(totAvgDay/1000).toFixed(1)} mi</div><div class="kpi-sub">m³/dia · 4h/dia × 252 dias</div></div>
+  <div class="kpi"><div class="kpi-stripe" style="background:#2563EB"></div><span class="kpi-icon">📅</span><div class="kpi-label">Consumo Máx. Anual</div><div class="kpi-value">${(totMaxYear/1000).toFixed(1)} bi</div><div class="kpi-sub">m³/ano · ${totMW.toLocaleString('pt-BR',{maximumFractionDigits:0})} MW total</div></div>`;
+
+// Charts — consumption by turbine type
+const turbTypes=['CCGT','OCGT','Recip','Carvão ST'];
+const turbLabels=['CCGT\n(Ciclo Combinado)','OCGT\n(Ciclo Aberto)','Reciprocating\n(Motores)','Carvão\n(Vapor)'];
+const turbMaxDay=turbTypes.map(t=>hrPlants.filter(r=>r.turb.startsWith(t)).reduce((s,r)=>s+(r.isGas?r.maxDay:0),0)/1000);
+const turbAvgHR=turbTypes.map(t=>{const ps=hrPlants.filter(r=>r.turb.startsWith(t));const tw=ps.reduce((s,r)=>s+r.mw,0);return tw?ps.reduce((s,r)=>s+r.hr*r.mw,0)/tw:0});
+
+charts.hr1=new Chart(document.getElementById('chartHR1'),{type:'bar',data:{labels:turbLabels,datasets:[{label:'mi m³/dia (máx)',data:turbMaxDay.map(v=>+v.toFixed(1)),backgroundColor:[B+'CC',Am+'CC',G+'CC',R+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}}}});
+charts.hr2=new Chart(document.getElementById('chartHR2'),{type:'bar',data:{labels:turbLabels,datasets:[{label:'MMBtu/MWh',data:turbAvgHR.map(v=>+v.toFixed(2)),backgroundColor:[B+'CC',Am+'CC',G+'CC',R+'CC'],borderRadius:6}]},options:{...bo(),plugins:{...bo().plugins,legend:{display:false}}}});
+
+renderEmpresas();
+</script>
+
+</body>
+</html>

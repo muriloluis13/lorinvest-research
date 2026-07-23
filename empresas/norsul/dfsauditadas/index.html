@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Norsul — Demonstrações Financeiras 2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F3EE;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #1B2A4A;
+  --bg-sidebar-hover: #243660;
+  --bg-sidebar-active: #2E4578;
+  --text: #1A1A1A;
+  --text-secondary: #5A5A5A;
+  --text-sidebar: #C5CDE0;
+  --text-sidebar-active: #FFFFFF;
+  --accent: #2563EB;
+  --accent-light: #DBEAFE;
+  --green: #16A34A;
+  --green-light: #DCFCE7;
+  --red: #DC2626;
+  --red-light: #FEE2E2;
+  --amber: #D97706;
+  --amber-light: #FEF3C7;
+  --border: #E5E2DB;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.08);
+  --radius: 10px;
+  --sidebar-w: 270px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'DM Serif Display', serif;
+  --chart-grid: #E5E2DB;
+  --chart-text: #5A5A5A;
+  --tab-bg: #EDE9E1;
+  --tab-active: #FFFFFF;
+}
+[data-theme="dark"] {
+  --bg: #0F172A; --bg-card: #1E293B; --bg-sidebar: #0B1120;
+  --bg-sidebar-hover: #131D35; --bg-sidebar-active: #1B2A4A;
+  --text: #E2E8F0; --text-secondary: #94A3B8;
+  --text-sidebar: #64748B; --text-sidebar-active: #E2E8F0;
+  --accent: #3B82F6; --accent-light: #1E3A5F;
+  --green: #22C55E; --green-light: #14532D;
+  --red: #EF4444; --red-light: #450A0A;
+  --amber: #F59E0B; --amber-light: #451A03;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0,0,0,.3); --shadow-lg: 0 4px 16px rgba(0,0,0,.4);
+  --chart-grid: #334155; --chart-text: #94A3B8;
+  --tab-bg: #334155; --tab-active: #1E293B;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;transition:background .3s,color .3s}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--bg-sidebar);z-index:1000;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden}
+.sidebar.closed{transform:translateX(calc(-1*var(--sidebar-w)))}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;backdrop-filter:blur(2px)}
+.sidebar-overlay.active{display:block}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sidebar-logo{font-family:var(--font-display);font-size:26px;color:#fff;letter-spacing:.5px}
+.sidebar-logo span{color:var(--accent)}
+.sidebar-subtitle{font-size:11px;color:var(--text-sidebar);margin-top:2px;text-transform:uppercase;letter-spacing:1.5px}
+.sidebar-nav{flex:1;padding:12px 10px}
+.nav-group{margin-bottom:4px}
+.nav-group-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);padding:10px 10px 4px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--text-sidebar);font-size:13px;font-weight:500;transition:all .15s;text-decoration:none;position:relative}
+.nav-item:hover{background:var(--bg-sidebar-hover);color:#fff}
+.nav-item.active{background:var(--bg-sidebar-active);color:var(--text-sidebar-active)}
+.nav-item.active::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--accent);border-radius:0 3px 3px 0}
+.nav-color{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.theme-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text-sidebar);font-size:13px;padding:6px 0}
+.theme-toggle:hover{color:#fff}
+.main{margin-left:var(--sidebar-w);min-height:100vh;transition:margin-left .3s cubic-bezier(.4,0,.2,1);overflow-x:hidden}
+.main.expanded{margin-left:0}
+.topbar{position:sticky;top:0;z-index:500;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--border)}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.hamburger{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg-card);color:var(--text);transition:all .15s}
+.hamburger:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.topbar-title{font-family:var(--font-display);font-size:20px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-badge{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--green-light);color:var(--green);font-weight:600}
+.content{padding:24px 32px 60px;max-width:1440px;width:100%;box-sizing:border-box}
+.section{display:none}.section.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-header{margin-bottom:24px}
+.section-title{font-family:var(--font-display);font-size:28px;margin-bottom:4px}
+.section-desc{color:var(--text-secondary);font-size:14px}
+.tabs{display:flex;gap:4px;background:var(--tab-bg);border-radius:10px;padding:4px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{padding:7px 16px;border-radius:7px;border:none;cursor:pointer;font-family:var(--font-body);font-size:12.5px;font-weight:500;background:transparent;color:var(--text-secondary);transition:all .15s;white-space:nowrap}
+.tab-btn.active{background:var(--tab-active);color:var(--text);box-shadow:var(--shadow)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;min-width:0}.tab-panel.active{display:block}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid>*{min-width:0}
+.card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow);transition:all .2s;min-width:0}
+.card:hover{box-shadow:var(--shadow-lg)}
+.card-title{font-size:11.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-secondary);font-weight:600;margin-bottom:12px}
+.card-full{grid-column:1/-1}
+.kpi{display:flex;align-items:flex-start;gap:12px}
+.kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px}
+.kpi-value{font-family:var(--font-display);font-size:24px;line-height:1.2}
+.kpi-label{font-size:11.5px;color:var(--text-secondary);margin-top:2px}
+.kpi-change{font-size:11px;font-weight:600;margin-top:3px;display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px}
+.kpi-change.up{background:var(--green-light);color:var(--green)}
+.kpi-change.down{background:var(--red-light);color:var(--red)}
+.kpi-change.neutral{background:var(--amber-light);color:var(--amber)}
+.table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;padding:0 2px}
+.section{min-width:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:8px 12px;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap}
+thead th:first-child{white-space:normal;min-width:100px}
+thead th.right,td.right{text-align:right}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td:first-child{white-space:normal;min-width:120px;max-width:220px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(37,99,235,.04)}
+tr.total-row td{font-weight:700;border-top:2px solid var(--border);background:rgba(37,99,235,.03)}
+tr.subtotal-row td{font-weight:600;font-style:italic}
+.text-green{color:var(--green)}.text-red{color:var(--red)}.text-amber{color:var(--amber)}
+.chart-container{position:relative;width:100%}
+.chart-container canvas{max-width:100%}
+.footnote{font-size:11px;color:var(--text-secondary);margin-top:14px;padding-top:10px;border-top:1px dashed var(--border);line-height:1.7}
+.footnote strong{color:var(--text)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
+.badge-blue{background:var(--accent-light);color:var(--accent)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.info-box{background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;padding:14px 16px;font-size:12.5px;line-height:1.7;margin-bottom:16px;color:var(--text)}
+.info-box strong{display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--accent)}
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1400px){
+  table{font-size:12.5px}
+  thead th{padding:7px 8px;font-size:10px}
+  tbody td{padding:7px 8px}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(calc(-1*var(--sidebar-w)))}.sidebar.open{transform:translateX(0)}
+  .main{margin-left:0!important}.content{padding:16px 12px 60px}.topbar{padding:10px 14px}
+  .grid-2{grid-template-columns:1fr}
+  .grid-3,.grid-4{grid-template-columns:repeat(2,1fr)}
+  .kpi-value{font-size:18px}.section-title{font-size:22px}
+  .card{padding:14px 10px}
+  .table-wrapper{margin:0 -10px;padding:0 10px;-webkit-overflow-scrolling:touch}
+  table{font-size:11.5px;min-width:520px}
+  thead th{padding:6px 8px;font-size:9.5px;letter-spacing:.5px}
+  tbody td{padding:6px 8px}
+  .tabs{gap:2px;padding:3px}.tab-btn{padding:6px 10px;font-size:11px}
+  .footnote{font-size:10px}
+  .card-title{font-size:10.5px}
+  .kpi-icon{width:34px;height:34px;font-size:14px}
+  .kpi{gap:10px}
+}
+.sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+.watermark{font-size:10px;color:var(--text-sidebar);padding:6px 0 0;opacity:.6}
+.mt{margin-top:16px}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Norsul<span>.</span></div>
+    <div class="sidebar-subtitle">Relatório Anual 2024</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label">Visão Geral</div>
+      <a class="nav-item active" onclick="showSection('overview')" data-section="overview"><span class="nav-color" style="background:#3B82F6"></span> Painel Geral</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Demonstrações</div>
+      <a class="nav-item" onclick="showSection('balance')" data-section="balance"><span class="nav-color" style="background:#8B5CF6"></span> Balanço Patrimonial</a>
+      <a class="nav-item" onclick="showSection('income')" data-section="income"><span class="nav-color" style="background:#10B981"></span> DRE e Resultado</a>
+      <a class="nav-item" onclick="showSection('cashflow')" data-section="cashflow"><span class="nav-color" style="background:#F59E0B"></span> Fluxo de Caixa</a>
+      <a class="nav-item" onclick="showSection('equity')" data-section="equity"><span class="nav-color" style="background:#EC4899"></span> Patrimônio Líquido</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Detalhamento</div>
+      <a class="nav-item" onclick="showSection('revenue')" data-section="revenue"><span class="nav-color" style="background:#06B6D4"></span> Receitas e Custos</a>
+      <a class="nav-item" onclick="showSection('investments')" data-section="investments"><span class="nav-color" style="background:#F97316"></span> Investimentos</a>
+      <a class="nav-item" onclick="showSection('assets')" data-section="assets"><span class="nav-color" style="background:#84CC16"></span> Ativos Detalhados</a>
+      <a class="nav-item" onclick="showSection('financial')" data-section="financial"><span class="nav-color" style="background:#14B8A6"></span> Resultado Financeiro</a>
+      <a class="nav-item" onclick="showSection('taxes')" data-section="taxes"><span class="nav-color" style="background:#EF4444"></span> Tributos e AFRMM</a>
+      <a class="nav-item" onclick="showSection('provisions')" data-section="provisions"><span class="nav-color" style="background:#A855F7"></span> Provisões e Contingências</a>
+      <a class="nav-item" onclick="showSection('related')" data-section="related"><span class="nav-color" style="background:#F472B6"></span> Partes Relacionadas</a>
+      <a class="nav-item" onclick="showSection('risk')" data-section="risk"><span class="nav-color" style="background:#6366F1"></span> Riscos e Seguros</a>
+      <a class="nav-item" onclick="showSection('fleet')" data-section="fleet"><span class="nav-color" style="background:#0EA5E9"></span> Frota e Operação</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="theme-toggle" onclick="toggleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Modo Escuro</span></div>
+    <div class="watermark">Deloitte Touche Tohmatsu · 17/03/2025</div>
+  </div>
+</aside>
+
+<main class="main" id="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></div>
+      <span class="topbar-title" id="topbarTitle">Painel Geral</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge">Opinião sem ressalva — Deloitte</span>
+      <span style="font-size:12px;color:var(--text-secondary)">31/12/2024</span>
+    </div>
+  </div>
+  <div class="content">
+
+<!-- ==================== OVERVIEW ==================== -->
+<div class="section active" id="sec-overview">
+  <div class="section-header">
+    <div class="section-title">Painel Geral — Consolidado</div>
+    <div class="section-desc">Companhia de Navegação Norsul · Exercício findo em 31/12/2024 (R$ mil) · Sede: Av. Pres. Wilson, 231 – 3º andar, Centro, RJ</div>
+  </div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📊</div><div><div class="kpi-value">1.384.082</div><div class="kpi-label">Receita Líquida</div><div class="kpi-change up">▲ +9,8% vs 2023</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">🚢</div><div><div class="kpi-value">199.463</div><div class="kpi-label">Lucro Bruto</div><div class="kpi-change down">▼ -0,6%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">⚙️</div><div><div class="kpi-value">269.837</div><div class="kpi-label">EBITDA</div><div class="kpi-change down">▼ -17,2% vs 325.928</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">📉</div><div><div class="kpi-value" style="color:var(--red)">(26.693)</div><div class="kpi-label">Lucro Líquido</div><div class="kpi-change down">▼ Prejuízo vs R$224mi</div></div></div></div>
+  </div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">💵</div><div><div class="kpi-value">590.195</div><div class="kpi-label">Caixa Total (Caixa+TVM)</div><div class="kpi-change down">▼ -28,6% vs 826.839</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🏦</div><div><div class="kpi-value">1.956.508</div><div class="kpi-label">Ativo Total</div><div class="kpi-change up">▲ +3,2%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">💎</div><div><div class="kpi-value">1.516.872</div><div class="kpi-label">Patrimônio Líquido</div><div class="kpi-change up">▲ +5,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">🏛️</div><div><div class="kpi-value">45.958</div><div class="kpi-label">Dívida Financeira Bruta</div><div class="kpi-change down">▲ vs 3.806 (arrendam.)</div></div></div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">Evolução — Receita vs Resultado (Consolidado, R$ mil)</div>
+      <div class="chart-container" style="height:280px"><canvas id="chartO1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Receita Líq.</th><th class="right">Lucro Bruto</th><th class="right">Resultado Líq.</th></tr></thead>
+        <tbody>
+          <tr><td>2019</td><td class="right">839.209</td><td class="right">226.128</td><td class="right">159.314</td></tr>
+          <tr><td>2020</td><td class="right">971.460</td><td class="right">333.036</td><td class="right">284.656</td></tr>
+          <tr><td>2021</td><td class="right">1.366.541</td><td class="right">297.159</td><td class="right">214.162</td></tr>
+          <tr><td>2022</td><td class="right">2.189.256</td><td class="right">230.039</td><td class="right">187.968</td></tr>
+          <tr><td>2023</td><td class="right">1.260.820</td><td class="right">200.667</td><td class="right">224.087</td></tr>
+          <tr><td>2024</td><td class="right">1.384.082</td><td class="right">199.463</td><td class="right text-red">(26.693)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Composição do Ativo Total — 2024</div>
+      <div class="chart-container" style="height:280px"><canvas id="chartO2"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Componente</th><th class="right">R$ mil</th><th class="right">%</th></tr></thead>
+        <tbody>
+          <tr><td>Caixa + TVM</td><td class="right">590.195</td><td class="right">30,2%</td></tr>
+          <tr><td>Contas a receber</td><td class="right">269.566</td><td class="right">13,8%</td></tr>
+          <tr><td>Imobilizado</td><td class="right">598.044</td><td class="right">30,6%</td></tr>
+          <tr><td>Investimentos</td><td class="right">45.820</td><td class="right">2,3%</td></tr>
+          <tr><td>Depósitos judiciais</td><td class="right">136.673</td><td class="right">7,0%</td></tr>
+          <tr><td>Outros</td><td class="right">316.210</td><td class="right">16,2%</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>1.956.508</strong></td><td class="right"><strong>100%</strong></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="grid grid-2 mt">
+    <div class="card">
+      <div class="card-title">Indicadores Financeiros Selecionados — Consolidado</div>
+      <div class="table-wrapper"><table>
+        <thead><tr><th>Indicador</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td><strong>EBITDA</strong></td><td class="right"><strong>237.664</strong></td><td class="right"><strong>410.312</strong></td><td class="right"><strong>331.241</strong></td><td class="right"><strong>304.885</strong></td><td class="right"><strong>325.928</strong></td><td class="right"><strong>269.837</strong></td></tr>
+          <tr><td>Margem EBITDA</td><td class="right">28,3%</td><td class="right">42,2%</td><td class="right">24,2%</td><td class="right">13,9%</td><td class="right">25,9%</td><td class="right">19,5%</td></tr>
+          <tr><td>Margem Bruta</td><td class="right">26,9%</td><td class="right">34,3%</td><td class="right">21,7%</td><td class="right">10,5%</td><td class="right">15,9%</td><td class="right text-red">14,4%</td></tr>
+          <tr><td>Margem Líquida</td><td class="right">19,0%</td><td class="right">29,3%</td><td class="right">15,7%</td><td class="right">8,6%</td><td class="right">17,8%</td><td class="right text-red">-1,9%</td></tr>
+          <tr style="border-top:2px solid var(--border)"><td><strong>ROE</strong></td><td class="right">14,3%</td><td class="right">20,8%</td><td class="right">13,6%</td><td class="right">12,0%</td><td class="right">15,2%</td><td class="right text-red">-1,8%</td></tr>
+          <tr><td><strong>ROIC</strong></td><td class="right">9,3%</td><td class="right">14,1%</td><td class="right">9,7%</td><td class="right">9,1%</td><td class="right">10,0%</td><td class="right">5,9%</td></tr>
+          <tr><td><strong>Capital Investido</strong></td><td class="right">1.302.802</td><td class="right">1.578.050</td><td class="right">1.620.273</td><td class="right">1.519.309</td><td class="right">1.441.633</td><td class="right">1.562.830</td></tr>
+          <tr style="border-top:2px solid var(--border)"><td>Dívida Bruta</td><td class="right">107.924</td><td class="right">41.029</td><td class="right">2.727</td><td class="right">2.062</td><td class="right">3.806</td><td class="right">45.958</td></tr>
+          <tr><td>Caixa Total (Caixa+TVM)</td><td class="right">713.295</td><td class="right">792.869</td><td class="right">648.807</td><td class="right">679.692</td><td class="right">826.839</td><td class="right">590.195</td></tr>
+          <tr><td>Dívida Líquida (Caixa Líq.)</td><td class="right text-green">(605.371)</td><td class="right text-green">(751.840)</td><td class="right text-green">(646.080)</td><td class="right text-green">(677.630)</td><td class="right text-green">(823.033)</td><td class="right text-green">(544.237)</td></tr>
+          <tr style="border-top:2px solid var(--border)"><td>Liquidez Corrente</td><td class="right">—</td><td class="right">2,91x</td><td class="right">2,85x</td><td class="right">2,45x</td><td class="right">2,43x</td><td class="right">2,66x</td></tr>
+          <tr><td>Caixa Op./Receita Líq.</td><td class="right">32,0%</td><td class="right">28,9%</td><td class="right">18,0%</td><td class="right">13,0%</td><td class="right">22,2%</td><td class="right">15,0%</td></tr>
+          <tr><td>Resultado por Ação (R$)</td><td class="right">0,44</td><td class="right">0,78</td><td class="right">0,55</td><td class="right">0,46</td><td class="right">0,55</td><td class="right text-red">(0,07)</td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote"><strong>EBITDA</strong> = Lucro Operacional (antes resultado financeiro), excluído o resultado de equivalência patrimonial, + Depreciação + Amortizações (intangível e direito de uso). A equiv. patrimonial (Norcoast JV 50/50) aparece no consolidado a partir de 2023; nos anos anteriores era eliminada na consolidação. <strong>Capital Investido</strong> = PL + Dívida Financeira Bruta (empréstimos BNDES + passivo arrendamento IFRS 16). <strong>ROIC</strong> = NOPAT (Lucro Operacional excl. equiv. patrimonial × (1-34%)) / Capital Investido. <strong>ROE</strong> = Resultado Líquido / PL médio. Dívida Líquida negativa = posição de caixa líquido. Empréstimos BNDES/FMM integralmente quitados em 2021. 404.515.691 ações ordinárias.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Passivo + PL — 2024</div>
+      <div class="chart-container" style="height:280px"><canvas id="chartO3"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Componente</th><th class="right">R$ mil</th><th class="right">%</th></tr></thead>
+        <tbody>
+          <tr><td>Passivo Circulante</td><td class="right">331.846</td><td class="right">17,0%</td></tr>
+          <tr><td>Passivo Não Circulante</td><td class="right">107.790</td><td class="right">5,5%</td></tr>
+          <tr><td>Patrimônio Líquido</td><td class="right">1.516.872</td><td class="right">77,5%</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>1.956.508</strong></td><td class="right"><strong>100%</strong></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="card mt">
+    <div class="card-title">Série Histórica — Consolidado (R$ mil) · 2019–2024</div>
+    <div class="table-wrapper"><table>
+      <thead><tr><th>Indicador</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Receita Líquida</strong></td><td class="right">839.209</td><td class="right">971.460</td><td class="right">1.366.541</td><td class="right">2.189.256</td><td class="right">1.260.820</td><td class="right">1.384.082</td></tr>
+        <tr><td>(-) Custo dos Serviços</td><td class="right">(613.081)</td><td class="right">(638.424)</td><td class="right">(1.069.382)</td><td class="right">(1.959.217)</td><td class="right">(1.060.153)</td><td class="right">(1.184.619)</td></tr>
+        <tr><td><strong>Lucro Bruto</strong></td><td class="right">226.128</td><td class="right">333.036</td><td class="right">297.159</td><td class="right">230.039</td><td class="right">200.667</td><td class="right">199.463</td></tr>
+        <tr><td>Margem Bruta</td><td class="right">26,9%</td><td class="right">34,3%</td><td class="right">21,7%</td><td class="right">10,5%</td><td class="right">15,9%</td><td class="right">14,4%</td></tr>
+        <tr><td><strong>Resultado Líquido</strong></td><td class="right">159.314</td><td class="right">284.656</td><td class="right">214.162</td><td class="right">187.968</td><td class="right">224.087</td><td class="right text-red">(26.693)</td></tr>
+        <tr><td>Margem Líquida</td><td class="right">19,0%</td><td class="right">29,3%</td><td class="right">15,7%</td><td class="right">8,6%</td><td class="right">17,8%</td><td class="right text-red">-1,9%</td></tr>
+        <tr><td>Resultado Financeiro Líq.</td><td class="right">50.768</td><td class="right">93.534</td><td class="right">54.565</td><td class="right">26.724</td><td class="right">73.533</td><td class="right">45.036</td></tr>
+        <tr style="border-top:2px solid var(--border)"><td><strong>EBITDA</strong></td><td class="right"><strong>237.664</strong></td><td class="right"><strong>410.312</strong></td><td class="right"><strong>331.241</strong></td><td class="right"><strong>304.885</strong></td><td class="right"><strong>325.928</strong></td><td class="right"><strong>269.837</strong></td></tr>
+        <tr><td>Margem EBITDA</td><td class="right">28,3%</td><td class="right">42,2%</td><td class="right">24,2%</td><td class="right">13,9%</td><td class="right">25,9%</td><td class="right">19,5%</td></tr>
+        <tr style="border-top:2px solid var(--border)"><td><strong>Ativo Total</strong></td><td class="right">1.554.187</td><td class="right">1.896.349</td><td class="right">1.935.463</td><td class="right">1.956.977</td><td class="right">1.895.729</td><td class="right">1.956.508</td></tr>
+        <tr><td>&nbsp;&nbsp;Ativo Circulante</td><td class="right">796.456</td><td class="right">804.001</td><td class="right">771.004</td><td class="right">959.401</td><td class="right">876.989</td><td class="right">881.241</td></tr>
+        <tr><td>&nbsp;&nbsp;Imobilizado</td><td class="right">325.460</td><td class="right">482.821</td><td class="right">581.218</td><td class="right">563.971</td><td class="right">482.251</td><td class="right">598.044</td></tr>
+        <tr><td><strong>Patrimônio Líquido</strong></td><td class="right">1.194.878</td><td class="right">1.537.021</td><td class="right">1.617.546</td><td class="right">1.517.247</td><td class="right">1.437.827</td><td class="right">1.516.872</td></tr>
+        <tr><td>Capital Social</td><td class="right">454.100</td><td class="right">466.025</td><td class="right">624.628</td><td class="right">624.628</td><td class="right">624.628</td><td class="right">624.628</td></tr>
+        <tr style="border-top:2px solid var(--border)"><td><strong>Caixa Total (Caixa+TVM)</strong></td><td class="right"><strong>713.295</strong></td><td class="right"><strong>792.869</strong></td><td class="right"><strong>648.807</strong></td><td class="right"><strong>679.692</strong></td><td class="right"><strong>826.839</strong></td><td class="right"><strong>590.195</strong></td></tr>
+        <tr><td>Dívida Financeira Bruta</td><td class="right">107.924</td><td class="right">41.029</td><td class="right">2.727</td><td class="right">2.062</td><td class="right">3.806</td><td class="right">45.958</td></tr>
+        <tr><td>Dívida Líquida (Caixa Líq.)</td><td class="right text-green">(605.371)</td><td class="right text-green">(751.840)</td><td class="right text-green">(646.080)</td><td class="right text-green">(677.630)</td><td class="right text-green">(823.033)</td><td class="right text-green">(544.237)</td></tr>
+        <tr style="border-top:2px solid var(--border)"><td><strong>Caixa Operacional</strong></td><td class="right">268.119</td><td class="right">281.146</td><td class="right">246.099</td><td class="right">283.890</td><td class="right">280.482</td><td class="right">207.415</td></tr>
+        <tr><td>Caixa e Equivalentes (fim)</td><td class="right">378.434</td><td class="right">218.918</td><td class="right">153.959</td><td class="right">156.665</td><td class="right">262.450</td><td class="right">113.771</td></tr>
+        <tr><td>LPA (R$)</td><td class="right">0,44</td><td class="right">0,78</td><td class="right">0,55</td><td class="right">0,46</td><td class="right">0,55</td><td class="right text-red">(0,07)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">Dados de 2019 extraídos como comparativos do PDF de 2020. Dados de 2020 reapresentados conforme ajustes divulgados nas DFs de 2021 (Nota 3.29). A receita de 2022 inclui R$817 mi de operações FPSO (descontinuadas em 2023), o que explica a queda aparente de 2022→2023. PL de 2021 = R$1.617.546 conforme comparativo no BP de 2022.</div>
+  </div>
+</div>
+
+<!-- ==================== BALANCE SHEET ==================== -->
+<div class="section" id="sec-balance">
+  <div class="section-header"><div class="section-title">Balanço Patrimonial</div><div class="section-desc">Posição em 31/12 — R$ mil</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🏦</div><div><div class="kpi-value">1.956.508</div><div class="kpi-label">Ativo Total</div><div class="kpi-change up">▲ +3,2%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">💎</div><div><div class="kpi-value">1.516.872</div><div class="kpi-label">Patrimônio Líquido</div><div class="kpi-change up">▲ +5,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">📊</div><div><div class="kpi-value">2,66x</div><div class="kpi-label">Liquidez Corrente</div><div class="kpi-change up">▲ vs 2,43x</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🛡️</div><div><div class="kpi-value">77,5%</div><div class="kpi-label">PL / Ativo Total</div><div class="kpi-change up">▲ vs 75,9%</div></div></div></div>
+  </div>
+  <div class="tabs" id="balanceTabs">
+    <button class="tab-btn active" onclick="switchTab('balance','cons')">Consolidado</button>
+    <button class="tab-btn" onclick="switchTab('balance','ctrl')">Controladora</button>
+    <button class="tab-btn" onclick="switchTab('balance','evo')">Evolução</button>
+  </div>
+  <div class="tab-panel active" id="balance-cons">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Ativo — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Caixa e equivalentes</td><td class="right">378.434</td><td class="right">218.918</td><td class="right">153.959</td><td class="right">156.665</td><td class="right">262.450</td><td class="right">113.771</td></tr>
+        <tr><td>TVM</td><td class="right">334.861</td><td class="right">573.951</td><td class="right">494.848</td><td class="right">523.027</td><td class="right">564.389</td><td class="right">476.424</td></tr>
+        <tr><td>Contas a receber</td><td class="right">315.155</td><td class="right">414.973</td><td class="right">403.909</td><td class="right">365.455</td><td class="right">210.532</td><td class="right">269.566</td></tr>
+        <tr><td>Imobilizado</td><td class="right">325.460</td><td class="right">482.821</td><td class="right">581.218</td><td class="right">563.971</td><td class="right">482.251</td><td class="right">598.044</td></tr>
+        <tr><td>Outros ativos</td><td class="right">200.277</td><td class="right">205.686</td><td class="right">301.529</td><td class="right">347.859</td><td class="right">376.107</td><td class="right">498.703</td></tr>
+        <tr class="total-row"><td><strong>Ativo Total</strong></td><td class="right"><strong>1.554.187</strong></td><td class="right"><strong>1.896.349</strong></td><td class="right"><strong>1.935.463</strong></td><td class="right"><strong>1.956.977</strong></td><td class="right"><strong>1.895.729</strong></td><td class="right"><strong>1.956.508</strong></td></tr>
+        <tr><td><em>Circulante</em></td><td class="right">796.456</td><td class="right">804.001</td><td class="right">771.004</td><td class="right">959.401</td><td class="right">876.989</td><td class="right">881.241</td></tr>
+        <tr><td><em>Não Circulante</em></td><td class="right">757.731</td><td class="right">1.092.348</td><td class="right">1.162.872</td><td class="right">997.576</td><td class="right">1.018.740</td><td class="right">1.075.267</td></tr>
+      </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Passivo e PL — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Passivo Circulante</td><td class="right">—</td><td class="right">276.650</td><td class="right">270.678</td><td class="right">391.511</td><td class="right">360.536</td><td class="right">331.846</td></tr>
+        <tr><td>Passivo Não Circulante</td><td class="right">—</td><td class="right">82.678</td><td class="right">47.239</td><td class="right">48.219</td><td class="right">97.366</td><td class="right">107.790</td></tr>
+        <tr class="subtotal-row"><td>Total Passivo</td><td class="right">359.309</td><td class="right">359.328</td><td class="right">317.917</td><td class="right">439.730</td><td class="right">457.902</td><td class="right">439.636</td></tr>
+        <tr><td>Capital Social</td><td class="right">454.100</td><td class="right">466.025</td><td class="right">624.628</td><td class="right">624.628</td><td class="right">624.628</td><td class="right">624.628</td></tr>
+        <tr><td>Reservas de lucros</td><td class="right">545.273</td><td class="right">631.498</td><td class="right">527.007</td><td class="right">545.695</td><td class="right">530.588</td><td class="right">488.994</td></tr>
+        <tr><td>ORA</td><td class="right">159.107</td><td class="right">297.763</td><td class="right">350.611</td><td class="right">298.007</td><td class="right">245.517</td><td class="right">451.049</td></tr>
+        <tr><td>Div. adic. / Prej. acum.</td><td class="right">36.398</td><td class="right">141.735</td><td class="right">115.300</td><td class="right">48.917</td><td class="right">37.094</td><td class="right">(47.799)</td></tr>
+        <tr class="total-row"><td><strong>PL</strong></td><td class="right"><strong>1.194.878</strong></td><td class="right"><strong>1.537.021</strong></td><td class="right"><strong>1.617.546</strong></td><td class="right"><strong>1.517.247</strong></td><td class="right"><strong>1.437.827</strong></td><td class="right"><strong>1.516.872</strong></td></tr>
+      </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="balance-ctrl">
+    <div class="card"><div class="card-title">Controladora — Resumo</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+    <tbody>
+      <tr><td>Ativo Total</td><td class="right">1.536.929</td><td class="right">2.004.195</td><td class="right">1.997.534</td><td class="right">1.981.101</td><td class="right">1.914.065</td><td class="right">2.149.799</td></tr>
+      <tr><td>Passivo Total</td><td class="right">342.051</td><td class="right">467.174</td><td class="right">379.988</td><td class="right">463.854</td><td class="right">476.238</td><td class="right">632.927</td></tr>
+      <tr><td>PL</td><td class="right">1.194.878</td><td class="right">1.537.021</td><td class="right">1.617.546</td><td class="right">1.517.247</td><td class="right">1.437.827</td><td class="right">1.516.872</td></tr>
+      <tr><td>Receita Líquida</td><td class="right">574.815</td><td class="right">774.552</td><td class="right">1.141.601</td><td class="right">1.949.351</td><td class="right">1.112.839</td><td class="right">1.137.871</td></tr>
+      <tr><td>Resultado Líquido</td><td class="right">159.314</td><td class="right">284.656</td><td class="right">214.162</td><td class="right">187.968</td><td class="right">224.087</td><td class="right text-red">(26.693)</td></tr>
+    </tbody>
+    </table></div></div>
+  </div>
+  <div class="tab-panel" id="balance-evo">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Evolução Ativo (Consolidado)</div><div class="chart-container" style="height:300px"><canvas id="chartBE1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Circulante</th><th class="right">Não Circ.</th><th class="right">Total</th></tr></thead>
+        <tbody>
+          <tr><td>2019</td><td class="right">796.456</td><td class="right">757.731</td><td class="right">1.554.187</td></tr>
+          <tr><td>2020</td><td class="right">804.001</td><td class="right">1.092.348</td><td class="right">1.896.349</td></tr>
+          <tr><td>2021</td><td class="right">771.004</td><td class="right">1.162.872</td><td class="right">1.935.463</td></tr>
+          <tr><td>2022</td><td class="right">959.401</td><td class="right">997.576</td><td class="right">1.956.977</td></tr>
+          <tr><td>2023</td><td class="right">876.989</td><td class="right">1.018.740</td><td class="right">1.895.729</td></tr>
+          <tr><td>2024</td><td class="right">881.241</td><td class="right">1.075.267</td><td class="right">1.956.508</td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Evolução Passivo + PL (Consolidado)</div><div class="chart-container" style="height:300px"><canvas id="chartBE2"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Total Passivo</th><th class="right">PL</th><th class="right">Total</th></tr></thead>
+        <tbody>
+          <tr><td>2020</td><td class="right">359.328</td><td class="right">1.537.021</td><td class="right">1.896.349</td></tr>
+          <tr><td>2022</td><td class="right">439.730</td><td class="right">1.517.247</td><td class="right">1.956.977</td></tr>
+          <tr><td>2023</td><td class="right">457.902</td><td class="right">1.437.827</td><td class="right">1.895.729</td></tr>
+          <tr><td>2024</td><td class="right">439.636</td><td class="right">1.516.872</td><td class="right">1.956.508</td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DRE ==================== -->
+<div class="section" id="sec-income">
+  <div class="section-header"><div class="section-title">Demonstração do Resultado</div><div class="section-desc">Exercício findo em 31/12 — R$ mil</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📈</div><div><div class="kpi-value">1.384.082</div><div class="kpi-label">Receita Líquida</div><div class="kpi-change up">▲ +9,8%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">🚢</div><div><div class="kpi-value">199.463</div><div class="kpi-label">Lucro Bruto</div><div class="kpi-change down">▼ -0,6%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">📉</div><div><div class="kpi-value">14,4%</div><div class="kpi-label">Margem Bruta</div><div class="kpi-change down">▼ vs 15,9%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">⚠️</div><div><div class="kpi-value" style="color:var(--red)">(26.693)</div><div class="kpi-label">Resultado Líquido</div><div class="kpi-change down">▼ Prejuízo</div></div></div></div>
+  </div>
+  <div class="tabs" id="incomeTabs">
+    <button class="tab-btn active" onclick="switchTab('income','dre')">DRE Completa</button>
+    <button class="tab-btn" onclick="switchTab('income','wf')">Cascata</button>
+    <button class="tab-btn" onclick="switchTab('income','dra')">Resultado Abrangente</button>
+    <button class="tab-btn" onclick="switchTab('income','other')">Outras Rec/Desp</button>
+    <button class="tab-btn" onclick="switchTab('income','hist')">Histórico DRE</button>
+  </div>
+  <div class="tab-panel active" id="income-dre">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Receita Líquida</td><td class="right">839.209</td><td class="right">971.460</td><td class="right">1.366.541</td><td class="right">2.189.256</td><td class="right">1.260.820</td><td class="right">1.384.082</td></tr>
+        <tr><td>(-) Custos</td><td class="right">(613.081)</td><td class="right">(638.424)</td><td class="right">(1.069.382)</td><td class="right">(1.959.217)</td><td class="right">(1.060.153)</td><td class="right">(1.184.619)</td></tr>
+        <tr class="subtotal-row"><td>Lucro Bruto</td><td class="right">226.128</td><td class="right">333.036</td><td class="right">297.159</td><td class="right">230.039</td><td class="right">200.667</td><td class="right">199.463</td></tr>
+        <tr><td>(-) G&A</td><td class="right">(32.198)</td><td class="right">(42.124)</td><td class="right">(71.024)</td><td class="right">(67.202)</td><td class="right">(70.978)</td><td class="right">(64.927)</td></tr>
+        <tr><td>Outras rec/(desp) líq.</td><td class="right">(11.336)</td><td class="right">47.101</td><td class="right">13.153</td><td class="right">47.375</td><td class="right">88.709</td><td class="right">5.610</td></tr>
+        <tr><td>Equiv. patrimonial</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">(19.137)</td><td class="right">(148.043)</td></tr>
+        <tr><td>Result. Financeiro Líq.</td><td class="right">50.768</td><td class="right">93.534</td><td class="right">54.565</td><td class="right">26.724</td><td class="right">73.533</td><td class="right">45.036</td></tr>
+        <tr><td>PLR</td><td class="right">(11.092)</td><td class="right">(11.435)</td><td class="right">(11.511)</td><td class="right">(12.651)</td><td class="right">(11.442)</td><td class="right">(13.687)</td></tr>
+        <tr><td>IR/CSLL</td><td class="right">(62.956)</td><td class="right">(135.456)</td><td class="right">(68.180)</td><td class="right">(36.317)</td><td class="right">(37.265)</td><td class="right">(50.145)</td></tr>
+        <tr class="total-row"><td><strong>Resultado Líquido</strong></td><td class="right"><strong>159.314</strong></td><td class="right"><strong>284.656</strong></td><td class="right"><strong>214.162</strong></td><td class="right"><strong>187.968</strong></td><td class="right"><strong>224.087</strong></td><td class="right text-red"><strong>(26.693)</strong></td></tr>
+      </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Controladora</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Receita Líquida</td><td class="right">574.815</td><td class="right">774.552</td><td class="right">1.141.601</td><td class="right">1.949.351</td><td class="right">1.112.839</td><td class="right">1.137.871</td></tr>
+        <tr><td>(-) Custos</td><td class="right">(464.239)</td><td class="right">(537.297)</td><td class="right">(894.601)</td><td class="right">(1.743.787)</td><td class="right">(910.994)</td><td class="right">(936.241)</td></tr>
+        <tr class="subtotal-row"><td>Lucro Bruto</td><td class="right">110.576</td><td class="right">237.255</td><td class="right">247.000</td><td class="right">205.564</td><td class="right">201.845</td><td class="right">201.630</td></tr>
+        <tr><td>(-) G&A</td><td class="right">(27.850)</td><td class="right">(38.372)</td><td class="right">(53.686)</td><td class="right">(61.332)</td><td class="right">(67.054)</td><td class="right">(60.772)</td></tr>
+        <tr><td>Equiv. Patrimonial</td><td class="right">100.854</td><td class="right">121.198</td><td class="right">34.964</td><td class="right">76.733</td><td class="right">48.484</td><td class="right">(126.805)</td></tr>
+        <tr><td>Result. Financeiro</td><td class="right">32.814</td><td class="right">72.156</td><td class="right">42.954</td><td class="right">6.948</td><td class="right">29.742</td><td class="right">7.666</td></tr>
+        <tr class="total-row"><td><strong>Resultado Líquido</strong></td><td class="right"><strong>159.314</strong></td><td class="right"><strong>284.656</strong></td><td class="right"><strong>214.162</strong></td><td class="right"><strong>187.968</strong></td><td class="right"><strong>224.087</strong></td><td class="right text-red"><strong>(26.693)</strong></td></tr>
+      </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="income-wf">
+    <div class="card"><div class="card-title">Cascata — Da Receita ao Resultado (Consolidado 2024)</div>
+      <div class="chart-container" style="height:360px"><canvas id="chartWF"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Etapa</th><th class="right">Valor</th><th class="right">Acumulado</th></tr></thead>
+        <tbody>
+          <tr><td>Receita Líquida</td><td class="right">1.384.082</td><td class="right">1.384.082</td></tr>
+          <tr><td>(-) Custos</td><td class="right text-red">(1.184.619)</td><td class="right">199.463</td></tr>
+          <tr><td>(-) G&A</td><td class="right text-red">(64.927)</td><td class="right">134.536</td></tr>
+          <tr><td>Equiv. Patrimonial</td><td class="right text-red">(148.043)</td><td class="right">(13.507)</td></tr>
+          <tr><td>Outras Rec/Desp</td><td class="right text-green">5.610</td><td class="right">(7.897)</td></tr>
+          <tr><td>Resultado Financeiro</td><td class="right text-green">45.036</td><td class="right">37.139</td></tr>
+          <tr><td>(-) PLR</td><td class="right text-red">(13.687)</td><td class="right">23.452</td></tr>
+          <tr><td>(-) IR/CSLL</td><td class="right text-red">(50.145)</td><td class="right text-red">(26.693)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="income-dra">
+    <div class="card"><div class="card-title">Demonstração do Resultado Abrangente</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Resultado líquido</td><td class="right">159.314</td><td class="right">284.656</td><td class="right">214.162</td><td class="right">187.968</td><td class="right">224.087</td><td class="right text-red">(26.693)</td></tr>
+        <tr><td>Ajuste conversão cambial</td><td class="right">38.508</td><td class="right">138.412</td><td class="right">52.825</td><td class="right">(52.604)</td><td class="right">(52.490)</td><td class="right">205.532</td></tr>
+        <tr class="total-row"><td><strong>Resultado abrangente</strong></td><td class="right"><strong>197.822</strong></td><td class="right"><strong>423.068</strong></td><td class="right"><strong>267.010</strong></td><td class="right"><strong>135.364</strong></td><td class="right"><strong>171.597</strong></td><td class="right"><strong>178.839</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">O ajuste de conversão cambial de R$205.532 decorre da valorização do dólar (R$6,19 em 31/12/2024) sobre os ativos líquidos das controladas no exterior (Norinter e Norwest, sediadas em Luxemburgo, moeda funcional US$). Este efeito é reconhecido em ORA e não transita pelo resultado.</div>
+    </div>
+  </div>
+  <div class="tab-panel" id="income-other">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Outras Receitas Operacionais — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Venda embarcações</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">51.999</td><td class="right">113.343</td><td class="right">8.400</td></tr>
+          <tr><td>Créditos fiscais (ICMS)</td><td class="right">8.707</td><td class="right">63.507</td><td class="right">18.121</td><td class="right">—</td><td class="right">—</td><td class="right">—</td></tr>
+          <tr><td>Outras</td><td class="right">—</td><td class="right">—</td><td class="right">144</td><td class="right">2.455</td><td class="right">17.606</td><td class="right">1.350</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>8.707</strong></td><td class="right"><strong>63.507</strong></td><td class="right"><strong>18.265</strong></td><td class="right"><strong>54.454</strong></td><td class="right"><strong>130.949</strong></td><td class="right"><strong>9.750</strong></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Outras Despesas Operacionais — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Baixa emb./imob.</td><td class="right">(5.238)</td><td class="right">(5.238)</td><td class="right">(1.498)</td><td class="right">(319)</td><td class="right">(2.506)</td><td class="right">(1.622)</td></tr>
+          <tr><td>Provisão RAT/FAP</td><td class="right">(14.805)</td><td class="right">(8.382)</td><td class="right">(251)</td><td class="right">—</td><td class="right">(251)</td><td class="right">(423)</td></tr>
+          <tr><td>PIS/COFINS + outros</td><td class="right">—</td><td class="right">(2.786)</td><td class="right">(3.363)</td><td class="right">(6.760)</td><td class="right">(39.483)</td><td class="right">(2.095)</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right text-red"><strong>(20.043)</strong></td><td class="right text-red"><strong>(16.406)</strong></td><td class="right text-red"><strong>(5.112)</strong></td><td class="right text-red"><strong>(7.079)</strong></td><td class="right text-red"><strong>(42.240)</strong></td><td class="right text-red"><strong>(4.140)</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">A forte queda se deve à ausência de vendas de embarcações em 2024 (R$113,3 mi em 2023). Nova despesa tributária de PIS/COFINS sobre AFRMM conforme Lei 14.789/2023.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-panel" id="income-hist">
+    <div class="card">
+      <div class="card-title">DRE Consolidada — Série Histórica (R$ mil)</div>
+      <div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Receita Líquida</strong></td><td class="right">839.209</td><td class="right">971.460</td><td class="right">1.366.541</td><td class="right">2.189.256</td><td class="right">1.260.820</td><td class="right">1.384.082</td></tr>
+          <tr><td>(-) Custo serviços</td><td class="right">(613.081)</td><td class="right">(638.424)</td><td class="right">(1.069.382)</td><td class="right">(1.959.217)</td><td class="right">(1.060.153)</td><td class="right">(1.184.619)</td></tr>
+          <tr class="subtotal-row"><td><strong>Lucro Bruto</strong></td><td class="right">226.128</td><td class="right">333.036</td><td class="right">297.159</td><td class="right">230.039</td><td class="right">200.667</td><td class="right">199.463</td></tr>
+          <tr><td>(-) G&A</td><td class="right">(32.198)</td><td class="right">(42.124)</td><td class="right">(71.024)</td><td class="right">(67.202)</td><td class="right">(70.978)</td><td class="right">(64.927)</td></tr>
+          <tr><td>Outras rec/(desp) líq.</td><td class="right">(11.336)</td><td class="right">47.101</td><td class="right">13.153</td><td class="right">47.375</td><td class="right">88.709</td><td class="right">5.610</td></tr>
+          <tr><td>Equiv. patrimonial</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">(19.137)</td><td class="right">(148.043)</td></tr>
+          <tr class="subtotal-row"><td><strong>Lucro Operacional</strong></td><td class="right">182.594</td><td class="right">338.013</td><td class="right">239.288</td><td class="right">210.212</td><td class="right">199.261</td><td class="right text-red">(7.897)</td></tr>
+          <tr><td>Resultado Financeiro Líq.</td><td class="right">50.768</td><td class="right">93.534</td><td class="right">54.565</td><td class="right">26.724</td><td class="right">73.533</td><td class="right">45.036</td></tr>
+          <tr><td>PLR</td><td class="right">(11.092)</td><td class="right">(11.435)</td><td class="right">(11.511)</td><td class="right">(12.651)</td><td class="right">(11.442)</td><td class="right">(13.687)</td></tr>
+          <tr><td>IR/CSLL</td><td class="right">(62.956)</td><td class="right">(135.456)</td><td class="right">(68.180)</td><td class="right">(36.317)</td><td class="right">(37.265)</td><td class="right">(50.145)</td></tr>
+          <tr class="total-row"><td><strong>Resultado Líquido</strong></td><td class="right"><strong>159.314</strong></td><td class="right"><strong>284.656</strong></td><td class="right"><strong>214.162</strong></td><td class="right"><strong>187.968</strong></td><td class="right"><strong>224.087</strong></td><td class="right text-red"><strong>(26.693)</strong></td></tr>
+          <tr><td><em>Margem Bruta</em></td><td class="right">26,9%</td><td class="right">34,3%</td><td class="right">21,7%</td><td class="right">10,5%</td><td class="right">15,9%</td><td class="right">14,4%</td></tr>
+          <tr><td><em>Margem Líquida</em></td><td class="right">19,0%</td><td class="right">29,3%</td><td class="right">15,7%</td><td class="right">8,6%</td><td class="right">17,8%</td><td class="right text-red">-1,9%</td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">A equivalência patrimonial aparece na DRE consolidada a partir de 2023 (Norcoast — JV 50/50). Nos anos anteriores (2019–2022), o resultado de equiv. patrim. é eliminado na consolidação (controladas 100%). A receita de 2022 inclui R$817 mi de FPSO (descontinuado em 2023). A variação cambial é particularmente relevante (R$59,8 mi em 2020, -R$28,3 mi em 2022). Dados de 2020 reapresentados conforme DFs de 2021.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CASH FLOW ==================== -->
+<div class="section" id="sec-cashflow">
+  <div class="section-header"><div class="section-title">Fluxo de Caixa</div><div class="section-desc">Método indireto — Consolidado (R$ mil)</div></div>
+  <div class="grid grid-3" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">⚙️</div><div><div class="kpi-value">207.415</div><div class="kpi-label">Caixa Operacional</div><div class="kpi-change down">▼ -26,0%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">🏗️</div><div><div class="kpi-value" style="color:var(--red)">(154.306)</div><div class="kpi-label">Caixa Investimento</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">🏛️</div><div><div class="kpi-value" style="color:var(--red)">(207.706)</div><div class="kpi-label">Caixa Financiamento</div></div></div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><div class="card-title">Fluxos por Atividade</div><div class="chart-container" style="height:280px"><canvas id="chartCF1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Operacional</th><th class="right">Investimento</th><th class="right">Financiam.</th><th class="right">Variação</th></tr></thead>
+        <tbody>
+          <tr><td>2019</td><td class="right">268.119</td><td class="right">23.377</td><td class="right">(89.426)</td><td class="right">202.070</td></tr>
+          <tr><td>2020</td><td class="right">281.146</td><td class="right">(339.557)</td><td class="right">(100.263)</td><td class="right">(158.674)</td></tr>
+          <tr><td>2021</td><td class="right">246.099</td><td class="right">(104.368)</td><td class="right">(79.297)</td><td class="right">62.434</td></tr>
+          <tr><td>2022</td><td class="right">283.890</td><td class="right">(126.950)</td><td class="right">(91.378)</td><td class="right">65.562</td></tr>
+          <tr><td>2023</td><td class="right">280.482</td><td class="right">(22.567)</td><td class="right">(148.382)</td><td class="right">109.533</td></tr>
+          <tr><td>2024</td><td class="right">207.415</td><td class="right">(154.306)</td><td class="right">(207.706)</td><td class="right">(154.597)</td></tr>
+        </tbody>
+      </table></div></div>
+    <div class="card"><div class="card-title">Fluxo Consolidado — Detalhado (R$ mil)</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Lucro antes IR/CSLL</td><td class="right">222.270</td><td class="right">420.112</td><td class="right">282.342</td><td class="right">224.285</td><td class="right">261.352</td><td class="right">23.452</td></tr>
+        <tr><td>Deprec. + Amortiz.</td><td class="right">46.013</td><td class="right">62.134</td><td class="right">85.925</td><td class="right">93.671</td><td class="right">105.895</td><td class="right">122.963</td></tr>
+        <tr><td>Amortiz. direito uso</td><td class="right">9.057</td><td class="right">10.165</td><td class="right">6.028</td><td class="right">1.002</td><td class="right">1.635</td><td class="right">6.728</td></tr>
+        <tr><td>Var. cap. giro + outros</td><td class="right">80.967</td><td class="right">(25.537)</td><td class="right">(1.766)</td><td class="right">50.260</td><td class="right">(17.375)</td><td class="right">(59.402)</td></tr>
+        <tr><td>IR/CSLL pagos</td><td class="right">(90.188)</td><td class="right">(92.864)</td><td class="right">(126.430)</td><td class="right">(85.329)</td><td class="right">(45.156)</td><td class="right">(34.369)</td></tr>
+        <tr class="subtotal-row"><td><strong>Caixa Operacional</strong></td><td class="right"><strong>268.119</strong></td><td class="right"><strong>281.146</strong></td><td class="right"><strong>246.099</strong></td><td class="right"><strong>283.890</strong></td><td class="right"><strong>280.482</strong></td><td class="right"><strong>207.415</strong></td></tr>
+        <tr><td>Investimento (líq.)</td><td class="right">23.377</td><td class="right">(339.557)</td><td class="right">(104.368)</td><td class="right">(126.950)</td><td class="right">(22.567)</td><td class="right">(154.306)</td></tr>
+        <tr><td>Financiamento (líq.)</td><td class="right">(89.426)</td><td class="right">(100.263)</td><td class="right">(79.297)</td><td class="right">(91.378)</td><td class="right">(148.382)</td><td class="right">(207.706)</td></tr>
+        <tr><td>Efeito cambial</td><td class="right">—</td><td class="right">(24.772)</td><td class="right">607</td><td class="right">(2.556)</td><td class="right">(3.748)</td><td class="right">5.918</td></tr>
+        <tr class="total-row"><td><strong>Variação caixa</strong></td><td class="right"><strong>202.070</strong></td><td class="right text-red"><strong>(183.446)</strong></td><td class="right"><strong>63.041</strong></td><td class="right"><strong>63.006</strong></td><td class="right"><strong>105.785</strong></td><td class="right text-red"><strong>(148.679)</strong></td></tr>
+        <tr><td>Caixa início</td><td class="right">176.364</td><td class="right">378.434</td><td class="right">218.918</td><td class="right">153.959</td><td class="right">156.665</td><td class="right">262.450</td></tr>
+        <tr><td><strong>Caixa fim</strong></td><td class="right"><strong>378.434</strong></td><td class="right"><strong>218.918</strong></td><td class="right"><strong>153.959</strong></td><td class="right"><strong>156.665</strong></td><td class="right"><strong>262.450</strong></td><td class="right"><strong>113.771</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote"><strong>Transações não caixa (Nota 25):</strong> Reconhecimento de ativos de direito de uso de arrendamento no valor de R$45.493 (Consolidado) e R$191.414 (Controladora) em 2024.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EQUITY ==================== -->
+<div class="section" id="sec-equity">
+  <div class="section-header"><div class="section-title">Patrimônio Líquido</div><div class="section-desc">DMPL, capital, reservas e dividendos (R$ mil)</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">💎</div><div><div class="kpi-value">1.516.872</div><div class="kpi-label">PL Total</div><div class="kpi-change up">▲ +5,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🏛️</div><div><div class="kpi-value">624.628</div><div class="kpi-label">Capital Social</div><div class="kpi-change neutral">= inalterado</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">💰</div><div><div class="kpi-value">43.890</div><div class="kpi-label">Dividendos/JCP 2024</div><div class="kpi-change down">▼ vs 134.712</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🌍</div><div><div class="kpi-value">205.532</div><div class="kpi-label">Ajuste Conversão Cambial</div><div class="kpi-change up">▲ positivo</div></div></div></div>
+  </div>
+  <div class="tabs" id="equityTabs">
+    <button class="tab-btn active" onclick="switchTab('equity','comp')">Composição e DMPL</button>
+    <button class="tab-btn" onclick="switchTab('equity','div')">Dividendos e JCP</button>
+  </div>
+  <div class="tab-panel active" id="equity-comp">
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card"><div class="card-title">Composição do PL — 2024</div><div class="chart-container" style="height:280px"><canvas id="chartEQ1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Componente</th><th class="right">R$ mil</th></tr></thead>
+        <tbody>
+          <tr><td>Capital Social</td><td class="right">624.628</td></tr>
+          <tr><td>Reserva Legal</td><td class="right">59.188</td></tr>
+          <tr><td>Reserva AFRMM</td><td class="right">256.984</td></tr>
+          <tr><td>Reserva ICMS</td><td class="right">7.330</td></tr>
+          <tr><td>Reserva Livre Distribuição</td><td class="right">165.492</td></tr>
+          <tr><td>Outros Result. Abrangentes</td><td class="right">451.049</td></tr>
+          <tr><td>Prejuízos Acumulados</td><td class="right text-red">(47.799)</td></tr>
+          <tr class="total-row"><td><strong>Total PL</strong></td><td class="right"><strong>1.516.872</strong></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Evolução do PL (2022–2024)</div><div class="chart-container" style="height:280px"><canvas id="chartEQ2"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">PL</th><th class="right">Δ%</th></tr></thead>
+        <tbody>
+          <tr><td>2019</td><td class="right">1.194.878</td><td class="right">—</td></tr>
+          <tr><td>2020</td><td class="right">1.537.021</td><td class="right text-green">+28,6%</td></tr>
+          <tr><td>2021</td><td class="right">1.617.546</td><td class="right text-green">+5,2%</td></tr>
+          <tr><td>2022</td><td class="right">1.517.247</td><td class="right text-red">-6,2%</td></tr>
+          <tr><td>2023</td><td class="right">1.437.827</td><td class="right text-red">-5,2%</td></tr>
+          <tr><td>2024</td><td class="right">1.516.872</td><td class="right text-green">+5,5%</td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+    <div class="card"><div class="card-title">DMPL Resumida</div><div class="table-wrapper"><table>
+      <thead><tr><th>Movimento</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+    <tbody>
+      <tr><td>PL início</td><td class="right">1.032.770</td><td class="right">1.194.878</td><td class="right">1.537.021</td><td class="right">1.617.546</td><td class="right">1.517.247</td><td class="right">1.437.827</td></tr>
+      <tr><td>Resultado líquido</td><td class="right">159.314</td><td class="right">284.656</td><td class="right">214.162</td><td class="right">187.968</td><td class="right">224.087</td><td class="right text-red">(26.693)</td></tr>
+      <tr><td>Aumento capital</td><td class="right">29.292</td><td class="right">11.925</td><td class="right">158.603</td><td class="right">—</td><td class="right">—</td><td class="right">—</td></tr>
+      <tr><td>Ajuste conversão cambial</td><td class="right">38.508</td><td class="right">138.412</td><td class="right">52.848</td><td class="right">(52.604)</td><td class="right">(52.490)</td><td class="right">205.532</td></tr>
+      <tr><td>Dividendos/JCP</td><td class="right">(65.006)</td><td class="right">(92.850)</td><td class="right">(345.088)</td><td class="right">(235.663)</td><td class="right">(251.017)</td><td class="right">(99.794)</td></tr>
+      <tr class="total-row"><td><strong>PL fim</strong></td><td class="right"><strong>1.194.878</strong></td><td class="right"><strong>1.537.021</strong></td><td class="right"><strong>1.617.546</strong></td><td class="right"><strong>1.517.247</strong></td><td class="right"><strong>1.437.827</strong></td><td class="right"><strong>1.516.872</strong></td></tr>
+    </tbody>
+    </table></div>
+    <div class="footnote">Prejuízo acum. (47.799) = Prejuízo líquido (26.693) + utilização AFRMM (21.106) não alocada na reserva legal por ausência de lucro. O crescimento do PL é sustentado pelo efeito de conversão cambial (+205.532).</div>
+    </div>
+  </div>
+  <div class="tab-panel" id="equity-div">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Distribuição ao Acionista (R$ mil)</div><div class="table-wrapper"><table>
+        <thead><tr><th>Componente</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>JCP bruto</td><td class="right">28.000</td><td class="right">32.900</td><td class="right">31.580</td><td class="right">78.043</td><td class="right">70.127</td><td class="right">53.295</td></tr>
+          <tr><td>IRRF (15%)</td><td class="right">(4.200)</td><td class="right">(4.935)</td><td class="right">(4.737)</td><td class="right">(11.706)</td><td class="right">(12.375)</td><td class="right">(9.405)</td></tr>
+          <tr><td>Div. mínimo (25%)</td><td class="right">2.698</td><td class="right">11.871</td><td class="right">13.170</td><td class="right">42.320</td><td class="right">39.866</td><td class="right">—</td></tr>
+          <tr><td>Div. adicional proposto</td><td class="right">—</td><td class="right">141.735</td><td class="right">115.300</td><td class="right">48.917</td><td class="right">37.094</td><td class="right">—</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>26.498</strong></td><td class="right"><strong>181.571</strong></td><td class="right"><strong>155.313</strong></td><td class="right"><strong>157.574</strong></td><td class="right"><strong>134.712</strong></td><td class="right"><strong>43.890</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Em 2024, não houve dividendos por ausência de lucro. JCP de R$62.700 distribuído a partir da <strong>reserva livre para distribuição</strong>. Dividendo consignação (R$57.219) refere-se à disputa judicial sobre 7% das ações, depositado em juízo (Nota 18.1).</div>
+      </div>
+      <div class="card"><div class="card-title">Estrutura Acionária — 31/12/2024</div><div class="chart-container" style="height:240px"><canvas id="chartEQ3"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Acionista</th><th class="right">Ações</th><th class="right">%</th></tr></thead>
+        <tbody>
+          <tr><td>Lorentzen Empreendimentos S.A.</td><td class="right">310.829.857</td><td class="right">76,84%</td></tr>
+          <tr><td>Outros (pessoas físicas)</td><td class="right">93.685.834</td><td class="right">23,16%</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>404.515.691</strong></td><td class="right"><strong>100%</strong></td></tr>
+        </tbody>
+      </table></div>
+        <div class="footnote">Capital: R$624.628 · 404.515.691 ações ordinárias, sem valor nominal. Em set/2024, concluída transferência de 7% das ações (28,3 mi ações) do acionista minoritário para Lorentzen, encerrando procedimento arbitral.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== REVENUE ==================== -->
+<div class="section" id="sec-revenue">
+  <div class="section-header"><div class="section-title">Receitas e Custos</div><div class="section-desc">Consolidado — R$ mil</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📊</div><div><div class="kpi-value">1.384.082</div><div class="kpi-label">Receita Líquida</div><div class="kpi-change up">▲ +9,8%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">⚙️</div><div><div class="kpi-value">(1.184.619)</div><div class="kpi-label">Custo Serviços</div><div class="kpi-change down">▲ +11,7%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">📋</div><div><div class="kpi-value">(64.927)</div><div class="kpi-label">G&A</div><div class="kpi-change up">▼ -8,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">🎯</div><div><div class="kpi-value">14,4%</div><div class="kpi-label">Margem Bruta</div><div class="kpi-change down">▼ vs 15,9%</div></div></div></div>
+  </div>
+  <div class="tabs" id="revenueTabs">
+    <button class="tab-btn active" onclick="switchTab('revenue','seg')">Receita por Segmento</button>
+    <button class="tab-btn" onclick="switchTab('revenue','cost')">Custos por Natureza</button>
+    <button class="tab-btn" onclick="switchTab('revenue','ga')">Despesas G&A</button>
+  </div>
+  <div class="tab-panel active" id="revenue-seg">
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card"><div class="card-title">Receita Bruta por Segmento — 2024</div><div class="chart-container" style="height:280px"><canvas id="chartR1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Segmento</th><th class="right">Bruta 2024</th><th class="right">%</th></tr></thead>
+        <tbody>
+          <tr><td>Granel Seco (cab.)</td><td class="right">1.200.345</td><td class="right">73,5%</td></tr>
+          <tr><td>Granel Seco (LC)</td><td class="right">86.243</td><td class="right">5,3%</td></tr>
+          <tr><td>Cargas Líquidas</td><td class="right">152.768</td><td class="right">9,4%</td></tr>
+          <tr><td>Comboios</td><td class="right">193.695</td><td class="right">11,9%</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>1.633.051</strong></td><td class="right"><strong>100%</strong></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Receita Líquida Comparativa</div><div class="chart-container" style="height:280px"><canvas id="chartR2"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Segmento</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Gr. Seco (cab.)</td><td class="right">576.268</td><td class="right">750.501</td><td class="right">1.064.190</td><td class="right">936.608</td><td class="right">782.424</td><td class="right">1.003.511</td></tr>
+        <tr><td>Gr. Seco (LC)</td><td class="right">2.917</td><td class="right">8.303</td><td class="right">13.055</td><td class="right">31.819</td><td class="right">73.386</td><td class="right">86.243</td></tr>
+        <tr><td>Cargas Líquidas</td><td class="right">62.270</td><td class="right">53.632</td><td class="right">86.374</td><td class="right">70.444</td><td class="right">67.563</td><td class="right">128.307</td></tr>
+        <tr><td>FPSO</td><td class="right">—</td><td class="right">—</td><td class="right">63.013</td><td class="right">793.280</td><td class="right">177.573</td><td class="right">—</td></tr>
+        <tr><td>Comboios</td><td class="right">197.754</td><td class="right">159.024</td><td class="right">138.689</td><td class="right">126.503</td><td class="right">159.874</td><td class="right">166.021</td></tr>
+        <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>839.209</strong></td><td class="right"><strong>971.460</strong></td><td class="right"><strong>1.366.541</strong></td><td class="right"><strong>2.189.256</strong></td><td class="right"><strong>1.260.820</strong></td><td class="right"><strong>1.384.082</strong></td></tr>
+      </tbody>
+      </table></div></div>
+    </div>
+    <div class="card"><div class="card-title">Receita Consolidada por Segmento</div><div class="table-wrapper"><table>
+      <thead><tr><th>Segmento</th><th class="right">Bruta 2024</th><th class="right">Impostos</th><th class="right">Líquida 2024</th><th class="right">Líquida 2023</th><th class="right">Δ%</th></tr></thead>
+      <tbody>
+        <tr><td>Granel Seco (cabotagem)</td><td class="right">1.200.345</td><td class="right">(196.834)</td><td class="right">1.003.511</td><td class="right">782.424</td><td class="right text-green">+28,3%</td></tr>
+        <tr><td>Granel Seco (longo curso)</td><td class="right">86.243</td><td class="right">—</td><td class="right">86.243</td><td class="right">73.386</td><td class="right text-green">+17,5%</td></tr>
+        <tr><td>Cargas Líquidas</td><td class="right">152.768</td><td class="right">(24.461)</td><td class="right">128.307</td><td class="right">67.563</td><td class="right text-green">+89,9%</td></tr>
+        <tr><td>Descarregamento FPSO</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">177.573</td><td class="right text-red">-100%</td></tr>
+        <tr><td>Comboios</td><td class="right">193.695</td><td class="right">(27.674)</td><td class="right">166.021</td><td class="right">159.874</td><td class="right text-green">+3,8%</td></tr>
+        <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>1.633.051</strong></td><td class="right"><strong>(248.969)</strong></td><td class="right"><strong>1.384.082</strong></td><td class="right"><strong>1.260.820</strong></td><td class="right"><strong>+9,8%</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">Operação FPSO encerrada em 2023. Impostos sobre receita: PIS 1,65%, COFINS 7,6%, ICMS 7-12%, ISS 5%. Longo curso isento de impostos domésticos. Alíquotas conforme Nota 3.20.</div>
+    </div>
+  </div>
+  <div class="tab-panel" id="revenue-cost">
+    <div class="card"><div class="card-title">Custo dos Serviços Prestados por Natureza — Consolidado</div><div class="chart-container" style="height:360px"><canvas id="chartC1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Natureza</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+    <tbody>
+      <tr><td>Afretamento</td><td class="right">(155.858)</td><td class="right">(207.629)</td><td class="right">(560.204)</td><td class="right">(1.312.047)</td><td class="right">(432.948)</td><td class="right">(379.046)</td></tr>
+      <tr><td>Viagens</td><td class="right">(186.837)</td><td class="right">(200.595)</td><td class="right">(218.003)</td><td class="right">(293.776)</td><td class="right">(299.606)</td><td class="right">(378.150)</td></tr>
+      <tr><td>Tripulação</td><td class="right">(141.168)</td><td class="right">(149.698)</td><td class="right">(151.766)</td><td class="right">(155.157)</td><td class="right">(147.476)</td><td class="right">(171.726)</td></tr>
+      <tr><td>Deprec. + Docagem</td><td class="right">(41.373)</td><td class="right">(57.321)</td><td class="right">(79.199)</td><td class="right">(84.634)</td><td class="right">(97.995)</td><td class="right">(168.633)</td></tr>
+      <tr><td>Suprimentos</td><td class="right">(39.990)</td><td class="right">(43.829)</td><td class="right">(31.678)</td><td class="right">(33.995)</td><td class="right">(31.967)</td><td class="right">(43.466)</td></tr>
+      <tr><td>Manutenção</td><td class="right">(26.970)</td><td class="right">(27.179)</td><td class="right">(3.678)</td><td class="right">(21.913)</td><td class="right">(22.267)</td><td class="right">(24.732)</td></tr>
+      <tr><td>Shipmanager</td><td class="right">(26.381)</td><td class="right">(25.526)</td><td class="right">(27.268)</td><td class="right">(31.335)</td><td class="right">(36.908)</td><td class="right">(36.567)</td></tr>
+      <tr><td>AFRMM utilizado</td><td class="right">47.745</td><td class="right">116.924</td><td class="right">45.688</td><td class="right">9.778</td><td class="right">48.902</td><td class="right">21.106</td></tr>
+      <tr><td>Outros</td><td class="right">(42.249)</td><td class="right">(45.571)</td><td class="right">(43.974)</td><td class="right">(36.138)</td><td class="right">(41.888)</td><td class="right">(4.405)</td></tr>
+      <tr class="total-row"><td><strong>Total CSP</strong></td><td class="right"><strong>(613.081)</strong></td><td class="right"><strong>(638.424)</strong></td><td class="right"><strong>(1.069.382)</strong></td><td class="right"><strong>(1.959.217)</strong></td><td class="right"><strong>(1.060.153)</strong></td><td class="right"><strong>(1.184.619)</strong></td></tr>
+    </tbody>
+      </table></div></div>
+  </div>
+  <div class="tab-panel" id="revenue-ga">
+    <div class="card"><div class="card-title">Despesas Gerais e Administrativas — Consolidado</div><div class="table-wrapper"><table>
+      <thead><tr><th>Natureza</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Pessoal</td><td class="right">(15.636)</td><td class="right">(18.632)</td><td class="right">(26.336)</td><td class="right">(33.437)</td><td class="right">(24.399)</td><td class="right">(19.676)</td></tr>
+        <tr><td>Honorários diretoria</td><td class="right">(4.615)</td><td class="right">(3.897)</td><td class="right">(3.804)</td><td class="right">(3.740)</td><td class="right">(5.802)</td><td class="right">(6.102)</td></tr>
+        <tr><td>Deprec. + amortiz.</td><td class="right">(1.666)</td><td class="right">(2.156)</td><td class="right">(2.824)</td><td class="right">(5.986)</td><td class="right">(6.820)</td><td class="right">(5.783)</td></tr>
+        <tr><td>Serv. terceiros + consult.</td><td class="right">(3.798)</td><td class="right">(6.109)</td><td class="right">(23.870)</td><td class="right">(11.887)</td><td class="right">(13.712)</td><td class="right">(12.208)</td></tr>
+        <tr><td>Serviços de TI</td><td class="right">(2.392)</td><td class="right">(3.083)</td><td class="right">(3.358)</td><td class="right">(3.669)</td><td class="right">(4.919)</td><td class="right">(5.825)</td></tr>
+        <tr><td>Doações</td><td class="right">—</td><td class="right">(4.139)</td><td class="right">(2.917)</td><td class="right">(2.612)</td><td class="right">(6.843)</td><td class="right">(7.543)</td></tr>
+        <tr><td>Outros</td><td class="right">(4.091)</td><td class="right">(4.108)</td><td class="right">(7.915)</td><td class="right">(5.871)</td><td class="right">(8.483)</td><td class="right">(7.790)</td></tr>
+        <tr class="total-row"><td><strong>Total G&A</strong></td><td class="right"><strong>(32.198)</strong></td><td class="right"><strong>(42.124)</strong></td><td class="right"><strong>(71.024)</strong></td><td class="right"><strong>(67.202)</strong></td><td class="right"><strong>(70.978)</strong></td><td class="right"><strong>(64.927)</strong></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- ==================== INVESTMENTS ==================== -->
+<div class="section" id="sec-investments">
+  <div class="section-header"><div class="section-title">Investimentos em Controladas</div><div class="section-desc">Equivalência patrimonial — Controladora (R$ mil)</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🏢</div><div><div class="kpi-value">1.120.891</div><div class="kpi-label">Total Investimento</div><div class="kpi-change up">▲ +30,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">📉</div><div><div class="kpi-value" style="color:var(--red)">(126.805)</div><div class="kpi-label">Equiv. Patrimonial</div><div class="kpi-change down">▼ vs +48.484</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">🤝</div><div><div class="kpi-value">195.000</div><div class="kpi-label">Aportes Norcoast</div><div class="kpi-change neutral">JV Hapag-Lloyd</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">🌊</div><div><div class="kpi-value">932.375</div><div class="kpi-label">PL Norwest</div><div class="kpi-change up">▲ +28,7%</div></div></div></div>
+  </div>
+  <div class="grid grid-2" style="margin-bottom:16px">
+    <div class="card"><div class="card-title">PL das Controladas — 2024</div><div class="chart-container" style="height:280px"><canvas id="chartI1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Controlada</th><th class="right">PL 2024</th></tr></thead>
+        <tbody>
+          <tr><td>Norwest</td><td class="right">932.375</td></tr>
+          <tr><td>Norsulcargo</td><td class="right">109.922</td></tr>
+          <tr><td>Norcoast</td><td class="right">45.820</td></tr>
+          <tr><td>Mar Azul</td><td class="right">37.434</td></tr>
+        </tbody>
+      </table></div></div>
+    <div class="card"><div class="card-title">Resultado Equiv. Patrimonial — Histórico (Controladora)</div><div class="chart-container" style="height:280px"><canvas id="chartI2"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Equiv. Patrim.</th></tr></thead>
+        <tbody>
+          <tr><td>2020</td><td class="right text-green">121.198</td></tr>
+          <tr><td>2021</td><td class="right text-green">34.964</td></tr>
+          <tr><td>2022</td><td class="right text-green">76.733</td></tr>
+          <tr><td>2023</td><td class="right text-green">48.484</td></tr>
+          <tr><td>2024</td><td class="right text-red">(126.805)</td></tr>
+        </tbody>
+      </table></div></div>
+  </div>
+  <div class="card"><div class="card-title">Mapa de Controladas</div><div class="table-wrapper"><table>
+    <thead><tr><th>Entidade</th><th>País</th><th>Moeda</th><th class="right">%</th><th class="right">Ativo Total</th><th class="right">PL</th><th class="right">Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Norsulcargo</td><td>Brasil</td><td>R$</td><td class="right">100%</td><td class="right">176.429</td><td class="right">109.922</td><td class="right text-green">20.826</td></tr>
+      <tr><td>Mar Azul (terminal marítimo)</td><td>Brasil</td><td>R$</td><td class="right">100%</td><td class="right">38.182</td><td class="right">37.434</td><td class="right text-red">(365)</td></tr>
+      <tr><td>Norsulbulk</td><td>Brasil</td><td>R$</td><td class="right">100%</td><td class="right">14</td><td class="right">14</td><td class="right text-red">(2)</td></tr>
+      <tr><td>Norcoast (JV 50/50 Hapag-Lloyd)</td><td>Brasil</td><td>R$</td><td class="right">50%</td><td class="right">191.552</td><td class="right">45.820</td><td class="right text-red">(148.043)</td></tr>
+      <tr><td>Norinter (holding)</td><td>Luxemburgo</td><td>US$</td><td class="right">100%</td><td class="right">94</td><td class="right text-red">(4.674)</td><td class="right text-red">(559)</td></tr>
+      <tr><td>Norwest (frota internacional)</td><td>Luxemburgo</td><td>US$</td><td class="right">≈100%</td><td class="right">1.149.078</td><td class="right">932.375</td><td class="right text-green">1.338</td></tr>
+      <tr class="total-row"><td colspan="5"><strong>Total investimento</strong></td><td class="right"><strong>1.120.891</strong></td><td class="right text-red"><strong>(126.805)</strong></td></tr>
+    </tbody>
+  </table></div>
+  <div class="footnote">A <strong>Norcoast</strong> (JV com Hapag-Lloyd) iniciou operações em fev/2024. Prejuízo de R$148 mi reflete fase pré-operacional/investimento intensivo. Aportes totais em 2024: R$195 mi (50% Norsul). Não consolidada (controle compartilhado). O <strong>Fundo Reno</strong> (EPE, 100% cotas) é consolidado — patrimônio segregado por natureza dos investimentos (Notas 5 e 6).</div>
+  </div>
+  <div class="card mt">
+    <div class="card-title">Evolução do PL das Principais Controladas — Série Histórica (R$ mil)</div>
+    <div class="table-wrapper"><table>
+      <thead><tr><th>Entidade</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Norwest (Luxemburgo)</td><td class="right">492.391</td><td class="right">693.494</td><td class="right">754.170</td><td class="right">747.561</td><td class="right">724.643</td><td class="right">932.375</td></tr>
+        <tr><td>Norsulcargo</td><td class="right">92.043</td><td class="right">110.076</td><td class="right">107.080</td><td class="right">107.326</td><td class="right">100.375</td><td class="right">109.922</td></tr>
+        <tr><td>Norsulmax (incorp. 12/2023)</td><td class="right">115.174</td><td class="right">104.075</td><td class="right">96.223</td><td class="right">105.985</td><td class="right">—</td><td class="right">—</td></tr>
+        <tr><td>Mar Azul</td><td class="right">43.919</td><td class="right">45.269</td><td class="right">38.207</td><td class="right">38.182</td><td class="right">37.799</td><td class="right">37.434</td></tr>
+        <tr><td>Norcoast (JV, desde 09/2023)</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">(1.137)</td><td class="right">45.820</td></tr>
+        <tr class="total-row"><td><strong>Total investimento Ctrl.</strong></td><td class="right"><strong>743.653</strong></td><td class="right"><strong>952.928</strong></td><td class="right"><strong>994.170</strong></td><td class="right"><strong>982.108</strong></td><td class="right"><strong>858.443</strong></td><td class="right"><strong>1.120.891</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">Em 2020, a Companhia reconheceu R$121.198 de equivalência patrimonial positiva. A Norwest responde pela maior parte dos investimentos, refletindo a frota internacional. A Norsulmax foi incorporada à Controladora em dez/2023 (acervo líquido R$104.313).</div>
+  </div>
+</div>
+
+<!-- ==================== ASSETS DETAIL ==================== -->
+<div class="section" id="sec-assets">
+  <div class="section-header"><div class="section-title">Ativos Detalhados</div><div class="section-desc">Consolidado — R$ mil</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🚢</div><div><div class="kpi-value">598.044</div><div class="kpi-label">Imobilizado Líquido</div><div class="kpi-change up">▲ +24,0%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">💵</div><div><div class="kpi-value">476.424</div><div class="kpi-label">TVM Total</div><div class="kpi-change down">▼ -15,6%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">📄</div><div><div class="kpi-value">45.166</div><div class="kpi-label">Direito de Uso (Consol.)</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🔒</div><div><div class="kpi-value">136.673</div><div class="kpi-label">Depósitos Judiciais</div><div class="kpi-change up">▲ +18,9%</div></div></div></div>
+  </div>
+  <div class="tabs" id="assetsTabs">
+    <button class="tab-btn active" onclick="switchTab('assets','imob')">Imobilizado</button>
+    <button class="tab-btn" onclick="switchTab('assets','lease')">Arrendamentos</button>
+    <button class="tab-btn" onclick="switchTab('assets','fin')">Aplicações Financeiras</button>
+    <button class="tab-btn" onclick="switchTab('assets','ar')">Contas a Receber</button>
+    <button class="tab-btn" onclick="switchTab('assets','prepaid')">Desp. Antecipadas</button>
+  </div>
+  <div class="tab-panel active" id="assets-imob">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Imobilizado Líquido — Consolidado</div><div class="chart-container" style="height:260px"><canvas id="chartA1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Imob. Líquido</th></tr></thead>
+        <tbody>
+          <tr><td>2019</td><td class="right">325.460</td></tr>
+          <tr><td>2020</td><td class="right">482.821</td></tr>
+          <tr><td>2021</td><td class="right">581.218</td></tr>
+          <tr><td>2022</td><td class="right">563.971</td></tr>
+          <tr><td>2023</td><td class="right">482.251</td></tr>
+          <tr><td>2024</td><td class="right">598.044</td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Movimentação do Imobilizado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Movimento</th><th class="right">Embarcações</th><th class="right">Outros</th><th class="right">Total</th></tr></thead>
+        <tbody>
+          <tr><td>Saldo 31/12/2023</td><td class="right">454.703</td><td class="right">27.548</td><td class="right">482.251</td></tr>
+          <tr><td>Adições (incl. Babitonga Bay R$132,6 mi)</td><td class="right text-green">134.297</td><td class="right">2.470</td><td class="right">136.767</td></tr>
+          <tr><td>Depreciação</td><td class="right text-red">(114.456)</td><td class="right">(5.447)</td><td class="right">(119.903)</td></tr>
+          <tr><td>Conversão cambial</td><td class="right">97.001</td><td class="right">2.062</td><td class="right">99.063</td></tr>
+          <tr><td>Baixas e outros</td><td class="right">—</td><td class="right">(134)</td><td class="right">(134)</td></tr>
+          <tr class="total-row"><td><strong>Saldo 31/12/2024</strong></td><td class="right"><strong>571.545</strong></td><td class="right"><strong>26.499</strong></td><td class="right"><strong>598.044</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Vidas úteis: Embarcações 20 anos · Docagem 3–5 anos · Máquinas/equip. 10 anos · Intangível (software) 5 anos. <strong>Propriedade para investimento:</strong> Projeto Mar Azul R$33.247 (terminal marítimo). Não houve indicativos de impairment em 2024.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-panel" id="assets-lease">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Direito de Uso — Controladora por Tipo</div><div class="chart-container" style="height:260px"><canvas id="chartL1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Tipo</th><th class="right">Controladora</th><th class="right">Consolidado</th></tr></thead>
+        <tbody>
+          <tr><td>Embarcações</td><td class="right">174.326</td><td class="right">41.706</td></tr>
+          <tr><td>Imóveis</td><td class="right">3.190</td><td class="right">3.190</td></tr>
+          <tr><td>Veículos</td><td class="right">270</td><td class="right">270</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>177.786</strong></td><td class="right"><strong>45.166</strong></td></tr>
+        </tbody>
+      </table></div>
+        <div class="footnote">Embarcações intercompanhia (Norwest → Controladora) eliminadas na consolidação. No Consolidado, direito de uso = R$45.166 (R$41.706 BG Agnes + R$3.190 imóveis + R$270 veículos). Taxa de desconto: imóveis 11,59% a.a.; embarcações 16,6% a.a.</div>
+      </div>
+      <div class="card"><div class="card-title">Cronograma Passivo Arrendamento — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Vencimento</th><th class="right">Não descontado</th></tr></thead>
+        <tbody>
+          <tr><td>2025</td><td class="right">29.411</td></tr>
+          <tr><td>2026</td><td class="right">22.266</td></tr>
+          <tr><td>2027 em diante</td><td class="right">1.158</td></tr>
+          <tr class="subtotal-row"><td>Subtotal</td><td class="right">52.835</td></tr>
+          <tr><td>(-) AVP</td><td class="right">(6.877)</td></tr>
+          <tr class="total-row"><td><strong>Passivo total</strong></td><td class="right"><strong>45.958</strong></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="assets-fin">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Títulos e Valores Mobiliários — Consolidado</div><div class="chart-container" style="height:260px"><canvas id="chartF1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Classificação</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Circulante</td><td class="right">150.018</td><td class="right">188.824</td><td class="right">179.460</td><td class="right">330.251</td><td class="right">294.099</td><td class="right">362.475</td></tr>
+          <tr><td>Não circulante</td><td class="right">184.843</td><td class="right">385.127</td><td class="right">315.388</td><td class="right">192.776</td><td class="right">270.290</td><td class="right">113.949</td></tr>
+          <tr class="total-row"><td><strong>Total TVM</strong></td><td class="right"><strong>334.861</strong></td><td class="right"><strong>573.951</strong></td><td class="right"><strong>494.848</strong></td><td class="right"><strong>523.027</strong></td><td class="right"><strong>564.389</strong></td><td class="right"><strong>476.424</strong></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Composição por Fundo/Vencimento</div><div class="table-wrapper"><table>
+        <thead><tr><th>Fundo / Tipo</th><th class="right">≤12m</th><th class="right">12-24m</th><th class="right">&gt;24m</th><th class="right">Total</th></tr></thead>
+        <tbody>
+          <tr><td>Fundo Reno (LF, LFT, cotas)</td><td class="right">161.973</td><td class="right">—</td><td class="right">39.328</td><td class="right">201.301</td></tr>
+          <tr><td>Fundo Faerder (Bonds, ações)</td><td class="right">141.434</td><td class="right">8.222</td><td class="right">66.400+59.067</td><td class="right">275.123</td></tr>
+          <tr class="total-row"><td><strong>Total TVM</strong></td><td class="right"><strong>303.407</strong></td><td class="right"><strong>8.222</strong></td><td class="right"><strong>164.795</strong></td><td class="right"><strong>476.424</strong></td></tr>
+          <tr><td>+ Caixa equivalente fundos</td><td class="right" colspan="3"></td><td class="right">31.404</td></tr>
+          <tr class="total-row"><td><strong>Total Caixa+TVM</strong></td><td class="right" colspan="3"></td><td class="right"><strong>590.195</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Hedge cambial: instrumentos de opções geraram impacto líquido negativo de R$1.873 em 2024. Classificação: TVM ao VJR (valor justo por resultado). Bonds ao VJORA.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-panel" id="assets-ar">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Aging de Contas a Receber — Circulante Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Faixa</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>A vencer</td><td class="right">149.800</td><td class="right">256.890</td><td class="right">266.450</td><td class="right">286.124</td><td class="right">194.328</td><td class="right">261.050</td></tr>
+          <tr><td>Vencidos até 90 dias</td><td class="right">1.500</td><td class="right">2.600</td><td class="right">3.100</td><td class="right">2.650</td><td class="right">3.560</td><td class="right">6.908</td></tr>
+          <tr><td>Vencidos > 90 dias</td><td class="right">804</td><td class="right">1.670</td><td class="right">1.487</td><td class="right">924</td><td class="right">1.016</td><td class="right">1.608</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>152.104</strong></td><td class="right"><strong>261.160</strong></td><td class="right"><strong>271.037</strong></td><td class="right"><strong>289.698</strong></td><td class="right"><strong>198.904</strong></td><td class="right"><strong>269.566</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Inclui arrendamento mercantil (R$14.873, indexado ao câmbio, juros 7,3–9,25% a.a.).</div>
+      </div>
+      <div class="card"><div class="card-title">Movimentação da PECLD — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Saldo inicial</td><td class="right">(1.550)</td><td class="right">(1.800)</td><td class="right">(1.964)</td><td class="right">(2.090)</td><td class="right">(1.894)</td><td class="right">(2.159)</td></tr>
+          <tr><td>Constituição</td><td class="right">(350)</td><td class="right">(420)</td><td class="right">(412)</td><td class="right">(282)</td><td class="right">(594)</td><td class="right">(450)</td></tr>
+          <tr><td>Reversão/baixa</td><td class="right">100</td><td class="right">256</td><td class="right">286</td><td class="right">478</td><td class="right">329</td><td class="right">280</td></tr>
+          <tr class="total-row"><td><strong>Saldo final</strong></td><td class="right"><strong>(1.800)</strong></td><td class="right"><strong>(1.964)</strong></td><td class="right"><strong>(2.090)</strong></td><td class="right"><strong>(1.894)</strong></td><td class="right"><strong>(2.159)</strong></td><td class="right"><strong>(2.329)</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Adição de R$13.556 em 2024 refere-se a reajuste contratual em negociação com cliente recorrente. Reversão de R$6.911 por acordo firmado em dez/2024 sobre valores provisionados desde 2022.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-panel" id="assets-prepaid">
+    <div class="card"><div class="card-title">Despesas Antecipadas — Consolidado</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Seguros</td><td class="right">1.420</td><td class="right">1.855</td><td class="right">3.651</td><td class="right">3.920</td><td class="right">3.993</td><td class="right">6.693</td></tr>
+        <tr><td>P&I Club</td><td class="right">1.050</td><td class="right">1.315</td><td class="right">3.170</td><td class="right">3.200</td><td class="right">3.041</td><td class="right">4.285</td></tr>
+        <tr><td>Soc. classificadora</td><td class="right">1.042</td><td class="right">1.838</td><td class="right">3.108</td><td class="right">2.944</td><td class="right">2.284</td><td class="right">2.693</td></tr>
+        <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>3.512</strong></td><td class="right"><strong>5.008</strong></td><td class="right"><strong>9.929</strong></td><td class="right"><strong>10.064</strong></td><td class="right"><strong>9.318</strong></td><td class="right"><strong>13.671</strong></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- ==================== FINANCIAL RESULT ==================== -->
+<div class="section" id="sec-financial">
+  <div class="section-header"><div class="section-title">Resultado Financeiro</div><div class="section-desc">Detalhamento — Consolidado (R$ mil) · Nota 22</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">📈</div><div><div class="kpi-value">59.875</div><div class="kpi-label">Receitas Financeiras</div><div class="kpi-change down">▼ -36,9%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">📉</div><div><div class="kpi-value" style="color:var(--red)">(17.130)</div><div class="kpi-label">Despesas Financeiras</div><div class="kpi-change down">▲ +107,7%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">💱</div><div><div class="kpi-value">2.291</div><div class="kpi-label">Variação Cambial</div><div class="kpi-change up">▲ positivo</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">⚖️</div><div><div class="kpi-value">45.036</div><div class="kpi-label">Resultado Financeiro Líq.</div><div class="kpi-change down">▼ -38,8%</div></div></div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><div class="card-title">Receitas Financeiras</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Rendim. aplicações</td><td class="right">40.632</td><td class="right">33.027</td><td class="right">18.785</td><td class="right">53.973</td><td class="right">88.050</td><td class="right">53.965</td></tr>
+          <tr><td>Juros + outros</td><td class="right">7.422</td><td class="right">6.021</td><td class="right">6.741</td><td class="right">7.551</td><td class="right">6.777</td><td class="right">5.910</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>48.054</strong></td><td class="right"><strong>39.048</strong></td><td class="right"><strong>25.526</strong></td><td class="right"><strong>61.524</strong></td><td class="right"><strong>94.827</strong></td><td class="right"><strong>59.875</strong></td></tr>
+        </tbody>
+    </table></div></div>
+    <div class="card"><div class="card-title">Despesas Financeiras</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Juros + bancárias</td><td class="right">(6.125)</td><td class="right">(4.707)</td><td class="right">(7.860)</td><td class="right">(6.257)</td><td class="right">(7.881)</td><td class="right">(15.136)</td></tr>
+          <tr><td>Juros arrendamento</td><td class="right">—</td><td class="right">(616)</td><td class="right">(348)</td><td class="right">(276)</td><td class="right">(367)</td><td class="right">(1.994)</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right text-red"><strong>(6.125)</strong></td><td class="right text-red"><strong>(5.323)</strong></td><td class="right text-red"><strong>(8.208)</strong></td><td class="right text-red"><strong>(6.533)</strong></td><td class="right text-red"><strong>(8.248)</strong></td><td class="right text-red"><strong>(17.130)</strong></td></tr>
+        </tbody>
+    </table></div></div>
+  </div>
+  <div class="grid grid-2 mt">
+    <div class="card"><div class="card-title">Variação Cambial Líquida</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Variação cambial líquida</td><td class="right">8.839</td><td class="right">59.809</td><td class="right">37.247</td><td class="right">(28.267)</td><td class="right">(13.046)</td><td class="right">2.291</td></tr>
+        </tbody>
+    </table></div></div>
+    <div class="card"><div class="card-title">Resumo Resultado Financeiro</div><div class="chart-container" style="height:240px"><canvas id="chartFR1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Rec. Financ.</th><th class="right">Desp. Financ.</th><th class="right">Var. Cambial</th><th class="right">Líquido</th></tr></thead>
+        <tbody>
+          <tr><td>2020</td><td class="right">39.048</td><td class="right">(5.323)</td><td class="right">59.809</td><td class="right">93.534</td></tr>
+          <tr><td>2021</td><td class="right">25.526</td><td class="right">(8.208)</td><td class="right">37.247</td><td class="right">54.565</td></tr>
+          <tr><td>2022</td><td class="right">61.524</td><td class="right">(6.533)</td><td class="right">(28.267)</td><td class="right">26.724</td></tr>
+          <tr><td>2023</td><td class="right">94.827</td><td class="right">(8.248)</td><td class="right">(13.046)</td><td class="right">73.533</td></tr>
+          <tr><td>2024</td><td class="right">59.875</td><td class="right">(17.130)</td><td class="right">2.291</td><td class="right">45.036</td></tr>
+        </tbody>
+      </table></div></div>
+  </div>
+</div>
+
+<!-- ==================== TAXES & AFRMM ==================== -->
+<div class="section" id="sec-taxes">
+  <div class="section-header"><div class="section-title">Tributos e AFRMM</div><div class="section-desc">Consolidado — R$ mil</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">🏛️</div><div><div class="kpi-value">(50.145)</div><div class="kpi-label">IR/CSLL Total</div><div class="kpi-change down">▲ +34,6%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">📊</div><div><div class="kpi-value">213,8%</div><div class="kpi-label">Alíquota Efetiva</div><div class="kpi-change down">▲ vs 14,3%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">⚓</div><div><div class="kpi-value">46.927</div><div class="kpi-label">AFRMM Ativo</div><div class="kpi-change up">▲ +79,6%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📋</div><div><div class="kpi-value">65.353</div><div class="kpi-label">Impostos a Recuperar</div><div class="kpi-change up">▲ +6,1%</div></div></div></div>
+  </div>
+  <div class="tabs" id="taxesTabs">
+    <button class="tab-btn active" onclick="switchTab('taxes','txmain')">IR/CSLL e Alíquota</button>
+    <button class="tab-btn" onclick="switchTab('taxes','txrec')">Impostos a Recuperar/Recolher</button>
+    <button class="tab-btn" onclick="switchTab('taxes','afrmm')">AFRMM</button>
+  </div>
+  <div class="tab-panel active" id="taxes-txmain">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Conciliação Alíquota Efetiva — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Lucro antes IR/CSLL</td><td class="right">222.270</td><td class="right">420.112</td><td class="right">282.342</td><td class="right">224.285</td><td class="right">261.352</td><td class="right">23.452</td></tr>
+          <tr><td>IR/CSLL nominal (34%)</td><td class="right">(75.572)</td><td class="right">(142.838)</td><td class="right">(95.996)</td><td class="right">(76.257)</td><td class="right">(88.860)</td><td class="right">(7.974)</td></tr>
+          <tr><td>Equiv. patrimonial</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">(6.507)</td><td class="right">(50.335)</td></tr>
+          <tr><td>Incentivos AFRMM/ICMS</td><td class="right">2.556</td><td class="right">11.175</td><td class="right">15.534</td><td class="right">3.324</td><td class="right">16.626</td><td class="right">7.180</td></tr>
+          <tr><td>JCP</td><td class="right">9.520</td><td class="right">9.520</td><td class="right">10.737</td><td class="right">26.534</td><td class="right">23.843</td><td class="right">18.120</td></tr>
+          <tr><td>Outros ajustes</td><td class="right">540</td><td class="right">(13.313)</td><td class="right">1.545</td><td class="right">10.082</td><td class="right">17.633</td><td class="right">(17.136)</td></tr>
+          <tr class="total-row"><td><strong>IR/CSLL efetivo</strong></td><td class="right"><strong>(62.956)</strong></td><td class="right"><strong>(135.456)</strong></td><td class="right"><strong>(68.180)</strong></td><td class="right"><strong>(36.317)</strong></td><td class="right"><strong>(37.265)</strong></td><td class="right"><strong>(50.145)</strong></td></tr>
+          <tr><td><em>Alíq. efetiva</em></td><td class="right">28,3%</td><td class="right">32,2%</td><td class="right">24,2%</td><td class="right">16,2%</td><td class="right">14,3%</td><td class="right">213,8%</td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Apuração por lucro real trimestral desde 2023. Alíquota distorcida pela equiv. patrimonial da Norcoast (não tributada). Mandado de segurança ativo para diferir IR/CSLL sobre lucros de controladas no exterior (Luxemburgo) até efetiva remessa. IR/CSLL diferido ativo líquido: R$43.606.</div>
+      </div>
+      <div class="card"><div class="card-title">Composição IR/CSLL Diferido Ativo</div><div class="chart-container" style="height:300px"><canvas id="chartT1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Componente</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Arrendamento arrendador</td><td class="right">49.037</td></tr>
+          <tr><td>Prejuízo fiscal / base negativa</td><td class="right">34.957</td></tr>
+          <tr><td>Provisão bônus / ACT</td><td class="right">8.182</td></tr>
+          <tr><td>Provisão riscos trab/fisc/cív</td><td class="right">4.921</td></tr>
+          <tr><td>Arrendamento arrendatário</td><td class="right">4.439</td></tr>
+          <tr><td>Impairment</td><td class="right">4.633</td></tr>
+          <tr><td>Diversas</td><td class="right">27.136</td></tr>
+          <tr class="total-row"><td><strong>Total ativo</strong></td><td class="right"><strong>133.305</strong></td></tr>
+          <tr><td><em>(-) Diferido passivo</em></td><td class="right"><em>(89.699)</em></td></tr>
+          <tr class="total-row"><td><strong>Diferido líquido</strong></td><td class="right"><strong>43.606</strong></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="taxes-txrec">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Impostos a Recuperar — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>PIS/COFINS</td><td class="right">7.530</td><td class="right">66.925</td><td class="right">50.207</td><td class="right">49.200</td><td class="right">38.122</td><td class="right">35.428</td></tr>
+          <tr><td>IRPJ/CSLL</td><td class="right">3.450</td><td class="right">5.346</td><td class="right">23.882</td><td class="right">21.000</td><td class="right">20.131</td><td class="right">25.994</td></tr>
+          <tr><td>ICMS + outros</td><td class="right">1.639</td><td class="right">6.708</td><td class="right">7.996</td><td class="right">6.003</td><td class="right">3.366</td><td class="right">3.931</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>12.619</strong></td><td class="right"><strong>78.979</strong></td><td class="right"><strong>82.085</strong></td><td class="right"><strong>76.203</strong></td><td class="right"><strong>61.619</strong></td><td class="right"><strong>65.353</strong></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Impostos a Recolher — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>IRPJ/CSLL</td><td class="right">15.890</td><td class="right">41.161</td><td class="right">5.447</td><td class="right">14.800</td><td class="right">23.447</td><td class="right">29.178</td></tr>
+          <tr><td>PIS/COFINS</td><td class="right">9.400</td><td class="right">15.573</td><td class="right">21.957</td><td class="right">18.400</td><td class="right">16.812</td><td class="right">17.392</td></tr>
+          <tr><td>ICMS</td><td class="right">7.320</td><td class="right">8.402</td><td class="right">8.338</td><td class="right">5.600</td><td class="right">5.730</td><td class="right">3.488</td></tr>
+          <tr><td>IRRF + outros</td><td class="right">6.350</td><td class="right">8.381</td><td class="right">8.271</td><td class="right">5.310</td><td class="right">9.014</td><td class="right">7.905</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>38.960</strong></td><td class="right"><strong>73.517</strong></td><td class="right"><strong>44.013</strong></td><td class="right"><strong>44.110</strong></td><td class="right"><strong>55.003</strong></td><td class="right"><strong>57.963</strong></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="taxes-afrmm">
+    <div class="info-box"><strong>Lei 14.789/2023 — Tributação de Subvenções</strong> A partir de 2024, as subvenções (AFRMM) passam a ser tributadas por PIS, COFINS, IRPJ e CSLL. A Companhia ajustou sua apuração a partir do 2º trimestre de 2024. Crédito tributário de 25% (IRPJ) sobre receitas de subvenção associadas à implantação/expansão pode ser habilitado.</div>
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Movimentação AFRMM — Ativo Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Saldo inicial</td><td class="right">78.345</td><td class="right">94.040</td><td class="right">24.915</td><td class="right">27.610</td><td class="right">59.281</td><td class="right">26.133</td></tr>
+          <tr><td>Gerado</td><td class="right">63.440</td><td class="right">48.484</td><td class="right">48.159</td><td class="right">53.427</td><td class="right">38.758</td><td class="right">37.691</td></tr>
+          <tr><td>Utilizado</td><td class="right">(47.745)</td><td class="right">(117.609)</td><td class="right">(45.464)</td><td class="right">(21.756)</td><td class="right">(71.906)</td><td class="right">(13.213)</td></tr>
+          <tr><td>Baixado</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">(3.684)</td></tr>
+          <tr class="total-row"><td><strong>Saldo final</strong></td><td class="right"><strong>94.040</strong></td><td class="right"><strong>24.915</strong></td><td class="right"><strong>27.610</strong></td><td class="right"><strong>59.281</strong></td><td class="right"><strong>26.133</strong></td><td class="right"><strong>46.927</strong></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">AFRMM — Passivo e Receita Diferida</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>AFRMM a aplicar (circ.)</td><td class="right">70.230</td><td class="right">6.359</td><td class="right">12.173</td><td class="right">42.529</td><td class="right">699</td><td class="right">21.835</td></tr>
+          <tr><td>AFRMM a aplicar (NC)</td><td class="right">23.810</td><td class="right">18.556</td><td class="right">15.437</td><td class="right">16.752</td><td class="right">25.434</td><td class="right">25.092</td></tr>
+          <tr><td>Receitas dif. AFRMM</td><td class="right">—</td><td class="right">2.382</td><td class="right">1.218</td><td class="right">6.597</td><td class="right">28.420</td><td class="right">19.970</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>94.040</strong></td><td class="right"><strong>27.297</strong></td><td class="right"><strong>28.828</strong></td><td class="right"><strong>65.878</strong></td><td class="right"><strong>54.553</strong></td><td class="right"><strong>66.897</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Reconhecido no resultado em 2024: R$21.106 (R$48.902 em 2023). Destinado à reserva de incentivos fiscais AFRMM no PL. Taxa: 8% sobre frete de cabotagem e importação.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PROVISIONS & CONTINGENCIES ==================== -->
+<div class="section" id="sec-provisions">
+  <div class="section-header"><div class="section-title">Provisões e Contingências</div><div class="section-desc">Consolidado — R$ mil</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">⚠️</div><div><div class="kpi-value">75.044</div><div class="kpi-label">Provisões Operacionais</div><div class="kpi-change up">▲ +19,2%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">⚖️</div><div><div class="kpi-value">18.285</div><div class="kpi-label">Riscos (Perda Provável)</div><div class="kpi-change up">▲ +14,8%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📂</div><div><div class="kpi-value">450.411</div><div class="kpi-label">Perda Possível</div><div class="kpi-change up">▲ +1,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">🔒</div><div><div class="kpi-value">136.673</div><div class="kpi-label">Depósitos Judiciais</div><div class="kpi-change up">▲ +18,9%</div></div></div></div>
+  </div>
+  <div class="tabs" id="provTabs">
+    <button class="tab-btn active" onclick="switchTab('provisions','provop')">Provisões Operacionais</button>
+    <button class="tab-btn" onclick="switchTab('provisions','provleg')">Contingências Judiciais</button>
+    <button class="tab-btn" onclick="switchTab('provisions','provpos')">Contingências Possíveis</button>
+  </div>
+  <div class="tab-panel active" id="provisions-provop">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Provisões Operacionais — Consolidado (Nota 16)</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>ACT/bônus</td><td class="right">11.092</td><td class="right">18.161</td><td class="right">21.079</td><td class="right">25.464</td><td class="right">22.194</td><td class="right">24.065</td></tr>
+          <tr><td>Afretamento</td><td class="right">—</td><td class="right">436</td><td class="right">29.785</td><td class="right">37.048</td><td class="right">2.175</td><td class="right">5.866</td></tr>
+          <tr><td>ICMS/DIFAL</td><td class="right">—</td><td class="right">22.922</td><td class="right">23.918</td><td class="right">24.665</td><td class="right">8.528</td><td class="right">8.528</td></tr>
+          <tr><td>RAT/FAP</td><td class="right">7.700</td><td class="right">8.743</td><td class="right">8.994</td><td class="right">9.156</td><td class="right">5.917</td><td class="right">5.917</td></tr>
+          <tr><td>Fornecedores</td><td class="right">2.850</td><td class="right">6.555</td><td class="right">9.842</td><td class="right">8.720</td><td class="right">1.399</td><td class="right">5.009</td></tr>
+          <tr><td>Comboios</td><td class="right">—</td><td class="right">20.860</td><td class="right">30.287</td><td class="right">13.400</td><td class="right">—</td><td class="right">1.791</td></tr>
+          <tr><td>Outras</td><td class="right">6.358</td><td class="right">13.593</td><td class="right">934</td><td class="right">934</td><td class="right">22.749</td><td class="right">23.868</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>28.000</strong></td><td class="right"><strong>91.270</strong></td><td class="right"><strong>124.839</strong></td><td class="right"><strong>119.387</strong></td><td class="right"><strong>62.962</strong></td><td class="right"><strong>75.044</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">DIFAL revertido em 2024: ICMS sobre transferência entre filiais não é mais fato gerador (LC 87/1996 art.12 §4º + Decreto ES 5.590-R/2024). Companhia obteve êxito judicial.</div>
+      </div>
+      <div class="card"><div class="card-title">Obrigações Trabalhistas — Consolidado (Nota 15)</div><div class="table-wrapper"><table>
+        <thead><tr><th>Natureza</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Férias + encargos</td><td class="right">8.500</td><td class="right">9.488</td><td class="right">8.152</td><td class="right">8.654</td><td class="right">9.993</td><td class="right">9.793</td></tr>
+          <tr><td>Enc. sociais s/ folha</td><td class="right">5.100</td><td class="right">6.609</td><td class="right">6.153</td><td class="right">2.803</td><td class="right">2.733</td><td class="right">2.981</td></tr>
+          <tr><td>Outros</td><td class="right">(200)</td><td class="right">(393)</td><td class="right">(524)</td><td class="right">(284)</td><td class="right">(120)</td><td class="right">(111)</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>13.400</strong></td><td class="right"><strong>15.704</strong></td><td class="right"><strong>13.781</strong></td><td class="right"><strong>11.173</strong></td><td class="right"><strong>12.606</strong></td><td class="right"><strong>12.663</strong></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="provisions-provleg">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Provisão Riscos (Perda Provável) — Consolidado (Nota 17.2)</div><div class="table-wrapper"><table>
+        <thead><tr><th>Natureza</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Tributária/previd.</td><td class="right">12.346</td><td class="right">12.760</td><td class="right">13.101</td><td class="right">13.119</td><td class="right">11.001</td><td class="right">12.179</td></tr>
+          <tr><td>Cível</td><td class="right">2.936</td><td class="right">3.555</td><td class="right">6.202</td><td class="right">7.835</td><td class="right">1.684</td><td class="right">2.715</td></tr>
+          <tr><td>Trabalhista</td><td class="right">1.718</td><td class="right">2.405</td><td class="right">2.881</td><td class="right">2.838</td><td class="right">3.240</td><td class="right">3.391</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>17.000</strong></td><td class="right"><strong>18.720</strong></td><td class="right"><strong>22.184</strong></td><td class="right"><strong>23.792</strong></td><td class="right"><strong>15.925</strong></td><td class="right"><strong>18.285</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote"><strong>Tributária:</strong> Auto INSS R$12.179 (ajuda de custo 1999–2005, aguarda TRF 1ª Região). <strong>Cível:</strong> R$2.715 sobre disputa tabela praticagem. <strong>Trabalhista:</strong> Equiparações salariais, horas extras, insalubridade. <strong>Depósitos judiciais:</strong> R$136.673 (2024), +R$15.129 adições no ano (incl. R$15.040 consignação dividendos).</div>
+      </div>
+      <div class="card"><div class="card-title">Movimentação da Provisão — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Movimento</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Saldo inicial</td><td class="right">28.984</td><td class="right">17.000</td><td class="right">18.720</td><td class="right">22.184</td><td class="right">23.792</td><td class="right">15.925</td></tr>
+          <tr><td>Adições</td><td class="right">1.479</td><td class="right">2.212</td><td class="right">9.011</td><td class="right">1.608</td><td class="right">4.181</td><td class="right">3.640</td></tr>
+          <tr><td>Reversões/baixas</td><td class="right">(13.463)</td><td class="right">(492)</td><td class="right">(5.547)</td><td class="right">—</td><td class="right">(12.048)</td><td class="right">(1.280)</td></tr>
+          <tr class="total-row"><td><strong>Saldo final</strong></td><td class="right"><strong>17.000</strong></td><td class="right"><strong>18.720</strong></td><td class="right"><strong>22.184</strong></td><td class="right"><strong>23.792</strong></td><td class="right"><strong>15.925</strong></td><td class="right"><strong>18.285</strong></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="provisions-provpos">
+    <div class="card"><div class="card-title">Contingências com Perda Possível (não provisionadas) — Consolidado</div><div class="table-wrapper"><table>
+      <thead><tr><th>Natureza</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Tributária/previd.</td><td class="right">207.601</td><td class="right">226.436</td><td class="right">290.036</td><td class="right">300.152</td><td class="right">430.556</td><td class="right">437.555</td></tr>
+        <tr><td>Trabalhista</td><td class="right">4.889</td><td class="right">5.872</td><td class="right">12.157</td><td class="right">11.953</td><td class="right">13.233</td><td class="right">12.856</td></tr>
+        <tr class="total-row"><td><strong>Total possível</strong></td><td class="right"><strong>212.490</strong></td><td class="right"><strong>232.308</strong></td><td class="right"><strong>302.193</strong></td><td class="right"><strong>312.105</strong></td><td class="right"><strong>443.789</strong></td><td class="right"><strong>450.411</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">Contingências garantidas por seguro-garantia e depósitos judiciais. A empresa não possui ativos contingentes contabilizados. ICMS/Pará: 19 autos, 14 julgados desfavoravelmente (recurso judicial em andamento); 5 julgados favoravelmente.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RELATED PARTIES ==================== -->
+<div class="section" id="sec-related">
+  <div class="section-header"><div class="section-title">Partes Relacionadas</div><div class="section-desc">Saldos e transações — Controladora (R$ mil) · Nota 10</div></div>
+  <div class="grid grid-3" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🔗</div><div><div class="kpi-value">117.983</div><div class="kpi-label">Passivo c/ Partes Relac.</div><div class="kpi-change up">▲ vs 18.303</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--red-light);color:var(--red)">📊</div><div><div class="kpi-value">(54.464)</div><div class="kpi-label">Resultado Intercompanhia</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">👔</div><div><div class="kpi-value">8.670</div><div class="kpi-label">Remuneração Admin.</div><div class="kpi-change up">▲ +6,7%</div></div></div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><div class="card-title">Saldos com Partes Relacionadas — Controladora</div><div class="table-wrapper"><table>
+      <thead><tr><th>Entidade</th><th class="right">Ativo 2024</th><th class="right">Passivo 2024</th><th class="right">Receita/(Desp.) 2024</th></tr></thead>
+      <tbody>
+        <tr><td>Norsulcargo (gestão náutica / conta corrente)</td><td class="right">—</td><td class="right">11.911</td><td class="right">1.411</td></tr>
+        <tr><td>Norcoast (afretamento embarcação)</td><td class="right">—</td><td class="right">—</td><td class="right">51.312</td></tr>
+        <tr><td>Norwest (afretamento embarcações)</td><td class="right">—</td><td class="right">106.072</td><td class="right text-red">(107.187)</td></tr>
+        <tr><td>Mar Azul</td><td class="right">637</td><td class="right">—</td><td class="right">—</td></tr>
+        <tr><td>Norinter</td><td class="right">47</td><td class="right">—</td><td class="right">—</td></tr>
+        <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>684</strong></td><td class="right"><strong>117.983</strong></td><td class="right"><strong>(54.464)</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">Transações eliminadas na consolidação (exceto Norcoast — controlada em conjunto). Dividendos recebidos de controladas em 2024: R$6.940 (R$69.602 em 2023).</div>
+    </div>
+    <div class="card"><div class="card-title">Remuneração Pessoal-chave da Administração</div><div class="table-wrapper"><table>
+      <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+      <tbody>
+        <tr><td>Benefícios curto prazo</td><td class="right">7.945</td><td class="right">10.069</td><td class="right">9.546</td><td class="right">8.670</td><td class="right">8.125</td><td class="right">8.670</td></tr>
+      </tbody>
+    </table></div>
+    <div class="footnote">Administradores = diretores + Conselho de Administração. A Companhia não possui plano de opção de compra de ações.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RISK & INSURANCE ==================== -->
+<div class="section" id="sec-risk">
+  <div class="section-header"><div class="section-title">Gestão de Riscos e Seguros</div><div class="section-desc">Notas 23 e 24</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">💱</div><div><div class="kpi-value">184.335</div><div class="kpi-label">Exposição Cambial (US$)</div><div class="kpi-change down">▼ -42,5%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">💵</div><div><div class="kpi-value">R$6,19</div><div class="kpi-label">Câmbio R$/US$ (31/12)</div><div class="kpi-change down">▲ +27,9%</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">🛡️</div><div><div class="kpi-value">US$3 bi</div><div class="kpi-label">Cobertura P&I</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📊</div><div><div class="kpi-value">859.761</div><div class="kpi-label">Risco de Crédito Total</div><div class="kpi-change down">▼ -17,1%</div></div></div></div>
+  </div>
+  <div class="tabs" id="riskTabs">
+    <button class="tab-btn active" onclick="switchTab('risk','riskfx')">Risco Cambial</button>
+    <button class="tab-btn" onclick="switchTab('risk','riskother')">Liquidez e Crédito</button>
+    <button class="tab-btn" onclick="switchTab('risk','insurance')">Seguros</button>
+  </div>
+  <div class="tab-panel active" id="risk-riskfx">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Exposição Cambial — Consolidado (R$ mil)</div><div class="table-wrapper"><table>
+        <thead><tr><th>Rubrica</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Caixa em US$</td><td class="right">224.730</td><td class="right">114.432</td><td class="right">79.590</td><td class="right">108.720</td><td class="right">165.490</td><td class="right">85.253</td></tr>
+          <tr><td>TVM em US$</td><td class="right">48.260</td><td class="right">246.196</td><td class="right">181.050</td><td class="right">131.605</td><td class="right">151.850</td><td class="right">87.622</td></tr>
+          <tr><td>Contas receber US$</td><td class="right">—</td><td class="right">8.888</td><td class="right">5.200</td><td class="right">4.530</td><td class="right">3.150</td><td class="right">11.460</td></tr>
+          <tr class="total-row"><td><strong>Exposição líq. ativa</strong></td><td class="right"><strong>272.990</strong></td><td class="right"><strong>369.516</strong></td><td class="right"><strong>265.840</strong></td><td class="right"><strong>244.855</strong></td><td class="right"><strong>320.490</strong></td><td class="right"><strong>184.335</strong></td></tr>
+          <tr><td><em>Câmbio R$/US$ (fim)</em></td><td class="right"><em>4,0307</em></td><td class="right"><em>5,1967</em></td><td class="right"><em>5,5805</em></td><td class="right"><em>5,2177</em></td><td class="right"><em>4,8413</em></td><td class="right"><em>6,1924</em></td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="card"><div class="card-title">Análise de Sensibilidade Cambial — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Cenário</th><th class="right">Taxa US$/R$</th><th class="right">Efeito Ativos</th><th class="right">Efeito Passivos</th></tr></thead>
+        <tbody>
+          <tr><td>Referência 31/12/2024</td><td class="right">6,1923</td><td class="right">—</td><td class="right">—</td></tr>
+          <tr><td>Provável (Focus 14/03/2025)</td><td class="right">5,9800</td><td class="right text-red">(13.846)</td><td class="right text-green">1.456</td></tr>
+          <tr><td>Cenário I (Δ 25%)</td><td class="right">4,4850</td><td class="right text-red">(111.350)</td><td class="right text-red">(8.799)</td></tr>
+          <tr><td>Cenário II (Δ 50%)</td><td class="right">2,9900</td><td class="right text-red">(208.855)</td><td class="right text-red">(19.054)</td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">Receitas em grande parte indexadas ao US$, custos relevantes em R$. Grupo utiliza instrumentos de opções para hedge cambial (impacto líquido -R$1.873 em 2024). Controladas no exterior (Norwest, Norinter) têm moeda funcional US$ — variação patrimonial vai para ORA, não resultado.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-panel" id="risk-riskother">
+    <div class="grid grid-2">
+      <div class="card"><div class="card-title">Risco de Liquidez — Consolidado</div><div class="table-wrapper"><table>
+        <thead><tr><th>Vencimento</th><th class="right">Fornecedores</th><th class="right">Arrendamento</th><th class="right">Total</th></tr></thead>
+        <tbody>
+          <tr><td>2025</td><td class="right">27.132</td><td class="right">24.081</td><td class="right">51.213</td></tr>
+          <tr><td>2026 em diante</td><td class="right">—</td><td class="right">21.877</td><td class="right">21.877</td></tr>
+          <tr class="total-row"><td><strong>Total</strong></td><td class="right"><strong>27.132</strong></td><td class="right"><strong>45.958</strong></td><td class="right"><strong>73.090</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">O Grupo não possui empréstimos bancários. Liquidez corrente: 2,66x. Caixa + TVM totais: R$590 mi vs passivo financeiro R$73 mi. Não sujeito a covenants externos.</div>
+      </div>
+      <div class="card"><div class="card-title">Risco de Crédito</div><div class="table-wrapper"><table>
+        <thead><tr><th>Instrumento</th><th class="right">2019</th><th class="right">2020</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Caixa e equivalentes</td><td class="right">378.434</td><td class="right">218.918</td><td class="right">153.959</td><td class="right">156.665</td><td class="right">262.450</td><td class="right">113.771</td></tr>
+          <tr><td>TVM</td><td class="right">334.861</td><td class="right">573.951</td><td class="right">494.848</td><td class="right">523.027</td><td class="right">564.389</td><td class="right">476.424</td></tr>
+          <tr><td>Contas a receber</td><td class="right">315.155</td><td class="right">414.973</td><td class="right">403.909</td><td class="right">365.455</td><td class="right">210.532</td><td class="right">269.566</td></tr>
+          <tr class="total-row"><td><strong>Exposição total</strong></td><td class="right"><strong>1.028.450</strong></td><td class="right"><strong>1.207.842</strong></td><td class="right"><strong>1.052.716</strong></td><td class="right"><strong>1.045.147</strong></td><td class="right"><strong>1.037.371</strong></td><td class="right"><strong>859.761</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div class="footnote">~63% da receita suportada por contratos de longo prazo com 6 principais clientes. 2 clientes representaram >10% da receita. PECLD: R$13.904 (1,6% da exposição). Aplicações em fundos BTG Pactual com rating adequado.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-panel" id="risk-insurance">
+    <div class="card"><div class="card-title">Cobertura de Seguros — 31/12/2024 (Nota 24)</div><div class="table-wrapper"><table>
+      <thead><tr><th>Modalidade</th><th>Cobertura</th><th>Vigência</th><th class="right">Limite Máx. Indenização</th></tr></thead>
+      <tbody>
+        <tr><td>P&I (responsabilidade civil)</td><td style="white-space:normal">RC, poluição, tripulação</td><td>20/02/24–20/02/25 (renovado +12m)</td><td class="right">US$1 bi (RC) / US$3 bi (tripulação)</td></tr>
+        <tr><td>Casco e Máquinas (H&M)</td><td>Perda total, avaria particular</td><td>12 meses (diversas)</td><td class="right">US$11–28 mi por embarcação</td></tr>
+        <tr><td>Vida</td><td>Morte, invalidez</td><td>01/09/23–31/08/25</td><td class="right">60 salários</td></tr>
+        <tr><td>Bens materiais</td><td>Incêndio, danos elétricos, RC empregador</td><td>27/08/24–27/08/25</td><td class="right">R$15 mi</td></tr>
+        <tr><td>D&O (Administradores)</td><td>Danos a terceiros por atos de gestão</td><td>31/08/24–31/08/25</td><td class="right">R$100 mi</td></tr>
+        <tr><td>Sede</td><td>Escritório sede RJ</td><td>02/10/24–02/10/25</td><td class="right">R$7 mi</td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- ==================== FLEET ==================== -->
+<div class="section" id="sec-fleet">
+  <div class="section-header"><div class="section-title">Frota e Operação</div><div class="section-desc">Dados operacionais e eventos relevantes</div></div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">🚢</div><div><div class="kpi-value">20</div><div class="kpi-label">Embarcações Próprias</div><div class="kpi-change up">▲ +1 vs 19</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--green-light);color:var(--green)">⚓</div><div><div class="kpi-value">66</div><div class="kpi-label">Embarcações Afretadas</div><div class="kpi-change down">▼ -1 vs 67</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--amber-light);color:var(--amber)">👥</div><div><div class="kpi-value">488</div><div class="kpi-label">Colaboradores</div><div class="kpi-change down">▼ -34</div></div></div></div>
+    <div class="card"><div class="kpi"><div class="kpi-icon" style="background:var(--accent-light);color:var(--accent)">📅</div><div><div class="kpi-value">1963</div><div class="kpi-label">Ano de Fundação</div></div></div></div>
+  </div>
+  <div class="grid grid-2" style="margin-bottom:16px">
+    <div class="card"><div class="card-title">Frota Própria por Bandeira</div><div class="chart-container" style="height:240px"><canvas id="chartFL1"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Bandeira</th><th class="right">2021</th><th class="right">2022</th><th class="right">2023</th><th class="right">2024</th></tr></thead>
+        <tbody>
+          <tr><td>Brasileira</td><td class="right">13</td><td class="right">13</td><td class="right">14</td><td class="right">14</td></tr>
+          <tr><td>Estrangeira</td><td class="right">6</td><td class="right">5</td><td class="right">5</td><td class="right">6</td></tr>
+          <tr class="total-row"><td><strong>Total próprias</strong></td><td class="right"><strong>19</strong></td><td class="right"><strong>18</strong></td><td class="right"><strong>19</strong></td><td class="right"><strong>20</strong></td></tr>
+          <tr><td><em>Afretadas</em></td><td class="right"><em>65</em></td><td class="right"><em>68</em></td><td class="right"><em>67</em></td><td class="right"><em>66</em></td></tr>
+        </tbody>
+      </table></div></div>
+    <div class="card"><div class="card-title">Colaboradores — Histórico</div><div class="chart-container" style="height:240px"><canvas id="chartFL2"></canvas></div>
+
+      <div class="table-wrapper mt"><table>
+        <thead><tr><th>Ano</th><th class="right">Marítimos</th><th class="right">Admin.</th><th class="right">Total</th></tr></thead>
+        <tbody>
+          <tr><td>2020</td><td class="right">360</td><td class="right">182</td><td class="right">542</td></tr>
+          <tr><td>2021</td><td class="right">356</td><td class="right">187</td><td class="right">543</td></tr>
+          <tr><td>2022</td><td class="right">340</td><td class="right">195</td><td class="right">535</td></tr>
+          <tr><td>2023</td><td class="right">323</td><td class="right">199</td><td class="right">522</td></tr>
+          <tr><td>2024</td><td class="right">307</td><td class="right">181</td><td class="right">488</td></tr>
+        </tbody>
+      </table></div></div>
+  </div>
+  <div class="card"><div class="card-title">Eventos Relevantes — Timeline Histórica (2020–2025)</div><div class="table-wrapper"><table>
+    <thead><tr><th>Data</th><th>Evento</th><th class="right">Impacto</th></tr></thead>
+    <tbody>
+      <tr><td colspan="3" style="background:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px;padding:6px 12px">2020</td></tr>
+      <tr><td>Jan/2020</td><td>Aquisição navio tanque Taruca (Norwest) — transporte cargas líquidas</td><td class="right">US$9,5 mi</td></tr>
+      <tr><td>Mar/2020</td><td>Aquisição embarcação graneleira Juruti da controlada Norsulmax (intercompanhia)</td><td class="right">R$49,0 mi</td></tr>
+      <tr><td>Abr/2020</td><td>Emissão da Licença Ambiental de Instalação (LAI) pelo IBAMA — TUP Mar Azul (SC)</td><td class="right"><span class="badge badge-blue">Regulatório</span></td></tr>
+      <tr><td>Mai/2020</td><td>Alienação embarcação Crateus (Norwest) — ganho R$6.223</td><td class="right">US$2,7 mi</td></tr>
+      <tr><td>Jun/2020</td><td>Decisão favorável STF/TRF2: exclusão ICMS da base PIS/COFINS — crédito R$27,9 mi</td><td class="right"><span class="badge badge-green">R$27,9 mi</span></td></tr>
+      <tr><td>Nov/2020</td><td>Alienação embarcação Den Sha (Norwest) — ganho R$15.408</td><td class="right">US$3,7 mi</td></tr>
+      <tr><td>Dez/2020</td><td>Aquisição navio graneleiro Trombetas (Norwest)</td><td class="right">US$16,4 mi</td></tr>
+      <tr><td colspan="3" style="background:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px;padding:6px 12px">2021</td></tr>
+      <tr><td>Fev/2021</td><td>Aquisição navio graneleiro Amberjack (ex-Mild Sea) via Norwest</td><td class="right">US$15,3 mi</td></tr>
+      <tr><td>Jun/2021</td><td>Aquisição navio cimenteiro Glory Tellus (Norwest)</td><td class="right">US$11,6 mi</td></tr>
+      <tr><td>Jun/2021</td><td>Reversão reserva para investimentos R$27.161 → distribuição como dividendos</td><td class="right">R$27,2 mi</td></tr>
+      <tr><td>Set/2021</td><td>Assinatura contrato FPSO (descarregamento óleo bruto) — prazo previsto 3 anos</td><td class="right"><span class="badge badge-blue">Contrato LP</span></td></tr>
+      <tr><td>Dez/2021</td><td>Aumento capital social R$158.603 (incorporação reserva investimentos)</td><td class="right"><span class="badge badge-amber">Societário</span></td></tr>
+      <tr><td>Dez/2021</td><td>Reclassificação empreendimento Mar Azul: Imobilizado → Propriedade para Investimento (CPC 28)</td><td class="right">R$32,7 mi</td></tr>
+      <tr><td colspan="3" style="background:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px;padding:6px 12px">2022</td></tr>
+      <tr><td>Jan/2022</td><td>Alienação navio graneleiro Rya Rad (Norwest) — ganho R$48.323</td><td class="right">US$9,6 mi</td></tr>
+      <tr><td>Out/2022</td><td>Aviso de rescisão antecipada do contrato FPSO (decisão estratégica)</td><td class="right"><span class="badge badge-red">Perda receita</span></td></tr>
+      <tr><td>Set/2022</td><td>Constituição da Norcon (futura Norcoast) — 99% Norsul, operação de navegação costeira</td><td class="right"><span class="badge badge-blue">Nova empresa</span></td></tr>
+      <tr><td>Dez/2022</td><td>Dividendos + JCP total distribuídos no exercício: R$157.574 (incl. adicional R$48.917)</td><td class="right">R$157,6 mi</td></tr>
+      <tr><td colspan="3" style="background:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px;padding:6px 12px">2023</td></tr>
+      <tr><td>Jan/2023</td><td>Acordo extrajudicial com empresa praticagem — R$7.300 (encerramento litígio 2018–2022)</td><td class="right">R$7,3 mi</td></tr>
+      <tr><td>Jan/2023</td><td>Alteração denominação: Norcon → Norcoast Logística S.A.</td><td class="right">—</td></tr>
+      <tr><td>Fev/2023</td><td>Última viagem FPSO — encerramento definitivo da operação de alívio de petróleo</td><td class="right"><span class="badge badge-red">-R$178 mi/a</span></td></tr>
+      <tr><td>Set/2023</td><td>Hapag-Lloyd adquire 50% da Norcoast — passa a ser controlada em conjunto (CPC 18 R2)</td><td class="right"><span class="badge badge-blue">JV 50/50</span></td></tr>
+      <tr><td>Out/2023</td><td>Venda embarcações arrendadas a terceiros (Norwest) — ganho R$113 mi consolidado</td><td class="right"><span class="badge badge-green">R$113 mi</span></td></tr>
+      <tr><td>Dez/2023</td><td>Incorporação societária da Norsulmax (acervo líquido R$104.313, sem aumento de capital)</td><td class="right"><span class="badge badge-amber">Reestruturação</span></td></tr>
+      <tr><td colspan="3" style="background:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px;padding:6px 12px">2024</td></tr>
+      <tr><td>Jan/2024</td><td>Contrato transporte LP 5 anos — navio cimenteiro Tellus (afretado da Norwest, IFRS 16)</td><td class="right"><span class="badge badge-blue">Contrato LP</span></td></tr>
+      <tr><td>Jan–Nov/2024</td><td>5 aportes de capital na Norcoast (JV 50/50 Hapag-Lloyd): 390 mi novas ações</td><td class="right">R$195 mi (50%)</td></tr>
+      <tr><td>Jul/2024</td><td>Aquisição navio graneleiro Babitonga Bay (Norwest) — entrega concluída 22/jul</td><td class="right">US$21,8 mi</td></tr>
+      <tr><td>Set/2024</td><td>Contrato apoio portuário 2 anos — navio BG Agnes (arrendamento IFRS 16)</td><td class="right"><span class="badge badge-blue">Contrato</span></td></tr>
+      <tr><td>Set/2024</td><td>Encerramento Norsul Navigation SCS (controlada indireta, Luxemburgo)</td><td class="right"><span class="badge badge-amber">Societário</span></td></tr>
+      <tr><td>Set/2024</td><td>Transferência 7% ações acionista minoritário → Lorentzen (fim arbitragem)</td><td class="right">28,3 mi ações</td></tr>
+      <tr><td>2024</td><td>Entrada em vigor Lei 14.789/2023 — nova tributação sobre subvenções (impacto AFRMM)</td><td class="right"><span class="badge badge-amber">Tributário</span></td></tr>
+      <tr><td>2024</td><td>Resultado líquido negativo: R$(26.693) — 1º prejuízo desde início da série (equiv. patrimonial Norcoast R$(148 mi))</td><td class="right"><span class="badge badge-red">Prejuízo</span></td></tr>
+      <tr><td colspan="3" style="background:#1B2A4A;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px;padding:6px 12px">EVENTOS SUBSEQUENTES (2025)</td></tr>
+      <tr style="background:var(--accent-light)"><td><strong>Fev/2025</strong></td><td><strong>Assinatura CPA — Hidrovias do Brasil Cabotagem (bauxita Trombetas→Barcarena, até 2034, 2 navios brasileiros FMM/BNDES)</strong></td><td class="right"><span class="badge badge-blue">≈R$195 mi + dívida US$84 mi</span></td></tr>
+      <tr style="background:var(--accent-light)"><td><strong>Mar/2025</strong></td><td><strong>Encerramento contrato transporte com principal cliente (cliente internalizou operação)</strong></td><td class="right"><span class="badge badge-red">Perda receita</span></td></tr>
+      <tr style="background:var(--accent-light)"><td><strong>Mar/2025</strong></td><td><strong>Novo aporte Norcoast — 100 mi novas ações (50% Norsul = R$50.000, integralizado 12/mar)</strong></td><td class="right">R$50 mi</td></tr>
+      <tr style="background:var(--accent-light)"><td><strong>17/Mar/2025</strong></td><td><strong>Aprovação das DFs individuais e consolidadas pela Administração</strong></td><td class="right">—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="footnote"><strong>Fontes:</strong> Notas explicativas e eventos subsequentes das DFs auditadas 2020, 2021, 2022, 2023 e 2024 (Deloitte Touche Tohmatsu). Segmento operacional único: transporte marítimo privado (cabotagem + longo curso). A aquisição da HB Cabotagem (fev/2025) está sujeita a condições precedentes e aprovações regulatórias. A Administração considera que o encerramento do contrato (mar/2025) não compromete a continuidade operacional.</div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ===== NAV =====
+let sOpen=window.innerWidth>768;const sb=document.getElementById('sidebar'),ov=document.getElementById('overlay'),mn=document.getElementById('main');
+function upd(){if(window.innerWidth<=768){sb.classList.toggle('open',sOpen);ov.classList.toggle('active',sOpen);mn.classList.add('expanded')}else{sb.classList.toggle('closed',!sOpen);sb.classList.remove('open');ov.classList.remove('active');mn.classList.toggle('expanded',!sOpen)}}
+function toggleSidebar(){sOpen=!sOpen;upd()}upd();
+window.addEventListener('resize',()=>{if(window.innerWidth>768)sOpen=true;upd()});
+const T={overview:'Painel Geral',balance:'Balanço Patrimonial',income:'DRE e Resultado',cashflow:'Fluxo de Caixa',equity:'Patrimônio Líquido',revenue:'Receitas e Custos',investments:'Investimentos',assets:'Ativos Detalhados',financial:'Resultado Financeiro',taxes:'Tributos e AFRMM',provisions:'Provisões e Contingências',related:'Partes Relacionadas',risk:'Riscos e Seguros',fleet:'Frota e Operação'};
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector(`[data-section="${id}"]`).classList.add('active');
+  document.getElementById('topbarTitle').textContent=T[id]||id;
+  if(window.innerWidth<=768){sOpen=false;upd()}
+  if(!CI[id]){initC(id);CI[id]=true}
+}
+function switchTab(s,p){event.target.closest('.tabs').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');const pr=document.getElementById('sec-'+s);pr.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));document.getElementById(s+'-'+p).classList.add('active')}
+
+// ===== THEME =====
+let dk=false;
+function toggleTheme(){dk=!dk;document.documentElement.setAttribute('data-theme',dk?'dark':'');document.getElementById('themeIcon').textContent=dk?'☀️':'🌙';document.getElementById('themeLabel').textContent=dk?'Modo Claro':'Modo Escuro';Object.values(CH).forEach(c=>{if(c&&c.options){uT(c);c.update('none')}})}
+function gT(){const s=getComputedStyle(document.documentElement);return{g:s.getPropertyValue('--chart-grid').trim(),t:s.getPropertyValue('--chart-text').trim()}}
+function uT(c){const t=gT();['x','y'].forEach(a=>{if(c.options.scales&&c.options.scales[a]){if(c.options.scales[a].ticks)c.options.scales[a].ticks.color=t.t;if(c.options.scales[a].grid)c.options.scales[a].grid.color=t.g}});if(c.options.plugins&&c.options.plugins.legend&&c.options.plugins.legend.labels)c.options.plugins.legend.labels.color=t.t}
+
+// ===== CHARTS =====
+const CH={},CI={overview:false};
+const CL=['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16','#F97316','#6366F1'];
+Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.font.size=12;
+function bO(tp,ex={}){const t=gT();const o={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:t.t,boxWidth:12,padding:10}},tooltip:{backgroundColor:'rgba(0,0,0,.85)',padding:10,cornerRadius:6}}};if(tp!=='pie'&&tp!=='doughnut')o.scales={x:{ticks:{color:t.t},grid:{color:t.g}},y:{ticks:{color:t.t},grid:{color:t.g}}};return Object.assign(o,ex)}
+function mc(id,tp,d,ex={}){const x=document.getElementById(id);if(!x)return null;const c=new Chart(x,{type:tp,data:d,options:bO(tp,ex)});CH[id]=c;return c}
+
+function initC(s){
+  if(s==='overview'){
+    mc('chartO1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Receita Líq.',data:[839209,971460,1366541,2189256,1260820,1384082],backgroundColor:'#3B82F6',borderRadius:4},{label:'Lucro Bruto',data:[226128,333036,297159,230039,200667,199463],backgroundColor:'#10B981',borderRadius:4},{label:'Resultado Líq.',data:[159314,284656,214162,187968,224087,-26693],backgroundColor:d=>d.raw<0?'#EF4444':'#F59E0B',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+    mc('chartO2','doughnut',{labels:['Caixa+TVM','Contas receber','Imobilizado','Invest.','Dep.judiciais','IR diferido','Outros'],datasets:[{data:[476246,269566,598044,45820,136673,43606,386553],backgroundColor:CL,borderWidth:0}]},{cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
+    mc('chartO3','doughnut',{labels:['Passivo Circ.','Passivo Não Circ.','PL'],datasets:[{data:[331846,107790,1516872],backgroundColor:['#EF4444','#F59E0B','#3B82F6'],borderWidth:0}]},{cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
+  }
+  if(s==='balance'){
+    mc('chartBE1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Circ.',data:[796456,804001,771004,959401,876989,881241],backgroundColor:'#3B82F6',borderRadius:4},{label:'Não Circ.',data:[757731,1092348,1162872,997576,1018740,1075267],backgroundColor:'#8B5CF6',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}},plugins:{legend:{position:'bottom'}}});
+    mc('chartBE2','bar',{labels:['2020','2022','2023','2024'],datasets:[{label:'Passivo',data:[359328,null,457902,439636],backgroundColor:'#EF4444',borderRadius:4},{label:'PL',data:[1537021,1517247,1437827,1516872],backgroundColor:'#3B82F6',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}},plugins:{legend:{position:'bottom'}}});
+  }
+  if(s==='income'){
+    const wL=['Receita','(-) Custos','Lucro Bruto','(-) G&A','Eq.Patrim.','Outras','Lucro Op.','Financ.','PLR','IR/CSLL','Resultado'];
+    const wV=[1384082,-1184619,null,-64927,-148043,5610,null,45036,-13687,-50145,null];
+    let r=0;const wD=[],wB=[];
+    for(let i=0;i<wV.length;i++){if(wV[i]===null){if(i===2)r=199463;else if(i===6)r=-7897;else r=-26693;wB.push(0);wD.push(r)}else{if(i===0){r=wV[i];wB.push(0);wD.push(r)}else{const p=r;r+=wV[i];wB.push(Math.min(p,r));wD.push(Math.abs(wV[i]))}}}
+    const wC=wL.map((l,i)=>{if(i===0)return'#3B82F6';if(wV[i]===null)return i===wL.length-1?'#EF4444':'#8B5CF6';return wV[i]<0?'#EF4444':'#10B981'});
+    mc('chartWF','bar',{labels:wL,datasets:[{label:'Base',data:wB,backgroundColor:'transparent',borderWidth:0},{label:'Valor',data:wD,backgroundColor:wC,borderRadius:3}]},{scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}},plugins:{legend:{display:false}}});
+  }
+  if(s==='cashflow'){
+    mc('chartCF1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Operacional',data:[268119,281146,246099,283890,280482,207415],backgroundColor:'#10B981',borderRadius:4},{label:'Investimento',data:[23377,-339557,-104368,-126950,-22567,-154306],backgroundColor:'#3B82F6',borderRadius:4},{label:'Financiamento',data:[-89426,-100263,-79297,-91378,-148382,-207706],backgroundColor:'#EF4444',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+  }
+  if(s==='equity'){
+    mc('chartEQ1','doughnut',{labels:['Capital','Res.Legal','AFRMM','ICMS','Livre Distrib.','ORA','Prejuízo Ac.'],datasets:[{data:[624628,59188,256984,7330,165492,451049,47799],backgroundColor:CL,borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
+    mc('chartEQ2','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'PL',data:[1194878,1537021,1617546,1517247,1437827,1516872],backgroundColor:'#3B82F6',borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+    mc('chartEQ3','doughnut',{labels:['Lorentzen (76,84%)','Outros PF (23,16%)'],datasets:[{data:[76.84,23.16],backgroundColor:['#1B2A4A','#3B82F6'],borderWidth:0}]},{cutout:'60%',plugins:{legend:{position:'bottom'}}});
+  }
+  if(s==='revenue'){
+    mc('chartR1','doughnut',{labels:['Granel Seco (cab.)','Granel Seco (LC)','Cargas Líquidas','Comboios'],datasets:[{data:[1200345,86243,152768,193695],backgroundColor:['#3B82F6','#8B5CF6','#10B981','#F59E0B'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:10}}}});
+    mc('chartR2','bar',{labels:['Gr.Seco(cab)','Gr.Seco(LC)','Líquidas','FPSO','Comboios'],datasets:[{label:'2023',data:[782424,73386,67563,177573,159874],backgroundColor:'rgba(59,130,246,.3)',borderRadius:4},{label:'2024',data:[1003511,86243,128307,0,166021],backgroundColor:'#3B82F6',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{font:{size:10}}}}});
+    mc('chartC1','bar',{labels:['Afretamento','Viagens','Tripulação','Deprec+Doc','Suprim.','Manutenção','Shipmanager','Outros'],datasets:[{label:'2023',data:[432948,299606,147476,97995,31967,22267,36908,11986],backgroundColor:'rgba(239,68,68,.25)',borderRadius:3},{label:'2024',data:[379046,378150,171726,168633,43466,24732,36567,17536],backgroundColor:'#EF4444',borderRadius:3}]},{indexAxis:'y',plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+  }
+  if(s==='investments'){
+    mc('chartI1','bar',{labels:['Norwest','Norsulcargo','Norcoast','Mar Azul'],datasets:[{label:'PL',data:[932375,109922,45820,37434],backgroundColor:['#3B82F6','#10B981','#F59E0B','#8B5CF6'],borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+    mc('chartI2','bar',{labels:['2020','2021','2022','2023','2024'],datasets:[{label:'Equiv. Patrimonial Total',data:[121198,34964,76733,48484,-126805],backgroundColor:d=>d.raw<0?'#EF4444':'#10B981',borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+  }
+  if(s==='assets'){
+    mc('chartA1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Embarcações',data:[325460,482821,581218,563971,454703,571545],backgroundColor:'#3B82F6',borderRadius:4},{label:'Outros',data:[0,0,0,0,27548,26499],backgroundColor:'#10B981',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}},plugins:{legend:{position:'bottom'}}});
+    mc('chartL1','doughnut',{labels:['Embarcações (174.326)','Imóveis (3.190)','Veículos (270)'],datasets:[{data:[174326,3190,270],backgroundColor:['#3B82F6','#10B981','#F59E0B'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right'}}});
+    mc('chartF1','doughnut',{labels:['Fundo Reno','Fundo Faerder'],datasets:[{data:[201301,275123],backgroundColor:['#3B82F6','#10B981'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right'}}});
+  }
+  if(s==='financial'){
+    mc('chartFR1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Receitas Financ.',data:[48054,39048,25526,61524,94827,59875],backgroundColor:'#10B981',borderRadius:4},{label:'Despesas Financ.',data:[-6125,-5323,-8208,-6533,-8248,-17130],backgroundColor:'#EF4444',borderRadius:4},{label:'Var.Cambial Líq.',data:[8839,59809,37247,-28267,-13046,2291],backgroundColor:'#F59E0B',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'mi'}}}});
+  }
+  if(s==='taxes'){
+    mc('chartT1','bar',{labels:['Arrend.arrendador','Prejuízo fiscal','Provisão bônus','Provisão riscos','Arrend.arrendat.','Impairment','Diversas'],datasets:[{label:'Ativo',data:[49037,34957,8182,4921,4439,4633,27136],backgroundColor:'#3B82F6',borderRadius:4}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+  }
+  if(s==='fleet'){
+    mc('chartFL1','doughnut',{labels:['Bandeira BR (14)','Bandeira Estrang. (6)'],datasets:[{data:[14,6],backgroundColor:['#1B2A4A','#3B82F6'],borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right'}}});
+    mc('chartFL2','bar',{labels:['2020','2021','2022','2023','2024'],datasets:[{label:'Marítimos',data:[360,356,340,323,307],backgroundColor:'#10B981',borderRadius:4},{label:'Administrativos',data:[182,187,195,199,181],backgroundColor:'#F59E0B',borderRadius:4}]},{scales:{x:{stacked:true},y:{stacked:true}},plugins:{legend:{position:'bottom'}}});
+  }
+}
+CI.overview=true;window.addEventListener('DOMContentLoaded',()=>initC('overview'));
+</script>
+</body>
+</html>
