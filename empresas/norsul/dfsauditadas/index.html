@@ -1657,21 +1657,24 @@ function nfBR(v,d){return (v==null||v===''||isNaN(v))?'':Number(v).toLocaleStrin
 const CHART_UNIT={chartEQ3:'pct',chartFL1:'cnt',chartFL2:'cnt'};
 function unitOf(ch){return (ch&&ch.canvas&&CHART_UNIT[ch.canvas.id])||'mi';}
 function fmtVal(v,u){if(v==null||v===''||isNaN(v))return '';if(u==='pct')return nfBR(v,1)+'%';if(u==='cnt')return nfBR(v,0);return nfBR(v,1);}
+// fmtLbl: rotulo desenhado no grafico — sem casas decimais (tooltip usa fmtVal, com 1 casa)
+function fmtLbl(v,u){if(v==null||v===''||isNaN(v))return '';return (u==='pct')?nfBR(v,0)+'%':nfBR(v,0);}
 function tipRaw(ctx){const p=ctx.parsed;if(p&&typeof p==='object')return ctx.chart.options.indexAxis==='y'?p.x:p.y;return p;}
 Chart.defaults.plugins.tooltip.filter=function(ctx){return ctx.dataset.label!=='Base';};
 Chart.defaults.plugins.tooltip.callbacks.label=function(ctx){const u=unitOf(ctx.chart);const isPie=(ctx.chart.config.type==='pie'||ctx.chart.config.type==='doughnut');const base=isPie?ctx.label:(ctx.dataset.label||'');const pre=(u==='mi')?'R$ ':'';return (base?base+': ':' ')+pre+fmtVal(tipRaw(ctx),u);};
 function inkColor(){return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||'#13202E';}
 // DLB: rotulo de barra (acima/ao lado, na cor da tinta do tema)
-function DLB(u){return {display:true,anchor:'end',align:'end',clamp:true,offset:2,color:inkColor(),font:{size:11,weight:'700'},formatter:function(v){return fmtVal(v,u);}};}
-// DLP: rotulo de fatia de pizza (branco com contorno, dentro da fatia)
-function DLP(u){return {display:true,color:'#fff',textStrokeColor:'rgba(0,0,0,.45)',textStrokeWidth:3,font:{size:11,weight:'700'},formatter:function(v){return fmtVal(v,u);}};}
+function DLB(u){return {display:true,anchor:'end',align:'end',clamp:true,offset:2,color:inkColor(),font:{size:11,weight:'700'},formatter:function(v){return fmtLbl(v,u);}};}
+// DLP: rotulo de fatia de pizza (branco com contorno). Esconde fatias abaixo
+// de 5% do total, para os donuts de muitas fatias nao ficarem ilegiveis.
+function DLP(u){return {display:function(ctx){var a=ctx.chart.data.datasets[ctx.datasetIndex].data;var t=a.reduce(function(s,x){return s+(Number(x)||0);},0);return t>0?(Number(a[ctx.dataIndex])/t)>=0.05:true;},color:'#fff',textStrokeColor:'rgba(0,0,0,.45)',textStrokeWidth:3,font:{size:11,weight:'700'},formatter:function(v){return fmtLbl(v,u);}};}
 function bO(tp,ex={}){const t=gT();const o={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:t.t,boxWidth:12,padding:10}},tooltip:{backgroundColor:'rgba(19,32,46,.92)',padding:10,cornerRadius:6}}};if(tp!=='pie'&&tp!=='doughnut')o.scales={x:{ticks:{color:t.t},grid:{color:t.g}},y:{ticks:{color:t.t},grid:{color:t.g}}};return Object.assign(o,ex)}
 function mc(id,tp,d,ex={}){const x=document.getElementById(id);if(!x)return null;const c=new Chart(x,{type:tp,data:d,options:bO(tp,ex)});CH[id]=c;return c}
 
 function initC(s){
   if(s==='overview'){
     mc('chartO1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Receita Líq.',data:[839.209,971.46,1366.541,2189.256,1260.82,1384.082],backgroundColor:'#1F3B57',borderRadius:4},{label:'Lucro Bruto',data:[226.128,333.036,297.159,230.039,200.667,199.463],backgroundColor:'#2E7D4F',borderRadius:4},{label:'Resultado Líq.',data:[159.314,284.656,214.162,187.968,224.087,-26.693],backgroundColor:d=>d.raw<0?'#E23A2E':'#C55A17',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
-    mc('chartO2','doughnut',{labels:['Caixa+TVM','Contas receber','Imobilizado','Invest.','Dep.judiciais','IR diferido','Outros'],datasets:[{data:[476.246,269.566,598.044,45.82,136.673,43.606,386.553],backgroundColor:CL,borderWidth:0}]},{cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
+    mc('chartO2','doughnut',{labels:['Caixa+TVM','Contas receber','Imobilizado','Invest.','Dep.judiciais','IR diferido','Outros'],datasets:[{data:[476.246,269.566,598.044,45.82,136.673,43.606,386.553],backgroundColor:CL,borderWidth:0}]},{cutout:'58%',plugins:{datalabels:DLP('mi'),legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
     mc('chartO3','doughnut',{labels:['Passivo Circ.','Passivo Não Circ.','PL'],datasets:[{data:[331.846,107.79,1516.872],backgroundColor:['#E23A2E','#C55A17','#1F3B57'],borderWidth:0}]},{cutout:'58%',plugins:{datalabels:DLP('mi'),legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
   }
   if(s==='balance'){
@@ -1690,7 +1693,7 @@ function initC(s){
     mc('chartCF1','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'Operacional',data:[268.119,281.146,246.099,283.89,280.482,207.415],backgroundColor:'#2E7D4F',borderRadius:4},{label:'Investimento',data:[23.377,-339.557,-104.368,-126.95,-22.567,-154.306],backgroundColor:'#1F3B57',borderRadius:4},{label:'Financiamento',data:[-89.426,-100.263,-79.297,-91.378,-148.382,-207.706],backgroundColor:'#E23A2E',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
   }
   if(s==='equity'){
-    mc('chartEQ1','doughnut',{labels:['Capital','Res.Legal','AFRMM','ICMS','Livre Distrib.','ORA','Prejuízo Ac.'],datasets:[{data:[624.628,59.188,256.984,7.33,165.492,451.049,47.799],backgroundColor:CL,borderWidth:0}]},{cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
+    mc('chartEQ1','doughnut',{labels:['Capital','Res.Legal','AFRMM','ICMS','Livre Distrib.','ORA','Prejuízo Ac.'],datasets:[{data:[624.628,59.188,256.984,7.33,165.492,451.049,47.799],backgroundColor:CL,borderWidth:0}]},{cutout:'55%',plugins:{datalabels:DLP('mi'),legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}});
     mc('chartEQ2','bar',{labels:['2019','2020','2021','2022','2023','2024'],datasets:[{label:'PL',data:[1194.878,1537.021,1617.546,1517.247,1437.827,1516.872],backgroundColor:'#1F3B57',borderRadius:4}]},{plugins:{datalabels:DLB('mi'),legend:{display:false}},scales:{y:{ticks:{callback:v=>(v).toFixed(0)+'mi'}}}});
     mc('chartEQ3','doughnut',{labels:['Lorentzen (76,84%)','Outros PF (23,16%)'],datasets:[{data:[76.84,23.16],backgroundColor:['#13202E','#1F3B57'],borderWidth:0}]},{cutout:'60%',plugins:{datalabels:DLP('pct'),legend:{position:'bottom'}}});
   }
