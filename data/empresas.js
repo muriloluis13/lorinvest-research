@@ -60,57 +60,57 @@
         assinados:{
           rci:{kpiCls:"kpi-row4",tag:"preço net · reajustado desde a data-base",
             kpis:[["k-slate","Contratos assinados","6","4 GNL · 2 GNCp"],["k-teal","Prazo médio","4,4 <small>anos</small>","média simples dos 6 contratos"],["k-sage","Preço médio","R$ 3,58<small>/m³</small>","ponderado pelo volume total"],["k-stone","Volume total contratado","132.175","m³/dia · ramp-up 56.865 →"]],
-            cols:["Cliente","Assinatura","Início forn.","Prazo","Término","Produto","Volume (m³/dia)","Preço net (R$/m³)","Planta"],
+            cols:["Cliente","Assinatura","Início forn.","Prazo","Término","Produto","Inicial","Final","Preço net (R$/m³)","Planta"],
             rows:[
-              ["CEGÁS","28/10/2025","03/11/2025","5 anos","28/10/2030","GNL","18.740 – 50.000","3,3041","RN"],
-              ["BAHIAGÁS","04/11/2025","—","10 anos","31/12/2035","GNL","3.125 – 25.175","3,6359","BA"],
-              ["PETROBAHIA","05/10/2023","06/06/2025","10 anos","06/06/2030","GNL","18.000 – 40.000","4,0780","BA"],
-              ["PETYAN","04/07/2025","06/11/2025","10 meses","04/05/2026","GNL","12.000","3,3099","BA"],
-              ["REITERLOG","12/02/2025","19/02/2025","90 dias","12/05/2025","GNCp","3.000","2,2000","PR"],
-              ["RODOPRINCIPE","06/08/2025","23/07/2025","120 dias","04/12/2025","GNCp","2.000","3,2017","PR"]
+              ["CEGÁS","28/10/2025","03/11/2025","5 anos","28/10/2030","GNL","18.740","50.000","3,3041","RN"],
+              ["BAHIAGÁS","04/11/2025","—","10 anos","31/12/2035","GNL","3.125","25.175","3,6359","BA"],
+              ["PETROBAHIA","05/10/2023","06/06/2025","10 anos","06/06/2030","GNL","18.000","40.000","4,0780","BA"],
+              ["PETYAN","04/07/2025","06/11/2025","10 meses","04/05/2026","GNL","12.000","12.000","3,3099","BA"],
+              ["REITERLOG","12/02/2025","19/02/2025","90 dias","12/05/2025","GNCp","3.000","3.000","2,2000","PR"],
+              ["RODOPRINCIPE","06/08/2025","23/07/2025","120 dias","04/12/2025","GNCp","2.000","2.000","3,2017","PR"]
             ],
             occ:[["k-teal","RN · cap. GNL","72.688","Ocupação GNL <b>69%</b>",69],["k-sage","BA · cap. GNL","85.232","Ocupação GNL <b>91%</b>",91],["k-stone","PR · cap. GNL","39.580","Ocupação GNL <b>0%</b>",0]],
             foot:'<b>(1)</b> Mais de R$ 1 bilhão em contratos assinados. &nbsp; <b>(2)</b> Preço atual considera reajustes aplicados desde a data-base do contrato. &nbsp; <b>(3)</b> 264 clientes foram passados para a COPA prospectar. &nbsp; <b>(4)</b> 46 clientes foram indicados pela COPA para a GNLink prospectar, sendo metade do volume em SP. &nbsp; <b>(5)</b> 70 clientes acima de 100 ton/mês na lista da GNLink, sendo apenas 16 na lista da COPA enviada à GNLink.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 4).'},
-          rca:{kpiCls:"kpi-row5",tag:"ramp-up de volume · preço net atual",tagCol:true,total:"90.065 → 108.625 → 222.675",
+          rca:{kpiCls:"kpi-row5",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["90.065","108.625","222.675"],
             kpis:[["k-slate","Contratos assinados","15","6 definitivos · 9 em teste"],["k-teal","Prazo médio","2,7 <small>anos</small>","média simples dos 15 contratos"],["k-sage","Preço médio","R$ 3,37<small>/m³</small>","ponderado pelo volume total"],["k-stone","ToP médio","54,6%","ponderado pelo volume total"],["k-sage","Valor total dos contratos","R$ 1,10 <small>bi</small>","R$ 1.101.224.386"]],
-            cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Volume — ini → atual → total (m³/dia)","Preço net (R$/m³)","%TOP","Apuração","Início TOP","Valor do contrato","Planta"],
+            cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Inicial","Atual","Final","Preço net (R$/m³)","%TOP","Apuração","Início TOP","Valor do contrato","Planta"],
             rows:[
-              {t:"def",c:["CEGÁS","28/10/2025","03/11/2025","5 anos","GNL","18.740 → 22.000 → 50.000","3,38","70%","Trimestral","fev/26","R$ 226.003.744","Assú"]},
-              {t:"def",c:["COPERGÁS","28/01/2026","09/03/2026","3 anos","GNL","10.000 → 10.000 → 30.000","3,34","70%","Trimestral","Regás fixa","R$ 24.738.397","Assú"]},
-              {t:"tst",c:["POSTO LIDER","04/03/2026","05/03/2026","330 dias","GNCp","1.000 → 1.000 → 6.000","1,90","0%","—","—","—","Assú"]},
-              {t:"tst",c:["PARELHAS GÁS","16/04/2026","16/04/2026","330 dias","GNCp","1.500 → 3.000 → 3.000","1,90","0%","—","—","—","Assú"]},
-              {t:"tst",c:["MERI POBO","28/01/2026","19/05/2026","6 meses","GNCp","2.000 → 2.000 → 6.000","3,17","0%","—","—","—","Assú"]},
-              {t:"def",c:["COMPAGÁS","29/12/2025","12/03/2026","1 ano","GNL","7.000 → 20.000 → 20.000","3,85","70%","Anual","mar/26","R$ 71.832.000","Barra Bonita"]},
-              {t:"tst",c:["SK METAIS","23/06/2026","15/07/2026","180 dias","GNL","3.000 → 3.000 → 4.000","3,80","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["FEVEREIRO LD","28/01/2026","29/01/2026","330 dias","GNCp","3.000 → 4.000 → 4.000","3,20","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["DALLON","21/01/2026","Pendente reunião","330 dias","GNCp","6.000 → 6.000 → 10.000","2,90","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["RIO BONITO","15/05/2026","01/08/2026","180 dias","GNCp","1.000 → 1.000 → 2.000","3,45","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["DALPARE","03/02/2026","20/08/2026","330 dias","GNCp","2.200 → 2.000 → 2.000","3,30","0%","—","—","—","Barra Bonita"]},
-              {t:"def",c:["PETROBAHIA","05/10/2023","06/06/2025","10 anos","GNL","18.000 → 18.000 → 40.000","3,72","70%","Anual","jan/26","R$ 554.668.768","Itabuna"]},
-              {t:"tst",c:["PETYAN","04/07/2025","06/11/2025","10 meses","GNL","12.000 → 12.000 → 12.000","3,02","0%","—","—","—","Itabuna"]},
-              {t:"def",c:["BAHIAGÁS","04/11/2025","07/05/2026","10 anos","GNL","1.625 → 1.625 → 25.175","3,82","70%","Anual","—","R$ 205.344.029","Itabuna"]},
-              {t:"def",c:["ALGÁS","13/02/2026","01/09/2026","5 anos","GNCp","3.000 → 3.000 → 8.500","1,81","70%","Anual","—","R$ 18.637.448","Itabuna"]}
+              {t:"def",c:["CEGÁS","28/10/2025","03/11/2025","5 anos","GNL","18.740","22.000","50.000","3,38","70%","Trimestral","fev/26","R$ 226.003.744","RN"]},
+              {t:"def",c:["COPERGÁS","28/01/2026","09/03/2026","3 anos","GNL","10.000","10.000","30.000","3,34","70%","Trimestral","Regás fixa","R$ 24.738.397","RN"]},
+              {t:"tst",c:["POSTO LIDER","04/03/2026","05/03/2026","330 dias","GNCp","1.000","1.000","6.000","1,90","—","—","—","—","RN"]},
+              {t:"tst",c:["PARELHAS GÁS","16/04/2026","16/04/2026","330 dias","GNCp","1.500","3.000","3.000","1,90","—","—","—","—","RN"]},
+              {t:"tst",c:["MERI POBO","28/01/2026","19/05/2026","6 meses","GNCp","2.000","2.000","6.000","3,17","—","—","—","—","RN"]},
+              {t:"def",c:["COMPAGÁS","29/12/2025","12/03/2026","1 ano","GNL","7.000","20.000","20.000","3,85","70%","Anual","mar/26","R$ 71.832.000","PR"]},
+              {t:"tst",c:["SK METAIS","23/06/2026","15/07/2026","180 dias","GNL","3.000","3.000","4.000","3,80","—","—","—","—","PR"]},
+              {t:"tst",c:["FEVEREIRO LD","28/01/2026","29/01/2026","330 dias","GNCp","3.000","4.000","4.000","3,20","—","—","—","—","PR"]},
+              {t:"tst",c:["DALLON","21/01/2026","Pendente reunião","330 dias","GNCp","6.000","6.000","10.000","2,90","—","—","—","—","PR"]},
+              {t:"tst",c:["RIO BONITO","15/05/2026","01/08/2026","180 dias","GNCp","1.000","1.000","2.000","3,45","—","—","—","—","PR"]},
+              {t:"tst",c:["DALPARE","03/02/2026","20/08/2026","330 dias","GNCp","2.200","2.000","2.000","3,30","—","—","—","—","PR"]},
+              {t:"def",c:["PETROBAHIA","05/10/2023","06/06/2025","10 anos","GNL","18.000","18.000","40.000","3,72","70%","Anual","jan/26","R$ 554.668.768","BA"]},
+              {t:"tst",c:["PETYAN","04/07/2025","06/11/2025","10 meses","GNL","12.000","12.000","12.000","3,02","—","—","—","—","BA"]},
+              {t:"def",c:["BAHIAGÁS","04/11/2025","07/05/2026","10 anos","GNL","1.625","1.625","25.175","3,82","70%","Anual","—","R$ 205.344.029","BA"]},
+              {t:"def",c:["ALGÁS","13/02/2026","01/09/2026","5 anos","GNCp","3.000","3.000","8.500","1,81","70%","Anual","—","R$ 18.637.448","BA"]}
             ],
             foot:'<b>(1)</b> Preço net considera o preço de face do contrato, sem efeito da receita de locação e sem os reajustes de preço ao longo do tempo. &nbsp; <b>(2)</b> %TOP = parcela take-or-pay do volume contratado.<br>Fonte: GNLink — RCA, mai/2026 (slide 6).'},
-          rcaJun:{kpiCls:"kpi-row5",tag:"ramp-up de volume · preço net atual",tagCol:true,total:"90.065 → 108.625 → 226.175",totalReal:"53.248",
+          rcaJun:{kpiCls:"kpi-row5",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["90.065","108.625","53.248","226.175"],
             kpis:[["k-slate","Contratos assinados","15","6 definitivos · 9 em teste"],["k-teal","Prazo médio","2,7 <small>anos</small>","média simples dos 15 contratos"],["k-sage","Preço médio","R$ 3,38<small>/m³</small>","ponderado pelo volume final"],["k-stone","ToP médio","53,6%","ponderado pelo volume final"],["k-sage","Valor total dos contratos","R$ 1,09 <small>bi</small>","R$ 1.091.224.386"]],
-            cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Volume — ini → atual → final (m³/dia)","Real jun/26","Preço net (R$/m³)","%TOP","Apuração","Início TOP","Valor do contrato","Planta"],
+            cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Inicial","Atual","Real","Final","Preço net (R$/m³)","%TOP","Apuração","Início TOP","Valor do contrato","Planta"],
             rows:[
-              {t:"def",c:["COMPAGÁS","29/12/2025","12/03/2026","1 ano","GNL","7.000 → 20.000 → 20.000","26.393","3,85","70%","Anual","mar/26","R$ 71.832.000","Barra Bonita"]},
-              {t:"tst",c:["SK METAIS","23/06/2026","—","180 dias","GNL","3.000 → 3.000 → 4.000","0","3,80","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["FEVEREIRO","28/01/2026","09/02/2026","330 dias","GNCp","3.000 → 4.000 → 4.000","709","3,20","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["RB EMBALAGENS","15/05/2026","—","180 dias","GNCp","1.000 → 1.000 → 3.000","0","3,45","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["DALLON","19/01/2026","—","330 dias","GNCp","6.000 → 6.000 → 10.000","0","2,90","0%","—","—","—","Barra Bonita"]},
-              {t:"tst",c:["DALPARE","03/01/2026","—","330 dias","GNCp","2.200 → 2.000 → 2.000","0","3,30","0%","—","—","—","Barra Bonita"]},
-              {t:"def",c:["PETROBAHIA","05/10/2023","06/06/2025","10 anos","GNL","18.000 → 18.000 → 40.000","2.066","3,72","70%","Anual","jan/26","R$ 544.668.768","Itabuna"]},
-              {t:"def",c:["BAHIAGÁS","04/11/2025","—","10 anos","GNL","1.625 → 1.625 → 25.175","429","3,82","70%","Anual","—","R$ 205.344.029","Itabuna"]},
-              {t:"def",c:["ALGÁS","19/02/2026","—","5 anos","GNCp","3.000 → 3.000 → 8.000","0","1,81","70%","Anual","—","R$ 18.637.448","Itabuna"]},
-              {t:"tst",c:["PETYAN","04/07/2025","06/11/2025","10 meses","GNL","12.000 → 12.000 → 12.000","2.426","3,42","0%","—","—","—","Itabuna"]},
-              {t:"def",c:["CEGÁS","29/10/2025","03/11/2025","5 anos","GNL","18.740 → 22.000 → 50.000","17.645","3,38","70%","Trimestral","fev/26","R$ 226.003.744","Assú"]},
-              {t:"def",c:["COPERGÁS","03/02/2026","09/03/2026","3 anos","GNL","10.000 → 10.000 → 30.000","2.452","3,34","70%","Trimestral","Regás fixa","R$ 24.738.397","Assú"]},
-              {t:"tst",c:["LIDER","04/03/2026","05/03/2026","330 dias","GNCp","1.000 → 1.000 → 6.000","0","1,90","0%","—","—","—","Assú"]},
-              {t:"tst",c:["MERI POBO","27/01/2026","—","180 dias","GNCp","2.000 → 2.000 → 6.000","0","3,17","0%","—","—","—","Assú"]},
-              {t:"tst",c:["PARELHAS","16/04/2026","16/04/2026","330 dias","GNCp","1.500 → 3.000 → 6.000","1.128","2,05","0%","—","—","—","Assú"]}
+              {t:"def",c:["COMPAGÁS","29/12/2025","12/03/2026","1 ano","GNL","7.000","20.000","26.393","20.000","3,85","70%","Anual","mar/26","R$ 71.832.000","PR"]},
+              {t:"tst",c:["SK METAIS","23/06/2026","—","180 dias","GNL","3.000","3.000","0","4.000","3,80","—","—","—","—","PR"]},
+              {t:"tst",c:["FEVEREIRO","28/01/2026","09/02/2026","330 dias","GNCp","3.000","4.000","709","4.000","3,20","—","—","—","—","PR"]},
+              {t:"tst",c:["RB EMBALAGENS","15/05/2026","—","180 dias","GNCp","1.000","1.000","0","3.000","3,45","—","—","—","—","PR"]},
+              {t:"tst",c:["DALLON","19/01/2026","—","330 dias","GNCp","6.000","6.000","0","10.000","2,90","—","—","—","—","PR"]},
+              {t:"tst",c:["DALPARE","03/01/2026","—","330 dias","GNCp","2.200","2.000","0","2.000","3,30","—","—","—","—","PR"]},
+              {t:"def",c:["PETROBAHIA","05/10/2023","06/06/2025","10 anos","GNL","18.000","18.000","2.066","40.000","3,72","70%","Anual","jan/26","R$ 544.668.768","BA"]},
+              {t:"def",c:["BAHIAGÁS","04/11/2025","—","10 anos","GNL","1.625","1.625","429","25.175","3,82","70%","Anual","—","R$ 205.344.029","BA"]},
+              {t:"def",c:["ALGÁS","19/02/2026","—","5 anos","GNCp","3.000","3.000","0","8.000","1,81","70%","Anual","—","R$ 18.637.448","BA"]},
+              {t:"tst",c:["PETYAN","04/07/2025","06/11/2025","10 meses","GNL","12.000","12.000","2.426","12.000","3,42","—","—","—","—","BA"]},
+              {t:"def",c:["CEGÁS","29/10/2025","03/11/2025","5 anos","GNL","18.740","22.000","17.645","50.000","3,38","70%","Trimestral","fev/26","R$ 226.003.744","RN"]},
+              {t:"def",c:["COPERGÁS","03/02/2026","09/03/2026","3 anos","GNL","10.000","10.000","2.452","30.000","3,34","70%","Trimestral","Regás fixa","R$ 24.738.397","RN"]},
+              {t:"tst",c:["LIDER","04/03/2026","05/03/2026","330 dias","GNCp","1.000","1.000","0","6.000","1,90","—","—","—","—","RN"]},
+              {t:"tst",c:["MERI POBO","27/01/2026","—","180 dias","GNCp","2.000","2.000","0","6.000","3,17","—","—","—","—","RN"]},
+              {t:"tst",c:["PARELHAS","16/04/2026","16/04/2026","330 dias","GNCp","1.500","3.000","1.128","6.000","2,05","—","—","—","—","RN"]}
             ],
             foot:'<b>(1)</b> Preço net considera o preço de face do contrato, sem efeito da receita de locação e sem os reajustes de preço ao longo do tempo. &nbsp; <b>(2)</b> Volume inicial, atual e final referem-se à rampa definida em contrato; o volume <b>real</b> é a média diária de jun/26. &nbsp; <b>(3)</b> %TOP = parcela take-or-pay do volume contratado.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'}
         },
@@ -129,24 +129,24 @@
           ]},
           rca:{foot:'<b>Em negociação — BID</b> e <b>Em contrato</b> somam a base ativa do funil; probabilidade indica a chance de conversão do volume em contrato.',cols:[
             {cls:"neg",title:"Em negociação — BID",total:"596.050",plants:[
-              {pl:"B. Bonita",sub:"305.000",cli:[{n:"CP Compagás – Firme",v:"16.000",w:6.2},{n:"CP Compagás – Flex",v:"25.000",w:9.6},{n:"MOR",v:"4.000",w:1.5},{n:"Sulgás",v:"260.000",w:100}]},
-              {pl:"Itabuna",sub:"170.050",cli:[{n:"CP Bahiagás (BRU)",v:"126.000",w:48.5},{n:"CP Bahiagás (JZ)",v:"9.400",w:3.6},{n:"Vanadio",v:"12.000",w:4.6},{n:"Goiasgás",v:"20.000",w:7.7},{n:"Eurofarma",v:"2.650",w:1}]},
-              {pl:"Assú",sub:"121.000",cli:[{n:"Piaui Niquel",v:"100.000",w:38.5},{n:"Gaspisa",v:"10.000",w:3.8},{n:"Lactalis",v:"6.000",w:2.3},{n:"Master Boi",v:"5.000",w:1.9}]}
+              {pl:"PR",sub:"305.000",cli:[{n:"CP Compagás – Firme",v:"16.000",w:6.2},{n:"CP Compagás – Flex",v:"25.000",w:9.6},{n:"MOR",v:"4.000",w:1.5},{n:"Sulgás",v:"260.000",w:100}]},
+              {pl:"BA",sub:"170.050",cli:[{n:"CP Bahiagás (BRU)",v:"126.000",w:48.5},{n:"CP Bahiagás (JZ)",v:"9.400",w:3.6},{n:"Vanadio",v:"12.000",w:4.6},{n:"Goiasgás",v:"20.000",w:7.7},{n:"Eurofarma",v:"2.650",w:1}]},
+              {pl:"RN",sub:"121.000",cli:[{n:"Piaui Niquel",v:"100.000",w:38.5},{n:"Gaspisa",v:"10.000",w:3.8},{n:"Lactalis",v:"6.000",w:2.3},{n:"Master Boi",v:"5.000",w:1.9}]}
             ]},
             {cls:"ctr",title:"Em contrato",total:"45.100",plants:[
-              {pl:"B. Bonita",sub:"35.100",cli:[{n:"Alcast",v:"20.000",w:100,prob:"baixa"},{n:"Grupo Stara",v:"12.000",w:60,prob:"media"},{n:"Dalba",v:"1.100",w:5.5,prob:"alta"},{n:"SAMP",v:"2.000",w:10,prob:"media"}]},
-              {pl:"Assú",sub:"10.000",cli:[{n:"PetroReconcavo",v:"10.000",w:50,prob:"alta"}]}
+              {pl:"PR",sub:"35.100",cli:[{n:"Alcast",v:"20.000",w:100,prob:"baixa"},{n:"Grupo Stara",v:"12.000",w:60,prob:"media"},{n:"Dalba",v:"1.100",w:5.5,prob:"alta"},{n:"SAMP",v:"2.000",w:10,prob:"media"}]},
+              {pl:"RN",sub:"10.000",cli:[{n:"PetroReconcavo",v:"10.000",w:50,prob:"alta"}]}
             ]}
           ]},
           rcaJun:{foot:'<b>Em negociação — BID</b> e <b>Em contrato</b> somam a base ativa do funil. Em jun/26, Alcast, Dalba e SAMP voltaram de "Em contrato" para "Em negociação — BID", e o deck deixou de indicar probabilidade de conversão.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).',cols:[
             {cls:"neg",title:"Em negociação — BID",total:"603.350",plants:[
-              {pl:"B. Bonita",sub:"328.100",cli:[{n:"CP Compagás – Firme",v:"16.000",w:6.2},{n:"CP Compagás – Flex",v:"25.000",w:9.6},{n:"Alcast",v:"20.000",w:7.7},{n:"Dalba",v:"1.100",w:0.4},{n:"MOR",v:"4.000",w:1.5},{n:"SAMP",v:"2.000",w:0.8},{n:"Sulgás",v:"260.000",w:100}]},
-              {pl:"Itabuna",sub:"153.250",cli:[{n:"CP Bahiagás (BRU)",v:"126.000",w:48.5},{n:"CP Bahiagás (JZ)",v:"9.400",w:3.6},{n:"CBL",v:"4.000",w:1.5},{n:"Vanadio",v:"9.000",w:3.5},{n:"Grafite do Brasil",v:"2.200",w:0.8},{n:"Eurofarma",v:"2.650",w:1}]},
-              {pl:"Assú",sub:"122.000",cli:[{n:"Piaui Niquel",v:"100.000",w:38.5},{n:"Gaspisa",v:"10.000",w:3.8},{n:"Copergás Ingenor ARP",v:"3.000",w:1.2},{n:"Master Boi",v:"9.000",w:3.5}]}
+              {pl:"PR",sub:"328.100",cli:[{n:"CP Compagás – Firme",v:"16.000",w:6.2},{n:"CP Compagás – Flex",v:"25.000",w:9.6},{n:"Alcast",v:"20.000",w:7.7},{n:"Dalba",v:"1.100",w:0.4},{n:"MOR",v:"4.000",w:1.5},{n:"SAMP",v:"2.000",w:0.8},{n:"Sulgás",v:"260.000",w:100}]},
+              {pl:"BA",sub:"153.250",cli:[{n:"CP Bahiagás (BRU)",v:"126.000",w:48.5},{n:"CP Bahiagás (JZ)",v:"9.400",w:3.6},{n:"CBL",v:"4.000",w:1.5},{n:"Vanadio",v:"9.000",w:3.5},{n:"Grafite do Brasil",v:"2.200",w:0.8},{n:"Eurofarma",v:"2.650",w:1}]},
+              {pl:"RN",sub:"122.000",cli:[{n:"Piaui Niquel",v:"100.000",w:38.5},{n:"Gaspisa",v:"10.000",w:3.8},{n:"Copergás Ingenor ARP",v:"3.000",w:1.2},{n:"Master Boi",v:"9.000",w:3.5}]}
             ]},
             {cls:"ctr",title:"Em contrato",total:"46.500",plants:[
-              {pl:"B. Bonita",sub:"24.500",cli:[{n:"GoiasGás",v:"20.000",w:100},{n:"Lhoist",v:"4.500",w:22.5}]},
-              {pl:"Assú",sub:"22.000",cli:[{n:"PetroReconcavo",v:"10.000",w:50},{n:"Grupo Stara",v:"12.000",w:60}]}
+              {pl:"PR",sub:"24.500",cli:[{n:"GoiasGás",v:"20.000",w:100},{n:"Lhoist",v:"4.500",w:22.5}]},
+              {pl:"RN",sub:"22.000",cli:[{n:"PetroReconcavo",v:"10.000",w:50},{n:"Grupo Stara",v:"12.000",w:60}]}
             ]}
           ]}
         },
@@ -162,13 +162,13 @@
         },
         capacidade:{
           rca:{
-            gnl:{head:"Ocupação total 76% · oferta 114.612 · demanda 86.625",tiles:[["k-teal","Assú · GNL","99%","Demanda 32.000 · Oferta 32.416",99],["k-sage","Itabuna · GNL","74%","Demanda 31.625 · Oferta 42.616",74],["k-stone","B. Bonita · GNL","58%","Demanda 23.000 · Oferta 39.580",58]]},
-            gncp:{head:"Ocupação total 51% · oferta 43.200 · demanda 22.000",tiles:[["k-teal","Assú · GNCp","42%","Demanda 6.000 · Oferta 14.400",42],["k-sage","Itabuna · GNCp","21%","Demanda 3.000 · Oferta 14.400",21],["k-stone","B. Bonita · GNCp","90%","Demanda 13.000 · Oferta 14.400",90]]},
+            gnl:{head:"Ocupação total 76% · oferta 114.612 · demanda 86.625",tiles:[["k-teal","RN · GNL","99%","Demanda 32.000 · Oferta 32.416",99],["k-sage","BA · GNL","74%","Demanda 31.625 · Oferta 42.616",74],["k-stone","PR · GNL","58%","Demanda 23.000 · Oferta 39.580",58]]},
+            gncp:{head:"Ocupação total 51% · oferta 43.200 · demanda 22.000",tiles:[["k-teal","RN · GNCp","42%","Demanda 6.000 · Oferta 14.400",42],["k-sage","BA · GNCp","21%","Demanda 3.000 · Oferta 14.400",21],["k-stone","PR · GNCp","90%","Demanda 13.000 · Oferta 14.400",90]]},
             note:'Oferta = capacidade instalada por planta e produto; demanda = volume atual dos contratos assinados. GNL agregado a 76% e GNCp a 51%.<br>Fonte: GNLink — RCA, mai/2026 (slide 6).'},
           rcaJun:{
-            gnl:{head:"Ocupação total 39% · oferta 130.665 · demanda 51.411",tiles:[["k-teal","Assú · GNL","62%","Demanda 20.097 · Oferta 32.416",62],["k-sage","B. Bonita · GNL","47%","Demanda 26.393 · Oferta 55.633",47],["k-stone","Itabuna · GNL","12%","Demanda 4.921 · Oferta 42.616",12]]},
-            gncp:{head:"Ocupação total 4% · oferta 43.200 · demanda 1.837",tiles:[["k-teal","Assú · GNCp","8%","Demanda 1.128 · Oferta 14.400",8],["k-sage","B. Bonita · GNCp","5%","Demanda 709 · Oferta 14.400",5],["k-stone","Itabuna · GNCp","0%","Demanda 0 · Oferta 14.400",0]]},
-            note:'Oferta = capacidade instalada por planta e produto. <b>Atenção à quebra de série vs. mai/26:</b> no deck de jun/26 a demanda passou a ser o <b>volume real médio diário do mês</b>, enquanto em mai/26 era o volume <b>atual dos contratos</b>. A ocupação do GNL cai de 76% para 39% sobretudo por essa mudança de definição — e não por perda de contratos. A oferta de GNL da B. Bonita também subiu de 39.580 para 55.633 m³/dia.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'}}
+            gnl:{head:"Ocupação total 39% · oferta 130.665 · demanda 51.411",tiles:[["k-teal","RN · GNL","62%","Demanda 20.097 · Oferta 32.416",62],["k-sage","PR · GNL","47%","Demanda 26.393 · Oferta 55.633",47],["k-stone","BA · GNL","12%","Demanda 4.921 · Oferta 42.616",12]]},
+            gncp:{head:"Ocupação total 4% · oferta 43.200 · demanda 1.837",tiles:[["k-teal","RN · GNCp","8%","Demanda 1.128 · Oferta 14.400",8],["k-sage","PR · GNCp","5%","Demanda 709 · Oferta 14.400",5],["k-stone","BA · GNCp","0%","Demanda 0 · Oferta 14.400",0]]},
+            note:'Oferta = capacidade instalada por planta e produto. <b>Atenção à quebra de série vs. mai/26:</b> no deck de jun/26 a demanda passou a ser o <b>volume real médio diário do mês</b>, enquanto em mai/26 era o volume <b>atual dos contratos</b>. A ocupação do GNL cai de 76% para 39% sobretudo por essa mudança de definição — e não por perda de contratos. A oferta de GNL da planta PR também subiu de 39.580 para 55.633 m³/dia.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'}}
       },
       financeiro:{
         dre:{tag:"R$ milhões",tblCls:"placeholder-table dre-tbl",

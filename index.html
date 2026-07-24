@@ -722,6 +722,12 @@
     .placeholder-table tbody tr:nth-child(even) { background: #FAFBFD; }
     .placeholder-table tbody tr:hover td { background: #F7FAFC; }
 
+    /* Tabela de contratos assinados: colunas centralizadas e zebra mais marcada. */
+    .ass-table th, .ass-table td { text-align: center; vertical-align: middle; }
+    .ass-table tbody tr:nth-child(odd) td { background: #FFFFFF; }
+    .ass-table tbody tr:nth-child(even) td { background: #E7EDF5; }
+    .ass-table tbody tr:hover td { background: #DAE4F0; }
+
     /* ===== Tags ===== */
 
     .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
@@ -3122,13 +3128,20 @@
                     return '<tr>'+tg+r.c.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')+'</tr>'; }
                   return '<tr>'+r.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')+'</tr>';
                 }).join('');
-                // colspan final derivado de a.cols para o total acompanhar o nº de colunas
-                var totalRow=a.total?'<tr style="font-weight:800"><td colspan="6">Total</td><td>'+esc(a.total)+'</td>'
-                  +(a.totalReal?'<td>'+esc(a.totalReal)+'</td>':'')
-                  +'<td colspan="'+(a.cols.length-7-(a.totalReal?1:0))+'"></td></tr>':'';
+                // Linha de total: "Total" ocupa as colunas iniciais (totalSpan), seguido
+                // das células de volume (totalVols) alinhadas às colunas Inicial/Atual/…;
+                // o restante das colunas fica vazio.
+                var totalRow='';
+                if(a.totalVols){
+                  var lead=a.totalSpan||6;
+                  var tail=a.cols.length-lead-a.totalVols.length;
+                  totalRow='<tr style="font-weight:800"><td colspan="'+lead+'">Total</td>'
+                    +a.totalVols.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')
+                    +(tail>0?'<td colspan="'+tail+'"></td>':'')+'</tr>';
+                }
                 var occ=a.occ?'<div class="kpi-grid" style="margin-top:14px">'+a.occ.map(function(o){ return '<div class="kpi-tile '+o[0]+'"><div class="k">'+esc(o[1])+'</div><div class="v">'+esc(o[2])+'</div><div class="s">'+o[3]+'</div><div class="occ-bar"><i style="width:'+o[4]+'%"></i></div></div>'; }).join('')+'</div>':'';
                 return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Contratos assinados</div><span class="tag">'+esc(a.tag)+'</span></div><div class="card-body">'+kpis
-                  +'<div class="table-scroll"><table class="placeholder-table"><thead>'+thead+'</thead><tbody>'+body+totalRow+'</tbody></table></div>'
+                  +'<div class="table-scroll"><table class="placeholder-table ass-table"><thead>'+thead+'</thead><tbody>'+body+totalRow+'</tbody></table></div>'
                   +occ+'<p class="fun-foot" style="margin-top:'+(a.occ?'14':'12')+'px">'+a.foot+'</p></div></div>';
               }
               if(C&&C.assinados){
