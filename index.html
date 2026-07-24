@@ -3486,8 +3486,7 @@
             var G2='Fiança corporativa + contrato Cegás';
             var PLANTAS=[
               {key:'BA',nome:'Bahia',emissoes:[
-                {nome:'Financiamento BNB — 1ª fase',banco:'BNB',emissao:'13/12/24',venc:'15/09/36',taxa:'8,5%',idx:'IPCA + 4,4% a.a.',pnom:'12 anos',gar:G1,saldo:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]},
-                {nome:'Financiamento BNB — 2ª fase',banco:'BNB',emissao:'26/12/25',venc:'15/09/36',taxa:'8,5%',idx:'IPCA + 4,4% a.a.',pnom:'12 anos',gar:G1,saldo:[null,null,null,null,null,null,null,null,null,null,null,null]}
+                {nome:'Financiamento BNB',banco:'BNB',emissao:'31/12/24',venc:'15/09/36',taxa:'8,5%',idx:'IPCA + 4,4% a.a.',pnom:'12 anos',gar:G1,saldo:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]}
               ],sub:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]},
               {key:'RN',nome:'Assú',emissoes:[
                 {nome:'Financiamento BNB Carnaúba — 1ª fase',banco:'BNB',emissao:'05/02/26',venc:'15/11/37',taxa:'9,8%',idx:'IPCA + 5,7% a.a.',pnom:'12 anos',gar:G2,saldo:[null,75.7,76.4,77.1,75.6,76.3,76.7,75.4,75.7,76.1,75.4,75.7]},
@@ -3496,7 +3495,6 @@
               {key:'PR',nome:'Paraná',emissoes:[
                 {nome:'Bridge (ABC) — 9ª emissão',banco:'ABC',emissao:'12/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[42.6,43.1,43.8,44.3,44.9,45.5,null,null,null,null,null,null]},
                 {nome:'Bridge (ABC) — 10ª emissão',banco:'ABC',emissao:'12/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[54.5,55.1,55.9,56.6,57.4,58.1,null,null,null,null,null,null]},
-                {nome:'Debêntures de infraestrutura',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'17,1%',idx:'IPCA + 8,95% a.a.',pnom:'10 anos',gar:'100% contrato Bahiagás',saldo:[null,null,null,null,null,null,null,null,null,null,null,null]},
                 {nome:'NC privada — 12ª emissão',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'16,7%',idx:'CDI + 2,4% a.a.',pnom:'1 ano',gar:'100% fiança corporativa',saldo:[null,null,null,null,null,null,100.0,101.3,102.5,103.8,105.1,106.5]}
               ],sub:[97.1,98.2,99.7,100.9,102.3,103.6,100.0,101.3,102.5,103.8,105.1,106.5]},
               {key:'GIRO',nome:'Giro',emissoes:[
@@ -3520,7 +3518,7 @@
             var kdef=[
               ['#C55A17','Dívida realizada · jun/26','R$ 322,0 mi','saldo devedor consolidado'],
               ['#2E7D4F','Projeção · dez/26','R$ 350,1 mi','<span class="up">+R$ 28,1 mi</span> vs jun (+8,7%)'],
-              ['#6B8299','Emissões mapeadas','10','6 contratadas · 4 previstas (TBD)'],
+              ['#6B8299','Emissões mapeadas','8','5 contratadas · 3 previstas (TBD)'],
               ['#7C6BA0','Taxa média nominal · jun/26',pct(wavgAt(5)),'Dez/26 (forecast): <b style="color:var(--ink)">'+pct(wavgAt(11))+'</b>']
             ];
             document.getElementById('dmKpis').innerHTML=kdef.map(function(k){
@@ -3577,7 +3575,7 @@
               html+='</div></div>';
             });
             document.getElementById('dmGroups').innerHTML=html;
-            document.getElementById('dmFoot').innerHTML='Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; A debênture de infraestrutura (PR) aparece só no orçado dez/26, por isso sem saldo realizado/forecast. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).';
+            document.getElementById('dmFoot').innerHTML='Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).';
 
             function loadChartJs(){ if(window.Chart) return Promise.resolve();
               if(window.__chartjsLoading) return window.__chartjsLoading;
