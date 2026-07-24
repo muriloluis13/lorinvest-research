@@ -3330,8 +3330,23 @@
             </div>
 
             <div class="comm-view" data-view="orc2026">
-              <div id="gnlFinDre"></div>
-              <div id="gnlFinMensal"></div>
+
+              <div class="comm-src">
+                <span class="lbl">Base de dados</span>
+                <div class="comm-seg" role="tablist" aria-label="Base de dados do or&#231;amento 2026" data-default="rci">
+                  <button type="button" data-view="rci">RCI &#183; Dez/25</button>
+                  <button type="button" data-view="rcaMai">RCA &#183; Mai/26</button>
+                  <button type="button" data-view="rcaJun">RCA &#183; Jun/26</button>
+                </div>
+                <span class="src-cap" id="orcBaseCap"></span>
+              </div>
+
+              <!-- Cada base é preenchida pelo script a partir de F.orc2026[base]:
+                   com dados → cards de DRE + fluxo mensal; sem dados → placeholder. -->
+              <div class="comm-view active" data-view="rci"><div id="orcBaseRci"></div></div>
+              <div class="comm-view" data-view="rcaMai"><div id="orcBaseRcaMai"></div></div>
+              <div class="comm-view" data-view="rcaJun"><div id="orcBaseRcaJun"></div></div>
+
             </div>
 
             <div class="comm-view" data-view="lp">
@@ -3370,18 +3385,40 @@
               }).join('');
               return '<div class="table-scroll"><table class="'+t.tblCls+'"><thead>'+thead+'</thead><tbody>'+body+'</tbody></table></div>';
             }
-            if(F.dre){
-              var d=F.dre;
+            // Card da DRE (Orçamento 2026 por projeto vs. BP Copa) — margem inferior
+            // para separar do card de fluxo mensal, como os demais cards do painel.
+            function dreCard(d){
               var obs='<ul class="dre-obs">'+d.obs.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>';
-              var html='<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Orçamento 2026 por projeto vs. BP Copa</div><span class="tag">'+esc(d.tag)+'</span></div><div class="card-body">'+dtable(d)+obs+'<p class="card-note" style="margin-top:10px">'+d.note+'</p></div></div></div>';
-              var m=document.getElementById('gnlFinDre'); if(m) m.innerHTML=html;
+              return '<div class="row-full"><div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Orçamento 2026 por projeto vs. BP Copa</div><span class="tag">'+esc(d.tag)+'</span></div><div class="card-body">'+dtable(d)+obs+'<p class="card-note" style="margin-top:10px">'+d.note+'</p></div></div></div>';
             }
             // Fluxos de caixa (histórico e mensal): mesmo dtable, card padrão + nota.
             function fcxCard(t,title){
               return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">'+title+'</div><span class="tag">'+esc(t.tag)+'</span></div><div class="card-body">'+dtable(t)+'<p class="card-note" style="margin-top:12px">'+t.note+'</p></div></div></div>';
             }
+            // Placeholder para bases do Orçamento 2026 ainda sem fluxos.
+            function orcWait(label){
+              return '<div class="row-full"><div class="card"><div class="card-body"><div class="e2-dev">'
+                + '<div class="ic">&#128228;</div><div class="t">Aguardando fluxos do '+esc(label)+'</div>'
+                + '<div class="s">As tabelas do orçamento e do fluxo de caixa mensal serão inseridas quando os dados do '+esc(label)+' forem disponibilizados.</div>'
+                + '</div></div></div></div>';
+            }
+            // Renderiza uma base do Orçamento 2026: com dados → DRE + fluxo mensal; sem → placeholder.
+            function renderOrcBase(base,mountId,waitLabel){
+              var el=document.getElementById(mountId); if(!el) return;
+              if(base && (base.dre||base.fcxMensal)){
+                var h='';
+                if(base.dre) h+=dreCard(base.dre);
+                if(base.fcxMensal) h+=fcxCard(base.fcxMensal,'Fluxo de Caixa — Orçamento 2026 (mensal)');
+                el.innerHTML=h;
+              } else {
+                el.innerHTML=orcWait(waitLabel);
+              }
+            }
             if(F.fcxHist){ var mh=document.getElementById('gnlFinHist'); if(mh) mh.innerHTML=fcxCard(F.fcxHist,'Fluxo de Caixa Histórico'); }
-            if(F.fcxMensal){ var mm=document.getElementById('gnlFinMensal'); if(mm) mm.innerHTML=fcxCard(F.fcxMensal,'Fluxo de Caixa — Orçamento 2026 (mensal)'); }
+            var O=F.orc2026||{};
+            renderOrcBase(O.rci,'orcBaseRci','RCI Dez/25');
+            renderOrcBase(O.rcaMai,'orcBaseRcaMai','RCA Mai/26');
+            renderOrcBase(O.rcaJun,'orcBaseRcaJun','RCA Jun/26');
           })();
           </script>
 
@@ -3391,14 +3428,41 @@
             var panel=document.querySelector('.emp-panel[data-emp="resultados"]');
             if(!panel) return;
             var caps={hist:'GNLink — fluxo de caixa realizado 2022–2024 e forecast 2025',
-                      orc2026:'GNLink — Orçamento 2026 · Comitê de Investimentos Lorinvest, 15/dez/2025 (slides 8 e 20)',
+                      orc2026:'GNLink — Orçamento 2026',
                       lp:'Projeções de longo prazo — em desenvolvimento'};
-            var btns=panel.querySelectorAll('.comm-seg button');
+            // Escopo em filhos diretos: o Orçamento 2026 tem um seletor de base
+            // aninhado (RCI/RCA), com seus próprios .comm-seg/.comm-view.
+            var btns=panel.querySelectorAll(':scope > .comm-src .comm-seg button');
             var cap=panel.querySelector('#resSrcCap');
             btns.forEach(function(b){ b.addEventListener('click',function(){
               var v=b.getAttribute('data-view');
               btns.forEach(function(x){ x.classList.toggle('active',x===b); });
-              panel.querySelectorAll('.comm-view').forEach(function(vw){ vw.classList.toggle('active',vw.getAttribute('data-view')===v); });
+              panel.querySelectorAll(':scope > .comm-view').forEach(function(vw){ vw.classList.toggle('active',vw.getAttribute('data-view')===v); });
+              if(cap) cap.textContent=caps[v]||'';
+            });});
+          })();
+          </script>
+
+          <script>
+          // Seletor de base de dados do Orçamento 2026 (RCI Dez/25 / RCA Mai/26 / RCA Jun/26).
+          // Aninhado dentro da visão orc2026; escopo em filhos diretos do host para
+          // não colidir com o seletor de visão do painel. Default explícito em "rci"
+          // (única base com dados hoje) — ao inserir os fluxos das bases mais recentes,
+          // remova data-default="rci" do .comm-seg para o default voltar à base mais nova.
+          (function(){
+            var host=document.querySelector('.emp-panel[data-emp="resultados"] .comm-view[data-view="orc2026"]');
+            if(!host) return;
+            var seg=host.querySelector(':scope > .comm-src .comm-seg');
+            if(!seg) return;
+            var btns=seg.querySelectorAll('button');
+            var cap=host.querySelector('#orcBaseCap');
+            var caps={rci:'RCI · Comitê de Investimentos Lorinvest, 15/dez/2025 (slides 8 e 20)',
+                      rcaMai:'RCA · Mai/26 — aguardando fluxos',
+                      rcaJun:'RCA · Jun/26 — aguardando fluxos'};
+            btns.forEach(function(b){ b.addEventListener('click',function(){
+              var v=b.getAttribute('data-view');
+              btns.forEach(function(x){ x.classList.toggle('active',x===b); });
+              host.querySelectorAll(':scope > .comm-view').forEach(function(vw){ vw.classList.toggle('active',vw.getAttribute('data-view')===v); });
               if(cap) cap.textContent=caps[v]||'';
             });});
           })();

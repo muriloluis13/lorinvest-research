@@ -171,23 +171,7 @@
             note:'Oferta = capacidade instalada por planta e produto. <b>Atenção à quebra de série vs. mai/26:</b> no deck de jun/26 a demanda passou a ser o <b>volume real médio diário do mês</b>, enquanto em mai/26 era o volume <b>atual dos contratos</b>. A ocupação do GNL cai de 76% para 39% sobretudo por essa mudança de definição — e não por perda de contratos. A oferta de GNL da planta PR também subiu de 39.580 para 55.633 m³/dia.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'}}
       },
       financeiro:{
-        dre:{tag:"R$ milhões",tblCls:"placeholder-table dre-tbl",
-          cols:[["R$ milhões",""],["PR",""],["BA",""],["RN",""],["Consolidado","c-con"],["BP Copa¹","c-bp"]],
-          rows:[
-            {cls:"dre-r",cells:['Capacidade Real <small style="color:var(--muted)">(m³/dia)</small>',"53.980","85.427","87.088","226.495","270.708"]},
-            {cls:"dre-r",cells:['Volume GNL + GNC <small style="color:var(--muted)">(m³/dia)</small>',"50.872","43.208","49.666","143.746","270.708"]},
-            {cls:"dre-r",cells:["% de Utilização","94,2%","50,6%","57,0%","63,5%","100,0%"]},
-            {cls:"dre-r",cells:["Receita Líquida","63,0","63,5","58,9","185,4","376,3"]},
-            {cls:"dre-r",cells:["Resultado Operacional","7,6","6,8","7,0","21,4","114,8"]},
-            {cls:"dre-s",noNeg:true,cells:["Margem Operacional","12,1%","10,7%","11,9%","11,5%","30,5%"]},
-            {cls:"dre-r",cells:["EBITDA","—","—","—","(5,5)","89,8"]},
-            {cls:"dre-s",noNeg:true,cells:["Margem EBITDA","—","—","—","(3,0%)","23,9%"]},
-            {cls:"dre-r",cells:["Lucro Líquido","—","—","—","(55,3)","15,8"]},
-            {cls:"dre-s",noNeg:true,cells:["Margem Líquida","—","—","—","(29,8%)","4,2%"]},
-            {cls:"dre-r",cells:["Saldo Final de Caixa Livre³","—","—","—","(29,3)","—"]}
-          ],
-          obs:["Ramp-up: 91% da capacidade real das 3 plantas em dez/26.","Preço médio inferior, conforme plano.","Manutenção e reajuste dos contratos atuais (Tradener, Bahiagás e PetroRecôncavo).","BA: compra de volume adicional no mercado livre para reduzir o custo médio da molécula.","Energia elétrica do mercado livre no PR e BA.","RN: geradores a gás (sem disponibilidade de energia da rede local).","Diluição de custos fixos com o aumento do volume.","Realocação de custos de veículos e viagens da matriz para as plantas.","Maior depreciação pela ativação da planta do RN."],
-          note:'<b>BP Copa¹:</b> Business Plan da transação de M&amp;A considerando 3 plantas (ao invés de 4). &nbsp; <b>³</b> Saldo de caixa livre considera o fundo de liquidez do BNB (retido): 3% do desembolsado na BA e 5% no RN.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 8). A coluna de BP com capacidades ajustadas ao orçamento foi omitida, conforme solicitado.'},
+        // Fluxo de caixa histórico (visão "Resultados históricos") — base única.
         fcxHist:{tag:"R$ milhões",tblCls:"placeholder-table fcx-tbl",
           cols:[["R$ mi",""],["2022",""],["2023",""],["2024",""],["FCT/25¹","c-fct"]],
           rows:[
@@ -225,6 +209,28 @@
             {cls:"fcx-key fcx-strong",cells:["Dívida Líquida","0,0","15,8","77,5","223,9"]}
           ],
           note:'<b>¹ FCT/25:</b> forecast do ano fechado de 2025 (jan–ago realizado + set–dez projetado). &nbsp; <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável.<br>As colunas mensais (jan–ago/25, set–dez/25) e as de Orçamento/25 e variação foram omitidas, conforme solicitado. Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 19).'},
+        // Orçamento 2026 por base de dados (seletor RCI Dez/25 / RCA Mai/26 / RCA Jun/26).
+        // Cada base é { dre:{...}, fcxMensal:{...} }. "rci" é a base atual (CI Dez/25);
+        // para plugar uma base nova, preencha rcaMai/rcaJun com o mesmo formato.
+        orc2026:{
+        rci:{
+        dre:{tag:"R$ milhões",tblCls:"placeholder-table dre-tbl",
+          cols:[["R$ milhões",""],["PR",""],["BA",""],["RN",""],["Consolidado","c-con"],["BP Copa¹","c-bp"]],
+          rows:[
+            {cls:"dre-r",cells:['Capacidade Real <small style="color:var(--muted)">(m³/dia)</small>',"53.980","85.427","87.088","226.495","270.708"]},
+            {cls:"dre-r",cells:['Volume GNL + GNC <small style="color:var(--muted)">(m³/dia)</small>',"50.872","43.208","49.666","143.746","270.708"]},
+            {cls:"dre-r",cells:["% de Utilização","94,2%","50,6%","57,0%","63,5%","100,0%"]},
+            {cls:"dre-r",cells:["Receita Líquida","63,0","63,5","58,9","185,4","376,3"]},
+            {cls:"dre-r",cells:["Resultado Operacional","7,6","6,8","7,0","21,4","114,8"]},
+            {cls:"dre-s",noNeg:true,cells:["Margem Operacional","12,1%","10,7%","11,9%","11,5%","30,5%"]},
+            {cls:"dre-r",cells:["EBITDA","—","—","—","(5,5)","89,8"]},
+            {cls:"dre-s",noNeg:true,cells:["Margem EBITDA","—","—","—","(3,0%)","23,9%"]},
+            {cls:"dre-r",cells:["Lucro Líquido","—","—","—","(55,3)","15,8"]},
+            {cls:"dre-s",noNeg:true,cells:["Margem Líquida","—","—","—","(29,8%)","4,2%"]},
+            {cls:"dre-r",cells:["Saldo Final de Caixa Livre³","—","—","—","(29,3)","—"]}
+          ],
+          obs:["Ramp-up: 91% da capacidade real das 3 plantas em dez/26.","Preço médio inferior, conforme plano.","Manutenção e reajuste dos contratos atuais (Tradener, Bahiagás e PetroRecôncavo).","BA: compra de volume adicional no mercado livre para reduzir o custo médio da molécula.","Energia elétrica do mercado livre no PR e BA.","RN: geradores a gás (sem disponibilidade de energia da rede local).","Diluição de custos fixos com o aumento do volume.","Realocação de custos de veículos e viagens da matriz para as plantas.","Maior depreciação pela ativação da planta do RN."],
+          note:'<b>BP Copa¹:</b> Business Plan da transação de M&amp;A considerando 3 plantas (ao invés de 4). &nbsp; <b>³</b> Saldo de caixa livre considera o fundo de liquidez do BNB (retido): 3% do desembolsado na BA e 5% no RN.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 8). A coluna de BP com capacidades ajustadas ao orçamento foi omitida, conforme solicitado.'},
         fcxMensal:{tag:"R$ milhões",tblCls:"placeholder-table fcx-tbl mfc-tbl",
           cols:[["R$ mi",""],["jan/26",""],["fev/26",""],["mar/26",""],["abr/26",""],["mai/26",""],["jun/26",""],["jul/26",""],["ago/26",""],["set/26",""],["out/26",""],["nov/26",""],["dez/26",""],["FC 2026¹","c-fct"]],
           rows:[
@@ -262,6 +268,10 @@
             {cls:"fcx-key fcx-strong",cells:["Dívida Líquida","238,4","253,3","271,8","277,0","281,1","284,8","288,8","291,1","293,1","293,2","293,7","295,1","295,1"]}
           ],
           note:'<b>¹ FC 2026:</b> forecast (total) do orçamento de 2026. &nbsp; <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 20).'}
+        },
+        rcaMai:null, // { dre:{...}, fcxMensal:{...} } — preencher quando chegarem os fluxos do RCA Mai/26
+        rcaJun:null  // idem para o RCA Jun/26
+        }
       },
       competidores:{
         intro:"Universo de competidores organizado por elo (segmento) da cadeia de energia térmica. Em destaque, o elo onde a GNLink atua.",
