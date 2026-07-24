@@ -377,11 +377,3 @@ window.ORG = [
  {x:1062,y:736,w:152,h:64,t:'Wave Nickel S.A.',s:'42.099.568/0001-51 · Brasil',p:'100,00%',k:'lite'},
  {x:1224,y:736,w:152,h:64,t:'Wave Aluminium S.A.',s:'33.564.013/0001-42 · Brasil',p:'100,00%',k:'lite'}
 ];
-
-// Cenário macro (aba Setores & Macro). Pares [valor, rótulo], na ordem exibida.
-window.MACRO = [
-  ["2,2%",    "PIB (ano corrente)"],
-  ["4,0%",    "Inflação (12m)"],
-  ["5,5%",    "Juros reais ex-ante"],
-  ["R$ 5,20", "Câmbio (BRL/USD)"]
-];
