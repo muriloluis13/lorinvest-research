@@ -3526,7 +3526,7 @@
               </div>
               <div class="card-body">
                 <div id="ettjMsg" class="ettj-msg">Carregando curva&hellip;</div>
-                <div id="ettjChart" class="ettj-chart" hidden></div>
+                <div id="ettjChartWrap" class="ettj-chart" hidden><canvas id="ettjCanvas"></canvas></div>
                 <div id="ettjTableWrap" class="ettj-tablewrap" hidden>
                   <table class="ettj-table">
                     <thead><tr><th>Vencimento</th><th>Pr&eacute; (DI)</th><th>IPCA+ (real)</th><th>Impl&iacute;cita</th></tr></thead>
@@ -3542,7 +3542,8 @@
             .ettj-lg{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text-soft);}
             .ettj-lg i{width:11px;height:3px;border-radius:2px;display:inline-block;}
             .ettj-msg{font-size:12px;color:var(--muted);padding:8px 0;}
-            .ettj-chart svg{width:100%;height:auto;display:block;}
+            .ettj-chart{position:relative;height:300px;}
+            .ettj-chart canvas{width:100%!important;height:100%!important;}
             .ettj-tablewrap{margin-top:12px;overflow-x:auto;}
             .ettj-table{width:100%;border-collapse:collapse;font-size:12px;}
             .ettj-table th,.ettj-table td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);}
@@ -3556,6 +3557,7 @@
             var msg=document.getElementById('ettjMsg');
             if(!msg) return;
             var CLR={pre:'#3D4A5C',ipca:'#2E7D4F',impl:'#C55A17'};
+            var CHART=null;
 
             function fmt(v){ return v==null?'&mdash;':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
             function tenorLabel(a){ return a<1?Math.round(a*12)+'m':(Number.isInteger(a)?a+'a':a.toFixed(1).replace('.',',')+'a'); }
@@ -3567,45 +3569,54 @@
               return best;
             }
 
-            function buildChart(curve){
-              curve=curve.filter(function(d){return d.anos<=10;}); // gráfico só até 10 anos
-              var W=760,H=280,pl=46,pr=14,pt=16,pb=34;
-              var iw=W-pl-pr, ih=H-pt-pb;
-              var xs=curve.map(function(d){return d.anos;});
-              var xmax=Math.max.apply(null,xs), xmin=0;
-              var ys=[];
-              curve.forEach(function(d){ ['pre','ipca','impl'].forEach(function(k){ var v=k==='impl'?d.implicita:d[k]; if(v!=null)ys.push(v); }); });
-              var ymin=Math.floor(Math.min.apply(null,ys)-0.5), ymax=Math.ceil(Math.max.apply(null,ys)+0.5);
-              var X=function(a){return pl+(a-xmin)/(xmax-xmin)*iw;};
-              var Y=function(v){return pt+(ymax-v)/(ymax-ymin)*ih;};
+            // Carrega o Chart.js (mesma CDN das subpáginas) sob demanda.
+            function loadChartJs(){
+              if(window.Chart) return Promise.resolve();
+              return new Promise(function(resolve,reject){
+                var s=document.createElement('script');
+                s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+                s.onload=resolve; s.onerror=function(){reject(new Error('Chart.js indisponível'));};
+                document.head.appendChild(s);
+              });
+            }
 
-              var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Curvas de juros ANBIMA">';
-              // grades horizontais + rótulos de %
-              var steps=Math.min(6,ymax-ymin);
-              for(var s=0;s<=steps;s++){
-                var v=ymin+(ymax-ymin)*s/steps, y=Y(v);
-                svg+='<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#E2E7EE" stroke-width="1"/>';
-                svg+='<text x="'+(pl-8)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#5C6B7A">'+v.toFixed(1).replace('.',',')+'%</text>';
-              }
-              // marcações do eixo x
-              [1,2,3,5,7,10,15].forEach(function(a){
-                if(a>xmax) return; var x=X(a);
-                svg+='<line x1="'+x+'" y1="'+pt+'" x2="'+x+'" y2="'+(pt+ih)+'" stroke="#EEF1F5" stroke-width="1"/>';
-                svg+='<text x="'+x+'" y="'+(H-12)+'" text-anchor="middle" font-size="10" fill="#5C6B7A">'+a+'a</text>';
+            function serie(curve,k){
+              return curve.filter(function(d){return d.anos<=10;}) // só até 10 anos
+                .map(function(d){ var v=k==='impl'?d.implicita:d[k]; return v==null?null:{x:d.anos,y:v}; })
+                .filter(Boolean);
+            }
+
+            function buildChart(curve){
+              var ctx=document.getElementById('ettjCanvas').getContext('2d');
+              if(CHART) CHART.destroy();
+              CHART=new Chart(ctx,{
+                type:'line',
+                data:{datasets:[
+                  {label:'Pré-fixado (DI)',data:serie(curve,'pre'),borderColor:CLR.pre,backgroundColor:CLR.pre,tension:.25,pointRadius:0,pointHoverRadius:4,borderWidth:2},
+                  {label:'IPCA+ (real)',data:serie(curve,'ipca'),borderColor:CLR.ipca,backgroundColor:CLR.ipca,tension:.25,pointRadius:0,pointHoverRadius:4,borderWidth:2},
+                  {label:'Inflação implícita',data:serie(curve,'impl'),borderColor:CLR.impl,backgroundColor:CLR.impl,tension:.25,pointRadius:0,pointHoverRadius:4,borderWidth:2}
+                ]},
+                options:{
+                  responsive:true,
+                  maintainAspectRatio:false,
+                  interaction:{mode:'index',intersect:false},
+                  scales:{
+                    x:{type:'linear',min:0,max:10,ticks:{stepSize:1,callback:function(v){return v+'a';},font:{size:10}},grid:{display:false}},
+                    y:{beginAtZero:false,grid:{color:'rgba(226,231,238,.75)'},ticks:{callback:function(v){return v.toFixed(1).replace('.',',')+'%';},font:{size:10}}}
+                  },
+                  plugins:{
+                    legend:{display:false},
+                    tooltip:{callbacks:{
+                      title:function(items){return items.length?'Prazo '+tenorLabel(items[0].parsed.x):'';},
+                      label:function(c){return c.dataset.label+': '+c.parsed.y.toFixed(2).replace('.',',')+'%';}
+                    }}
+                  }
+                }
               });
-              // linhas
-              ['pre','ipca','impl'].forEach(function(k){
-                var pts=curve.map(function(d){ var v=k==='impl'?d.implicita:d[k]; return v==null?null:[X(d.anos),Y(v)]; }).filter(Boolean);
-                if(!pts.length) return;
-                svg+='<path d="'+pts.map(function(p,i){return (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' ')+'" fill="none" stroke="'+CLR[k]+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
-              });
-              svg+='</svg>';
-              return svg;
             }
 
             function render(data){
               document.getElementById('ettjDate').textContent=data.date||'—';
-              document.getElementById('ettjChart').innerHTML=buildChart(data.curve);
               var alvos=[0.5,1,2,3,5,7,10];
               var rows=alvos.map(function(a){
                 var d=nearest(data.curve,a);
@@ -3613,13 +3624,16 @@
               }).join('');
               document.getElementById('ettjTable').innerHTML=rows;
               msg.hidden=true;
-              document.getElementById('ettjChart').hidden=false;
+              document.getElementById('ettjChartWrap').hidden=false;
               document.getElementById('ettjTableWrap').hidden=false;
+              buildChart(data.curve);
             }
 
-            fetch('/api/anbima-ettj')
-              .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-              .then(render)
+            Promise.all([
+              fetch('/api/anbima-ettj').then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+              loadChartJs()
+            ])
+              .then(function(res){ render(res[0]); })
               .catch(function(e){ msg.textContent='Não foi possível carregar a curva ANBIMA ('+e.message+').'; });
           })();
           </script>
