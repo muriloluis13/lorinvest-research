@@ -3615,6 +3615,77 @@
           })();
           </script>
 
+          <div class="row-full" style="margin-top: 14px;">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Expectativas de Mercado &mdash; Focus (BCB)</div>
+                  <div class="focus-sub">Medianas do relat&oacute;rio semanal &middot; refer&ecirc;ncia <span id="focusDate">&mdash;</span></div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="focusMsg" class="focus-msg">Carregando expectativas&hellip;</div>
+                <div id="focusWrap" class="focus-tablewrap" hidden>
+                  <table class="focus-table">
+                    <thead><tr><th>Indicador</th><th id="fy0"></th><th id="fy1"></th><th id="fy2"></th><th id="fy3"></th></tr></thead>
+                    <tbody id="focusTable"></tbody>
+                  </table>
+                </div>
+                <div class="focus-foot">Seta indica varia&ccedil;&atilde;o vs. semana anterior. Fonte: BCB &middot; Sistema de Expectativas de Mercado.</div>
+              </div>
+            </div>
+          </div>
+          <style>
+            .focus-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+            .focus-msg{font-size:12px;color:var(--muted);padding:8px 0;}
+            .focus-tablewrap{overflow-x:auto;}
+            .focus-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+            .focus-table th,.focus-table td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+            .focus-table th:first-child,.focus-table td:first-child{text-align:left;color:var(--text-soft);font-weight:600;}
+            .focus-table th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
+            .focus-table tbody tr:last-child td{border-bottom:none;}
+            .focus-table td b{font-weight:700;color:var(--ink);}
+            .focus-arw{font-size:9px;margin-left:5px;color:var(--muted);vertical-align:1px;}
+            .focus-foot{font-size:10.5px;color:var(--muted);margin-top:10px;}
+          </style>
+          <script>
+          (function(){
+            var msg=document.getElementById('focusMsg');
+            if(!msg) return;
+
+            function fmt(v){ return v==null?'&mdash;':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+            function brDate(iso){ if(!iso) return '—'; var p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+            // Seta neutra de direção vs. semana anterior (sem juízo de bom/ruim).
+            function arrow(cell){
+              if(!cell || cell.ant==null || cell.hoje==null) return '';
+              var d=cell.hoje-cell.ant;
+              if(Math.abs(d)<0.005) return '<span class="focus-arw" title="estável">&ndash;</span>';
+              var up=d>0;
+              return '<span class="focus-arw" title="'+(up?'subiu':'caiu')+' vs. '+fmt(cell.ant)+'">'+(up?'&#9650;':'&#9660;')+'</span>';
+            }
+
+            function render(data){
+              document.getElementById('focusDate').textContent=brDate(data.date);
+              (data.years||[]).forEach(function(y,i){ var th=document.getElementById('fy'+i); if(th) th.textContent=y; });
+              var rows=(data.indicators||[]).map(function(ind){
+                var tds=(data.years||[]).map(function(y){
+                  var c=ind.values&&ind.values[y];
+                  return '<td><b>'+fmt(c&&c.hoje)+'</b>'+arrow(c)+'</td>';
+                }).join('');
+                return '<tr><td>'+ind.label+'</td>'+tds+'</tr>';
+              }).join('');
+              document.getElementById('focusTable').innerHTML=rows;
+              msg.hidden=true;
+              document.getElementById('focusWrap').hidden=false;
+            }
+
+            fetch('/api/bcb-focus')
+              .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+              .then(render)
+              .catch(function(e){ msg.textContent='Não foi possível carregar o Focus ('+e.message+').'; });
+          })();
+          </script>
+
           <div class="section-title-row" style="margin-top: 18px;">
             <div>
               <div class="section-title">Análises setoriais</div>
