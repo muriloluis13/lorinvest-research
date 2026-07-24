@@ -3568,6 +3568,7 @@
             }
 
             function buildChart(curve){
+              curve=curve.filter(function(d){return d.anos<=10;}); // gráfico só até 10 anos
               var W=760,H=280,pl=46,pr=14,pt=16,pb=34;
               var iw=W-pl-pr, ih=H-pt-pb;
               var xs=curve.map(function(d){return d.anos;});
