@@ -41,22 +41,26 @@ async function fetchDate(brDate) {
   return buf.toString('latin1'); // ISO-8859-1
 }
 
-// Estrutura do CSV:
-//   linha 1:  DD/MM/AAAA;Beta 1;Beta 2;Beta 3;Beta 4;Lambda 1;Lambda 2
+// O CSV traz VÁRIAS tabelas separadas por linha em branco. Só a primeira nos
+// interessa; as demais (ex.: "PREFIXADOS (CIRCULAR 3.361)", "Erro Título a Título")
+// também começam com linhas numéricas, então é essencial parar no fim da 1ª tabela.
+//   linha 1:  DD/MM/AAAA;Beta 1;...;Lambda 2
 //   linha 2:  PREFIXADOS;<6 params>
 //   linha 3:  IPCA;<6 params>
-//   (linha em branco)
+//   (em branco)
 //   ETTJ Inflação Implicita (IPCA)
-//   Vertices;ETTJ IPCA;ETTJ PREF;Inflação Implícita
+//   Vertices;ETTJ IPCA;ETTJ PREF;Inflação Implícita   <- cabeçalho-âncora
 //   126;8,4755;13,9065;5,0066  ...
+//   (em branco)  <- fim da tabela que nos interessa
 function parse(text) {
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  if (!lines.some((l) => /^Vertices;/i.test(l))) return null;
+  const lines = text.split(/\r?\n/).map((l) => l.trim()); // preserva linhas em branco
+  const hdr = lines.findIndex((l) => /^Vertices;.*ETTJ\s+IPCA/i.test(l));
+  if (hdr < 0) return null;
 
   const params = {};
   const paramKeys = ['beta1', 'beta2', 'beta3', 'beta4', 'lambda1', 'lambda2'];
   for (const l of lines) {
-    const m = /^(PREFIXADOS|IPCA);(.+)$/.exec(l);
+    const m = /^(PREFIXADOS|IPCA);(.+)$/.exec(l); // só as linhas de parâmetros do topo
     if (!m) continue;
     const vals = m[2].split(';').map(num);
     params[m[1] === 'PREFIXADOS' ? 'pre' : 'ipca'] = Object.fromEntries(
@@ -64,15 +68,16 @@ function parse(text) {
     );
   }
 
-  const start = lines.findIndex((l) => /^Vertices;/i.test(l)) + 1;
   const curve = [];
-  for (let i = start; i < lines.length; i++) {
-    const c = lines[i].split(';');
+  for (let i = hdr + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) break;                // linha em branco = fim da 1ª tabela
+    const c = line.split(';');
     const vertice = num(c[0]);
-    if (vertice == null) continue;
+    if (vertice == null) break;      // começou outra seção
     curve.push({
-      vertice,                         // prazo em dias corridos
-      anos: +(vertice / 252).toFixed(2), // aproximação em anos úteis
+      vertice,                         // prazo em dias úteis
+      anos: +(vertice / 252).toFixed(2), // aproximação em anos
       ipca: num(c[1]),                 // juro real (NTN-B / IPCA+), % a.a.
       pre: num(c[2]),                  // juro nominal pré-fixado (DI/LTN), % a.a.
       implicita: num(c[3]),            // inflação implícita (breakeven), % a.a.
