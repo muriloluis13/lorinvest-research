@@ -3512,11 +3512,17 @@
               var mo=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
               if(mo<12) return mo+' m'; var y=Math.floor(mo/12), r=mo%12; return y+' a'+(r?' '+r+' m':''); }
 
+            // Taxa média ponderada nominal: taxa de face de cada emissão ponderada
+            // pelo saldo devedor de jun/26 (posição realizada mais recente).
+            function taxaNum(t){ return parseFloat(String(t).replace('%','').replace(',','.')); }
+            var wSum=0,bSum=0; PLANTAS.forEach(function(p){ p.emissoes.forEach(function(e){ var b=e.saldo[5]; if(b!=null){ wSum+=taxaNum(e.taxa)*b; bSum+=b; } }); });
+            var wavg=bSum?wSum/bSum:0;
+            var wavgTxt=wavg.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'% a.a.';
             var kdef=[
               ['#C55A17','Dívida realizada · jun/26','R$ 322,0 mi','saldo devedor consolidado'],
               ['#2E7D4F','Projeção · dez/26','R$ 350,1 mi','<span class="up">+R$ 28,1 mi</span> vs jun (+8,7%)'],
               ['#6B8299','Emissões mapeadas','10','6 contratadas · 4 previstas (TBD)'],
-              ['#7C6BA0','Estrutura','IPCA + CDI','BNB e debênture em IPCA · bridges e NC em CDI']
+              ['#7C6BA0','Taxa média nominal',wavgTxt,'ponderada pelo saldo devedor · jun/26']
             ];
             document.getElementById('dmKpis').innerHTML=kdef.map(function(k){
               return '<div class="kpi-tile"><div class="k">'+k[1]+'</div><div class="v">'+k[2]+'</div><div class="s">'+k[3]+'</div></div>';
