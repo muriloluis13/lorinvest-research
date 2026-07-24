@@ -3491,29 +3491,6 @@
           <div class="row-full">
             <div class="card">
               <div class="card-header">
-                <div class="card-title">Cenário Macro</div>
-              </div>
-              <div class="card-body">
-                <!-- Métricas macro: fonte única em data/empresas.js (window.MACRO). -->
-                <div class="flex-row" id="macroGrid"></div>
-                <script>
-                (function(){
-                  var box=document.getElementById('macroGrid'); if(!box) return;
-                  var M=window.MACRO||[]; if(!M.length) return;
-                  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-                  function cell(m){ return '<div class="metric-row"><div class="metric-value">'+esc(m[0])+'</div><div class="metric-label">'+esc(m[1])+'</div></div>'; }
-                  var half=Math.ceil(M.length/2), cols='';
-                  [M.slice(0,half), M.slice(half)].forEach(function(g){ cols+='<div>'+g.map(cell).join('')+'</div>'; });
-                  box.innerHTML=cols;
-                })();
-                </script>
-              </div>
-            </div>
-          </div>
-
-          <div class="row-full" style="margin-top: 14px;">
-            <div class="card">
-              <div class="card-header">
                 <div>
                   <div class="card-title">Curva de Juros &mdash; ANBIMA (ETTJ)</div>
                   <div class="ettj-sub">Estrutura a termo estimada &middot; fechamento <span id="ettjDate">&mdash;</span></div>
