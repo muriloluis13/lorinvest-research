@@ -3414,31 +3414,31 @@
             .dm-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
             .dm-chart{position:relative;height:300px;min-width:560px}
             .dm-scroll{overflow-x:auto;scrollbar-width:thin}
-            .dm-tablewrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-soft)}
-            .dm-table{border-collapse:separate;border-spacing:0;font-size:11.5px;min-width:1060px;width:100%}
-            .dm-table th,.dm-table td{padding:9px 11px;white-space:nowrap;text-align:center;vertical-align:middle;border-bottom:1px solid #EEF1F5}
-            .dm-table thead th{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:#F7F9FC}
-            .dm-table th.lft,.dm-table td.lft{text-align:left}
-            .dm-table thead .real-grp{background:#FBEAD5;color:#9A4310;border-bottom:2px solid #E7B98A}
-            .dm-table thead .fc-grp{background:#E7EDF3;color:#3D4A5C;border-bottom:2px solid #C4D0DC}
-            .dm-em{font-weight:600;color:var(--ink)}
-            .dm-cell2 .a{display:block;font-weight:600;color:var(--ink)}
-            .dm-cell2 .b{display:block;font-size:10px;color:var(--muted);margin-top:2px}
-            .dm-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#EDF1F6;color:var(--accent-1)}
-            .dm-bank{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:#EEF2F7;color:#3A5372}
-            .dm-gar{white-space:normal;min-width:180px;max-width:240px;color:var(--text-soft);font-size:10.5px;line-height:1.4;text-align:left}
-            .dm-mcell{font-variant-numeric:tabular-nums;font-weight:600}
-            .dm-empty{color:#CBD3DC}
-            .dm-div{border-left:2px solid #C9D3DE}
-            .dm-sep{border-left:2px solid #E2E7EE}
-            .dm-stk{position:sticky;left:0;z-index:1;background:#fff;box-shadow:1px 0 0 rgba(19,32,46,.06)}
-            .dm-table thead .dm-stk{z-index:3;background:#F7F9FC}
-            .dm-grp td{padding:6px 12px;text-align:left;font-weight:800;font-size:11px;letter-spacing:.02em}
-            .dm-grp td .pk{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:9px;letter-spacing:.07em;margin-left:7px}
-            .dm-sub td{font-weight:700;background:#F4F7FA;color:var(--ink)}
-            .dm-sub td.dm-stk{background:#F4F7FA}
-            .dm-tot td{font-weight:800;background:var(--ink);color:#fff}
-            .dm-tot td.dm-stk{background:var(--ink)}
+            .dm-groups{display:flex;flex-direction:column;gap:16px}
+            .dm-ghead{display:flex;align-items:center;gap:9px;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:11px}
+            .dm-ghead .dot{width:10px;height:10px;border-radius:3px;flex:none}
+            .dm-ghead .nm{font-weight:800;font-size:13px;color:var(--ink)}
+            .dm-ghead .pk{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+            .dm-ghead .sb{margin-left:auto;font-size:11px;color:var(--text-soft);font-weight:600;white-space:nowrap}
+            .dm-ghead .sb b{color:var(--ink);font-weight:800}
+            .dm-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+            .dm-emc{border:1px solid var(--line);border-radius:11px;padding:13px 15px;background:var(--bg-card);border-left:3px solid var(--c);box-shadow:var(--shadow-soft);display:flex;flex-direction:column}
+            .dm-emc-top{display:flex;align-items:baseline;gap:8px}
+            .dm-emc-nm{font-weight:700;font-size:12.5px;color:var(--ink);line-height:1.25}
+            .dm-bank{margin-left:auto;flex:none;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#EEF2F7;color:#3A5372}
+            .dm-emc-meta{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center;margin-top:7px;font-size:10.5px;color:var(--muted)}
+            .dm-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#EDF1F6;color:var(--accent-1)}
+            .dm-emc-meta .sepd{color:#C4CDD7}
+            .dm-emc-gar{font-size:10px;color:var(--text-soft);margin-top:7px;line-height:1.35}
+            .dm-spk{width:100%;height:38px;display:block;margin-top:11px}
+            .dm-spk-x{display:flex;justify-content:space-between;font-size:8.5px;font-weight:600;color:#9AA7B5;margin-top:3px}
+            .dm-emc-read{display:flex;gap:16px;align-items:center;margin-top:auto;padding-top:10px;margin-top:11px;border-top:1px solid var(--line)}
+            .dm-st .lb{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+            .dm-st .vl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:-.3px;margin-top:1px}
+            .dm-dchip{margin-left:auto;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;background:#EEF1F5;color:#5C6B7A}
+            .dm-tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;background:#EEF1F5;color:#6B7787;text-transform:uppercase;letter-spacing:.04em}
+            .dm-emptyc{font-size:10.5px;color:var(--muted);margin-top:11px;font-style:italic}
+            @media(max-width:820px){.dm-cards{grid-template-columns:1fr}}
             .dm-tbf{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.55}
             @media(max-width:760px){.dm-kpis{grid-template-columns:repeat(2,1fr)}}
           </style>
@@ -3467,7 +3467,7 @@
             <div class="card">
               <div class="card-header"><div class="card-title">Detalhamento por emissão</div></div>
               <div class="card-body">
-                <div class="dm-tablewrap"><div class="dm-scroll"><table class="dm-table" id="dmTable"></table></div></div>
+                <div class="dm-groups" id="dmGroups"></div>
                 <p class="dm-tbf" id="dmFoot"></p>
               </div>
             </div>
@@ -3475,7 +3475,7 @@
 
           <script>
           (function(){
-            if(!document.getElementById('dmTable')) return;
+            if(!document.getElementById('dmGroups')) return;
             var ML=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
             var CLR={BA:'#C55A17',RN:'#2E7D4F',PR:'#6B8299',GIRO:'#7C6BA0'};
             var G1='75% contrato Copergás<sup>1</sup> + 25% fiança corporativa';
@@ -3522,35 +3522,50 @@
             var RGB={}; Object.keys(CLR).forEach(function(k){ RGB[k]=hex2rgb(CLR[k]); });
             var MAXV=1; PLANTAS.forEach(function(p){ p.emissoes.forEach(function(e){ e.saldo.forEach(function(v){ if(v!=null&&v>MAXV) MAXV=v; }); }); });
 
-            var META=['Dívida','Banco','Emissão → Venc.','Taxa · Indexador','Garantias'];
-            var thead='<thead><tr>'+META.map(function(h,i){return '<th class="lft'+(i===0?' dm-stk':'')+'" rowspan="2">'+h+'</th>';}).join('')
-              +'<th class="real-grp" colspan="6">Realizado · jan–jun/26</th><th class="fc-grp" colspan="6">Forecast · jul–dez/26</th></tr>'
-              +'<tr>'+ML.map(function(m,i){return '<th class="'+mc(i)+(i<6?'real-grp':'fc-grp')+'">'+m+'</th>';}).join('')+'</tr></thead>';
-            function mc(i){ return (i===0?'dm-sep ':'')+(i===6?'dm-div ':''); }
-            // Heatmap: intensidade da cor da planta proporcional ao saldo (realizado mais forte que forecast).
-            function mcell(v,i,rgb){ if(v==null) return '<td class="'+mc(i)+'dm-empty">—</td>';
-              var real=i<6; var a=(real?0.14:0.07)+(real?0.50:0.30)*(v/MAXV);
-              return '<td class="'+mc(i)+'dm-mcell" style="background:rgba('+rgb+','+a.toFixed(2)+');color:'+(real?'#26313D':'#5B6B7A')+'">'+fmt(v)+'</td>'; }
-            var body='<tbody>';
+            function fmtR(v){ return v==null?'—':'R$ '+fmt(v); }
+            function firstNN(s){ for(var i=0;i<s.length;i++){ if(s[i]!=null) return s[i]; } return null; }
+            function hasAny(s){ return firstNN(s)!=null; }
+            // Sparkline (mini-barras) do saldo: realizado (jan–jun) cheio, forecast (jul–dez) esmaecido; valor exato no hover.
+            function spark(e,rgb){
+              if(!hasAny(e.saldo)) return '<div class="dm-emptyc">Sem saldo realizado ou em forecast — prevista para dez/26 (orçado).</div>';
+              var W=100,H=30,n=12,gap=1.4,bw=(W-gap*(n-1))/n,bars='';
+              for(var i=0;i<n;i++){ var v=e.saldo[i]; if(v==null) continue;
+                var h=Math.max(1.4,(v/MAXV)*H),x=i*(bw+gap),y=H-h,real=i<6;
+                bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="rgba('+rgb+','+(real?0.95:0.40)+')"><title>'+ML[i]+'/26: R$ '+fmt(v)+' mi</title></rect>';
+              }
+              var dx=(6*(bw+gap)-gap/2).toFixed(1);
+              return '<svg class="dm-spk" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+bars
+                +'<line x1="'+dx+'" y1="0" x2="'+dx+'" y2="'+H+'" stroke="#AEB9C5" stroke-width="0.7" stroke-dasharray="2 2"/></svg>'
+                +'<div class="dm-spk-x"><span>jan/26</span><span>jun │ jul</span><span>dez/26</span></div>';
+            }
+            function readout(e){
+              if(!hasAny(e.saldo)) return '';
+              var jun=e.saldo[5], dez=e.saldo[11];
+              var matures=false;
+              if(jun!=null){ matures=true; for(var i=6;i<12;i++){ if(e.saldo[i]!=null){ matures=false; break; } } }
+              var left=(jun!=null)
+                ? '<div class="dm-st"><div class="lb">jun/26 · real</div><div class="vl">'+fmtR(jun)+'</div></div>'
+                : '<div class="dm-st"><div class="lb">início · forecast</div><div class="vl">'+fmtR(firstNN(e.saldo))+'</div></div>';
+              var right=matures
+                ? '<span class="dm-tag" style="margin-left:8px">encerra jul/26</span>'
+                : '<div class="dm-st"><div class="lb">dez/26 · fcst</div><div class="vl">'+fmtR(dez)+'</div></div>';
+              var delta='';
+              if(jun!=null&&dez!=null){ var d=dez-jun; delta='<span class="dm-dchip">'+(d>=0?'+':'−')+'R$ '+fmt(Math.abs(d))+'</span>'; }
+              return '<div class="dm-emc-read">'+left+right+delta+'</div>';
+            }
+            var html='';
             PLANTAS.forEach(function(p){
               var color=CLR[p.key], rgb=RGB[p.key];
-              body+='<tr class="dm-grp"><td class="dm-stk" colspan="5" style="border-left:4px solid '+color+';color:'+color+';background:#F6F8FB">'+p.nome+'<span class="pk">'+p.key+'</span></td>'
-                +ML.map(function(_,i){return '<td class="'+mc(i)+'" style="background:rgba('+rgb+',.10)"></td>';}).join('')+'</tr>';
+              html+='<div class="dm-group"><div class="dm-ghead"><span class="dot" style="background:'+color+'"></span><span class="nm">'+p.nome+'</span><span class="pk">'+p.key+'</span>'
+                +'<span class="sb">jun/26 <b>'+fmtR(p.sub[5])+'</b> · dez/26 <b>'+fmtR(p.sub[11])+'</b></span></div><div class="dm-cards">';
               p.emissoes.forEach(function(e){
-                body+='<tr>'
-                  +'<td class="lft dm-em dm-stk" style="border-left:3px solid '+color+'">'+e.nome+'</td>'
-                  +'<td><span class="dm-bank">'+e.banco+'</span></td>'
-                  +'<td class="lft dm-cell2"><span class="a">'+e.emissao+' → '+e.venc+'</span><span class="b">'+prazo(e)+'</span></td>'
-                  +'<td class="lft dm-cell2"><span class="a"><span class="dm-badge">'+e.taxa+'</span></span><span class="b">'+e.idx+'</span></td>'
-                  +'<td class="dm-gar">'+e.gar+'</td>'
-                  +e.saldo.map(function(v,i){return mcell(v,i,rgb);}).join('')+'</tr>';
+                html+='<div class="dm-emc" style="--c:'+color+'"><div class="dm-emc-top"><span class="dm-emc-nm">'+e.nome+'</span><span class="dm-bank">'+e.banco+'</span></div>'
+                  +'<div class="dm-emc-meta"><span class="dm-badge">'+e.taxa+'</span>'+e.idx+'<span class="sepd">•</span>'+e.emissao+' → '+e.venc+'<span class="sepd">•</span>'+prazo(e)+'</div>'
+                  +'<div class="dm-emc-gar">'+e.gar+'</div>'+spark(e,rgb)+readout(e)+'</div>';
               });
-              body+='<tr class="dm-sub"><td class="lft dm-stk" colspan="5">Subtotal · '+p.nome+'</td>'
-                +p.sub.map(function(v,i){return '<td class="'+mc(i)+'">'+fmt(v)+'</td>';}).join('')+'</tr>';
+              html+='</div></div>';
             });
-            body+='<tr class="dm-tot"><td class="lft dm-stk" colspan="5">Dívida total</td>'
-              +TOTAL.map(function(v,i){return '<td class="'+mc(i)+'">'+fmt(v)+'</td>';}).join('')+'</tr></tbody>';
-            document.getElementById('dmTable').innerHTML=thead+body;
+            document.getElementById('dmGroups').innerHTML=html;
             document.getElementById('dmFoot').innerHTML='Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; A debênture de infraestrutura (PR) aparece só no orçado dez/26, por isso sem saldo realizado/forecast. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).';
 
             function loadChartJs(){ if(window.Chart) return Promise.resolve();
