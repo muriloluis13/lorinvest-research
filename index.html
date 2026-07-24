@@ -3409,7 +3409,6 @@
 
           <style>
             .dm-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:2px 0 0}
-            .dm-kpis .kpi-tile{border-left:3px solid var(--k,#6B8299)}
             .dm-kpis .kpi-tile .v .up{color:var(--accent-3);font-weight:800}
             .dm-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-weight:600;color:var(--text-soft);margin:2px 0 8px;align-items:center}
             .dm-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
@@ -3512,7 +3511,7 @@
               ['#7C6BA0','Estrutura','IPCA + CDI','BNB e debênture em IPCA · bridges e NC em CDI']
             ];
             document.getElementById('dmKpis').innerHTML=kdef.map(function(k){
-              return '<div class="kpi-tile" style="--k:'+k[0]+'"><div class="k">'+k[1]+'</div><div class="v">'+k[2]+'</div><div class="s">'+k[3]+'</div></div>';
+              return '<div class="kpi-tile"><div class="k">'+k[1]+'</div><div class="v">'+k[2]+'</div><div class="s">'+k[3]+'</div></div>';
             }).join('');
 
             var META=['Dívida','Banco','Emissão','Vencimento','Prazo','Taxa','Indexador','Garantias'];
@@ -3547,6 +3546,27 @@
             function toNum(a){ return a.map(function(v){return v==null?0:v;}); }
             var rfDivider={id:'rfDivider',afterDraw:function(c){ var x=c.scales.x; if(!x) return; var p5=x.getPixelForValue(5),p6=x.getPixelForValue(6),bx=(p5+p6)/2;
               var ctx=c.ctx; ctx.save(); ctx.strokeStyle='#9AA7B5'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(bx,c.chartArea.top); ctx.lineTo(bx,c.chartArea.bottom); ctx.stroke(); ctx.restore(); }};
+            function intfmt(v){ return Math.round(v).toLocaleString('pt-BR'); }
+            // Rótulos: valor em cada segmento (contorno p/ legibilidade) + total no topo da coluna.
+            var dmLabels={id:'dmLabels',afterDatasetsDraw:function(c){
+              var ctx=c.ctx;
+              c.data.datasets.forEach(function(ds,di){
+                var m=c.getDatasetMeta(di); if(m.hidden) return;
+                m.data.forEach(function(el,i){
+                  var v=ds.data[i]; if(!v) return; if((el.base-el.y)<12) return;
+                  ctx.save(); ctx.font='700 9px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                  ctx.lineWidth=2.5; ctx.strokeStyle='rgba(19,32,46,.38)'; ctx.strokeText(intfmt(v),el.x,(el.y+el.base)/2);
+                  ctx.fillStyle='#fff'; ctx.fillText(intfmt(v),el.x,(el.y+el.base)/2); ctx.restore();
+                });
+              });
+              c.getDatasetMeta(0).data.forEach(function(el,i){
+                var topY=el.y, sum=0;
+                c.data.datasets.forEach(function(ds,di){ var e=c.getDatasetMeta(di).data[i]; if(e&&e.y<topY) topY=e.y; sum+=ds.data[i]||0; });
+                if(sum<=0) return;
+                ctx.save(); ctx.fillStyle='#13202E'; ctx.font='800 10.5px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+                ctx.fillText(intfmt(sum),el.x,topY-4); ctx.restore();
+              });
+            }};
             loadChartJs().then(function(){
               var chart=new Chart(document.getElementById('dmChart'),{
                 type:'bar',
@@ -3556,14 +3576,15 @@
                   {label:'Paraná (PR)',data:toNum(PLANTAS[2].sub),backgroundColor:bg(CLR.PR),stack:'s',borderWidth:0},
                   {label:'Giro',data:toNum(PLANTAS[3].sub),backgroundColor:bg(CLR.GIRO),stack:'s',borderWidth:0}
                 ]},
-                options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+                options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+                  layout:{padding:{top:20}},
                   plugins:{legend:{display:false},datalabels:{display:false},
                     tooltip:{callbacks:{
                       label:function(c){return c.dataset.label+': R$ '+fmt(c.parsed.y)+' mi';},
                       footer:function(items){var t=0;items.forEach(function(i){t+=i.parsed.y;});return 'Total: R$ '+fmt(t)+' mi';}}}},
                   scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
-                    y:{stacked:true,grid:{color:'rgba(226,231,238,.7)'},ticks:{callback:function(v){return 'R$ '+v;},font:{size:10}}}}},
-                plugins:[rfDivider]
+                    y:{stacked:true,grid:{color:'rgba(226,231,238,.7)'},ticks:{display:false},border:{display:false}}}},
+                plugins:[rfDivider,dmLabels]
               });
               // A aba fica display:none até ser aberta; ao ganhar largura, redimensiona.
               var wrap=document.getElementById('dmChartWrap');
