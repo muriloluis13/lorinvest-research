@@ -155,10 +155,10 @@
             supply:{PR:[null,34300,32000,32000,43000,43000,43000,43000,43000,43000,43000,43000],BA:[14625,14625,33625,33625,33625,46625,46625,56625,56625,59625,59625,62625],RN:[19740,12247,26000,31000,38000,40000,41000,68000,74000,74000,74000,74000]},
             occ:["42%","39%","59%","62%","58%","66%","66%","85%","88%","89%","89%","91%"],
             note:'% Ocupação = demanda ÷ oferta do mês. Atinge 91% da capacidade plena das 3 plantas em dez/26.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 5).'},
-          rca:{tag:"mil m³/dia · topo = total · realizado até mai/26",tableColored:true,labels:["B. Bonita (PR)","Itabuna (BA)","Assú (RN)"],scale:"Barras: m³/dia · escala 197.500 (capacidade plena a partir de out/26)",
+          rca:{tag:"mil m³/dia · topo = total · realizado até mai/26",tableColored:true,labels:["PR","BA","RN"],scale:"Barras: m³/dia · escala 197.500 (capacidade plena a partir de out/26)",
             supply:{PR:[4500,null,2700,1900,8900,29300,20200,22000,22000,22000,22000,22000],BA:[5000,6700,5000,7300,9800,3900,10200,27900,31200,30900,30800,31300],RN:[13300,6800,16400,20700,20200,20800,24300,27900,35300,35400,35300,35400]},
             occ:["28%","12%","21%","26%","34%","47%","48%","68%","77%","45%","45%","45%"],
-            note:'Demanda GNL por planta usando dados <b>realizados até mai/26</b> e <b>forecast</b> a partir de jun/26. Capacidade total sobe de ~114.600 (fev–set) para 197.500 m³/dia a partir de out/26 (2ª unidade de regas em Itabuna e Assú), o que reduz a ocupação apesar da demanda crescente.<br>Fonte: GNLink — RCA, mai/2026 (slides 21 · Barra Bonita, 26 · Itabuna, 31 · Assú).'}
+            note:'Demanda GNL por planta usando dados <b>realizados até mai/26</b> e <b>forecast</b> a partir de jun/26. Capacidade total sobe de ~114.600 (fev–set) para 197.500 m³/dia a partir de out/26 (2ª unidade de regas em BA e RN), o que reduz a ocupação apesar da demanda crescente.<br>Fonte: GNLink — RCA, mai/2026 (slides 21 · PR, 26 · BA, 31 · RN).'}
         },
         capacidade:{
           rca:{
