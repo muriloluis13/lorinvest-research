@@ -42,15 +42,15 @@
           noteGnc:'Capacidade de <b>GNC purga</b>, apresentada em quadro próprio nos mesmos slides. PR e RN sobem de 14.400 para <b>19.400 m³/dia</b> em jul/26; BA permanece em 14.400 o ano todo. O total sai de 43.200 (jun/26) para <b>53.200 m³/dia</b> em dez/26 — capacidade adicional à do GNL.<br>Fonte: GNLink — RCA, jun/2026 (linha “Capacidade Planta” do quadro de GNC · slides 20, 25 e 30).'}
       },moleculaJun:{tag:"preço atual · jun/26",
         note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. Preço médio ponderado de <b>R$ 1,90/m³</b> no volume atual (155.000 m³/dia) e <b>R$ 1,96/m³</b> no volume total contratado (210.000 m³/dia).<br>Fonte: GNLink — RCA, jun/2026.',groups:[
-        {cls:"btg",nm:"BBOG",loc:"Barra Bonita",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
-        {cls:"bah",nm:"Bahiagás",loc:"Itabuna",rows:[{v:"R$ 1,95",w:88,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
-        {cls:"pet",nm:"PetroRecôncavo",loc:"Assú",rows:[{v:"R$ 1,76",w:79,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
+        {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+        {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,95",w:88,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+        {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,76",w:79,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
       ]},
       molecula:{tag:"sem impostos · dez/25",note:'Premissas constantes para todas as linhas (omitidas da tabela): câmbio <b>R$ 5,45/US$</b> · Brent <b>US$ 68,97/bbl</b> · data <b>dez/25</b>. Preços <b>sem impostos</b>.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 18).',groups:[
-        {cls:"tra",nm:"Tradener",loc:"Barra Bonita",rows:[{v:"R$ 2,36",w:100,mm:"11,62",br:"16,85%",cen:"Preços anteriores atualizados"},{v:"R$ 2,00",w:85,mm:"9,83",br:"14,26%",cen:""},{v:"R$ 1,70",w:72,mm:"8,37",br:"12,13%",cen:"Oferta Tradener"}]},
-        {cls:"bah",nm:"Bahiagás",loc:"Itabuna",rows:[{v:"R$ 2,06",w:87,mm:"10,12",br:"14,67%",cen:"GNC Industrial"},{v:"R$ 1,91",w:81,mm:"9,42",br:"13,65%",cen:"GNC Veicular"}]},
-        {cls:"btg",nm:"BTG",loc:"Itabuna",rows:[{v:"R$ 2,03",w:86,brk:"molécula R$ 1,45 · gasoduto R$ 0,58",mm:"10,00",br:"10,35%",cen:"Firme"},{v:"R$ 1,98",w:84,brk:"molécula R$ 1,40 · gasoduto R$ 0,58",mm:"9,76",br:"10,00%",cen:"PUT"}]},
-        {cls:"pet",nm:"PetroRecôncavo",loc:"Itabuna",rows:[{v:"R$ 2,01",w:85,brk:"molécula R$ 1,44 · gasoduto R$ 0,57",mm:"9,90",br:"10,30%",cen:"Para Bahiagás"},{v:"R$ 1,61",w:68,loc2:"Assú",mm:"7,93",br:"11,50%",cen:"Base"},{v:"R$ 1,44",w:61,mm:"7,10",br:"10,30%",cen:"Para Cegás"},{v:"R$ 0,49",w:21,mm:"2,41",br:"3,50%",cen:"Geração de EE"}]}
+        {cls:"tra",nm:"Tradener",loc:"PR",rows:[{v:"R$ 2,36",w:100,mm:"11,62",br:"16,85%",cen:"Preços anteriores atualizados"},{v:"R$ 2,00",w:85,mm:"9,83",br:"14,26%",cen:""},{v:"R$ 1,70",w:72,mm:"8,37",br:"12,13%",cen:"Oferta Tradener"}]},
+        {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 2,06",w:87,mm:"10,12",br:"14,67%",cen:"GNC Industrial"},{v:"R$ 1,91",w:81,mm:"9,42",br:"13,65%",cen:"GNC Veicular"}]},
+        {cls:"btg",nm:"BTG",loc:"BA",rows:[{v:"R$ 2,03",w:86,brk:"molécula R$ 1,45 · gasoduto R$ 0,58",mm:"10,00",br:"10,35%",cen:"Firme"},{v:"R$ 1,98",w:84,brk:"molécula R$ 1,40 · gasoduto R$ 0,58",mm:"9,76",br:"10,00%",cen:"PUT"}]},
+        {cls:"pet",nm:"PetroRecôncavo",loc:"BA",rows:[{v:"R$ 2,01",w:85,brk:"molécula R$ 1,44 · gasoduto R$ 0,57",mm:"9,90",br:"10,30%",cen:"Para Bahiagás"},{v:"R$ 1,61",w:68,loc2:"RN",mm:"7,93",br:"11,50%",cen:"Base"},{v:"R$ 1,44",w:61,mm:"7,10",br:"10,30%",cen:"Para Cegás"},{v:"R$ 0,49",w:21,mm:"2,41",br:"3,50%",cen:"Geração de EE"}]}
       ]}},comercial:{
         funil:{
           rci:{tag:"valores em m³/dia",note:'Da demanda total mapeada até os contratos assinados. <b>Mais de R$ 1 bilhão</b> em contratos já assinados.',rows:[["Mercado mapeado","1.673.638",100],["Em prospecção","1.099.537",65.7],["Em negociação","275.000",16.4],["Negociações contratuais","96.500",5.8],["Contratos assinados","56.865 – 132.175",7.9]]},
@@ -162,12 +162,12 @@
         },
         capacidade:{
           rca:{
-            gnl:{head:"Ocupação total 76% · oferta 114.612 · demanda 86.625",tiles:[["k-teal","RN · GNL","99%","Demanda 32.000 · Oferta 32.416",99],["k-sage","BA · GNL","74%","Demanda 31.625 · Oferta 42.616",74],["k-stone","PR · GNL","58%","Demanda 23.000 · Oferta 39.580",58]]},
-            gncp:{head:"Ocupação total 51% · oferta 43.200 · demanda 22.000",tiles:[["k-teal","RN · GNCp","42%","Demanda 6.000 · Oferta 14.400",42],["k-sage","BA · GNCp","21%","Demanda 3.000 · Oferta 14.400",21],["k-stone","PR · GNCp","90%","Demanda 13.000 · Oferta 14.400",90]]},
+            gnl:{head:"Ocupação total 76% · oferta 114.612 · demanda 86.625",tiles:[["k-teal","PR · GNL","58%","Demanda 23.000 · Oferta 39.580",58],["k-sage","BA · GNL","74%","Demanda 31.625 · Oferta 42.616",74],["k-stone","RN · GNL","99%","Demanda 32.000 · Oferta 32.416",99]]},
+            gncp:{head:"Ocupação total 51% · oferta 43.200 · demanda 22.000",tiles:[["k-teal","PR · GNCp","90%","Demanda 13.000 · Oferta 14.400",90],["k-sage","BA · GNCp","21%","Demanda 3.000 · Oferta 14.400",21],["k-stone","RN · GNCp","42%","Demanda 6.000 · Oferta 14.400",42]]},
             note:'Oferta = capacidade instalada por planta e produto; demanda = volume atual dos contratos assinados. GNL agregado a 76% e GNCp a 51%.<br>Fonte: GNLink — RCA, mai/2026 (slide 6).'},
           rcaJun:{
-            gnl:{head:"Ocupação total 39% · oferta 130.665 · demanda 51.411",tiles:[["k-teal","RN · GNL","62%","Demanda 20.097 · Oferta 32.416",62],["k-sage","PR · GNL","47%","Demanda 26.393 · Oferta 55.633",47],["k-stone","BA · GNL","12%","Demanda 4.921 · Oferta 42.616",12]]},
-            gncp:{head:"Ocupação total 4% · oferta 43.200 · demanda 1.837",tiles:[["k-teal","RN · GNCp","8%","Demanda 1.128 · Oferta 14.400",8],["k-sage","PR · GNCp","5%","Demanda 709 · Oferta 14.400",5],["k-stone","BA · GNCp","0%","Demanda 0 · Oferta 14.400",0]]},
+            gnl:{head:"Ocupação total 39% · oferta 130.665 · demanda 51.411",tiles:[["k-teal","PR · GNL","47%","Demanda 26.393 · Oferta 55.633",47],["k-sage","BA · GNL","12%","Demanda 4.921 · Oferta 42.616",12],["k-stone","RN · GNL","62%","Demanda 20.097 · Oferta 32.416",62]]},
+            gncp:{head:"Ocupação total 4% · oferta 43.200 · demanda 1.837",tiles:[["k-teal","PR · GNCp","5%","Demanda 709 · Oferta 14.400",5],["k-sage","BA · GNCp","0%","Demanda 0 · Oferta 14.400",0],["k-stone","RN · GNCp","8%","Demanda 1.128 · Oferta 14.400",8]]},
             note:'Oferta = capacidade instalada por planta e produto. <b>Atenção à quebra de série vs. mai/26:</b> no deck de jun/26 a demanda passou a ser o <b>volume real médio diário do mês</b>, enquanto em mai/26 era o volume <b>atual dos contratos</b>. A ocupação do GNL cai de 76% para 39% sobretudo por essa mudança de definição — e não por perda de contratos. A oferta de GNL da planta PR também subiu de 39.580 para 55.633 m³/dia.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'}}
       },
       financeiro:{
