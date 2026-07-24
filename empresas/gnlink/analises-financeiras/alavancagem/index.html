@@ -197,6 +197,166 @@ footer b{letter-spacing:.12em;}
     <div class="bento-card"><h3>Equity emitido &amp; dividendos (R$ mi)</h3><div class="chartscroll"><div class="chart-box long"><canvas id="cEq"></canvas></div></div></div>
   </div>
 
+  <div class="secttl">Mapeamento da dívida — posição jun/2026</div>
+  <style>
+    .dm-intro{font-size:12px;color:#46566A;line-height:1.55;margin:10px 0 2px;max-width:1000px}
+    .dm-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+    .dm-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);border-left:3px solid var(--k,#4880A8)}
+    .dm-kpi .c{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+    .dm-kpi .v{font-size:20px;font-weight:700;margin-top:4px;letter-spacing:-.4px;color:var(--ink)}
+    .dm-kpi .s{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+    .dm-kpi .s .up{color:var(--pos);font-weight:700}
+    .dm-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:17px 19px;box-shadow:var(--shadow);margin:12px 0}
+    .dm-card h3{font-size:14.5px;margin:0;font-weight:700;color:var(--ink)}
+    .dm-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-weight:600;color:#46566A;margin:10px 0 2px;align-items:center}
+    .dm-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+    .dm-legend .fc-key i{opacity:.62}
+    .dm-chart{position:relative;height:300px;margin-top:6px}
+    .dm-scroll{overflow-x:auto;margin-top:8px;scrollbar-width:thin;scrollbar-color:#B8C2CE #EEF2F6}
+    .dm-scroll::-webkit-scrollbar{height:9px}
+    .dm-scroll::-webkit-scrollbar-thumb{background:#B8C2CE;border-radius:9px;border:2px solid #EEF2F6}
+    .dm-table{border-collapse:separate;border-spacing:0;font-size:11.5px;min-width:1200px;width:100%}
+    .dm-table th,.dm-table td{padding:7px 9px;white-space:nowrap;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+    .dm-table thead th{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);background:#F2F5F9;position:sticky;top:0;z-index:2}
+    .dm-table th.lft,.dm-table td.lft{text-align:left}
+    .dm-table thead .real-grp{background:#FBEAD5;color:#9A4310;border-bottom:2px solid #E7B98A}
+    .dm-table thead .fc-grp{background:#DEE9F2;color:#2C5A78;border-bottom:2px solid #B9CFE0}
+    .dm-table td.em{font-weight:600;color:var(--ink)}
+    .dm-table td.gar{white-space:normal;min-width:190px;color:#46566A;font-size:10.5px;line-height:1.35}
+    .dm-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#EEF2F7;color:var(--accent)}
+    .dm-bank{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#E7EDF5;color:#3A5372}
+    .dm-mreal{background:rgba(197,90,23,.05)}
+    .dm-fc{color:#93A1B0}
+    .dm-div{border-left:2px solid #C9D3DE}
+    .dm-stk{position:sticky;left:0;z-index:1;background:#fff;box-shadow:1px 0 0 var(--line)}
+    .dm-table thead .dm-stk{z-index:3}
+    .dm-grp td{background:var(--gb);color:#fff;font-weight:700;font-size:11px;letter-spacing:.03em;text-transform:uppercase;padding:6px 10px}
+    .dm-grp td.dm-stk{background:var(--gb)}
+    .dm-sub td{font-weight:700;background:#EEF2F7}
+    .dm-sub td.dm-stk{background:#EEF2F7}
+    .dm-tot td{font-weight:800;background:var(--ink);color:#fff}
+    .dm-tot td.dm-stk{background:var(--ink)}
+    .dm-tbf{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.55}
+    .dm-tbf b{color:#46566A}
+    @media(max-width:760px){.dm-kpis{grid-template-columns:repeat(2,1fr)}.dm-chart{height:260px;min-width:640px}.dm-chartscroll{overflow-x:auto}}
+  </style>
+
+  <p class="dm-intro">Saldo devedor por emissão, planta e banco — <b>realizado até jun/26</b>, demais meses em <b>forecast</b>. Em junho já havia sido orçado o desembolso final do BNB Assú (R$ 10,9 mi), mas segue em discussão com o banco a crítica de R$ 8 mi; a documentação adicional foi enviada e aguarda-se retorno da área técnica. <span style="color:var(--muted)">Colunas de orçado (jun/26 e dez/26) e variação foram omitidas.</span></p>
+
+  <div class="dm-kpis" id="dmKpis"></div>
+
+  <div class="dm-card">
+    <h3>Saldo devedor por planta — R$ milhões</h3>
+    <div class="dm-legend" id="dmLegend"></div>
+    <div class="dm-chartscroll" style="overflow-x:auto"><div class="dm-chart" style="min-width:560px"><canvas id="dmChart"></canvas></div></div>
+  </div>
+
+  <div class="dm-card">
+    <h3>Detalhamento por emissão</h3>
+    <div class="dm-scroll"><table class="dm-table" id="dmTable"></table></div>
+    <p class="dm-tbf" id="dmFoot"></p>
+  </div>
+
+  <script>
+  (function(){
+    var ML=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    var CLR={BA:'#C55A17',RN:'#2E7D4F',PR:'#4880A8',GIRO:'#7C6BA0'};
+    var G1='75% contrato Copergás<sup>1</sup> + 25% fiança corporativa';
+    var G2='Fiança corporativa + contrato Cegás';
+    var PLANTAS=[
+      {key:'BA',nome:'Bahia',emissoes:[
+        {nome:'Financiamento BNB — 1ª fase',banco:'BNB',emissao:'13/12/24',venc:'15/09/36',taxa:'8,5%',idx:'IPCA + 4,4% a.a.',pnom:'12 anos',gar:G1,saldo:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]},
+        {nome:'Financiamento BNB — 2ª fase',banco:'BNB',emissao:'26/12/25',venc:'15/09/36',taxa:'8,5%',idx:'IPCA + 4,4% a.a.',pnom:'12 anos',gar:G1,saldo:[null,null,null,null,null,null,null,null,null,null,null,null]}
+      ],sub:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]},
+      {key:'RN',nome:'Assú',emissoes:[
+        {nome:'Financiamento BNB Carnaúba — 1ª fase',banco:'BNB',emissao:'05/02/26',venc:'15/11/37',taxa:'9,8%',idx:'IPCA + 5,7% a.a.',pnom:'12 anos',gar:G2,saldo:[null,75.7,76.4,77.1,75.6,76.3,76.7,75.4,75.7,76.1,75.4,75.7]},
+        {nome:'Financiamento BNB Carnaúba — 2ª fase',banco:'BNB',emissao:'TBD',venc:'TBD',taxa:'9,8%',idx:'IPCA + 5,7% a.a.',pnom:'12 anos',gar:G2,saldo:[null,null,null,null,null,null,0.3,16.7,17.2,17.4,16.7,17.1]}
+      ],sub:[null,75.7,76.4,77.1,75.6,76.3,77.0,92.0,93.0,93.5,92.0,92.9]},
+      {key:'PR',nome:'Paraná',emissoes:[
+        {nome:'Bridge (ABC) — 9ª emissão',banco:'ABC',emissao:'12/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[42.6,43.1,43.8,44.3,44.9,45.5,null,null,null,null,null,null]},
+        {nome:'Bridge (ABC) — 10ª emissão',banco:'ABC',emissao:'12/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[54.5,55.1,55.9,56.6,57.4,58.1,null,null,null,null,null,null]},
+        {nome:'Debêntures de infraestrutura',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'17,1%',idx:'IPCA + 8,95% a.a.',pnom:'10 anos',gar:'100% contrato Bahiagás',saldo:[null,null,null,null,null,null,null,null,null,null,null,null]},
+        {nome:'NC privada — 12ª emissão',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'16,7%',idx:'CDI + 2,4% a.a.',pnom:'1 ano',gar:'100% fiança corporativa',saldo:[null,null,null,null,null,null,100.0,101.3,102.5,103.8,105.1,106.5]}
+      ],sub:[97.1,98.2,99.7,100.9,102.3,103.6,100.0,101.3,102.5,103.8,105.1,106.5]},
+      {key:'GIRO',nome:'Giro',emissoes:[
+        {nome:'Bridge (ABC) — 8ª emissão',banco:'ABC',emissao:'06/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[49.6,50.2,50.9,51.5,52.2,52.9,null,null,null,null,null,null]},
+        {nome:'NC privada — 11ª emissão',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'16,7%',idx:'CDI + 2,4% a.a.',pnom:'1 ano',gar:'100% fiança corporativa',saldo:[null,null,null,null,null,null,60.0,60.8,61.6,62.4,63.2,64.0]}
+      ],sub:[49.6,50.2,50.9,51.5,52.2,52.9,60.0,60.8,61.6,62.4,63.2,64.0]}
+    ];
+    var TOTAL=[236.5,314.6,316.3,319.4,320.5,322.0,326.9,344.3,345.9,347.8,347.8,350.1];
+
+    function fmt(v){ return v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+    function parseDt(s){ var m=/^(\d{2})\/(\d{2})\/(\d{2})$/.exec(s); return m?new Date(2000+ +m[3], +m[2]-1, +m[1]):null; }
+    // Prazo = vencimento − emissão (output). TBD → cai no prazo nominal.
+    function prazo(e){ var a=parseDt(e.emissao),b=parseDt(e.venc); if(!a||!b) return e.pnom;
+      var mo=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
+      if(mo<12) return mo+' m'; var y=Math.floor(mo/12), r=mo%12; return y+' a'+(r?' '+r+' m':''); }
+
+    // ---- KPIs ----
+    var kdef=[
+      ['#C55A17','Dívida realizada · jun/26','R$ 322,0 mi','saldo devedor consolidado'],
+      ['#2E7D4F','Projeção · dez/26','R$ 350,1 mi','<span class="up">+R$ 28,1 mi</span> vs jun (+8,7%)'],
+      ['#4880A8','Emissões mapeadas','10','6 contratadas · 4 previstas (TBD)'],
+      ['#7C6BA0','Estrutura','IPCA + CDI','BNB e debênture em IPCA · bridges e NC em CDI']
+    ];
+    document.getElementById('dmKpis').innerHTML=kdef.map(function(k){
+      return '<div class="dm-kpi" style="--k:'+k[0]+'"><div class="c">'+k[1]+'</div><div class="v">'+k[2]+'</div><div class="s">'+k[3]+'</div></div>';
+    }).join('');
+
+    // ---- Tabela ----
+    var META=['Dívida','Banco','Emissão','Vencimento','Prazo','Taxa','Indexador','Garantias'];
+    var thead='<thead><tr>'+META.map(function(h,i){return '<th class="lft'+(i===0?' dm-stk':'')+'" rowspan="2">'+h+'</th>';}).join('')
+      +'<th class="real-grp" colspan="6">Realizado · jan–jun/26</th><th class="fc-grp" colspan="6">Forecast · jul–dez/26</th></tr>'
+      +'<tr>'+ML.map(function(m,i){return '<th class="'+(i===6?'dm-div ':'')+(i<6?'real-grp':'fc-grp')+'">'+m+'</th>';}).join('')+'</tr></thead>';
+    function cells(arr){ return arr.map(function(v,i){return '<td class="'+(i===6?'dm-div ':'')+(i<6?'dm-mreal':'dm-fc')+'">'+fmt(v)+'</td>';}).join(''); }
+    var body='<tbody>';
+    PLANTAS.forEach(function(p){
+      body+='<tr class="dm-grp" style="--gb:'+CLR[p.key]+'"><td class="dm-stk" colspan="20">'+p.nome+' · '+p.key+'</td></tr>';
+      p.emissoes.forEach(function(e){
+        body+='<tr><td class="lft em dm-stk">'+e.nome+'</td>'
+          +'<td class="lft"><span class="dm-bank">'+e.banco+'</span></td>'
+          +'<td>'+e.emissao+'</td><td>'+e.venc+'</td><td>'+prazo(e)+'</td>'
+          +'<td><span class="dm-badge">'+e.taxa+'</span></td>'
+          +'<td class="lft">'+e.idx+'</td><td class="gar lft">'+e.gar+'</td>'
+          +cells(e.saldo)+'</tr>';
+      });
+      body+='<tr class="dm-sub"><td class="lft dm-stk" colspan="8">Subtotal · '+p.nome+'</td>'
+        +p.sub.map(function(v,i){return '<td class="'+(i===6?'dm-div ':'')+'">'+fmt(v)+'</td>';}).join('')+'</tr>';
+    });
+    body+='<tr class="dm-tot"><td class="lft dm-stk" colspan="8">Dívida total</td>'
+      +TOTAL.map(function(v,i){return '<td class="'+(i===6?'dm-div ':'')+'">'+fmt(v)+'</td>';}).join('')+'</tr></tbody>';
+    document.getElementById('dmTable').innerHTML=thead+body;
+    document.getElementById('dmFoot').innerHTML='Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; A debênture de infraestrutura (PR) aparece só no orçado dez/26, por isso sem saldo realizado/forecast. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).';
+
+    // ---- Gráfico empilhado (realizado sólido · forecast translúcido) ----
+    function bg(c){ return ML.map(function(_,i){return i<6?c:c+'9E';}); }
+    function toNum(a){ return a.map(function(v){return v==null?0:v;}); }
+    var rfDivider={id:'rfDivider',afterDraw:function(c){ var x=c.scales.x; if(!x) return; var p5=x.getPixelForValue(5),p6=x.getPixelForValue(6),bx=(p5+p6)/2;
+      var ctx=c.ctx; ctx.save(); ctx.strokeStyle='#9AA7B5'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(bx,c.chartArea.top); ctx.lineTo(bx,c.chartArea.bottom); ctx.stroke(); ctx.restore(); }};
+    new Chart(document.getElementById('dmChart'),{
+      type:'bar',
+      data:{labels:ML.map(function(m){return m+'/26';}),datasets:[
+        {label:'Bahia (BA)',data:toNum(PLANTAS[0].sub),backgroundColor:bg(CLR.BA),stack:'s',borderWidth:0},
+        {label:'Assú (RN)',data:toNum(PLANTAS[1].sub),backgroundColor:bg(CLR.RN),stack:'s',borderWidth:0},
+        {label:'Paraná (PR)',data:toNum(PLANTAS[2].sub),backgroundColor:bg(CLR.PR),stack:'s',borderWidth:0},
+        {label:'Giro',data:toNum(PLANTAS[3].sub),backgroundColor:bg(CLR.GIRO),stack:'s',borderWidth:0}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},datalabels:{display:false},
+          tooltip:{callbacks:{
+            label:function(c){return c.dataset.label+': R$ '+fmt(c.parsed.y)+' mi';},
+            footer:function(items){var t=0;items.forEach(function(i){t+=i.parsed.y;});return 'Total: R$ '+fmt(t)+' mi';}}}},
+        scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
+          y:{stacked:true,grid:{color:'rgba(226,231,238,.7)'},ticks:{callback:function(v){return 'R$ '+v;},font:{size:10}}}}},
+      plugins:[rfDivider]
+    });
+    document.getElementById('dmLegend').innerHTML=
+      [['Bahia (BA)',CLR.BA],['Assú (RN)',CLR.RN],['Paraná (PR)',CLR.PR],['Giro',CLR.GIRO]]
+        .map(function(l){return '<span><i style="background:'+l[1]+'"></i>'+l[0]+'</span>';}).join('')
+      +'<span class="fc-key" style="margin-left:auto"><i style="background:#7A8794"></i>tom pleno = realizado · translúcido = forecast (linha tracejada = jun│jul)</span>';
+  })();
+  </script>
+
   <div class="secttl">Fontes &amp; Usos — Use of Proceeds (base mai/2026)</div>
   <div class="uop">
     <div class="uop-col">
