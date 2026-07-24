@@ -3422,7 +3422,7 @@
             .dm-ghead .sb{margin-left:auto;font-size:11px;color:var(--text-soft);font-weight:600;white-space:nowrap}
             .dm-ghead .sb b{color:var(--ink);font-weight:800}
             .dm-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-            .dm-emc{border:1px solid var(--line);border-radius:11px;padding:13px 15px;background:var(--bg-card);border-left:3px solid var(--c);box-shadow:var(--shadow-soft);display:flex;flex-direction:column}
+            .dm-emc{border:1px solid var(--line);border-radius:11px;padding:13px 15px;box-shadow:var(--shadow-soft);display:flex;flex-direction:column}
             .dm-emc-top{display:flex;align-items:baseline;gap:8px}
             .dm-emc-nm{font-weight:700;font-size:12.5px;color:var(--ink);line-height:1.25}
             .dm-bank{margin-left:auto;flex:none;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#EEF2F7;color:#3A5372}
@@ -3430,8 +3430,12 @@
             .dm-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#EDF1F6;color:var(--accent-1)}
             .dm-emc-meta .sepd{color:#C4CDD7}
             .dm-emc-gar{font-size:10px;color:var(--text-soft);margin-top:7px;line-height:1.35}
-            .dm-spk{width:100%;height:38px;display:block;margin-top:11px}
-            .dm-spk-x{display:flex;justify-content:space-between;font-size:8.5px;font-weight:600;color:#9AA7B5;margin-top:3px}
+            .dm-spk{display:flex;align-items:flex-end;gap:2px;min-height:52px;margin-top:12px}
+            .dm-bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+            .dm-bar.dm-bsep{border-left:1px dashed #AEB9C5;margin-left:2px;padding-left:3px}
+            .dm-bl{font-size:7.5px;font-weight:700;color:#5C6B7A;line-height:1;margin-bottom:2px;font-variant-numeric:tabular-nums}
+            .dm-bf{width:100%;max-width:26px;border-radius:2px 2px 0 0;min-height:3px}
+            .dm-spk-x{display:flex;justify-content:space-between;font-size:8.5px;font-weight:600;color:#9AA7B5;margin-top:4px}
             .dm-emc-read{display:flex;gap:16px;align-items:center;margin-top:auto;padding-top:10px;margin-top:11px;border-top:1px solid var(--line)}
             .dm-st .lb{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
             .dm-st .vl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:-.3px;margin-top:1px}
@@ -3521,22 +3525,24 @@
             function hex2rgb(h){ h=h.replace('#',''); return parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16); }
             var RGB={}; Object.keys(CLR).forEach(function(k){ RGB[k]=hex2rgb(CLR[k]); });
             var MAXV=1; PLANTAS.forEach(function(p){ p.emissoes.forEach(function(e){ e.saldo.forEach(function(v){ if(v!=null&&v>MAXV) MAXV=v; }); }); });
+            // Hierarquia fixa de exibição: PR, BA, RN, Giro.
+            var ORDER=['PR','BA','RN','GIRO'];
+            var PL=ORDER.map(function(k){ for(var i=0;i<PLANTAS.length;i++){ if(PLANTAS[i].key===k) return PLANTAS[i]; } });
 
             function fmtR(v){ return v==null?'—':'R$ '+fmt(v); }
             function firstNN(s){ for(var i=0;i<s.length;i++){ if(s[i]!=null) return s[i]; } return null; }
             function hasAny(s){ return firstNN(s)!=null; }
-            // Sparkline (mini-barras) do saldo: realizado (jan–jun) cheio, forecast (jul–dez) esmaecido; valor exato no hover.
+            // Sparkline (mini-barras) do saldo: realizado (jan–jun) cheio, forecast (jul–dez) esmaecido.
+            // Rótulo do valor (R$ mi, arredondado) acima de cada barra; valor exato no hover.
             function spark(e,rgb){
               if(!hasAny(e.saldo)) return '<div class="dm-emptyc">Sem saldo realizado ou em forecast — prevista para dez/26 (orçado).</div>';
-              var W=100,H=30,n=12,gap=1.4,bw=(W-gap*(n-1))/n,bars='';
-              for(var i=0;i<n;i++){ var v=e.saldo[i]; if(v==null) continue;
-                var h=Math.max(1.4,(v/MAXV)*H),x=i*(bw+gap),y=H-h,real=i<6;
-                bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="rgba('+rgb+','+(real?0.95:0.40)+')"><title>'+ML[i]+'/26: R$ '+fmt(v)+' mi</title></rect>';
+              var bars='';
+              for(var i=0;i<12;i++){ var v=e.saldo[i], real=i<6, sep=(i===6)?' dm-bsep':'';
+                if(v==null){ bars+='<div class="dm-bar'+sep+'"></div>'; continue; }
+                var hpx=Math.max(3,Math.round((v/MAXV)*40));
+                bars+='<div class="dm-bar'+sep+'" title="'+ML[i]+'/26: R$ '+fmt(v)+' mi"><span class="dm-bl">'+Math.round(v)+'</span><div class="dm-bf" style="height:'+hpx+'px;background:rgba('+rgb+','+(real?0.95:0.42)+')"></div></div>';
               }
-              var dx=(6*(bw+gap)-gap/2).toFixed(1);
-              return '<svg class="dm-spk" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+bars
-                +'<line x1="'+dx+'" y1="0" x2="'+dx+'" y2="'+H+'" stroke="#AEB9C5" stroke-width="0.7" stroke-dasharray="2 2"/></svg>'
-                +'<div class="dm-spk-x"><span>jan/26</span><span>jun │ jul</span><span>dez/26</span></div>';
+              return '<div class="dm-spk">'+bars+'</div><div class="dm-spk-x"><span>jan/26</span><span>jun │ jul</span><span>dez/26</span></div>';
             }
             function readout(e){
               if(!hasAny(e.saldo)) return '';
@@ -3554,12 +3560,12 @@
               return '<div class="dm-emc-read">'+left+right+delta+'</div>';
             }
             var html='';
-            PLANTAS.forEach(function(p){
+            PL.forEach(function(p){
               var color=CLR[p.key], rgb=RGB[p.key];
               html+='<div class="dm-group"><div class="dm-ghead"><span class="dot" style="background:'+color+'"></span><span class="nm">'+p.nome+'</span><span class="pk">'+p.key+'</span>'
                 +'<span class="sb">jun/26 <b>'+fmtR(p.sub[5])+'</b> · dez/26 <b>'+fmtR(p.sub[11])+'</b></span></div><div class="dm-cards">';
               p.emissoes.forEach(function(e){
-                html+='<div class="dm-emc" style="--c:'+color+'"><div class="dm-emc-top"><span class="dm-emc-nm">'+e.nome+'</span><span class="dm-bank">'+e.banco+'</span></div>'
+                html+='<div class="dm-emc" style="background:rgba('+rgb+',.06);border-color:rgba('+rgb+',.24)"><div class="dm-emc-top"><span class="dm-emc-nm">'+e.nome+'</span><span class="dm-bank">'+e.banco+'</span></div>'
                   +'<div class="dm-emc-meta"><span class="dm-badge">'+e.taxa+'</span>'+e.idx+'<span class="sepd">•</span>'+e.emissao+' → '+e.venc+'<span class="sepd">•</span>'+prazo(e)+'</div>'
                   +'<div class="dm-emc-gar">'+e.gar+'</div>'+spark(e,rgb)+readout(e)+'</div>';
               });
@@ -3600,12 +3606,9 @@
             loadChartJs().then(function(){
               var chart=new Chart(document.getElementById('dmChart'),{
                 type:'bar',
-                data:{labels:ML.map(function(m){return m+'/26';}),datasets:[
-                  {label:'Bahia (BA)',data:toNum(PLANTAS[0].sub),backgroundColor:bg(CLR.BA),stack:'s',borderWidth:0},
-                  {label:'Assú (RN)',data:toNum(PLANTAS[1].sub),backgroundColor:bg(CLR.RN),stack:'s',borderWidth:0},
-                  {label:'Paraná (PR)',data:toNum(PLANTAS[2].sub),backgroundColor:bg(CLR.PR),stack:'s',borderWidth:0},
-                  {label:'Giro',data:toNum(PLANTAS[3].sub),backgroundColor:bg(CLR.GIRO),stack:'s',borderWidth:0}
-                ]},
+                data:{labels:ML.map(function(m){return m+'/26';}),datasets:PL.map(function(p){
+                  return {label:(p.key==='GIRO'?'Giro':p.nome+' ('+p.key+')'),data:toNum(p.sub),backgroundColor:bg(CLR[p.key]),stack:'s',borderWidth:0};
+                })},
                 options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
                   layout:{padding:{top:20}},
                   plugins:{legend:{display:false},datalabels:{display:false},
@@ -3621,8 +3624,7 @@
               if(window.ResizeObserver&&wrap){ new ResizeObserver(function(){ chart.resize(); }).observe(wrap); }
             }).catch(function(){});
             document.getElementById('dmLegend').innerHTML=
-              [['Bahia (BA)',CLR.BA],['Assú (RN)',CLR.RN],['Paraná (PR)',CLR.PR],['Giro',CLR.GIRO]]
-                .map(function(l){return '<span><i style="background:'+l[1]+'"></i>'+l[0]+'</span>';}).join('')
+              PL.map(function(p){return '<span><i style="background:'+CLR[p.key]+'"></i>'+(p.key==='GIRO'?'Giro':p.nome+' ('+p.key+')')+'</span>';}).join('')
               +'<span style="margin-left:auto"><i style="background:#7A8794"></i>tom pleno = realizado · translúcido = forecast (tracejado = jun│jul)</span>';
           })();
           </script>
