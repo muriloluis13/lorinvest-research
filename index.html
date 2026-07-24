@@ -3655,13 +3655,16 @@
 
             function fmt(v){ return v==null?'&mdash;':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
             function brDate(iso){ if(!iso) return '—'; var p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
-            // Seta neutra de direção vs. semana anterior (sem juízo de bom/ruim).
-            function arrow(cell){
+            // Seta de direção vs. semana anterior, colorida pelo sentido econômico:
+            // PIB melhora ao subir; IPCA/Câmbio/Selic/IGP-M melhoram ao cair.
+            function arrow(cell,key){
               if(!cell || cell.ant==null || cell.hoje==null) return '';
               var d=cell.hoje-cell.ant;
               if(Math.abs(d)<0.005) return '<span class="focus-arw" title="estável">&ndash;</span>';
               var up=d>0;
-              return '<span class="focus-arw" title="'+(up?'subiu':'caiu')+' vs. '+fmt(cell.ant)+'">'+(up?'&#9650;':'&#9660;')+'</span>';
+              var bom=(key==='pib')?up:!up;
+              var cor=bom?'var(--accent-3)':'var(--accent-danger)';
+              return '<span class="focus-arw" style="color:'+cor+'" title="'+(up?'subiu':'caiu')+' vs. '+fmt(cell.ant)+'">'+(up?'&#9650;':'&#9660;')+'</span>';
             }
 
             function render(data){
@@ -3670,7 +3673,7 @@
               var rows=(data.indicators||[]).map(function(ind){
                 var tds=(data.years||[]).map(function(y){
                   var c=ind.values&&ind.values[y];
-                  return '<td><b>'+fmt(c&&c.hoje)+'</b>'+arrow(c)+'</td>';
+                  return '<td><b>'+fmt(c&&c.hoje)+'</b>'+arrow(c,ind.key)+'</td>';
                 }).join('');
                 return '<tr><td>'+ind.label+'</td>'+tds+'</tr>';
               }).join('');
