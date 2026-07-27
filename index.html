@@ -2821,6 +2821,9 @@
               .rmp-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
               .placeholder-table th.mth-rz{background:#C55A17;color:#fff;border-bottom-color:#C55A17}
               .placeholder-table th.mth-fc{background:#4F7B8C;color:#fff;border-bottom-color:#4F7B8C}
+              /* mth-orc: mês orçado — azul um pouco mais fechado que o forecast, para as
+                 bases que são 100% orçamento (ex.: fluxo mensal do RCI Dez/25). */
+              .placeholder-table th.mth-orc{background:#3F6577;color:#fff;border-bottom-color:#3F6577}
               .rf-legend{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:11px;color:var(--muted);margin:11px 0 2px}
               .rf-legend span{display:inline-flex;align-items:center;gap:6px}
               .rf-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
@@ -3300,20 +3303,31 @@
               .fcx-tbl td.neg, .fcx-tbl td.c-fct.neg{color:var(--accent-danger)}
               .fcx-tbl tbody tr:nth-child(even){background:transparent}
               .fcx-tbl tr.fcx-h td:first-child{font-weight:700;color:var(--ink)}
-              .fcx-tbl tr.fcx-sub td{color:var(--muted)}
-              .fcx-tbl tr.fcx-sub td:first-child{padding-left:24px;font-weight:600}
-              .fcx-tbl tr.fcx-sub2 td{color:var(--muted);font-style:italic}
-              .fcx-tbl tr.fcx-sub2 td:first-child{padding-left:40px;font-weight:500}
+              /* Aberturas (fcx-sub/fcx-sub2): só recuo, sem cor própria — assim os
+                 negativos continuam vermelhos pela regra .neg. Quem pinta de cinza é
+                 .fcx-plt, aplicada só às linhas de planta (PR/BA/RN), em qualquer nível. */
+              .fcx-tbl tr.fcx-sub td:first-child{padding-left:24px;font-weight:400}
+              .fcx-tbl tr.fcx-sub2 td{font-style:italic}
+              .fcx-tbl tr.fcx-sub2 td:first-child{padding-left:40px;font-weight:400}
+              .fcx-tbl tr.fcx-plt td{color:var(--muted)}
               .fcx-tbl tr.fcx-tot td{font-weight:800;border-top:1px solid var(--line);background:#F4F7FB}
               .fcx-tbl tr.fcx-tot td:first-child{color:var(--ink)}
               .fcx-tbl tr.fcx-tot td.c-fct{background:#E7EEF6}
               .fcx-tbl tr.fcx-key td{font-weight:700;border-top:1px solid var(--line)}
-              .fcx-tbl tr.fcx-key td:first-child{font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--accent-1)}
+              .fcx-tbl tr.fcx-key td:first-child{color:var(--accent-1)}
               .fcx-tbl tr.fcx-strong td{background:#F4F7FB}
               .fcx-tbl tr.fcx-strong td.c-fct{background:#E7EEF6}
               .fcx-tbl tr.fcx-strong td:first-child{color:var(--ink)}
+              /* Bloco de caixa pós-CFF (Caixa BoP → Caixa EoP livre): faixa própria e
+                 régua de topo para não se confundir com a continuação do fluxo. */
+              .fcx-tbl tr.fcx-blk td{background:#E8EFF7}
+              .fcx-tbl tr.fcx-blk td.c-fct{background:#D9E5F2}
+              .fcx-tbl tr.fcx-blk.fcx-strong td{background:#DAE5F2}
+              .fcx-tbl tr.fcx-blk.fcx-strong td.c-fct{background:#C9D9EB}
+              .fcx-tbl tr.fcx-blk-top td{border-top:2px solid var(--accent-1)}
               .fcx-tbl tr.fcx-sp td{padding:0;height:7px;border:none;background:transparent}
               .fcx-tbl tbody tr:hover td{background:#F7FAFC}
+              .fcx-tbl tbody tr.fcx-blk:hover td{background:#DFE8F3}
             </style>
 
 
@@ -3323,6 +3337,12 @@
               .mfc-tbl th, .mfc-tbl td{padding:5px 6px}
               .mfc-tbl th:not(:first-child), .mfc-tbl td:not(:first-child){width:58px}
               .mfc-tbl td:first-child, .mfc-tbl th:first-child{min-width:180px}
+              /* .mfc-rf: fluxo mensal que mistura meses realizados e de forecast. O cabeçalho
+                 reusa .mth-rz (realizado, laranja) e .mth-fc (forecast, azul-petróleo) das
+                 tabelas de oferta do painel Operacional, com a mesma legenda .rf-legend.
+                 Nas células, só background: a cor do texto fica para a regra .neg. */
+              .fcx-tbl thead th small{display:block;margin-top:2px;font-size:9px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.8}
+              .mfc-rf td.mth-fc{background:#FAFBFD}
             </style>
 
             <div class="comm-view" data-view="hist">
@@ -3333,7 +3353,7 @@
 
               <div class="comm-src">
                 <span class="lbl">Base de dados</span>
-                <div class="comm-seg" role="tablist" aria-label="Base de dados do or&#231;amento 2026" data-default="rci">
+                <div class="comm-seg" role="tablist" aria-label="Base de dados do or&#231;amento 2026">
                   <button type="button" data-view="rci">RCI &#183; Dez/25</button>
                   <button type="button" data-view="rcaMai">RCA &#183; Mai/26</button>
                   <button type="button" data-view="rcaJun">RCA &#183; Jun/26</button>
@@ -3391,9 +3411,13 @@
               var obs='<ul class="dre-obs">'+d.obs.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>';
               return '<div class="row-full"><div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Orçamento 2026 por projeto vs. BP Copa</div><span class="tag">'+esc(d.tag)+'</span></div><div class="card-body">'+dtable(d)+obs+'<p class="card-note" style="margin-top:10px">'+d.note+'</p></div></div></div>';
             }
-            // Fluxos de caixa (histórico e mensal): mesmo dtable, card padrão + nota.
-            function fcxCard(t,title){
-              return '<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">'+title+'</div><span class="tag">'+esc(t.tag)+'</span></div><div class="card-body">'+dtable(t)+'<p class="card-note" style="margin-top:12px">'+t.note+'</p></div></div></div>';
+            // Card genérico de tabela mensal (fluxos de caixa e DRE mensal): dtable + nota.
+            // rfLegend (opcional): legenda realizado/forecast, igual à das tabelas de oferta.
+            // obs (opcional): comentários do mês da apresentação, no mesmo formato da DRE.
+            // sep: afasta do card seguinte, quando há mais de uma tabela empilhada na base.
+            function fcxCard(t,title,sep){
+              var obs=t.obs?'<ul class="dre-obs">'+t.obs.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>':'';
+              return '<div class="row-full"><div class="card"'+(sep?' style="margin-bottom:14px"':'')+'><div class="card-header"><div class="card-title">'+title+'</div><span class="tag">'+esc(t.tag)+'</span></div><div class="card-body">'+dtable(t)+(t.rfLegend||'')+obs+'<p class="card-note" style="margin-top:12px">'+t.note+'</p></div></div></div>';
             }
             // Placeholder para bases do Orçamento 2026 ainda sem fluxos.
             function orcWait(label){
@@ -3402,12 +3426,14 @@
                 + '<div class="s">As tabelas do orçamento e do fluxo de caixa mensal serão inseridas quando os dados do '+esc(label)+' forem disponibilizados.</div>'
                 + '</div></div></div></div>';
             }
-            // Renderiza uma base do Orçamento 2026: com dados → DRE + fluxo mensal; sem → placeholder.
+            // Renderiza uma base do Orçamento 2026, na ordem DRE anual → DRE mensal →
+            // fluxo mensal; base sem nenhuma delas cai no placeholder.
             function renderOrcBase(base,mountId,waitLabel){
               var el=document.getElementById(mountId); if(!el) return;
-              if(base && (base.dre||base.fcxMensal)){
+              if(base && (base.dre||base.dreMensal||base.fcxMensal)){
                 var h='';
                 if(base.dre) h+=dreCard(base.dre);
+                if(base.dreMensal) h+=fcxCard(base.dreMensal,'DRE — Resultado Operacional (mensal)',true);
                 if(base.fcxMensal) h+=fcxCard(base.fcxMensal,'Fluxo de Caixa — Orçamento 2026 (mensal)');
                 el.innerHTML=h;
               } else {
@@ -3446,9 +3472,9 @@
           <script>
           // Seletor de base de dados do Orçamento 2026 (RCI Dez/25 / RCA Mai/26 / RCA Jun/26).
           // Aninhado dentro da visão orc2026; escopo em filhos diretos do host para
-          // não colidir com o seletor de visão do painel. Default explícito em "rci"
-          // (única base com dados hoje) — ao inserir os fluxos das bases mais recentes,
-          // remova data-default="rci" do .comm-seg para o default voltar à base mais nova.
+          // não colidir com o seletor de visão do painel. Sem data-default: o default é
+          // a base mais nova (último botão = RCA Jun/26, que já traz o fluxo mensal).
+          // O RCA Mai/26 segue sem fluxos e cai no placeholder quando selecionado.
           (function(){
             var host=document.querySelector('.emp-panel[data-emp="resultados"] .comm-view[data-view="orc2026"]');
             if(!host) return;
@@ -3458,7 +3484,7 @@
             var cap=host.querySelector('#orcBaseCap');
             var caps={rci:'RCI · Comitê de Investimentos Lorinvest, 15/dez/2025 (slides 8 e 20)',
                       rcaMai:'RCA · Mai/26 — aguardando fluxos',
-                      rcaJun:'RCA · Jun/26 — aguardando fluxos'};
+                      rcaJun:'RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slide 16)'};
             btns.forEach(function(b){ b.addEventListener('click',function(){
               var v=b.getAttribute('data-view');
               btns.forEach(function(x){ x.classList.toggle('active',x===b); });
