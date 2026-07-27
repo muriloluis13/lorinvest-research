@@ -1272,7 +1272,7 @@
        Carregada no <head> para estar disponível ANTES de qualquer script inline
        que a consome (organograma, Panorama, aba Empresas). -->
   <!-- ?v= força o browser a buscar a versão nova quando os dados mudam -->
-  <script src="data/empresas.js?v=2026-07-22d"></script>
+  <script src="data/empresas.js?v=2026-07-27h"></script>
 </head>
 <body>
   <script>
@@ -3419,6 +3419,24 @@
               var obs=t.obs?'<ul class="dre-obs">'+t.obs.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>':'';
               return '<div class="row-full"><div class="card"'+(sep?' style="margin-bottom:14px"':'')+'><div class="card-header"><div class="card-title">'+title+'</div><span class="tag">'+esc(t.tag)+'</span></div><div class="card-body">'+dtable(t)+(t.rfLegend||'')+obs+'<p class="card-note" style="margin-top:12px">'+t.note+'</p></div></div></div>';
             }
+            // Faixas de KPIs do ano, acima das tabelas da base. Todos os tiles têm o mesmo
+            // formato: valor + unidade, linha de contexto (s) e a segunda unidade no rodapé
+            // (sub). s/sub são HTML autorado no data (aceitam <b>), como os notes das tabelas.
+            function kpiRow(kp){
+              var grids=kp.groups.map(function(gp,gi){
+                var tiles=gp.tiles.map(function(t){
+                  var h='<div class="kpi-tile '+t.c+'"><div class="k">'+esc(t.k)+'</div>'
+                    + '<div class="v'+(t.neg?' neg':'')+'">'+esc(t.v)+(t.u?' <small>'+esc(t.u)+'</small>':'')+'</div>';
+                  if(t.s) h+='<div class="s">'+t.s+'</div>';
+                  if(t.sub) h+='<div class="sub">'+t.sub+'</div>';
+                  return h+'</div>';
+                }).join('');
+                var last=gi===kp.groups.length-1;
+                return '<div class="'+gp.cls+'" style="margin-bottom:'+(last?(kp.note?'9px':'15px'):'12px')+'">'+tiles+'</div>';
+              }).join('');
+              return '<div class="row-full">'+grids
+                + (kp.note?'<p class="card-note" style="margin:0 0 16px">'+kp.note+'</p>':'')+'</div>';
+            }
             // Placeholder para bases do Orçamento 2026 ainda sem fluxos.
             function orcWait(label){
               return '<div class="row-full"><div class="card"><div class="card-body"><div class="e2-dev">'
@@ -3430,11 +3448,14 @@
             // fluxo mensal; base sem nenhuma delas cai no placeholder.
             function renderOrcBase(base,mountId,waitLabel){
               var el=document.getElementById(mountId); if(!el) return;
-              if(base && (base.dre||base.dreMensal||base.fcxMensal)){
+              if(base && (base.kpis||base.dre||base.dreMensal||base.fcxMensal)){
                 var h='';
+                if(base.kpis) h+=kpiRow(base.kpis);
                 if(base.dre) h+=dreCard(base.dre);
                 if(base.dreMensal) h+=fcxCard(base.dreMensal,'DRE — Resultado Operacional (mensal)',true);
                 if(base.fcxMensal) h+=fcxCard(base.fcxMensal,'Fluxo de Caixa — Orçamento 2026 (mensal)');
+                // base que só tem KPIs mantém o aviso das tabelas que ainda faltam
+                if(!base.dre && !base.dreMensal && !base.fcxMensal) h+=orcWait(waitLabel);
                 el.innerHTML=h;
               } else {
                 el.innerHTML=orcWait(waitLabel);

@@ -59,7 +59,7 @@
         },
         assinados:{
           rci:{kpiCls:"kpi-row4",tag:"preço net · reajustado desde a data-base",
-            kpis:[["k-slate","Contratos assinados","6","4 GNL · 2 GNCp"],["k-teal","Prazo médio","4,4 <small>anos</small>","média simples dos 6 contratos"],["k-sage","Preço médio","R$ 3,58<small>/m³</small>","ponderado pelo volume total"],["k-stone","Volume total contratado","132.175","m³/dia · ramp-up 56.865 →"]],
+            kpis:[["k-slate","Contratos assinados","6","4 GNL · 2 GNCp"],["k-teal","Prazo médio","4,4 <small>anos</small>","média simples dos 6 contratos"],["k-sage","Preço médio","R$ 3,58<small>/m³</small>","GNL 3,61 · GNCp 2,60 · pond. pelo volume total"],["k-stone","Volume total contratado","132.175","m³/dia · ramp-up 56.865 →"]],
             cols:["Cliente","Assinatura","Início forn.","Prazo","Término","Produto","Inicial","Final","Preço net (R$/m³)","Planta"],
             rows:[
               ["CEGÁS","28/10/2025","03/11/2025","5 anos","28/10/2030","GNL","18.740","50.000","3,3041","RN"],
@@ -71,8 +71,8 @@
             ],
             occ:[["k-teal","RN · cap. GNL","72.688","Ocupação GNL <b>69%</b>",69],["k-sage","BA · cap. GNL","85.232","Ocupação GNL <b>91%</b>",91],["k-stone","PR · cap. GNL","39.580","Ocupação GNL <b>0%</b>",0]],
             foot:'<b>(1)</b> Mais de R$ 1 bilhão em contratos assinados. &nbsp; <b>(2)</b> Preço atual considera reajustes aplicados desde a data-base do contrato. &nbsp; <b>(3)</b> 264 clientes foram passados para a COPA prospectar. &nbsp; <b>(4)</b> 46 clientes foram indicados pela COPA para a GNLink prospectar, sendo metade do volume em SP. &nbsp; <b>(5)</b> 70 clientes acima de 100 ton/mês na lista da GNLink, sendo apenas 16 na lista da COPA enviada à GNLink.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 4).'},
-          rca:{kpiCls:"kpi-row5",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["90.065","108.625","222.675"],
-            kpis:[["k-slate","Contratos assinados","15","6 definitivos · 9 em teste"],["k-teal","Prazo médio","2,7 <small>anos</small>","média simples dos 15 contratos"],["k-sage","Preço médio","R$ 3,37<small>/m³</small>","ponderado pelo volume total"],["k-stone","ToP médio","54,6%","ponderado pelo volume total"],["k-sage","Valor total dos contratos","R$ 1,10 <small>bi</small>","R$ 1.101.224.386"]],
+          rca:{kpiCls:"kpi-row4",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["90.065","108.625","222.675"],
+            kpis:[["k-slate","Contratos assinados","15","6 definitivos · 9 em teste"],["k-teal","Prazo médio","2,7 <small>anos</small>","média simples dos 15 contratos"],["k-sage","Preço médio","R$ 3,37<small>/m³</small>","GNL 3,55 · GNCp 2,57 · pond. pelo volume total"],["k-sage","Valor total dos contratos","R$ 1,10 <small>bi</small>","R$ 1.101.224.386"]],
             cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Inicial","Atual","Final","Preço net (R$/m³)","%TOP","Apuração","Início TOP","Valor do contrato","Planta"],
             rows:[
               {t:"def",c:["CEGÁS","28/10/2025","03/11/2025","5 anos","GNL","18.740","22.000","50.000","3,38","70%","Trimestral","fev/26","R$ 226.003.744","RN"]},
@@ -92,8 +92,8 @@
               {t:"def",c:["ALGÁS","13/02/2026","01/09/2026","5 anos","GNCp","3.000","3.000","8.500","1,81","70%","Anual","—","R$ 18.637.448","BA"]}
             ],
             foot:'<b>(1)</b> Preço net considera o preço de face do contrato, sem efeito da receita de locação e sem os reajustes de preço ao longo do tempo. &nbsp; <b>(2)</b> %TOP = parcela take-or-pay do volume contratado.<br>Fonte: GNLink — RCA, mai/2026 (slide 6).'},
-          rcaJun:{kpiCls:"kpi-row5",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["90.065","108.625","53.248","226.175"],
-            kpis:[["k-slate","Contratos assinados","15","6 definitivos · 9 em teste"],["k-teal","Prazo médio","2,7 <small>anos</small>","média simples dos 15 contratos"],["k-sage","Preço médio","R$ 3,38<small>/m³</small>","ponderado pelo volume final"],["k-stone","ToP médio","53,6%","ponderado pelo volume final"],["k-sage","Valor total dos contratos","R$ 1,09 <small>bi</small>","R$ 1.091.224.386"]],
+          rcaJun:{kpiCls:"kpi-row4",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["90.065","108.625","53.248","226.175"],
+            kpis:[["k-slate","Contratos assinados","15","6 definitivos · 9 em teste"],["k-teal","Prazo médio","2,7 <small>anos</small>","média simples dos 15 contratos"],["k-sage","Preço médio","R$ 3,38<small>/m³</small>","GNL 3,57 · GNCp 2,58 · pond. pelo volume final"],["k-sage","Valor total dos contratos","R$ 1,09 <small>bi</small>","R$ 1.091.224.386"]],
             cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Inicial","Atual","Real","Final","Preço net (R$/m³)","%TOP","Apuração","Início TOP","Valor do contrato","Planta"],
             rows:[
               {t:"def",c:["COMPAGÁS","29/12/2025","12/03/2026","1 ano","GNL","7.000","20.000","26.393","20.000","3,85","70%","Anual","mar/26","R$ 71.832.000","PR"]},
@@ -215,6 +215,34 @@
         // Bases anteriores nunca são sobrescritas: base nova entra como item adicional.
         orc2026:{
         rci:{
+        // Faixa de KPIs do orçamento 2026. O CI Dez/25 não abre custos por etapa em
+        // nenhum slide, então esta base não tem os cards de molécula e de custos GNLink;
+        // o volume do ano vem de 143.746 m³/dia × 365 (o deck só publica a média diária).
+        kpis:{groups:[
+          {cls:"kpi-grid",tiles:[
+            {c:"k-slate",k:"Receita líquida 2026",v:"185,4",u:"R$ mi",
+             s:"PR 63,0 · BA 63,5 · RN 58,9",
+             sub:'Volume do ano <b>52,5 mi de m³</b> · utilização <b>63,5%</b>'},
+            {c:"k-slate",k:"Preço médio",v:"3,53",u:"R$/m³",
+             s:"Orçamento, sem abertura por produto",
+             sub:'Implícito: receita ÷ <b>143.746 m³/dia</b> × 365'},
+            {c:"k-stone",k:"Despesas matriz",v:"(26,9)",u:"R$ mi",neg:true,
+             s:"Contra 21,4 de resultado dos projetos",
+             sub:'<b>(0,51) R$/m³</b>'}
+          ]},
+          {cls:"kpi-grid",tiles:[
+            {c:"k-red",k:"EBITDA 2026",v:"(5,5)",u:"R$ mi",neg:true,
+             s:"Consolidado · projetos 21,4",
+             sub:'<b>(0,10) R$/m³</b> · projetos <b>0,41</b>'},
+            {c:"k-red",k:"Resultado financeiro 2026",v:"(37,7)",u:"R$ mi",neg:true,
+             s:"20% da receita líquida",
+             sub:'<b>(0,72) R$/m³</b>'},
+            {c:"k-red",k:"Lucro líquido 2026",v:"(55,3)",u:"R$ mi",neg:true,
+             s:"Depreciação (12,1) · financeiro (37,7)",
+             sub:'<b>(1,05) R$/m³</b>'}
+          ]}
+        ],
+        note:'Base de orçamento (sem realizado). O CI Dez/25 não traz a abertura de custos por etapa — molécula, liquefação, distribuição, regás e SG&amp;A —, por isso esta faixa tem seis cards e não oito. Os R$/m³ usam o <b>volume de 52,5 milhões de m³</b>, anualizado a partir dos 143.746 m³/dia médios do slide 8 (× 365); o deck não publica o volume do ano nem o preço médio, então o preço de 3,53 é implícito. A depreciação de (12,1) é a diferença entre o EBITDA de (5,5), o resultado financeiro de (37,7) e o lucro líquido de (55,3).'},
         dre:{tag:"R$ milhões",tblCls:"placeholder-table dre-tbl",
           cols:[["R$ milhões",""],["PR",""],["BA",""],["RN",""],["Consolidado","c-con"],["BP Copa¹","c-bp"]],
           rows:[
@@ -270,10 +298,161 @@
           ],
           note:'<b>¹ FC 2026:</b> forecast (total) do orçamento de 2026. &nbsp; <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 20).'}
         },
-        rcaMai:null, // { dre:{...}, fcxMensal:{...} } — preencher quando chegarem os fluxos do RCA Mai/26
+        // RCA Mai/26: por ora só a faixa de KPIs, extraída do slide 19 do deck de maio
+        // (jan–mai realizado, jun–dez forecast). As tabelas mensais seguem pendentes.
+        // Este é o único deck que publica o volume do ano (25,9 mi de m³), então aqui
+        // os R$/m³ não dependem de nenhuma estimativa de volume.
+        rcaMai:{
+        kpis:{groups:[
+          {cls:"kpi-row4",tiles:[
+            {c:"k-slate",k:"Receita líquida 2026",v:"89,8",u:"R$ mi",
+             s:"GNL 77,0 · GNC 11,7 · outros 1,0",
+             sub:'Volume do ano <b>25,9 mi de m³</b>'},
+            {c:"k-slate",k:"Preço médio",v:"3,47",u:"R$/m³",
+             s:"GNL 3,71 · GNC 2,66",
+             sub:'Último mês realizado, mai/26: <b>3,26</b>'},
+            {c:"k-stone",k:"Custo da molécula",v:"1,76",u:"R$/m³",
+             s:"R$ 45,5 mi · 51% da receita",
+             sub:'51% do preço médio'},
+            {c:"k-stone",k:"Custos GNLink",v:"2,13",u:"R$/m³",
+             s:"R$ 55,1 mi no ano",
+             sub:'Liquefação <b>0,99</b> · distribuição <b>0,71</b> · regás <b>0,11</b> · SG&amp;A <b>0,32</b>'}
+          ]},
+          {cls:"kpi-row4",tiles:[
+            {c:"k-stone",k:"Despesas matriz",v:"(26,7)",u:"R$ mi",neg:true,
+             s:"71% do EBITDA negativo do ano",
+             sub:'<b>(1,03) R$/m³</b>'},
+            {c:"k-red",k:"EBITDA 2026",v:"(37,6)",u:"R$ mi",neg:true,
+             s:"Consolidado · projetos (10,9)",
+             sub:'<b>(1,45) R$/m³</b> · projetos <b>(0,42)</b>'},
+            {c:"k-red",k:"Resultado financeiro 2026",v:"(38,3)",u:"R$ mi",neg:true,
+             s:"43% da receita líquida",
+             sub:'<b>(1,48) R$/m³</b>'},
+            {c:"k-red",k:"Lucro líquido 2026",v:"(88,2)",u:"R$ mi",neg:true,
+             s:"Depreciação (12,2) · financeiro (38,3)",
+             sub:'<b>(3,41) R$/m³</b>'}
+          ]}
+        ],
+        note:'Único deck que publica o volume do ano (<b>25,9 milhões de m³</b>), então os R$/m³ aqui não dependem de estimativa — e reproduzem a margem unitária de (0,42) do próprio slide 19. A conta fecha: preço 3,47 − molécula 1,76 − custos GNLink 2,13 = (0,42). <b>Atenção:</b> a coluna TOTAL do custo unitário de liquefação no slide traz 2,86, valor inconsistente com os próprios meses (nenhum passa de 2,12) e com R$ 25,5 mi ÷ 25,9 mi de m³ = 0,99; o card usa 0,99.'},
+        dreMensal:{tag:"R$ milhões · R$/m³ · %",tblCls:"placeholder-table fcx-tbl mfc-tbl mfc-rf",
+          cols:[["R$ mi",""],["jan/26<small>real</small>","mth-rz"],["fev/26<small>real</small>","mth-rz"],["mar/26<small>real</small>","mth-rz"],["abr/26<small>real</small>","mth-rz"],["mai/26<small>real</small>","mth-rz"],["jun/26<small>fcst</small>","mth-fc"],["jul/26<small>fcst</small>","mth-fc"],["ago/26<small>fcst</small>","mth-fc"],["set/26<small>fcst</small>","mth-fc"],["out/26<small>fcst</small>","mth-fc"],["nov/26<small>fcst</small>","mth-fc"],["dez/26<small>fcst</small>","mth-fc"],["2026<small>real+fcst</small>","c-fct"]],
+          rows:[
+            {cls:"fcx-h",cells:["(=) Receita Líquida","2,5","1,1","2,6","3,3","4,2","6,6","7,7","11,1","12,3","12,8","12,6","12,9","89,8"]},
+            {cls:"fcx-sub",cells:["GNL","2,4","1,0","2,5","3,0","3,7","6,1","6,2","9,4","10,3","10,9","10,6","11,0","77,0"]},
+            {cls:"fcx-sub",cells:["Serviço sem molécula GNL","—","—","—","—","—","—","—","—","0,1","0,2","0,2","0,2","0,6"]},
+            {cls:"fcx-sub",cells:["Gás excedente (mercado livre)","—","0,1","—","—","0,3","—","—","—","—","—","—","—","0,4"]},
+            {cls:"fcx-sub",cells:["GNC","0,1","0,1","0,1","0,3","0,2","0,5","1,5","1,7","1,8","1,8","1,9","1,8","11,7"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Preço médio (R$/m³)","3,42","2,79","3,32","3,27","3,26","3,53","3,25","3,52","3,49","3,57","3,56","3,60","3,47"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Preço médio GNL (R$/m³)","3,43","3,47","3,35","3,36","3,51","3,60","3,50","3,74","3,77","3,85","3,87","3,88","3,71"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Serviço sem molécula GNL (R$/m³)","—","—","—","—","1,34","1,34","—","—","1,54","1,54","1,68","1,68","1,54"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Gás excedente (R$/m³)","—","0,83","—","—","1,87","—","—","—","—","—","—","—","1,45"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Preço médio GNC (R$/m³)","3,20","3,20","2,84","2,60","2,73","2,90","2,52","2,68","2,65","2,70","2,61","2,67","2,66"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) Custo da molécula","(1,6)","(0,8)","(1,5)","(2,1)","(2,5)","(3,5)","(4,2)","(6,2)","(7,0)","(3,5)","(6,4)","(6,3)","(45,5)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário molécula (R$/m³)","2,12","2,10","1,88","2,08","1,94","1,90","1,78","1,98","2,03","1,00","1,85","1,79","1,76"]},
+            {cls:"fcx-h",cells:["(–) Custo de liquefação","(1,3)","(0,8)","(1,1)","(1,6)","(1,8)","(2,3)","(2,4)","(2,7)","(2,8)","(2,6)","(2,9)","(3,2)","(25,5)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário liquefação (R$/m³)¹","1,68","2,12","1,40","1,56","1,39","1,23","1,00","0,85","0,81","0,74","0,82","0,89","2,86"]},
+            {cls:"fcx-h",cells:["(–) Distribuição","(1,9)","(0,9)","(1,5)","(1,6)","(1,3)","(1,3)","(1,4)","(1,6)","(1,7)","(1,7)","(1,7)","(1,7)","(18,3)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário distribuição (R$/m³)","2,62","2,26","1,94","1,61","0,97","0,67","0,61","0,52","0,48","0,47","0,48","0,47","0,71"]},
+            {cls:"fcx-h",cells:["(–) Regás / descompressão","(0,1)","(0,1)","(0,2)","(0,2)","(0,2)","(0,3)","(0,3)","(0,3)","(0,4)","(0,3)","(0,3)","(0,3)","(2,9)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário regás (R$/m³)","0,13","0,24","0,20","0,16","0,15","0,18","0,12","0,10","0,10","0,08","0,08","0,08","0,11"]},
+            {cls:"fcx-h",cells:["(–) Plant-level SG&amp;A","(0,9)","(0,6)","(0,7)","(0,8)","(0,4)","(0,7)","(0,9)","(0,5)","(0,7)","(0,8)","(0,6)","(0,8)","(8,4)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário SG&amp;A (R$/m³)","1,16","1,54","0,93","0,82","0,30","0,38","0,37","0,16","0,20","0,22","0,16","0,23","0,32"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-tot",cells:["(=) Resultado Operacional","(3,2)","(2,2)","(2,4)","(3,0)","(1,9)","(1,5)","(1,5)","(0,2)","(0,3)","3,9","0,7","0,7","(10,9)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Margem unitária (R$/m³)","(4,29)","(5,47)","(3,03)","(2,95)","(1,47)","(0,82)","(0,62)","(0,08)","(0,07)","1,09","0,21","0,18","(0,42)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Margem operacional","(125,3%)","(195,7%)","(91,3%)","(90,4%)","(45,1%)","(23,4%)","(19,2%)","(2,2%)","(2,1%)","30,6%","5,9%","5,1%","(12,1%)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) Despesas matriz","(1,7)","(2,2)","(1,7)","(5,8)","(1,9)","(1,7)","(1,7)","(1,8)","(2,0)","(1,8)","(2,1)","(2,2)","(26,7)"]},
+            {cls:"fcx-tot",cells:["(=) EBITDA","(4,9)","(4,4)","(4,2)","(8,8)","(3,8)","(3,3)","(3,2)","(2,1)","(2,2)","2,1","(1,4)","(1,5)","(37,6)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Margem EBITDA","(193,1%)","(396,3%)","(157,7%)","(267,5%)","(91,0%)","(49,8%)","(40,8%)","(18,7%)","(18,1%)","16,3%","(10,9%)","(11,7%)","(41,9%)"]},
+            {cls:"fcx-h",cells:["EBITDA normalizado²","(4,6)","(3,7)","(4,1)","(8,8)","(3,8)","(3,3)","(3,2)","(2,1)","(2,2)","2,1","(1,4)","(1,5)","(37,6)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) Depreciação","(0,5)","(0,1)","(0,9)","(0,6)","(0,5)","(1,3)","(1,4)","(1,4)","(1,4)","(1,4)","(1,4)","(1,4)","(12,2)"]},
+            {cls:"fcx-h",cells:["(–) Despesas financeiras","(2,8)","(2,2)","(3,2)","(2,4)","(2,6)","(3,1)","(4,6)","(3,1)","(3,8)","(3,2)","(3,4)","(3,8)","(38,3)"]},
+            {cls:"fcx-h",cells:["(–) CSLL / IRPJ","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-key fcx-strong fcx-blk fcx-blk-top",cells:["(=) Resultado Líquido","(8,2)","(6,8)","(8,2)","(11,7)","(6,9)","(7,8)","(9,2)","(6,5)","(7,4)","(2,6)","(6,1)","(6,7)","(88,2)"]},
+            {cls:"fcx-sub2 fcx-blk",noNeg:true,cells:["Margem líquida","(324,1%)","(609,6%)","(313,1%)","(357,6%)","(163,4%)","(117,8%)","(118,5%)","(59,1%)","(59,9%)","(20,0%)","(48,9%)","(52,1%)","(98,2%)"]}
+          ],
+          rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span><span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span></div>',
+          note:'<b>¹</b> A coluna 2026 do custo unitário de liquefação vem do slide como <b>2,86</b>, valor inconsistente com os próprios meses (nenhum passa de 2,12) e com R$ 25,5 mi ÷ 25,9 mi de m³ = 0,99; mantido como no original, mas os KPIs acima usam 0,99. &nbsp; <b>²</b> EBITDA normalizado exclui do SG&amp;A os gastos com a arbitragem da BBOG e, no custo de molécula do PR, a diferença entre a NF e o valor pago — ajustes só em jan–mar/26; aqui também a coluna 2026 do slide repete o EBITDA sem ajuste.<br>Fonte: GNLink — Apresentação de Resultados Mai/26 (slide 19). Os dois blocos de volume (m³/dia e mil m³) do slide foram omitidos, conforme solicitado; o volume do ano (25,9 mi de m³) segue nos KPIs acima. Linhas em R$ milhões, exceto preços e custos unitários (R$/m³) e margens (%).'},
+        fcxMensal:{tag:"R$ milhões",tblCls:"placeholder-table fcx-tbl mfc-tbl mfc-rf",
+          cols:[["R$ mi",""],["jan/26<small>real</small>","mth-rz"],["fev/26<small>real</small>","mth-rz"],["mar/26<small>real</small>","mth-rz"],["abr/26<small>real</small>","mth-rz"],["mai/26<small>real</small>","mth-rz"],["jun/26<small>fcst</small>","mth-fc"],["jul/26<small>fcst</small>","mth-fc"],["ago/26<small>fcst</small>","mth-fc"],["set/26<small>fcst</small>","mth-fc"],["out/26<small>fcst</small>","mth-fc"],["nov/26<small>fcst</small>","mth-fc"],["dez/26<small>fcst</small>","mth-fc"],["2026<small>real+fcst</small>","c-fct"]],
+          rows:[
+            {cls:"fcx-h",cells:["(+/–) EBITDA","(4,9)","(4,4)","(4,2)","(8,8)","(3,8)","(3,3)","(3,2)","(2,1)","(2,2)","2,1","(1,4)","(1,5)","(37,6)"]},
+            {cls:"fcx-sub",cells:["Matriz","(1,7)","(2,2)","(1,7)","(5,8)","(1,9)","(1,7)","(1,7)","(1,8)","(2,0)","(1,8)","(2,1)","(2,2)","(26,7)"]},
+            {cls:"fcx-sub",cells:["Projetos","(3,2)","(2,2)","(2,4)","(3,0)","(1,9)","(1,5)","(1,5)","(0,2)","(0,3)","3,9","0,7","0,7","(10,9)"]},
+            {cls:"fcx-sub2 fcx-plt",cells:["PR","(1,9)","(0,9)","(0,8)","(1,2)","(0,7)","(0,1)","(0,2)","—","(0,2)","3,6","0,5","0,5","(1,6)"]},
+            {cls:"fcx-sub2 fcx-plt",cells:["BA","(1,2)","(1,1)","(1,2)","(1,1)","(0,9)","(1,2)","(0,9)","(0,1)","(0,2)","0,1","—","(0,1)","(7,9)"]},
+            {cls:"fcx-sub2 fcx-plt",cells:["RN","(0,1)","(0,2)","(0,4)","(0,6)","(0,3)","(0,2)","(0,3)","(0,1)","0,1","0,2","0,3","0,3","(1,3)"]},
+            {cls:"fcx-h",cells:["(–) IRPJ / CSLL","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-h",cells:["(+/–) Δ Capital de Giro","0,9","(2,2)","(1,5)","(1,0)","0,7","(2,4)","1,4","1,1","1,4","(10,0)","7,3","0,4","(3,9)"]},
+            {cls:"fcx-tot",cells:["(=) CFO","(4,0)","(6,6)","(5,7)","(9,8)","(3,2)","(5,6)","(1,8)","(1,0)","(0,8)","(7,9)","5,9","(1,1)","(41,5)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) CapEx","(7,2)","(3,7)","(6,0)","(1,7)","(2,0)","(4,2)","(4,2)","(3,0)","(2,0)","(1,9)","(1,7)","(2,3)","(39,9)"]},
+            {cls:"fcx-sub",cells:["Matriz","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-sub fcx-plt",cells:["PR","(1,2)","(1,2)","(1,3)","(0,5)","(0,1)","(1,2)","(1,2)","(1,4)","(0,7)","(0,6)","(0,4)","(0,5)","(10,3)"]},
+            {cls:"fcx-sub fcx-plt",cells:["BA","(1,1)","(0,8)","(0,5)","(0,2)","(0,9)","(1,4)","(1,5)","(0,7)","(0,6)","(0,6)","(0,6)","(0,8)","(9,9)"]},
+            {cls:"fcx-sub fcx-plt",cells:["RN","(4,8)","(1,6)","(4,1)","(1,0)","(0,9)","(1,6)","(1,5)","(1,0)","(0,7)","(0,7)","(0,7)","(1,0)","(19,6)"]},
+            {cls:"fcx-tot",cells:["(=) CFI","(7,2)","(3,7)","(6,0)","(1,7)","(2,0)","(4,2)","(4,2)","(3,0)","(2,0)","(1,9)","(1,7)","(2,3)","(39,9)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(+) Aporte Hankoe","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-h",cells:["(+) Aporte Copa Energia","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-h",cells:["(+) Ingresso de dívida","145,3","75,3","—","—","—","—","176,7","—","—","—","—","—","397,3"]},
+            {cls:"fcx-h",cells:["(–) Pgto Principal","(135,0)","—","—","—","—","—","(145,3)","—","—","(0,7)","(0,7)","(0,7)","(282,4)"]},
+            {cls:"fcx-h",cells:["(–) Resultado Financeiro","(10,3)","0,6","(1,5)","0,8","(1,5)","(1,7)","(14,4)","(2,1)","(2,7)","0,3","(3,8)","(0,9)","(37,3)"]},
+            {cls:"fcx-tot",cells:["(=) CFF","(0,1)","75,9","(1,5)","0,8","(1,5)","(1,7)","17,1","(2,1)","(2,7)","(0,4)","(4,5)","(1,6)","77,7"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-key fcx-blk fcx-blk-top",cells:["Caixa BoP","18,9","7,7","73,3","60,2","49,4","42,8","31,3","42,4","36,3","30,8","20,5","20,2","18,9"]},
+            {cls:"fcx-key fcx-blk",cells:["(+/–) Δ Caixa","(11,2)","65,6","(13,2)","(10,8)","(6,6)","(11,5)","11,2","(6,1)","(5,5)","(10,3)","(0,3)","(5,1)","(3,7)"]},
+            {cls:"fcx-key fcx-blk",cells:["Caixa EoP","7,7","73,3","60,2","49,4","42,8","31,3","42,4","36,3","30,8","20,5","20,2","15,2","15,2"]},
+            {cls:"fcx-key fcx-blk",cells:["Fundo de Líquidez BNB (retido)","(6,5)","(6,6)","(6,6)","(6,8)","(6,8)","(6,8)","(7,7)","(7,7)","(7,7)","(7,7)","(7,7)","(7,7)","(7,7)"]},
+            {cls:"fcx-key fcx-strong fcx-blk",cells:["Caixa EoP livre","1,2","66,7","53,6","42,7","36,0","24,5","34,8","28,7","23,1","12,9","12,6","7,5","7,5"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-key",cells:["Dívida Bruta","236,5","314,6","316,3","319,4","320,5","322,0","343,7","344,8","345,8","348,6","347,5","349,7","349,7"]},
+            {cls:"fcx-key fcx-strong",cells:["Dívida Líquida","228,8","241,3","256,1","270,0","277,8","290,7","301,3","308,4","315,0","328,1","327,3","334,5","334,5"]}
+          ],
+          rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span><span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span></div>',
+          note:'<b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável; nesta base, como no RCA Jun/26, aparece com sinal negativo (dedução do saldo final).<br>Fonte: GNLink — Apresentação de Resultados Mai/26 (slide 17). As colunas de orçado e de variação (mai/26 e 2026) do slide foram omitidas, como nas demais bases.'}},
         rcaJun:{ // DRE mensal (slide 18) + fluxo de caixa indireto mensal (slide 16) do RCA Jun/26:
                  // jan–jun realizado e jul–dez forecast, fechando na coluna do ano. O cabeçalho usa
                  // mth-rz/mth-fc; no fluxo, as colunas de orçado/variação do slide foram omitidas.
+        // KPIs do ano 2026 (real jan–jun + fcst jul–dez). Todo R$/m³ da faixa usa o MESMO
+        // denominador — o volume do ano —, para os cards fecharem entre si; os unitários
+        // publicados no slide 18 usam bases distintas por linha e ficam na tabela.
+        // Duas faixas de 4 para não sobrar coluna vazia na grade.
+        kpis:{groups:[
+          {cls:"kpi-row4",tiles:[
+            {c:"k-slate",k:"Receita líquida 2026",v:"83,0",u:"R$ mi",
+             s:"GNL 72,8 · GNC 8,8 · outros 1,4",
+             sub:'Volume implícito no ano <b>23,6 mi de m³</b>'},
+            {c:"k-slate",k:"Preço médio",v:"3,51",u:"R$/m³",
+             s:"GNL 3,69 · GNC 2,94",
+             sub:'Último mês realizado, jun/26: <b>3,52</b>'},
+            {c:"k-stone",k:"Custo da molécula",v:"1,62",u:"R$/m³",
+             s:"R$ 38,2 mi · 46% da receita",
+             sub:'46% do preço médio'},
+            {c:"k-stone",k:"Custos GNLink",v:"2,24",u:"R$/m³",
+             s:"R$ 53,0 mi no ano",
+             sub:'Liquefação <b>0,99</b> · distribuição <b>0,76</b> · regás <b>0,14</b> · SG&amp;A <b>0,35</b>'}
+          ]},
+          {cls:"kpi-row4",tiles:[
+            {c:"k-stone",k:"Despesas matriz",v:"(26,9)",u:"R$ mi",neg:true,
+             s:"77% do EBITDA negativo do ano",
+             sub:'<b>(1,14) R$/m³</b>'},
+            {c:"k-red",k:"EBITDA 2026",v:"(35,0)",u:"R$ mi",neg:true,
+             s:"Consolidado · projetos (8,1)",
+             sub:'<b>(1,48) R$/m³</b> · projetos <b>(0,34)</b>'},
+            {c:"k-red",k:"Resultado financeiro 2026",v:"(37,5)",u:"R$ mi",neg:true,
+             s:"45% da receita · no caixa (37,8)",
+             sub:'<b>(1,59) R$/m³</b>'},
+            {c:"k-red",k:"Lucro líquido 2026",v:"(84,5)",u:"R$ mi",neg:true,
+             s:"Depreciação (11,9) · financeiro (37,5)",
+             sub:'<b>(3,57) R$/m³</b>'}
+          ]}
+        ],
+        note:'O deck de jun/26 não publica o volume do ano: os R$/m³ acima usam o <b>volume implícito de 23,6 milhões de m³</b> (receita ÷ preço médio), que reproduz a margem unitária de (0,34) do próprio slide 18. Como todos os cards dividem pelo mesmo volume, a conta fecha: preço 3,51 − molécula 1,62 − custos GNLink 2,24 = (0,35) de margem operacional unitária. Na tabela abaixo, os unitários publicados no deck são um pouco diferentes porque cada linha usa uma base de volume própria (molécula, distribuição e regás desconsideram o “Serviço sem molécula”; liquefação desconsidera o gás excedente).'},
         dreMensal:{tag:"R$ milhões · R$/m³ · %",tblCls:"placeholder-table fcx-tbl mfc-tbl mfc-rf",
           cols:[["R$ mi",""],["jan/26<small>real</small>","mth-rz"],["fev/26<small>real</small>","mth-rz"],["mar/26<small>real</small>","mth-rz"],["abr/26<small>real</small>","mth-rz"],["mai/26<small>real</small>","mth-rz"],["jun/26<small>real</small>","mth-rz"],["jul/26<small>fcst</small>","mth-fc"],["ago/26<small>fcst</small>","mth-fc"],["set/26<small>fcst</small>","mth-fc"],["out/26<small>fcst</small>","mth-fc"],["nov/26<small>fcst</small>","mth-fc"],["dez/26<small>fcst</small>","mth-fc"],["2026<small>real+fcst</small>","c-fct"]],
           rows:[
