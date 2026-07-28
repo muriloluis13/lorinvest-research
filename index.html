@@ -1087,7 +1087,10 @@
     .mc-comp.is-self { border-color: rgba(46,125,79,.5); background: #EAF3EC; }
     .mc-comp.is-self .mc-comp-name, .mc-comp.is-self .mc-comp-role { color: var(--accent-3); font-weight: 700; }
     .mc-invest { font-size: 11.5px; color: #324256; line-height: 1.5; }
-    .mc-segments { display: flex; flex-direction: column; gap: 12px; }
+    /* 2 cards de elo por linha no desktop; align-items:start para cada card manter a
+       altura do próprio conteúdo — os elos têm nº de players bem diferente e esticar
+       todos até a altura da linha só criaria espaço morto dentro dos cards curtos. */
+    .mc-segments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
     .mc-seg-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--bg-card); }
     .mc-seg-card.hl { border-color: rgba(46,125,79,.35); background: #F4F9F5; }
     .mc-seg-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
@@ -1130,6 +1133,7 @@
       .row-2, .row-2w { grid-template-columns: minmax(0, 1fr); }
       .kpi-grid, .kpi-grid.k4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .mc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mc-segments { grid-template-columns: minmax(0, 1fr); }
       .mc-region-row { grid-template-columns: 1fr; gap: 2px; }
       .row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -1816,8 +1820,7 @@
             <button class="emp-tab" data-emp-target="resultados">Resultados</button>
             <button class="emp-tab" data-emp-target="alavancagem">Alavancagem</button>
             <button class="emp-tab" data-emp-target="valuation">Valuation</button>
-            <button class="emp-tab" data-emp-target="comites">Comitês</button>
-            <button class="emp-tab" data-emp-target="competidores">Mapa competitivo</button>
+            <button class="emp-tab" data-emp-target="competidores">Competidores</button>
           </nav>
 
           <div class="emp-panel active" data-emp="panorama">
@@ -2616,38 +2619,6 @@
           </div>
           <div class="emp-panel" data-emp="projetos">
 
-            <!-- ===== Projetos operacionais ===== -->
-            <div class="section-title" style="margin-bottom: 14px;">Projetos operacionais</div>
-            <div class="row-3">
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">PR — Paraná</div>
-                  <span class="tag">Operacional</span>
-                </div>
-                <div class="card-body">
-                  <p class="card-note">➜ Projeto operacional no Paraná. Seção a ser populada com escopo, capex, cronograma e indicadores.</p>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">BA — Bahia</div>
-                  <span class="tag">Operacional</span>
-                </div>
-                <div class="card-body">
-                  <p class="card-note">➜ Projeto operacional na Bahia. Seção a ser populada com escopo, capex, cronograma e indicadores.</p>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">RN — Rio Grande do Norte</div>
-                  <span class="tag">Operacional</span>
-                </div>
-                <div class="card-body">
-                  <p class="card-note">➜ Projeto operacional no Rio Grande do Norte. Seção a ser populada com escopo, capex, cronograma e indicadores.</p>
-                </div>
-              </div>
-            </div>
-
             <!-- ===== Timeline dos 3 projetos de liquefação (CI GNLink Dez/25 — slide 2) ===== -->
             <style>
               .gtl-wrap{margin:22px 0 4px}
@@ -2660,7 +2631,8 @@
               .gtl-sw.obr{background:#2E7D4F}
               .gtl-sw.aut{background:#C55A17}
               .gtl-sw.agu{background:repeating-linear-gradient(45deg,#e7edf4,#e7edf4 3px,#cdd8e5 3px,#cdd8e5 6px);border:1px dashed #9db0c4}
-              .gtl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--bg-card)}
+              /* dentro do card: sem borda própria, quem emoldura é o card */
+              .gtl-scroll{overflow-x:auto;scrollbar-width:thin}
               .gtl-grid{display:grid;grid-template-columns:120px repeat(34,minmax(26px,1fr));min-width:960px}
               .gtl-yr{grid-row:1;font-size:11px;font-weight:700;color:var(--accent-1);text-align:center;padding:8px 0 3px;border-left:1px solid var(--line)}
               .gtl-mh{grid-row:2;font-size:9px;color:var(--muted);text-align:center;padding:2px 0 7px;border-left:1px solid #eef2f7}
@@ -2680,9 +2652,11 @@
               .gtl-abbr b{color:var(--accent-1)}
               .gtl-foot{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5}
             </style>
-            <div class="section-title" style="margin: 26px 0 4px;">Timeline dos 3 projetos de liquefação</div>
-            <div class="gtl-wrap">
-              <p class="gtl-sub">Prazo entre a Licença Prévia e a Autorização de Operação (AO) da ANP. <b>Target original de 18 meses por projeto.</b> PR e BA concluídos abaixo do alvo; RN acima, por conta de esperas no licenciamento e na autorização final.</p>
+            <div class="row-full">
+              <div class="card">
+                <div class="card-header"><div class="card-title">Timeline dos 3 projetos de liquefação</div><span class="tag">Licença prévia &rarr; AO</span></div>
+                <div class="card-body">
+              <p class="gtl-sub" style="margin-top:0">Prazo entre a Licença Prévia e a Autorização de Operação (AO) da ANP. <b>Target original de 18 meses por projeto.</b> PR e BA concluídos abaixo do alvo; RN acima, por conta de esperas no licenciamento e na autorização final.</p>
               <div class="gtl-legend">
                 <span><i class="gtl-sw lic"></i>Licenciamento (LP · LI · LO)</span>
                 <span><i class="gtl-sw obr"></i>Obra física (Terraplanagem · Obra)</span>
@@ -2748,7 +2722,189 @@
                 <span><b>LP</b> Licença Prévia</span><span><b>Terrap.</b> Terraplanagem</span><span><b>LI</b> Licença de Instalação</span><span><b>Obra</b> Obra e montagem</span><span><b>LO</b> Licença de Operação</span><span><b>ATO</b> Autorização Temporária de Operação</span><span><b>AO</b> Autorização de Operação (ANP)</span><span><b>BP</b> marco planejado</span>
               </div>
               <p class="gtl-foot">Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 2). O marco <b>⚑ (BP)</b> indica a data planejada de operação; a faixa hachurada em vermelho é a espera até a Autorização de Operação (AO) da ANP (2,4 m no PR, 5,2 m na BA e 4 m no RN). Durações totais e prazos conforme apresentado ao comitê.</p>
+                </div>
+              </div>
             </div>
+
+            <!-- ===== Projetos operacionais: volume por cliente e ocupação de cada planta ===== -->
+            <style>
+              /* Gráfico por planta: reusa .dm-occ (faixa preta de ocupação no topo) e o
+                 ramp chart (.rmp-*) do painel Operacional/Comercial. Diferença: aqui a
+                 capacidade muda ao longo do ano, então a ALTURA da barra é a própria
+                 ocupação do mês — o mesmo número que aparece na pílula preta. */
+              .pj-st{font-style:normal;font-size:9.5px;font-weight:600;color:var(--muted);background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-left:1px;white-space:nowrap}
+              .pj-sep{border-left:1px dashed #AEB9C5;margin-left:2px;padding-left:3px}
+              .dm-occ b.nd{background:#EDF1F5;color:var(--muted)}
+              /* amostra da rampa na legenda: mais larga que os 12px do quadradinho
+                 padrão, senão o degradê vira uma cor só */
+              .rmp-legend i.pj-ramp{width:36px}
+              .pj-scroll{overflow-x:auto;scrollbar-width:thin}
+              .pj-plot{min-width:620px}
+              /* mais alto que o ramp-up do Operacional: como a altura aqui é a ocupação,
+                 plantas com ocupação baixa (BA) ficariam com barras espremidas */
+              .pj-plot .rmp-plot{height:230px}
+              .pj-x span.rz{color:#C55A17;font-weight:700}
+              .pj-x span.fc{color:#4F7B8C;font-weight:700}
+              .pj-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:2px 0 14px}
+              @media(max-width:760px){.pj-kpis{grid-template-columns:repeat(2,1fr)}}
+            </style>
+
+            <div class="section-title" style="margin:22px 0 10px;">Projetos operacionais</div>
+            <div id="pjOper"></div>
+
+            <script>
+            // Projetos operacionais: volume por cliente, capacidade e ocupação de cada
+            // planta, de EMP['GNLink'].projetos. Dois níveis de seleção, como em
+            // Resultados: planta (PR/BA/RN) e, dentro dela, a base de dados (RCA).
+            // Do slide entram só as colunas Real (meses fechados) e Fcst (demais);
+            // as de Orçado ficam de fora, a pedido de quem lê o painel.
+            (function(){
+              var host=document.getElementById('pjOper');
+              var g=(window.EMP||{})['GNLink'], P=g&&g.projetos;
+              if(!host||!P||!P.plantas) return;
+              var ML=P.meses;
+              // Cores da legenda de contrato do deck (o amarelo puro do slide não tem
+              // contraste em fundo claro, então vira âmbar).
+              var STATUS={ativo:['#2E7D4F','Contrato ativo','contrato ativo'],
+                          previsto:['#D9A400','Previsto no forecast — não assinado','previsto · não assinado'],
+                          novo:['#3E7C8C','Novo','novo'],
+                          spot:['#C77DBF','Spot','spot'],
+                          'nao-assinado':['#C0392B','Não assinado','não assinado']};
+              var BASES={rcaMai:'RCA · Mai/26',rcaJun:'RCA · Jun/26'};
+
+              function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+              function fmt(v){ return v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+              function occ(t,c){ return (t==null||!c)?'–':Math.round(t/c*100)+'%'; }
+
+              // Capacidade do mês corrente + aviso de expansão prevista no ano.
+              function capInfo(cap,iR){
+                var atual=cap[iR], nota='sem mudança prevista em 2026';
+                for(var i=iR+1;i<12;i++){
+                  if(cap[i]!=null && (atual==null || Math.abs(cap[i]-atual)>0.05)){
+                    nota='<b style="color:var(--ink)">'+fmt(cap[i])+'</b> a partir de '+ML[i]+'/26'; break;
+                  }
+                }
+                return {v:atual,nota:nota};
+              }
+              function tile(k,v,u,s){
+                return '<div class="kpi-tile"><div class="k">'+k+'</div><div class="v">'+v
+                  +(u?' <small>'+u+'</small>':'')+'</div><div class="s">'+s+'</div></div>';
+              }
+              // Cor da pílula de ocupação: rampa contínua vermelho (0%) → verde (100%),
+              // girando só a matiz. Saturação e luminosidade fixas mantêm o texto branco
+              // legível (contraste ≥ 4,5:1 em toda a faixa). Zero e n/d ficam cinza.
+              function rampa(p){ return 'hsl('+(Math.max(0,Math.min(100,p))*1.45).toFixed(0)+',62%,30%)'; }
+              var RAMPA_CSS='linear-gradient(90deg,'+rampa(0)+','+rampa(50)+','+rampa(100)+')';
+
+              // Gráfico empilhado do mês: um segmento por cliente, altura da coluna = %
+              // de ocupação da capacidade daquele mês (a mesma % da pílula colorida em cima).
+              function grafico(d,realN,titulo,fonte,cores){
+                var iR=realN-1;
+                var capRef=null; for(var i=0;i<12;i++){ if(d.cap[i]!=null){ capRef=d.cap[i]; break; } }
+                var occRow='', cols='', semCap=[];
+                for(var i=0;i<12;i++){
+                  var cap=d.cap[i], tot=d.total[i], den=(cap!=null?cap:capRef);
+                  var pc=(tot!=null&&den)?tot/den*100:0;
+                  if(cap==null&&tot!=null) semCap.push(ML[i]+'/26');
+                  var pr=Math.round(pc);
+                  occRow+='<span>'+(cap!=null&&tot!=null&&den
+                    ? (pr>0?'<b style="background:'+rampa(pc)+'">'+pr+'%</b>':'<b class="nd">0%</b>')
+                    : '<b class="nd" title="capacidade não informada no slide">'+(tot!=null?'n/d':'–')+'</b>')+'</span>';
+                  // Rótulo só quando o bloco tem altura para ele: 210px é a área útil da
+                  // coluna (230 do plot − 20 de padding do rótulo de total).
+                  var segs='';
+                  d.cli.forEach(function(c){
+                    var v=c[2][i]; if(!v) return;
+                    var px=210*(Math.min(100,pc)/100)*(v/tot);
+                    segs+='<i class="rmp-seg" style="flex-grow:'+v+';background:'+cores[c[0]]+'" title="'+esc(c[0])+' · '+ML[i]+'/26: '+fmt(v)+'">'
+                      + (px>=12?fmt(v):'')+'</i>';
+                  });
+                  cols+='<div class="rmp-col'+(i===realN?' pj-sep':'')+'"><span class="rmp-cap">'+(tot!=null?fmt(tot):'–')+'</span>'
+                    + '<div class="rmp-stack" style="height:'+Math.min(100,pc).toFixed(1)+'%">'+segs+'</div></div>';
+                }
+                var xs=ML.map(function(m,i){ return '<span class="'+(i<realN?'rz':'fc')+'">'+m+'/26</span>'; }).join('');
+                // O contrato de cada cliente vai como texto ao lado do nome: um segundo
+                // quadradinho colado no nome era lido como sendo do cliente seguinte.
+                var leg='<div class="rmp-legend">'+d.cli.map(function(c){
+                    var st=STATUS[c[1]]||['#9AA7B5',c[1]];
+                    return '<span><i style="background:'+cores[c[0]]+'"></i>'+esc(c[0])
+                      + '<em class="pj-st" title="'+esc(st[1])+'">'+esc(st[2]||st[1])+'</em></span>';
+                  }).join('')
+                  + '<span><i class="pj-ramp" style="background:'+RAMPA_CSS+'"></i>% ocupação (linha superior): vermelho = baixa &rarr; verde = alta</span></div>';
+                var stat='';
+                var rf='<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–'+ML[iR]+'/26)</span>'
+                  + '<span><i style="background:#4F7B8C"></i>Forecast ('+ML[realN]+'–dez/26), à direita da linha tracejada</span></div>';
+                var omit=d.semVol?' '+d.semVol+' cliente'+(d.semVol>1?'s':'')+' do slide '+(d.semVol>1?'ficaram':'ficou')+' de fora por não ter volume em realizado nem em forecast (só em orçado).':'';
+                var nd=semCap.length?' O deck não informa a capacidade de '+semCap.join(', ')+', então a coluna usa a capacidade do mês seguinte como referência de altura e a ocupação fica como <b>n/d</b>.':'';
+                return '<div class="row-full" style="margin-bottom:14px"><div class="card"><div class="card-header"><div class="card-title">'+titulo+'</div><span class="tag">mil m³/dia · topo = % ocupação</span></div>'
+                  + '<div class="card-body"><div class="pj-scroll"><div class="pj-plot">'
+                  + '<div class="dm-occ">'+occRow+'</div><div class="rmp-plot">'+cols+'</div><div class="rmp-x pj-x">'+xs+'</div></div></div>'
+                  + leg+stat+rf
+                  + '<p class="card-note" style="margin-top:11px">Rótulo acima da coluna = demanda total do mês; dentro dos blocos, o volume de cada cliente. A <b>altura da coluna</b> é a ocupação da capacidade daquele mês — por isso ela pode cair quando a planta expande.'+nd+omit
+                  + ' A % é calculada aqui, dividindo a demanda pela capacidade, e pode diferir em 1 p.p. da linha do slide, que parte dos valores sem arredondamento. Fonte: '+fonte+'</p></div></div></div>';
+              }
+              // Cor por cliente, fixa dentro da planta: a mesma empresa mantém a cor ao
+              // trocar de base, mesmo que a lista de clientes mude de um deck para o outro.
+              // A paleta cobre a UNIÃO de clientes da planta nas duas bases (a BA chega a
+              // 9), senão dois clientes da mesma coluna cairiam na mesma cor.
+              var PAL=['#6B8299','#C55A17','#2E7D4F','#7C6BA0','#3E7C8C','#8A6D3B','#B5495B','#4B5A8C','#D08A2C','#5F7A4A'];
+              function paleta(p,prod){
+                var map={}, n=0;
+                Object.keys(p.bases).forEach(function(k){
+                  p.bases[k][prod].cli.forEach(function(c){ if(!(c[0] in map)) map[c[0]]=PAL[n++ % PAL.length]; });
+                });
+                return map;
+              }
+              function viewBase(b,cGnl,cGnc){
+                var iR=b.realN-1, cg=capInfo(b.gnl.cap,iR), cc=capInfo(b.gnc.cap,iR);
+                var kpis='<div class="pj-kpis">'
+                  + tile('GNL · capacidade',fmt(cg.v),'mil m³/dia',cg.nota)
+                  + tile('GNL · ocupação '+ML[iR]+'/26',occ(b.gnl.total[iR],b.gnl.cap[iR]),'','dez/26 (fcst): <b style="color:var(--ink)">'+occ(b.gnl.total[11],b.gnl.cap[11])+'</b>')
+                  + tile('GNC · capacidade',fmt(cc.v),'mil m³/dia',cc.nota)
+                  + tile('GNC · ocupação '+ML[iR]+'/26',occ(b.gnc.total[iR],b.gnc.cap[iR]),'','dez/26 (fcst): <b style="color:var(--ink)">'+occ(b.gnc.total[11],b.gnc.cap[11])+'</b>')
+                  + '</div>';
+                return kpis
+                  + grafico(b.gnl,b.realN,'Demanda GNL por cliente',b.srcCap,cGnl)
+                  + grafico(b.gnc,b.realN,'Demanda GNC por cliente',b.srcCap,cGnc);
+              }
+              function viewPlanta(p){
+                var keys=Object.keys(p.bases), cGnl=paleta(p,'gnl'), cGnc=paleta(p,'gnc');
+                var seg='<div class="comm-src"><span class="lbl">Base de dados</span>'
+                  + '<div class="comm-seg" role="tablist" aria-label="Base de dados da planta">'
+                  + keys.map(function(k){ return '<button type="button" data-view="'+k+'">'+(BASES[k]||k)+'</button>'; }).join('')
+                  + '</div><span class="src-cap"></span></div>';
+                var vws=keys.map(function(k){ return '<div class="comm-view" data-view="'+k+'">'+viewBase(p.bases[k],cGnl,cGnc)+'</div>'; }).join('');
+                return '<div class="comm-view" data-view="'+p.key+'">'+seg+vws+'</div>';
+              }
+
+              // Seletor de planta: não é base mensal, então o default é explícito (1ª planta).
+              host.innerHTML='<div class="comm-src"><span class="lbl">Planta</span>'
+                + '<div class="comm-seg" role="tablist" aria-label="Planta" data-default="'+P.plantas[0].key+'">'
+                + P.plantas.map(function(p){ return '<button type="button" data-view="'+p.key+'">'+p.key+'</button>'; }).join('')
+                + '</div></div>'
+                + '<div id="pjPlantas">'+P.plantas.map(viewPlanta).join('')+'</div>';
+
+              var mount=document.getElementById('pjPlantas');
+              var btns=host.querySelectorAll(':scope > .comm-src .comm-seg button');
+              btns.forEach(function(b){ b.addEventListener('click',function(){
+                var v=b.getAttribute('data-view');
+                btns.forEach(function(x){ x.classList.toggle('active',x===b); });
+                mount.querySelectorAll(':scope > .comm-view').forEach(function(el){ el.classList.toggle('active',el.getAttribute('data-view')===v); });
+              });});
+              // Seletor de base dentro de cada planta (escopo em filhos diretos da view).
+              mount.querySelectorAll(':scope > .comm-view').forEach(function(pv){
+                var bb=pv.querySelectorAll(':scope > .comm-src .comm-seg button');
+                var bc=pv.querySelector(':scope > .comm-src .src-cap');
+                var pl=P.plantas.filter(function(x){ return x.key===pv.getAttribute('data-view'); })[0];
+                bb.forEach(function(b){ b.addEventListener('click',function(){
+                  var v=b.getAttribute('data-view');
+                  bb.forEach(function(x){ x.classList.toggle('active',x===b); });
+                  pv.querySelectorAll(':scope > .comm-view').forEach(function(el){ el.classList.toggle('active',el.getAttribute('data-view')===v); });
+                  if(bc) bc.textContent=(pl&&pl.bases[v]?pl.bases[v].srcCap:'');
+                });});
+              });
+            })();
+            </script>
 
             <!-- ===== Novos negócios ===== -->
             <div class="section-title" style="margin: 24px 0 14px;">Novos negócios</div>
@@ -3556,148 +3712,257 @@
             @media(max-width:820px){.dm-cards{grid-template-columns:1fr}}
             .dm-tbf{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.55}
             @media(max-width:760px){.dm-kpis{grid-template-columns:repeat(2,1fr)}}
+            /* ---- base RCI Dez/25: perfil "cenário atual → cenário futuro" ---------
+               Não há série mensal nessa base, então a leitura é comparativa: barras
+               horizontais dos dois cenários e, no detalhamento, duas colunas por
+               planta (antes | depois) em vez das mini-barras do saldo mensal. */
+            .cn-rows{display:flex;flex-direction:column;gap:13px}
+            .cn-row{display:flex;align-items:center;gap:14px}
+            .cn-lb{width:126px;flex:none}
+            .cn-lb .t{font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.2}
+            .cn-lb .d{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+            .cn-track{flex:1;display:flex;height:36px;border-radius:8px;overflow:hidden;background:#F1F4F8;min-width:120px}
+            .cn-seg{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;color:#fff;font-size:10.5px;font-weight:800;white-space:nowrap}
+            .cn-tot{width:104px;flex:none;text-align:right}
+            .cn-tot .v{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.4px}
+            .cn-tot .r{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:2px}
+            .cn-pz{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-soft);margin-top:4px}
+            .cn-pz .pzt{display:flex;flex:1;height:7px;border-radius:999px;overflow:hidden;background:#EDF1F5;min-width:80px}
+            .cn-pz .pzt i{display:block;height:100%}
+            .cn-pz .cur{background:#D08A2C}.cn-pz .lng{background:#2F6B7A}
+            .cn-pz .v{font-weight:800;color:var(--ink);white-space:nowrap}
+            .cn-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+            .cn-col.fut{border-left:1px dashed var(--line);padding-left:12px}
+            .cn-colh{display:flex;align-items:baseline;gap:8px;margin-bottom:9px;font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+            .cn-colh b{margin-left:auto;font-size:12.5px;font-weight:800;color:var(--ink);letter-spacing:-.2px;text-transform:none}
+            .cn-list{display:flex;flex-direction:column;gap:10px}
+            .cn-val{display:flex;align-items:center;gap:10px;margin-top:12px}
+            .cn-val b{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.4px;white-space:nowrap}
+            .cn-val .tk{flex:1;height:8px;border-radius:999px;background:#E9EEF3;overflow:hidden;min-width:36px}
+            .cn-val .tk i{display:block;height:100%;border-radius:999px}
+            @media(max-width:820px){.cn-cols{grid-template-columns:1fr}.cn-col.fut{border-left:none;padding-left:0;border-top:1px dashed var(--line);padding-top:12px}}
+            @media(max-width:620px){.cn-row{flex-wrap:wrap}.cn-lb{width:auto}.cn-tot{width:auto;text-align:left}}
           </style>
 
-          <div class="row-full">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Mapeamento da dívida &mdash; posição jun/2026</div><span class="tag">R$ milhões</span></div>
-              <div class="card-body">
-                <p class="card-note" style="margin-top:0">Saldo devedor por emissão, planta e banco &mdash; <b>realizado até jun/26</b>, demais meses em <b>forecast</b>. Em junho já havia sido orçado o desembolso final do BNB Assú (R$ 10,9 mi), mas segue em discussão com o banco a crítica de R$ 8 mi; a documentação adicional foi enviada e aguarda-se retorno da área técnica. <span style="color:var(--muted)">Colunas de orçado (jun/26 e dez/26) e variação foram omitidas.</span></p>
-                <div class="dm-kpis" id="dmKpis"></div>
-              </div>
+          <div class="comm-src">
+            <span class="lbl">Base de dados</span>
+            <div class="comm-seg" role="tablist" aria-label="Base de dados de alavancagem">
+              <button type="button" data-view="rci">RCI &#183; Dez/25</button>
+              <button type="button" data-view="rcaMai">RCA &#183; Mai/26</button>
+              <button type="button" data-view="rcaJun">RCA &#183; Jun/26</button>
             </div>
+            <span class="src-cap" id="dmSrcCap"></span>
           </div>
 
-          <div class="row-full" style="margin-top:14px">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Saldo devedor por planta</div><span class="tag">R$ milhões · jan&ndash;dez/26</span></div>
-              <div class="card-body">
-                <div class="dm-legend" id="dmLegend"></div>
-                <div class="dm-scroll"><div class="dm-chart" id="dmChartWrap"><canvas id="dmChart"></canvas></div></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="row-full" style="margin-top:14px">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Detalhamento por emissão</div></div>
-              <div class="card-body">
-                <div class="dm-groups" id="dmGroups"></div>
-                <p class="dm-tbf" id="dmFoot"></p>
-              </div>
-            </div>
-          </div>
+          <div id="dmViews"></div>
 
           <script>
+          // Mapeamento da dívida: uma view por base de EMP['GNLink'].alavancagem.views.
+          // Duas formas de leitura convivem no mesmo seletor:
+          //   tipo "mensal"   → RCAs: KPIs + barras empilhadas do saldo por planta +
+          //                     cards por emissão com sparkline do saldo mensal.
+          //   tipo "cenarios" → RCI Dez/25: não tem série mensal, então compara o
+          //                     perfil atual com o cenário futuro (alongamento).
+          // Nada é fixo no markup: KPIs, totais e taxas médias saem sempre do data.
           (function(){
-            if(!document.getElementById('dmGroups')) return;
-            var ML=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+            var panel=document.querySelector('.emp-panel[data-emp="alavancagem"]');
+            var mount=document.getElementById('dmViews');
+            var g=(window.EMP||{})['GNLink'], A=g&&g.alavancagem;
+            if(!panel||!mount||!A) return;
+            var ML=A.meses;
             var CLR={BA:'#C55A17',RN:'#2E7D4F',PR:'#6B8299',GIRO:'#7C6BA0'};
-            var G1='75% contrato Copergás<sup>1</sup> + 25% fiança corporativa';
-            var G2='Fiança corporativa + contrato Cegás';
-            var PLANTAS=[
-              {key:'BA',nome:'Bahia',emissoes:[
-                {nome:'Financiamento BNB',banco:'BNB',emissao:'31/12/24',venc:'15/09/36',taxa:'8,5%',idx:'IPCA + 4,4% a.a.',pnom:'12 anos',gar:G1,saldo:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]}
-              ],sub:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]},
-              {key:'RN',nome:'Assú',emissoes:[
-                {nome:'Financiamento BNB Carnaúba — 1ª fase',banco:'BNB',emissao:'05/02/26',venc:'15/11/37',taxa:'9,8%',idx:'IPCA + 5,7% a.a.',pnom:'12 anos',gar:G2,saldo:[null,75.7,76.4,77.1,75.6,76.3,76.7,75.4,75.7,76.1,75.4,75.7]},
-                {nome:'Financiamento BNB Carnaúba — 2ª fase',banco:'BNB',emissao:'TBD',venc:'TBD',taxa:'9,8%',idx:'IPCA + 5,7% a.a.',pnom:'12 anos',gar:G2,saldo:[null,null,null,null,null,null,0.3,16.7,17.2,17.4,16.7,17.1]}
-              ],sub:[null,75.7,76.4,77.1,75.6,76.3,77.0,92.0,93.0,93.5,92.0,92.9]},
-              {key:'PR',nome:'Paraná',emissoes:[
-                {nome:'Bridge (ABC) — 9ª emissão',banco:'ABC',emissao:'12/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[42.6,43.1,43.8,44.3,44.9,45.5,null,null,null,null,null,null]},
-                {nome:'Bridge (ABC) — 10ª emissão',banco:'ABC',emissao:'12/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[54.5,55.1,55.9,56.6,57.4,58.1,null,null,null,null,null,null]},
-                {nome:'NC privada — 12ª emissão',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'16,7%',idx:'CDI + 2,4% a.a.',pnom:'1 ano',gar:'100% fiança corporativa',saldo:[null,null,null,null,null,null,100.0,101.3,102.5,103.8,105.1,106.5]}
-              ],sub:[97.1,98.2,99.7,100.9,102.3,103.6,100.0,101.3,102.5,103.8,105.1,106.5]},
-              {key:'GIRO',nome:'Giro',emissoes:[
-                {nome:'Bridge (ABC) — 8ª emissão',banco:'ABC',emissao:'06/01/26',venc:'07/07/26',taxa:'17,1%',idx:'CDI + 2,4% a.a.',pnom:'6 meses',gar:'100% fiança corporativa',saldo:[49.6,50.2,50.9,51.5,52.2,52.9,null,null,null,null,null,null]},
-                {nome:'NC privada — 11ª emissão',banco:'TBD',emissao:'TBD',venc:'TBD',taxa:'16,7%',idx:'CDI + 2,4% a.a.',pnom:'1 ano',gar:'100% fiança corporativa',saldo:[null,null,null,null,null,null,60.0,60.8,61.6,62.4,63.2,64.0]}
-              ],sub:[49.6,50.2,50.9,51.5,52.2,52.9,60.0,60.8,61.6,62.4,63.2,64.0]}
-            ];
-            var TOTAL=[236.5,314.6,316.3,319.4,320.5,322.0,326.9,344.3,345.9,347.8,347.8,350.1];
+            // Hierarquia fixa de exibição: PR, BA, RN, Giro.
+            var ORDER=['PR','BA','RN','GIRO'];
 
+            function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
             function fmt(v){ return v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+            function fmtR(v){ return v==null?'—':'R$ '+fmt(v); }
+            function intfmt(v){ return Math.round(v).toLocaleString('pt-BR'); }
+            function pct(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'% a.a.'; }
+            function taxaNum(t){ return parseFloat(String(t).replace('%','').replace(',','.')); }
+            function hex2rgb(h){ h=h.replace('#',''); return parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16); }
+            var RGB={}; Object.keys(CLR).forEach(function(k){ RGB[k]=hex2rgb(CLR[k]); });
+            function nomeP(p){ return p.key==='GIRO'?'Giro':p.nome+' ('+p.key+')'; }
+            function ordena(plantas){ var out=[];
+              ORDER.forEach(function(k){ plantas.forEach(function(p){ if(p.key===k) out.push(p); }); });
+              plantas.forEach(function(p){ if(ORDER.indexOf(p.key)<0) out.push(p); });
+              return out; }
+            function kpis(list){ return '<div class="dm-kpis">'+list.map(function(k){
+              return '<div class="kpi-tile"><div class="k">'+k[0]+'</div><div class="v">'+k[1]+'</div><div class="s">'+k[2]+'</div></div>'; }).join('')+'</div>'; }
+            function card(title,tag,body,mt){
+              return '<div class="row-full"'+(mt?' style="margin-top:14px"':'')+'><div class="card"><div class="card-header"><div class="card-title">'+title+'</div>'
+                +(tag?'<span class="tag">'+tag+'</span>':'')+'</div><div class="card-body">'+body+'</div></div></div>'; }
+
+            /* ---------------- bases mensais (RCA) ---------------- */
             function parseDt(s){ var m=/^(\d{2})\/(\d{2})\/(\d{2})$/.exec(s); return m?new Date(2000+ +m[3], +m[2]-1, +m[1]):null; }
             function prazo(e){ var a=parseDt(e.emissao),b=parseDt(e.venc); if(!a||!b) return e.pnom;
               var mo=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
               if(mo<12) return mo+' m'; var y=Math.floor(mo/12), r=mo%12; return y+' a'+(r?' '+r+' m':''); }
-
-            // Taxa média ponderada nominal: taxa de face de cada emissão ponderada
-            // pelo saldo devedor do mês. Headline = jun/26 (real); sub = dez/26 (forecast).
-            function taxaNum(t){ return parseFloat(String(t).replace('%','').replace(',','.')); }
-            function wavgAt(mi){ var w=0,b=0; PLANTAS.forEach(function(p){ p.emissoes.forEach(function(e){ var x=e.saldo[mi]; if(x!=null){ w+=taxaNum(e.taxa)*x; b+=x; } }); }); return b?w/b:0; }
-            function pct(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'% a.a.'; }
-            var kdef=[
-              ['#C55A17','Dívida realizada · jun/26','R$ 322,0 mi','saldo devedor consolidado'],
-              ['#2E7D4F','Projeção · dez/26','R$ 350,1 mi','<span class="up">+R$ 28,1 mi</span> vs jun (+8,7%)'],
-              ['#6B8299','Emissões mapeadas','8','5 contratadas · 3 previstas (TBD)'],
-              ['#7C6BA0','Taxa média nominal · jun/26',pct(wavgAt(5)),'Dez/26 (forecast): <b style="color:var(--ink)">'+pct(wavgAt(11))+'</b>']
-            ];
-            document.getElementById('dmKpis').innerHTML=kdef.map(function(k){
-              return '<div class="kpi-tile"><div class="k">'+k[1]+'</div><div class="v">'+k[2]+'</div><div class="s">'+k[3]+'</div></div>';
-            }).join('');
-
-            function hex2rgb(h){ h=h.replace('#',''); return parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16); }
-            var RGB={}; Object.keys(CLR).forEach(function(k){ RGB[k]=hex2rgb(CLR[k]); });
-            var MAXV=1; PLANTAS.forEach(function(p){ p.emissoes.forEach(function(e){ e.saldo.forEach(function(v){ if(v!=null&&v>MAXV) MAXV=v; }); }); });
-            // Hierarquia fixa de exibição: PR, BA, RN, Giro.
-            var ORDER=['PR','BA','RN','GIRO'];
-            var PL=ORDER.map(function(k){ for(var i=0;i<PLANTAS.length;i++){ if(PLANTAS[i].key===k) return PLANTAS[i]; } });
-
-            function fmtR(v){ return v==null?'—':'R$ '+fmt(v); }
             function firstNN(s){ for(var i=0;i<s.length;i++){ if(s[i]!=null) return s[i]; } return null; }
-            function hasAny(s){ return firstNN(s)!=null; }
-            // Sparkline (mini-barras) do saldo: realizado (jan–jun) cheio, forecast (jul–dez) esmaecido.
-            // Rótulo do valor (R$ mi, arredondado) acima de cada barra; valor exato no hover.
-            function spark(e,rgb){
-              if(!hasAny(e.saldo)) return '<div class="dm-emptyc">Sem saldo realizado ou em forecast — prevista para dez/26 (orçado).</div>';
-              var bars='';
-              for(var i=0;i<12;i++){ var v=e.saldo[i], real=i<6, sep=(i===6)?' dm-bsep':'';
-                if(v==null){ bars+='<div class="dm-bar'+sep+'"></div>'; continue; }
-                var hpx=Math.max(3,Math.round((v/MAXV)*40));
-                bars+='<div class="dm-bar'+sep+'" title="'+ML[i]+'/26: R$ '+fmt(v)+' mi"><span class="dm-bl">'+Math.round(v)+'</span><div class="dm-bf" style="height:'+hpx+'px;background:rgba('+rgb+','+(real?0.95:0.42)+')"></div></div>';
-              }
-              return '<div class="dm-spk">'+bars+'</div><div class="dm-spk-x"><span>jan/26</span><span>jun │ jul</span><span>dez/26</span></div>';
-            }
-            function readout(e){
-              if(!hasAny(e.saldo)) return '';
-              var jun=e.saldo[5], dez=e.saldo[11];
-              var matures=false;
-              if(jun!=null){ matures=true; for(var i=6;i<12;i++){ if(e.saldo[i]!=null){ matures=false; break; } } }
-              var left=(jun!=null)
-                ? '<div class="dm-st"><div class="lb">jun/26 · real</div><div class="vl">'+fmtR(jun)+'</div></div>'
-                : '<div class="dm-st"><div class="lb">início · forecast</div><div class="vl">'+fmtR(firstNN(e.saldo))+'</div></div>';
-              var right=matures
-                ? '<span class="dm-tag" style="margin-left:8px">encerra jul/26</span>'
-                : '<div class="dm-st"><div class="lb">dez/26 · fcst</div><div class="vl">'+fmtR(dez)+'</div></div>';
-              var delta='';
-              if(jun!=null&&dez!=null){ var d=dez-jun; delta='<span class="dm-dchip">'+(d>=0?'+':'−')+'R$ '+fmt(Math.abs(d))+'</span>'; }
-              return '<div class="dm-emc-read">'+left+right+delta+'</div>';
-            }
-            var html='';
-            PL.forEach(function(p){
-              var color=CLR[p.key], rgb=RGB[p.key];
-              html+='<div class="dm-group"><div class="dm-ghead"><span class="dot" style="background:'+color+'"></span><span class="nm">'+p.nome+'</span><span class="pk">'+p.key+'</span>'
-                +'<span class="sb">jun/26 <b>'+fmtR(p.sub[5])+'</b> · dez/26 <b>'+fmtR(p.sub[11])+'</b></span></div><div class="dm-cards">';
-              p.emissoes.forEach(function(e){
-                html+='<div class="dm-emc" style="background:rgba('+rgb+',.06);border-color:rgba('+rgb+',.24)"><div class="dm-emc-top"><span class="dm-emc-nm">'+e.nome+'</span><span class="dm-bank">'+e.banco+'</span></div>'
-                  +'<div class="dm-emc-meta"><span class="dm-badge">'+e.taxa+'</span>'+e.idx+'<span class="sepd">•</span>'+e.emissao+' → '+e.venc+'<span class="sepd">•</span>'+prazo(e)+'</div>'
-                  +'<div class="dm-emc-gar">'+e.gar+'</div>'+spark(e,rgb)+readout(e)+'</div>';
-              });
-              html+='</div></div>';
-            });
-            document.getElementById('dmGroups').innerHTML=html;
-            document.getElementById('dmFoot').innerHTML='Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).';
+            function lastNN(s){ for(var i=s.length-1;i>=0;i--){ if(s[i]!=null) return i; } return -1; }
 
+            function viewMensal(v){
+              var PL=ordena(v.plantas), R=v.realN, iR=R-1;
+              // Taxa média ponderada nominal: taxa de face ponderada pelo saldo do mês.
+              function wavgAt(mi){ var w=0,b=0; PL.forEach(function(p){ p.emissoes.forEach(function(e){ var x=e.saldo[mi]; if(x!=null){ w+=taxaNum(e.taxa)*x; b+=x; } }); }); return b?w/b:0; }
+              var MAXV=1; PL.forEach(function(p){ p.emissoes.forEach(function(e){ e.saldo.forEach(function(x){ if(x!=null&&x>MAXV) MAXV=x; }); }); });
+              var nEm=0,nCt=0; PL.forEach(function(p){ p.emissoes.forEach(function(e){ nEm++; if(e.emissao!=='TBD') nCt++; }); });
+              var tR=v.total[iR], tD=v.total[11], d=tD-tR;
+              var dTxt=(d>=0?'<span class="up">+R$ '+fmt(d)+' mi</span>':'−R$ '+fmt(-d)+' mi')
+                + ' vs '+ML[iR]+' ('+(d>=0?'+':'−')+fmt(Math.abs(d/tR*100))+'%)';
+              var head=kpis([
+                ['Dívida realizada · '+v.pos,'R$ '+fmt(tR)+' mi','saldo devedor consolidado'],
+                ['Projeção · dez/26','R$ '+fmt(tD)+' mi',dTxt],
+                ['Emissões mapeadas',String(nEm),nCt+' contratadas · '+(nEm-nCt)+' previstas (TBD)'],
+                ['Taxa média nominal · '+v.pos,pct(wavgAt(iR)),'Dez/26 (forecast): <b style="color:var(--ink)">'+pct(wavgAt(11))+'</b>']
+              ]);
+
+              // Sparkline do saldo: meses realizados em tom pleno, forecast esmaecido.
+              function spark(e,rgb){
+                if(firstNN(e.saldo)==null) return '<div class="dm-emptyc">Sem saldo realizado ou em forecast — prevista apenas no orçado de dez/26.</div>';
+                var bars='';
+                for(var i=0;i<12;i++){ var x=e.saldo[i], real=i<R, sep=(i===R)?' dm-bsep':'';
+                  if(x==null){ bars+='<div class="dm-bar'+sep+'"></div>'; continue; }
+                  var hpx=Math.max(3,Math.round((x/MAXV)*40));
+                  bars+='<div class="dm-bar'+sep+'" title="'+ML[i]+'/26: R$ '+fmt(x)+' mi"><span class="dm-bl">'+Math.round(x)+'</span><div class="dm-bf" style="height:'+hpx+'px;background:rgba('+rgb+','+(real?0.95:0.42)+')"></div></div>';
+                }
+                return '<div class="dm-spk">'+bars+'</div><div class="dm-spk-x"><span>jan/26</span><span>'+ML[iR]+' │ '+ML[R]+'</span><span>dez/26</span></div>';
+              }
+              function readout(e){
+                var ini=firstNN(e.saldo); if(ini==null) return '';
+                var atual=e.saldo[iR], dez=e.saldo[11], fim=lastNN(e.saldo);
+                var left=(atual!=null)
+                  ? '<div class="dm-st"><div class="lb">'+v.pos+' · real</div><div class="vl">'+fmtR(atual)+'</div></div>'
+                  : '<div class="dm-st"><div class="lb">início · forecast</div><div class="vl">'+fmtR(ini)+'</div></div>';
+                var right=(fim<11)
+                  ? '<span class="dm-tag" style="margin-left:8px">encerra '+ML[fim+1]+'/26</span>'
+                  : '<div class="dm-st"><div class="lb">dez/26 · fcst</div><div class="vl">'+fmtR(dez)+'</div></div>';
+                var delta='';
+                if(atual!=null&&dez!=null){ var dd=dez-atual; delta='<span class="dm-dchip">'+(dd>=0?'+':'−')+'R$ '+fmt(Math.abs(dd))+'</span>'; }
+                return '<div class="dm-emc-read">'+left+right+delta+'</div>';
+              }
+              var grupos='';
+              PL.forEach(function(p){
+                var rgb=RGB[p.key]||RGB.PR;
+                grupos+='<div class="dm-group"><div class="dm-ghead"><span class="dot" style="background:'+(CLR[p.key]||'#6B8299')+'"></span><span class="nm">'+esc(p.nome)+'</span><span class="pk">'+esc(p.key)+'</span>'
+                  +'<span class="sb">'+v.pos+' <b>'+fmtR(p.sub[iR])+'</b> · dez/26 <b>'+fmtR(p.sub[11])+'</b></span></div><div class="dm-cards">';
+                p.emissoes.forEach(function(e){
+                  grupos+='<div class="dm-emc" style="background:rgba('+rgb+',.06);border-color:rgba('+rgb+',.24)"><div class="dm-emc-top"><span class="dm-emc-nm">'+esc(e.nome)+'</span><span class="dm-bank">'+esc(e.banco)+'</span></div>'
+                    +'<div class="dm-emc-meta"><span class="dm-badge">'+esc(e.taxa)+'</span>'+esc(e.idx)+'<span class="sepd">•</span>'+esc(e.emissao)+' → '+esc(e.venc)+'<span class="sepd">•</span>'+esc(prazo(e))+'</div>'
+                    +'<div class="dm-emc-gar">'+e.gar+'</div>'+spark(e,rgb)+readout(e)+'</div>';
+                });
+                grupos+='</div></div>';
+              });
+              var legenda=PL.map(function(p){ return '<span><i style="background:'+(CLR[p.key]||'#6B8299')+'"></i>'+esc(nomeP(p))+'</span>'; }).join('')
+                +'<span style="margin-left:auto"><i style="background:#7A8794"></i>tom pleno = realizado · translúcido = forecast (tracejado = '+ML[iR]+'│'+ML[R]+')</span>';
+
+              return card('Mapeamento da dívida &mdash; '+v.posTitulo,'R$ milhões','<p class="card-note" style="margin-top:0">'+v.intro+'</p>'+head)
+                + card('Saldo devedor por planta','R$ milhões · jan&ndash;dez/26','<div class="dm-legend">'+legenda+'</div><div class="dm-scroll"><div class="dm-chart"><canvas></canvas></div></div>',1)
+                + card('Detalhamento por emissão','','<div class="dm-groups">'+grupos+'</div><p class="dm-tbf">'+v.foot+'</p>',1);
+            }
+
+            /* ---------------- base de cenários (RCI Dez/25) ---------------- */
+            function viewCenarios(v){
+              var PL=ordena(v.plantas);
+              function soma(p,cen,f){ var t=0; (p[cen]||[]).forEach(function(e){ if(!f||f(e)) t+=e.valor; }); return t; }
+              function totalCen(cen,f){ var t=0; PL.forEach(function(p){ t+=soma(p,cen,f); }); return t; }
+              var CEN={}; v.cenarios.forEach(function(c){ CEN[c.key]=c; });
+              var tA=CEN.atual.total, tF=CEN.futuro.total, maxT=Math.max(tA,tF);
+              var curtoA=totalCen('atual',function(e){return !e.longo;}), curtoF=totalCen('futuro',function(e){return !e.longo;});
+              var nA=0,nCurtoA=0; PL.forEach(function(p){ (p.atual||[]).forEach(function(e){ nA++; if(!e.longo) nCurtoA++; }); });
+              var dT=tF-tA, dTaxa=CEN.futuro.taxa-CEN.atual.taxa;
+              var head=kpis([
+                ['Dívida atual · dez/25','R$ '+fmt(tA)+' mi',nA+' emissões · '+nCurtoA+' bridges de curto prazo'],
+                ['Cenário futuro','R$ '+fmt(tF)+' mi','<span class="up">+R$ '+fmt(dT)+' mi</span> vs atual (+'+fmt(dT/tA*100)+'%)'],
+                ['Custo médio · atual',pct(CEN.atual.taxa),fmt(curtoA/tA*100)+'% do saldo em bridges de 6 meses'],
+                ['Custo médio · futuro',pct(CEN.futuro.taxa),'<b style="color:var(--ink)">'+fmt(dTaxa)+' p.p.</b> vs cenário atual']
+              ]);
+
+              function barra(c){
+                var segs=PL.map(function(p){ var val=soma(p,c.key); if(!val) return '';
+                  return '<i class="cn-seg" style="flex-grow:'+val+';background:'+(CLR[p.key]||'#6B8299')+'" title="'+esc(nomeP(p))+': R$ '+fmt(val)+' mi">'+intfmt(val)+'</i>'; }).join('');
+                var vazio=maxT-c.total;
+                return '<div class="cn-row"><div class="cn-lb"><div class="t">'+esc(c.nome)+'</div><div class="d">'+(c.key==='atual'?'dez/25':'pretendido')+'</div></div>'
+                  + '<div class="cn-track" style="flex:'+(c.total/maxT)+' 0 0">'+segs+'</div>'
+                  + (vazio>0?'<div style="flex:'+(vazio/maxT)+' 0 0"></div>':'')
+                  + '<div class="cn-tot"><div class="v">R$ '+fmt(c.total)+' mi</div><div class="r">'+pct(c.taxa)+'</div></div></div>';
+              }
+              function barraPz(c,curto){
+                var lg=c.total-curto, p=curto/c.total*100;
+                return '<div class="cn-pz"><span style="width:126px;flex:none">'+esc(c.nome)+'</span>'
+                  + '<div class="pzt">'+(curto>0?'<i class="cur" style="flex-grow:'+curto+'"></i>':'')+(lg>0?'<i class="lng" style="flex-grow:'+lg+'"></i>':'')+'</div>'
+                  + '<span class="v" style="width:104px;text-align:right">'+fmt(p)+'% curto prazo</span></div>';
+              }
+              var perfil='<p class="card-note" style="margin-top:0">'+v.intro+'</p>'
+                + '<div class="cn-rows">'+v.cenarios.map(barra).join('')+'</div>'
+                + '<div class="dm-legend" style="margin:14px 0 10px">'+PL.map(function(p){ return '<span><i style="background:'+(CLR[p.key]||'#6B8299')+'"></i>'+esc(nomeP(p))+'</span>'; }).join('')+'</div>'
+                + '<div style="border-top:1px solid var(--line);padding-top:11px">'
+                + '<div class="dm-legend" style="margin:0 0 8px"><span><i style="background:#D08A2C"></i>curto prazo (bridges de 6 meses)</span><span><i style="background:#2F6B7A"></i>longo prazo (BNB 12 anos · debênture 10 anos)</span></div>'
+                + barraPz(CEN.atual,curtoA)+barraPz(CEN.futuro,curtoF)+'</div>';
+
+              function emc(e,rgb){
+                var w=Math.max(4,Math.round(e.valor/maxT*100*2.6));
+                return '<div class="dm-emc" style="background:rgba('+rgb+',.06);border-color:rgba('+rgb+',.24)">'
+                  + '<div class="dm-emc-top"><span class="dm-emc-nm">'+esc(e.nome)+'</span><span class="dm-bank">'+esc(e.prazo)+'</span></div>'
+                  + '<div class="dm-emc-meta"><span class="dm-badge">'+esc(e.taxa)+'</span>'+esc(e.idx)+'</div>'
+                  + '<div class="dm-emc-gar">'+esc(e.gar)+'</div>'
+                  + '<div class="cn-val"><b>'+fmtR(e.valor)+' mi</b><span class="tk"><i style="width:'+w+'%;background:rgba('+rgb+',.85)"></i></span></div></div>';
+              }
+              function coluna(p,cen,rgb){
+                var lista=p[cen]||[], t=soma(p,cen), fn=(cen==='futuro'&&p.futFn)?'<sup>'+p.futFn+'</sup>':'';
+                var corpo=lista.length?'<div class="cn-list">'+lista.map(function(e){return emc(e,rgb);}).join('')+'</div>'
+                                      :'<div class="dm-emptyc">Sem dívida nesta planta neste cenário.</div>';
+                return '<div class="cn-col'+(cen==='futuro'?' fut':'')+'"><div class="cn-colh"><span>Cenário '+cen+'</span><b>'+fmtR(t)+' mi'+fn+'</b></div>'+corpo+'</div>';
+              }
+              var grupos='';
+              PL.forEach(function(p){
+                var rgb=RGB[p.key]||RGB.PR;
+                grupos+='<div class="dm-group"><div class="dm-ghead"><span class="dot" style="background:'+(CLR[p.key]||'#6B8299')+'"></span><span class="nm">'+esc(p.nome)+'</span><span class="pk">'+esc(p.key)+'</span>'
+                  + '<span class="sb">atual <b>'+fmtR(soma(p,'atual'))+'</b> → futuro <b>'+fmtR(soma(p,'futuro'))+'</b></span></div>'
+                  + '<div class="cn-cols">'+coluna(p,'atual',rgb)+coluna(p,'futuro',rgb)+'</div></div>';
+              });
+
+              return card(esc(v.titulo),v.tag,head)
+                + card('Perfil da dívida &mdash; atual vs. cenário futuro','R$ milhões',perfil,1)
+                + card('Detalhamento por emissão','','<div class="dm-groups">'+grupos+'</div><p class="dm-tbf">'+v.foot+'</p>',1);
+            }
+
+            /* ---------------- montagem + seletor ---------------- */
+            var KEYS=Object.keys(A.views);
+            mount.innerHTML=KEYS.map(function(k){ var v=A.views[k];
+              return '<div class="comm-view" data-view="'+k+'">'+(v.tipo==='cenarios'?viewCenarios(v):viewMensal(v))+'</div>'; }).join('');
+
+            var caps={}; KEYS.forEach(function(k){ caps[k]=A.views[k].srcCap; });
+            var seg=panel.querySelector(':scope > .comm-src .comm-seg');
+            var btns=seg?seg.querySelectorAll('button'):[];
+            var cap=panel.querySelector('#dmSrcCap');
+            btns.forEach(function(b){ b.addEventListener('click',function(){
+              var vw=b.getAttribute('data-view');
+              btns.forEach(function(x){ x.classList.toggle('active',x===b); });
+              mount.querySelectorAll(':scope > .comm-view').forEach(function(el){ el.classList.toggle('active',el.getAttribute('data-view')===vw); });
+              if(cap) cap.textContent=caps[vw]||'';
+            });});
+
+            /* ---------------- gráfico das bases mensais ---------------- */
             function loadChartJs(){ if(window.Chart) return Promise.resolve();
               if(window.__chartjsLoading) return window.__chartjsLoading;
               window.__chartjsLoading=new Promise(function(res,rej){ var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js'; s.onload=res; s.onerror=function(){rej(new Error('Chart.js'));}; document.head.appendChild(s); });
               return window.__chartjsLoading; }
-            function bg(c){ return ML.map(function(_,i){return i<6?c:c+'9E';}); }
-            function toNum(a){ return a.map(function(v){return v==null?0:v;}); }
-            var rfDivider={id:'rfDivider',afterDraw:function(c){ var x=c.scales.x; if(!x) return; var p5=x.getPixelForValue(5),p6=x.getPixelForValue(6),bx=(p5+p6)/2;
-              var ctx=c.ctx; ctx.save(); ctx.strokeStyle='#9AA7B5'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(bx,c.chartArea.top); ctx.lineTo(bx,c.chartArea.bottom); ctx.stroke(); ctx.restore(); }};
-            function intfmt(v){ return Math.round(v).toLocaleString('pt-BR'); }
-            // Rótulos: valor em cada segmento (contorno p/ legibilidade) + total no topo da coluna.
+            function toNum(a){ return a.map(function(x){return x==null?0:x;}); }
+            // Topo do eixo Y comum a TODAS as bases mensais: sem isso cada gráfico se
+            // auto-escala e as barras de Mai/26 e Jun/26 ficam com alturas diferentes
+            // para saldos iguais, o que atrapalha a comparação ao trocar de base.
+            // Maior pilha do conjunto + folga p/ o rótulo de total, arredondado a 25.
+            var YMAX=(function(){ var mx=0;
+              KEYS.forEach(function(k){ var v=A.views[k]; if(v.tipo==='cenarios') return;
+                for(var i=0;i<12;i++){ var t=0; v.plantas.forEach(function(p){ t+=p.sub[i]||0; }); if(t>mx) mx=t; } });
+              return mx?Math.ceil(mx*1.04/25)*25:undefined; })();
+            // Divisória realizado│forecast, na fronteira declarada pela base (realN).
+            function rfDivider(R){ return {id:'rfDivider',afterDraw:function(c){ var x=c.scales.x; if(!x) return;
+              var bx=(x.getPixelForValue(R-1)+x.getPixelForValue(R))/2, ctx=c.ctx;
+              ctx.save(); ctx.strokeStyle='#9AA7B5'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath();
+              ctx.moveTo(bx,c.chartArea.top); ctx.lineTo(bx,c.chartArea.bottom); ctx.stroke(); ctx.restore(); }}; }
+            // Rótulos: valor em cada segmento (contorno p/ legibilidade) + total no topo.
             var dmLabels={id:'dmLabels',afterDatasetsDraw:function(c){
               var ctx=c.ctx;
               c.data.datasets.forEach(function(ds,di){
@@ -3718,28 +3983,31 @@
               });
             }};
             loadChartJs().then(function(){
-              var chart=new Chart(document.getElementById('dmChart'),{
-                type:'bar',
-                data:{labels:ML.map(function(m){return m+'/26';}),datasets:PL.map(function(p){
-                  return {label:(p.key==='GIRO'?'Giro':p.nome+' ('+p.key+')'),data:toNum(p.sub),backgroundColor:bg(CLR[p.key]),stack:'s',borderWidth:0};
-                })},
-                options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
-                  layout:{padding:{top:20}},
-                  plugins:{legend:{display:false},datalabels:{display:false},
-                    tooltip:{callbacks:{
-                      label:function(c){return c.dataset.label+': R$ '+fmt(c.parsed.y)+' mi';},
-                      footer:function(items){var t=0;items.forEach(function(i){t+=i.parsed.y;});return 'Total: R$ '+fmt(t)+' mi';}}}},
-                  scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
-                    y:{stacked:true,grid:{color:'rgba(226,231,238,.7)'},ticks:{display:false},border:{display:false}}}},
-                plugins:[rfDivider,dmLabels]
+              KEYS.forEach(function(k){
+                var v=A.views[k]; if(v.tipo==='cenarios') return;
+                var host=mount.querySelector('.comm-view[data-view="'+k+'"] .dm-chart');
+                var cv=host&&host.querySelector('canvas'); if(!cv) return;
+                var PL=ordena(v.plantas), R=v.realN;
+                var chart=new Chart(cv,{
+                  type:'bar',
+                  data:{labels:ML.map(function(m){return m+'/26';}),datasets:PL.map(function(p){
+                    var c=CLR[p.key]||'#6B8299';
+                    return {label:nomeP(p),data:toNum(p.sub),backgroundColor:ML.map(function(_,i){return i<R?c:c+'9E';}),stack:'s',borderWidth:0};
+                  })},
+                  options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+                    layout:{padding:{top:20}},
+                    plugins:{legend:{display:false},datalabels:{display:false},
+                      tooltip:{callbacks:{
+                        label:function(c){return c.dataset.label+': R$ '+fmt(c.parsed.y)+' mi';},
+                        footer:function(items){var t=0;items.forEach(function(i){t+=i.parsed.y;});return 'Total: R$ '+fmt(t)+' mi';}}}},
+                    scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
+                      y:{stacked:true,min:0,max:YMAX,grid:{color:'rgba(226,231,238,.7)'},ticks:{display:false},border:{display:false}}}},
+                  plugins:[rfDivider(R),dmLabels]
+                });
+                // A aba (e a base não selecionada) fica display:none; ao ganhar largura, redimensiona.
+                if(window.ResizeObserver){ new ResizeObserver(function(){ chart.resize(); }).observe(host); }
               });
-              // A aba fica display:none até ser aberta; ao ganhar largura, redimensiona.
-              var wrap=document.getElementById('dmChartWrap');
-              if(window.ResizeObserver&&wrap){ new ResizeObserver(function(){ chart.resize(); }).observe(wrap); }
             }).catch(function(){});
-            document.getElementById('dmLegend').innerHTML=
-              PL.map(function(p){return '<span><i style="background:'+CLR[p.key]+'"></i>'+(p.key==='GIRO'?'Giro':p.nome+' ('+p.key+')')+'</span>';}).join('')
-              +'<span style="margin-left:auto"><i style="background:#7A8794"></i>tom pleno = realizado · translúcido = forecast (tracejado = jun│jul)</span>';
           })();
           </script>
 
@@ -3774,19 +4042,6 @@
             </div>
           </div>
           </div>
-          <div class="emp-panel" data-emp="comites">
-          <div class="row-full">
-            <div class="card">
-              <div class="card-body">
-                <div class="e2-dev">
-                  <div class="ic">&#128679;</div>
-                  <div class="t">Em desenvolvimento&#8230;</div>
-                  <div class="s">A se&#231;&#227;o <b>Comit&#234;s</b> da GNLink est&#225; sendo constru&#237;da.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
           <div class="emp-panel" data-emp="competidores">
           <div id="gnlComp"></div>
           <script>
@@ -3809,15 +4064,20 @@
                 : '<span class="mc-comp-name">'+k.name+'</span>';
               return '<details class="mc-comp'+(k.self?' is-self':'')+'"><summary>'+nm+'<span class="mc-comp-role">'+k.role+'</span></summary><div class="mc-comp-detail">'+k.detail+'</div></details>';
             }).join('');
+            // Cada elo pinta o próprio card com a cor do seu marcador, bem diluída:
+            // card branco sobre fundo branco não separava um elo do outro. A cor é só
+            // ambiente — quem identifica o elo continua sendo o título + o marcador.
+            function rgbOf(h){ h=h.replace('#',''); return parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16); }
             var segs=C.segments.map(function(s){
+              var rgb=rgbOf(s.dot);
               var head='<div class="mc-seg-head"><div class="mc-seg-title"><span class="mc-seg-dot" style="background:'+s.dot+'"></span>'+s.title+'</div><span class="mc-seg-count">'+s.count+'</span></div>';
               var body=s.regions
                 ? '<div class="mc-regions">'+s.regions.map(function(r){return '<div class="mc-region-row"><span class="mc-region-label">'+r.label+'</span><div class="mc-chips">'+r.chips.map(chip).join('')+'</div></div>';}).join('')+'</div>'
                 : '<div class="mc-chips">'+s.chips.map(chip).join('')+'</div>';
               var inv=s.invest?'<div class="mc-invest-row"><span class="mc-invest-label">Investidores</span><span class="mc-invest-vals">'+s.invest+'</span></div>':'';
-              return '<div class="mc-seg-card'+(s.hl?' hl':'')+'">'+head+body+inv+'</div>';
+              return '<div class="mc-seg-card'+(s.hl?' hl':'')+'" style="background:rgba('+rgb+',.07);border-color:rgba('+rgb+',.30)">'+head+body+inv+'</div>';
             }).join('');
-            mount.innerHTML='<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Mapa competitivo — cadeia de energia térmica</div></div><div class="card-body">'
+            mount.innerHTML='<div class="row-full"><div class="card"><div class="card-header"><div class="card-title">Mapa competitivo</div></div><div class="card-body">'
               +'<p class="card-note">'+C.intro+'</p>'
               +'<div class="mc-legend"><span class="lg"><span class="sw" style="background:#EAF3EC;border:1px solid rgba(46,125,79,.5)"></span>'+C.legend+'</span></div>'
               +'<div class="mc-feature"><div class="mc-feature-head"><div class="mc-feature-title">'+C.feature.title+'</div></div>'
@@ -4446,7 +4706,7 @@
     };
     var EMP = window.EMP;  // dados movidos para data/empresas.js (fonte única)
 
-    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["resultados","Resultados"],["alavancagem","Alavancagem"],["valuation","Valuation"],["comites","Comitês"],["competidores","Mapa competitivo"]];
+    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["resultados","Resultados"],["alavancagem","Alavancagem"],["valuation","Valuation"],["competidores","Competidores"]];
 
     function pctTxt(n){ return String(n).replace('.',','); }
     function fmtPhone(p){ var d=String(p).replace(/\D/g,''); return d.length>=13 ? '+'+d.slice(0,2)+' '+d.slice(2,4)+' '+d.slice(4,9)+'.'+d.slice(9,13) : p; }

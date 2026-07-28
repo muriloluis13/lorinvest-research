@@ -537,6 +537,152 @@
         }
         }
       },
+      // Alavancagem — mapeamento da dívida, uma entrada por base de dados (a mais
+      // recente é o default do seletor; ver o script no fim do index.html).
+      //   rci    → RCI Dez/25 (slide 13): NÃO é série mensal. O deck compara o perfil
+      //            da dívida de então ("cenário atual") com o alongamento pretendido
+      //            ("cenário futuro"), por isso a base tem tipo:"cenarios".
+      //   rcaMai → RCA Mai/26 (slide 15) e rcaJun → RCA Jun/26 (slide 14): saldo
+      //            devedor mensal por emissão em 2026 (tipo:"mensal"). realN = nº de
+      //            meses realizados; os demais são forecast.
+      // Nas duas bases mensais o financiamento BNB da Bahia entra como UMA emissão
+      // (1ª + 2ª fase), como no slide, que só publica o total das fases. A debênture
+      // de infraestrutura do PR fica de fora: no RCA ela só existe na coluna orçado.
+      alavancagem:{
+        meses:["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],
+        views:{
+          rci:{tipo:"cenarios",
+            srcCap:"RCI · Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 13)",
+            titulo:"Evolução do perfil da dívida — posição dez/2025",
+            tag:"R$ milhões",
+            intro:'Nesta base a dívida ainda não era acompanhada mês a mês. O RCI compara o <b>perfil de então</b> com o <b>cenário pretendido</b>: substituir as bridges de 6 meses da ABC pelos financiamentos BNB de 12 anos e pela debênture de infraestrutura, alongando o prazo e reduzindo o custo médio.',
+            cenarios:[{key:"atual",nome:"Cenário atual",total:206.0,taxa:14.4},
+                      {key:"futuro",nome:"Cenário futuro",total:275.0,taxa:11.1}],
+            plantas:[
+              {key:"BA",nome:"Bahia",
+                atual:[{nome:"Financiamento BNB — 1ª fase",valor:71.0,idx:"IPCA + 4,4% a.a.",taxa:"9,1%",prazo:"12 anos",longo:1,gar:"75% contrato Petrobahia + 25% fiança corporativa"}],
+                futuro:[{nome:"Financiamento BNB — 1ª fase",valor:71.0,idx:"IPCA + 4,4% a.a.",taxa:"9,1%",prazo:"12 anos",longo:1,gar:"75% contrato Petrobahia + 25% fiança corporativa"},
+                        {nome:"Financiamento BNB — 2ª fase",valor:17.8,idx:"IPCA + 4,4% a.a.",taxa:"9,1%",prazo:"12 anos",longo:1,gar:"75% contrato Petrobahia + 25% fiança corporativa"}]},
+              {key:"RN",nome:"Assú",
+                atual:[{nome:"Bridge (ABC) — 5ª emissão",valor:45.0,idx:"CDI + 2,4% a.a.",taxa:"17,3%",prazo:"6 meses",longo:0,gar:"100% fiança corporativa"}],
+                futuro:[{nome:"Financiamento BNB — 1ª fase",valor:75.3,idx:"IPCA + 5,7% a.a.",taxa:"10,4%",prazo:"12 anos",longo:1,gar:"Inicialmente 100% fiança corporativa e, após a liberação da 2ª fase, 50% fiança corporativa e 50% contrato Cegás"},
+                        {nome:"Financiamento BNB — 2ª fase",valor:10.9,idx:"IPCA + 5,7% a.a.",taxa:"10,4%",prazo:"12 anos",longo:1,gar:"Inicialmente 100% fiança corporativa e, após a liberação da 2ª fase, 50% fiança corporativa e 50% contrato Cegás"}],
+                futFn:1},
+              {key:"PR",nome:"Paraná",
+                atual:[{nome:"Bridge (ABC) — 6ª emissão",valor:50.0,idx:"CDI + 2,4% a.a.",taxa:"17,3%",prazo:"6 meses",longo:0,gar:"100% fiança corporativa"},
+                       {nome:"Bridge (ABC) — 7ª emissão",valor:40.0,idx:"CDI + 1,9% a.a.",taxa:"16,8%",prazo:"6 meses",longo:0,gar:"100% fiança corporativa"}],
+                futuro:[{nome:"Debênture de infraestrutura",valor:100.0,idx:"IPCA + 8,95% a.a.",taxa:"13,6%",prazo:"10 anos",longo:1,gar:"100% contrato Bahiagás"}]}
+            ],
+            foot:'Valores em R$ milhões · <b>Taxa</b> = custo nominal (% a.a.) informado no deck; o custo médio de cada cenário é a média ponderada pelo saldo. &nbsp; <sup>1</sup> Apesar do valor pré-aprovado do BNB ser de até R$ 94,1 mi, a GNLink ainda estava em fase de comprovação do orçamento do projeto e o banco indicou a liberação de R$ 86,2 mi. &nbsp; Fonte: GNLink — RCI dez/2025 (slide 13).'},
+
+          rcaMai:{tipo:"mensal",realN:5,pos:"mai/26",posTitulo:"posição mai/2026",
+            srcCap:"RCA · Mai/26 — Apresentação de Resultados GNLink (slide 15)",
+            intro:'Saldo devedor por emissão, planta e banco — <b>realizado até mai/26</b>, demais meses em <b>forecast</b>. Em maio já havia sido orçado o desembolso final do BNB Assú (R$ 10,9 mi), mas seguia em discussão com o banco a crítica de R$ 8 mi; a documentação adicional foi enviada e aguardava-se retorno da área técnica. <span style="color:var(--muted)">Colunas de orçado (mai/26 e dez/26) e variação foram omitidas.</span>',
+            total:[236.5,314.6,316.3,319.4,320.5,322.0,343.7,344.8,345.8,348.6,347.5,349.7],
+            plantas:[
+              {key:"BA",nome:"Bahia",emissoes:[
+                {nome:"Financiamento BNB",banco:"BNB",emissao:"13/12/24",venc:"15/09/36",taxa:"8,5%",idx:"IPCA + 4,4% a.a.",pnom:"12 anos",gar:"75% contrato Copergás<sup>1</sup> + 25% fiança corporativa",saldo:[89.8,90.5,89.4,89.8,90.5,89.3,90.0,90.7,88.9,88.9,87.4,86.7]}
+              ],sub:[89.8,90.5,89.4,89.8,90.5,89.3,90.0,90.7,88.9,88.9,87.4,86.7]},
+              {key:"RN",nome:"Assú",emissoes:[
+                {nome:"Financiamento BNB Carnaúba — 1ª fase",banco:"BNB",emissao:"05/02/26",venc:"15/11/37",taxa:"9,8%",idx:"IPCA + 5,7% a.a.",pnom:"12 anos",gar:"Fiança corporativa + contrato Cegás",saldo:[null,75.7,76.4,77.1,75.6,76.3,76.6,75.3,75.9,76.6,75.3,75.9]},
+                {nome:"Financiamento BNB Carnaúba — 2ª fase",banco:"BNB",emissao:"TBD",venc:"TBD",taxa:"9,8%",idx:"IPCA + 5,7% a.a.",pnom:"12 anos",gar:"Fiança corporativa + contrato Cegás",saldo:[null,null,null,null,null,null,17.1,16.7,16.9,17.1,16.7,16.9]}
+              ],sub:[null,75.7,76.4,77.1,75.6,76.3,93.7,92.0,92.9,93.7,92.0,92.9]},
+              {key:"PR",nome:"Paraná",emissoes:[
+                {nome:"Bridge (ABC) — 9ª emissão",banco:"ABC",emissao:"12/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[42.6,43.1,43.8,44.3,44.9,45.5,null,null,null,null,null,null]},
+                {nome:"Bridge (ABC) — 10ª emissão",banco:"ABC",emissao:"12/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[54.5,55.1,55.9,56.6,57.4,58.1,null,null,null,null,null,null]},
+                {nome:"NC privada — 12ª emissão",banco:"TBD",emissao:"TBD",venc:"TBD",taxa:"16,7%",idx:"CDI + 2,4% a.a.",pnom:"1 ano",gar:"100% fiança corporativa",saldo:[null,null,null,null,null,null,100.0,101.2,102.5,103.7,105.0,106.3]}
+              ],sub:[97.1,98.2,99.7,100.9,102.3,103.6,100.0,101.2,102.5,103.7,105.0,106.3]},
+              {key:"GIRO",nome:"Giro",emissoes:[
+                {nome:"Bridge (ABC) — 8ª emissão",banco:"ABC",emissao:"06/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[49.6,50.2,50.9,51.5,52.2,52.8,null,null,null,null,null,null]},
+                {nome:"NC privada — 11ª emissão",banco:"TBD",emissao:"TBD",venc:"TBD",taxa:"16,7%",idx:"CDI + 2,4% a.a.",pnom:"1 ano",gar:"100% fiança corporativa",saldo:[null,null,null,null,null,null,60.0,60.8,61.5,62.3,63.1,63.9]}
+              ],sub:[49.6,50.2,50.9,51.5,52.2,52.8,60.0,60.8,61.5,62.3,63.1,63.9]}
+            ],
+            foot:'Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; Fonte: GNLink — RCA mai/2026 (slide 15).'},
+
+          rcaJun:{tipo:"mensal",realN:6,pos:"jun/26",posTitulo:"posição jun/2026",
+            srcCap:"RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slide 14)",
+            intro:'Saldo devedor por emissão, planta e banco — <b>realizado até jun/26</b>, demais meses em <b>forecast</b>. Em junho já havia sido orçado o desembolso final do BNB Assú (R$ 10,9 mi), mas segue em discussão com o banco a crítica de R$ 8 mi; a documentação adicional foi enviada e aguarda-se retorno da área técnica. <span style="color:var(--muted)">Colunas de orçado (jun/26 e dez/26) e variação foram omitidas.</span>',
+            total:[236.5,314.6,316.3,319.4,320.5,322.0,326.9,344.3,345.9,347.8,347.8,350.1],
+            plantas:[
+              {key:"BA",nome:"Bahia",emissoes:[
+                {nome:"Financiamento BNB",banco:"BNB",emissao:"13/12/24",venc:"15/09/36",taxa:"8,5%",idx:"IPCA + 4,4% a.a.",pnom:"12 anos",gar:"75% contrato Copergás<sup>1</sup> + 25% fiança corporativa",saldo:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]}
+              ],sub:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.8,88.1,87.4,86.7]},
+              {key:"RN",nome:"Assú",emissoes:[
+                {nome:"Financiamento BNB Carnaúba — 1ª fase",banco:"BNB",emissao:"05/02/26",venc:"15/11/37",taxa:"9,8%",idx:"IPCA + 5,7% a.a.",pnom:"12 anos",gar:"Fiança corporativa + contrato Cegás",saldo:[null,75.7,76.4,77.1,75.6,76.3,76.7,75.4,75.7,76.1,75.4,75.7]},
+                {nome:"Financiamento BNB Carnaúba — 2ª fase",banco:"BNB",emissao:"TBD",venc:"TBD",taxa:"9,8%",idx:"IPCA + 5,7% a.a.",pnom:"12 anos",gar:"Fiança corporativa + contrato Cegás",saldo:[null,null,null,null,null,null,0.3,16.7,17.2,17.4,16.7,17.1]}
+              ],sub:[null,75.7,76.4,77.1,75.6,76.3,77.0,92.0,93.0,93.5,92.0,92.9]},
+              {key:"PR",nome:"Paraná",emissoes:[
+                {nome:"Bridge (ABC) — 9ª emissão",banco:"ABC",emissao:"12/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[42.6,43.1,43.8,44.3,44.9,45.5,null,null,null,null,null,null]},
+                {nome:"Bridge (ABC) — 10ª emissão",banco:"ABC",emissao:"12/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[54.5,55.1,55.9,56.6,57.4,58.1,null,null,null,null,null,null]},
+                {nome:"NC privada — 12ª emissão",banco:"TBD",emissao:"TBD",venc:"TBD",taxa:"16,7%",idx:"CDI + 2,4% a.a.",pnom:"1 ano",gar:"100% fiança corporativa",saldo:[null,null,null,null,null,null,100.0,101.3,102.5,103.8,105.1,106.5]}
+              ],sub:[97.1,98.2,99.7,100.9,102.3,103.6,100.0,101.3,102.5,103.8,105.1,106.5]},
+              {key:"GIRO",nome:"Giro",emissoes:[
+                {nome:"Bridge (ABC) — 8ª emissão",banco:"ABC",emissao:"06/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[49.6,50.2,50.9,51.5,52.2,52.9,null,null,null,null,null,null]},
+                {nome:"NC privada — 11ª emissão",banco:"TBD",emissao:"TBD",venc:"TBD",taxa:"16,7%",idx:"CDI + 2,4% a.a.",pnom:"1 ano",gar:"100% fiança corporativa",saldo:[null,null,null,null,null,null,60.0,60.8,61.6,62.4,63.2,64.0]}
+              ],sub:[49.6,50.2,50.9,51.5,52.2,52.9,60.0,60.8,61.6,62.4,63.2,64.0]}
+            ],
+            foot:'Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).'}
+        }
+      },
+      // Projetos operacionais — "Evolutivo de Volume" de cada planta nos RCAs.
+      // Uma entrada por planta; dentro, uma base por deck (a mais recente é o default).
+      // Só entram as colunas Real (meses fechados) e Fcst (demais) — as de Orçado do
+      // slide ficam de fora. Clientes que só aparecem no orçado (sem volume em real nem
+      // em forecast, caso dos riscados em vermelho no deck) são contados em semVol.
+      // realN = nº de meses realizados na base; status = legenda de contrato do slide.
+      projetos:{
+        meses:["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],
+        plantas:[
+          {key:"PR",nome:"Barra Bonita",uf:"Paraná",bases:{
+            rcaMai:{realN:5,srcCap:"RCA · Mai/26 — Apresentação de Resultados GNLink (slide 21)",
+              gnl:{cli:[["LD CELULOSE","spot",[4.5,null,null,null,null,null,null,null,null,null,null,null]],["COMPAGÁS","ativo",[null,null,2.7,1.9,8.9,29.3,20,20,20,20,20,20]],["STARA","previsto",[null,null,null,null,null,null,0.2,2,2,2,2,2]]],
+              total:[4.5,null,2.7,1.9,8.9,29.3,20.2,22,22,22,22,22],
+              cap:[39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6],semVol:4},
+              gnc:{cli:[["FEVEREIRO","ativo",[1.2,0.6,1,1.1,0.8,0.8,2,2,2,2,2,2]],["DALLON","ativo",[null,null,null,0.5,null,1.8,6.7,6.7,6.7,6.7,6.7,6.7]],["RIO BONITO EMBALAG","previsto",[null,null,null,null,null,null,2,2,2,2,2,2]],["DALPARE","ativo",[null,null,null,null,null,null,0.4,2,2,2.5,2.5,2.5]]],
+              total:[1.2,0.6,1,1.6,0.8,2.6,11.1,12.7,12.7,13.2,13.2,13.2],
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:3}},
+            rcaJun:{realN:6,srcCap:"RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slide 20)",
+              gnl:{cli:[["LD CELULOSE","spot",[4.5,null,null,null,null,null,null,null,null,null,null,null]],["COMPAGÁS","ativo",[null,null,2.7,1.9,8.9,26.4,25.5,23,23,23,23,23]],["STARA","previsto",[null,null,null,null,null,null,null,null,null,0.2,2,2]],["LHOIST","previsto",[null,null,null,null,null,null,null,null,null,null,4.5,4.5]],["GOIASGÁS","previsto",[null,null,null,null,null,null,null,null,null,5,5,5]],["SK METAIS","previsto",[null,null,null,null,null,null,null,0.2,3,3,3,3]]],
+              total:[4.5,null,2.7,1.9,8.9,26.4,25.5,23.2,26,31.2,37.5,37.5],
+              cap:[39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6],semVol:0},
+              gnc:{cli:[["FEVEREIRO","ativo",[1.2,0.6,1,1.1,0.8,0.7,0.8,2,2,2,2,2]],["DALLON","ativo",[null,null,null,0.5,null,null,1.5,6.7,6.7,6.7,6.7,6.7]],["RIO BONITO EMBALAG","previsto",[null,null,null,null,null,null,null,0.7,2,2,2,2]],["DALPARE","ativo",[null,null,null,null,null,null,null,null,1.1,2,2,2]],["DALBA","previsto",[null,null,null,null,null,null,null,null,1.1,1.1,1.1,1.1]],["SAMP","previsto",[null,null,null,null,null,null,null,null,null,null,null,0.5]]],
+              total:[1.2,0.6,1,1.6,0.8,0.7,2.4,9.4,12.9,13.8,13.8,14.3],
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:0}}
+          }},
+          {key:"BA",nome:"Itabuna",uf:"Bahia",bases:{
+            rcaMai:{realN:5,srcCap:"RCA · Mai/26 — Apresentação de Resultados GNLink (slide 26)",
+              gnl:{cli:[["PETROBAHIA","ativo",[2.1,1.5,1.5,2.5,1,1.7,1.5,1.5,1.5,1.5,1.5,1.5]],["PETYAN","ativo",[2.9,1.6,3.5,4.9,4.1,2.2,5.6,8.1,8.8,8.5,8.4,8.9]],["BAHIAGÁS VDC","ativo",[null,null,null,null,null,null,3.1,3.1,3.1,3.1,3.1,3.1]],["BAHIAGÁS BRU","previsto",[null,null,null,null,null,null,null,15.1,15.1,15.1,15.1,15.1]],["GASODUTO","ativo",[null,3.5,null,null,4.7,null,null,null,null,null,null,null]],["EUROFARMA","previsto",[null,null,null,null,null,null,null,null,2.7,2.7,2.7,2.7]]],
+              total:[5,6.7,5,7.3,9.8,3.9,10.2,27.9,31.2,30.9,30.8,31.3],
+              cap:[42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,85.2,85.2,85.2],semVol:6},
+              gnc:{cli:[["ALGÁS (SERVIÇO)","ativo",[null,null,null,null,null,null,null,null,3,3,3,3]],["BAHIAGÁS","previsto",[null,null,null,null,0.3,0.5,0.5,0.5,0.5,0.5,0.5,0.5]]],
+              total:[null,null,null,null,0.3,0.5,0.5,0.5,3.5,3.5,3.5,3.5],
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4],semVol:1}},
+            rcaJun:{realN:6,srcCap:"RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slide 25)",
+              gnl:{cli:[["PETROBAHIA","ativo",[2.1,1.5,1.5,2.5,1,2.1,1.9,2,2,2,2,2]],["PETYAN","ativo",[2.9,1.6,3.5,4.9,4.1,2.4,4.8,4.4,4.8,5.3,5.3,5.6]],["BAHIAGÁS VDC","ativo",[null,null,null,null,null,null,null,null,1.5,1.5,1.5,1.5]],["VANADIUM","previsto",[null,null,null,null,null,null,null,null,null,9,9,9]],["CBL","previsto",[null,null,null,null,null,null,null,null,null,4,4,null]],["GRAFITE DO BRASIL","previsto",[null,null,null,null,null,null,null,null,null,2.2,2.2,2.2]]],
+              total:[5,3.1,5,7.3,5.1,4.5,6.7,6.4,8.3,24,24,20.3],
+              cap:[42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,85.2,85.2,85.2],semVol:2},
+              gnc:{cli:[["ALGÁS (SERVIÇO)","ativo",[null,null,null,null,null,null,null,null,3,3,3,3]],["BAHIAGÁS","ativo",[null,null,null,null,0.3,0.4,0.5,1,null,null,null,null]]],
+              total:[null,null,null,null,0.3,0.4,0.5,1,3,3,3,3],
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4],semVol:0}}
+          }},
+          {key:"RN",nome:"Assú",uf:"Rio Grande do Norte",bases:{
+            rcaMai:{realN:5,srcCap:"RCA · Mai/26 — Apresentação de Resultados GNLink (slide 31)",
+              gnl:{cli:[["CEGÁS","ativo",[13.3,6.8,14.7,18.2,17.5,18,20.2,20.2,20.1,20.2,20.1,20.2]],["COPERGÁS","ativo",[null,null,1.7,2.4,2.5,2.6,3.9,7.5,15,15,15,15]],["PETRORECONCAVO","ativo",[null,null,null,0.1,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2]]],
+              total:[13.3,6.8,16.4,20.7,20.2,20.8,24.3,27.9,35.3,35.4,35.3,35.4],
+              cap:[null,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4,72.7,72.7,72.7],semVol:3},
+              gnc:{cli:[["MERI POBO","ativo",[null,null,null,0.5,0.7,1.2,3,3,3,3,3,3]],["PARELHAS","novo",[null,null,null,0.8,1.1,1,3,3,3,3,3,3]],["LIDER","novo",[null,null,0.4,0.8,0.1,null,0.5,0.5,3,0.5,3,0.5]],["NATURAL GAS","novo",[null,null,null,null,null,null,1,1,1,1,1,1]]],
+              total:[null,null,0.4,2,1.9,2.2,7.5,7.5,10,7.5,10,7.5],
+              cap:[null,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:0}},
+            rcaJun:{realN:6,srcCap:"RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slide 30)",
+              gnl:{cli:[["CEGÁS","ativo",[13.3,6.8,14.7,18.2,17.5,17.6,18.7,20.2,20.1,20.2,20.1,20.2]],["COPERGÁS","ativo",[null,null,1.7,2.4,2.5,2.5,2.5,3.5,6.7,7.5,14,23]],["MASTERBOI","ativo",[null,null,null,null,null,null,null,null,null,9,9,9]]],
+              total:[13.3,6.8,16.4,20.6,20,20.1,21.2,23.7,26.8,36.7,43.1,52.2],
+              cap:[null,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4,72.7,72.7,72.7],semVol:0},
+              gnc:{cli:[["MERI POBO","ativo",[null,null,null,0.5,0.7,null,0.7,2,2,2,2,2]],["PARELHAS","novo",[null,null,null,0.8,1.1,1.1,1.3,2,2,2,2,2]],["LIDER","novo",[null,null,0.4,0.8,0.1,null,0.3,null,null,null,null,null]]],
+              total:[null,null,0.4,2,1.9,1.1,2.3,4,4,4,4,4],
+              cap:[null,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:1}}
+          }}
+        ]
+      },
       competidores:{
         intro:"Universo de competidores organizado por elo (segmento) da cadeia de energia térmica. Em destaque, o elo onde a GNLink atua.",
         legend:"Elo da GNLink",
@@ -552,7 +698,7 @@
         ]},
         segments:[
           {dot:"#8A6D3B",title:"Holdings diversificadas",count:"6 players",chips:[{name:"Compass",href:"empresas/gnlink/analises-setoriais/competidores/compass/index.html"},"Cosan","Energisa","J&amp;F","Mitsui","Ultrapar"]},
-          {dot:"#55677C",title:"Distribuidoras de combustíveis",count:"4 players",chips:["Raízen","Ipiranga","Vibra Energia","Ultracargo"],invest:"Ultrapar · Cosan"},
+          {dot:"#7C6BA0",title:"Distribuidoras de combustíveis",count:"4 players",chips:["Raízen","Ipiranga","Vibra Energia","Ultracargo"],invest:"Ultrapar · Cosan"},
           {dot:"#C55A17",title:"Distribuidoras de GLP",count:"4 players",chips:["Ultragaz","Copa Energia","Supergasbras","Nacional Gás"],invest:"Ultrapar · Itaúsa · SHV Energy · Edson Queiroz"},
           {dot:"#3D4A5C",title:"Distribuidoras de gás natural",count:"19+ players",regions:[
             {label:"Nordeste",chips:["Bahiagás","Algás","Sergás","Copergás","Cegás","Potigás (…)"]},
