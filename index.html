@@ -2729,9 +2729,10 @@
             <!-- ===== Projetos operacionais: volume por cliente e ocupação de cada planta ===== -->
             <style>
               /* Gráfico por planta: reusa .dm-occ (faixa preta de ocupação no topo) e o
-                 ramp chart (.rmp-*) do painel Operacional/Comercial. Diferença: aqui a
-                 capacidade muda ao longo do ano, então a ALTURA da barra é a própria
-                 ocupação do mês — o mesmo número que aparece na pílula preta. */
+                 ramp chart (.rmp-*) do painel Operacional/Comercial. Diferença: aqui o
+                 EIXO PRIMÁRIO é o volume (mil m³/dia), com escala fixa no ano; a
+                 capacidade entra como linha de referência na mesma unidade e a % de
+                 ocupação fica só nas pílulas do topo, sem governar altura nenhuma. */
               .pj-st{font-style:normal;font-size:9.5px;font-weight:600;color:var(--muted);background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-left:1px;white-space:nowrap}
               .pj-sep{border-left:1px dashed #AEB9C5;margin-left:2px;padding-left:3px}
               .dm-occ b.nd{background:#EDF1F5;color:var(--muted)}
@@ -2739,10 +2740,20 @@
                  padrão, senão o degradê vira uma cor só */
               .rmp-legend i.pj-ramp{width:36px}
               .pj-scroll{overflow-x:auto;scrollbar-width:thin}
-              .pj-plot{min-width:620px}
-              /* mais alto que o ramp-up do Operacional: como a altura aqui é a ocupação,
+              .pj-plot{min-width:666px}
+              /* gutter do eixo Y: os três blocos alinhados às colunas (pílulas, plot e meses) */
+              .pj-plot .dm-occ,.pj-plot .rmp-plot,.pj-plot .rmp-x{padding-left:46px}
+              /* mais alto que o ramp-up do Operacional: a escala vai até a capacidade, e
                  plantas com ocupação baixa (BA) ficariam com barras espremidas */
-              .pj-plot .rmp-plot{height:230px}
+              .pj-plot .rmp-plot{position:relative;height:260px}
+              .pj-plot .rmp-col{position:relative}
+              /* área útil da coluna = 260 − 20 de padding-top − 2 de borda = 238px (PJ_H no script) */
+              .pj-grid{position:absolute;left:46px;right:0;top:20px;bottom:0;pointer-events:none}
+              .pj-gl{position:absolute;left:0;right:0;height:0;border-top:1px dashed #E7ECF1}
+              .pj-gl.zero{border-top-color:transparent}
+              .pj-gl em{position:absolute;left:-46px;top:-6px;width:40px;text-align:right;font-style:normal;font-size:9.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+              .pj-capline{position:absolute;left:0;right:0;height:0;border-top:2px dashed #13202E;z-index:2}
+              .rmp-legend i.pj-capkey{width:22px;height:0;border-radius:0;border-top:2px dashed #13202E}
               .pj-x span.rz{color:#C55A17;font-weight:700}
               .pj-x span.fc{color:#4F7B8C;font-weight:700}
               .pj-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:2px 0 14px}
@@ -2796,32 +2807,55 @@
               function rampa(p){ return 'hsl('+(Math.max(0,Math.min(100,p))*1.45).toFixed(0)+',62%,30%)'; }
               var RAMPA_CSS='linear-gradient(90deg,'+rampa(0)+','+rampa(50)+','+rampa(100)+')';
 
-              // Gráfico empilhado do mês: um segmento por cliente, altura da coluna = %
-              // de ocupação da capacidade daquele mês (a mesma % da pílula colorida em cima).
+              // Escala do eixo de volume: passo "redondo" que renda de 4 a 6 marcas
+              // cobrindo o maior valor do ano entre capacidade e demanda.
+              function escalaY(m){
+                if(!(m>0)) return {max:1,step:1};
+                var e=Math.pow(10,Math.floor(Math.log(m/4)/Math.LN10));
+                var c=[1,2,2.5,5,10].map(function(f){ return f*e; });
+                for(var i=0;i<c.length;i++){ var n=Math.ceil(m/c[i]); if(n>=4&&n<=6) return {max:n*c[i],step:c[i]}; }
+                return {max:Math.ceil(m/c[4])*c[4],step:c[4]};
+              }
+              function fmtT(v,st){ var d=(st%1)?1:0; return v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+              // Área útil da coluna, em px: 260 de .pj-plot .rmp-plot − 20 de padding-top
+              // (espaço do rótulo de total) − 2 do border-bottom, com box-sizing:border-box.
+              var PJ_H=238;
+
+              // Gráfico empilhado do mês: um segmento por cliente. A ALTURA é o volume
+              // (mil m³/dia) numa escala fixa nos 12 meses — comparável entre colunas
+              // mesmo quando a planta expande. A capacidade do mês vai como linha
+              // tracejada na mesma escala, e a % de ocupação só como pílula no topo.
               function grafico(d,realN,titulo,fonte,cores){
                 var iR=realN-1;
-                var capRef=null; for(var i=0;i<12;i++){ if(d.cap[i]!=null){ capRef=d.cap[i]; break; } }
+                var mx=0;
+                for(var i=0;i<12;i++){ if(d.cap[i]>mx) mx=d.cap[i]; if(d.total[i]>mx) mx=d.total[i]; }
+                var Y=escalaY(mx);
                 var occRow='', cols='', semCap=[];
                 for(var i=0;i<12;i++){
-                  var cap=d.cap[i], tot=d.total[i], den=(cap!=null?cap:capRef);
-                  var pc=(tot!=null&&den)?tot/den*100:0;
+                  var cap=d.cap[i], tot=d.total[i];
+                  var pc=(tot!=null&&cap)?tot/cap*100:0;
                   if(cap==null&&tot!=null) semCap.push(ML[i]+'/26');
                   var pr=Math.round(pc);
-                  occRow+='<span>'+(cap!=null&&tot!=null&&den
+                  occRow+='<span>'+(cap!=null&&tot!=null
                     ? (pr>0?'<b style="background:'+rampa(pc)+'">'+pr+'%</b>':'<b class="nd">0%</b>')
                     : '<b class="nd" title="capacidade não informada no slide">'+(tot!=null?'n/d':'–')+'</b>')+'</span>';
-                  // Rótulo só quando o bloco tem altura para ele: 210px é a área útil da
-                  // coluna (230 do plot − 20 de padding do rótulo de total).
+                  // Rótulo só quando o bloco tem altura para ele (≥12px na escala do eixo).
                   var segs='';
                   d.cli.forEach(function(c){
                     var v=c[2][i]; if(!v) return;
-                    var px=210*(Math.min(100,pc)/100)*(v/tot);
                     segs+='<i class="rmp-seg" style="flex-grow:'+v+';background:'+cores[c[0]]+'" title="'+esc(c[0])+' · '+ML[i]+'/26: '+fmt(v)+'">'
-                      + (px>=12?fmt(v):'')+'</i>';
+                      + (PJ_H*(v/Y.max)>=12?fmt(v):'')+'</i>';
                   });
+                  var linha=cap!=null
+                    ? '<i class="pj-capline" style="bottom:'+(cap/Y.max*100).toFixed(2)+'%" title="Capacidade '+ML[i]+'/26: '+fmt(cap)+' mil m³/dia"></i>' : '';
                   cols+='<div class="rmp-col'+(i===realN?' pj-sep':'')+'"><span class="rmp-cap">'+(tot!=null?fmt(tot):'–')+'</span>'
-                    + '<div class="rmp-stack" style="height:'+Math.min(100,pc).toFixed(1)+'%">'+segs+'</div></div>';
+                    + '<div class="rmp-stack" style="height:'+(tot!=null?(tot/Y.max*100).toFixed(2):'0')+'%">'+segs+'</div>'+linha+'</div>';
                 }
+                var nT=Math.round(Y.max/Y.step), grid='<div class="pj-grid">';
+                for(var t=0;t<=nT;t++){
+                  grid+='<span class="pj-gl'+(t?'':' zero')+'" style="bottom:'+(t/nT*100).toFixed(2)+'%"><em>'+fmtT(t*Y.step,Y.step)+'</em></span>';
+                }
+                grid+='</div>';
                 var xs=ML.map(function(m,i){ return '<span class="'+(i<realN?'rz':'fc')+'">'+m+'/26</span>'; }).join('');
                 // O contrato de cada cliente vai como texto ao lado do nome: um segundo
                 // quadradinho colado no nome era lido como sendo do cliente seguinte.
@@ -2830,18 +2864,19 @@
                     return '<span><i style="background:'+cores[c[0]]+'"></i>'+esc(c[0])
                       + '<em class="pj-st" title="'+esc(st[1])+'">'+esc(st[2]||st[1])+'</em></span>';
                   }).join('')
-                  + '<span><i class="pj-ramp" style="background:'+RAMPA_CSS+'"></i>% ocupação (linha superior): vermelho = baixa &rarr; verde = alta</span></div>';
+                  + '<span><i class="pj-capkey"></i>Capacidade da planta no mês</span>'
+                  + '<span><i class="pj-ramp" style="background:'+RAMPA_CSS+'"></i>% ocupação (pílulas no topo, fora da escala do eixo): vermelho = baixa &rarr; verde = alta</span></div>';
                 var stat='';
                 var rf='<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–'+ML[iR]+'/26)</span>'
                   + '<span><i style="background:#4F7B8C"></i>Forecast ('+ML[realN]+'–dez/26), à direita da linha tracejada</span></div>';
                 var omit=d.semVol?' '+d.semVol+' cliente'+(d.semVol>1?'s':'')+' do slide '+(d.semVol>1?'ficaram':'ficou')+' de fora por não ter volume em realizado nem em forecast (só em orçado).':'';
-                var nd=semCap.length?' O deck não informa a capacidade de '+semCap.join(', ')+', então a coluna usa a capacidade do mês seguinte como referência de altura e a ocupação fica como <b>n/d</b>.':'';
-                return '<div class="row-full" style="margin-bottom:14px"><div class="card"><div class="card-header"><div class="card-title">'+titulo+'</div><span class="tag">mil m³/dia · topo = % ocupação</span></div>'
+                var nd=semCap.length?' O deck não informa a capacidade de '+semCap.join(', ')+', então esses meses ficam sem linha de capacidade e com ocupação <b>n/d</b>.':'';
+                return '<div class="row-full" style="margin-bottom:14px"><div class="card"><div class="card-header"><div class="card-title">'+titulo+'</div><span class="tag">mil m³/dia · tracejado = capacidade</span></div>'
                   + '<div class="card-body"><div class="pj-scroll"><div class="pj-plot">'
-                  + '<div class="dm-occ">'+occRow+'</div><div class="rmp-plot">'+cols+'</div><div class="rmp-x pj-x">'+xs+'</div></div></div>'
+                  + '<div class="dm-occ">'+occRow+'</div><div class="rmp-plot">'+grid+cols+'</div><div class="rmp-x pj-x">'+xs+'</div></div></div>'
                   + leg+stat+rf
-                  + '<p class="card-note" style="margin-top:11px">Rótulo acima da coluna = demanda total do mês; dentro dos blocos, o volume de cada cliente. A <b>altura da coluna</b> é a ocupação da capacidade daquele mês — por isso ela pode cair quando a planta expande.'+nd+omit
-                  + ' A % é calculada aqui, dividindo a demanda pela capacidade, e pode diferir em 1 p.p. da linha do slide, que parte dos valores sem arredondamento. Fonte: '+fonte+'</p></div></div></div>';
+                  + '<p class="card-note" style="margin-top:11px">Eixo vertical = <b>volume em mil m³/dia</b>, mesma escala nos 12 meses: a altura das colunas é comparável mês a mês. Rótulo acima da coluna = demanda total do mês; dentro dos blocos, o volume de cada cliente. A linha tracejada é a capacidade daquele mês — a coluna passar dela significa demanda acima da capacidade instalada.'+nd+omit
+                  + ' A % nas pílulas é calculada aqui, dividindo a demanda pela capacidade, e pode diferir em 1 p.p. da linha do slide, que parte dos valores sem arredondamento. Fonte: '+fonte+'</p></div></div></div>';
               }
               // Cor por cliente, fixa dentro da planta: a mesma empresa mantém a cor ao
               // trocar de base, mesmo que a lista de clientes mude de um deck para o outro.
