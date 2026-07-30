@@ -6,8 +6,9 @@
 // cliente. Aceita as duas convenções de nome que o add-on pode injetar.
 //
 //   GET    /api/todos          -> lista todas as tarefas (semeia na 1ª vez)
-//   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?, status?, prioridade?}
-//   PATCH  /api/todos          -> body {id, done?, status?, prioridade?, empresa?, empresaLogo?, projeto?, texto?, comentario?}
+//   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?, status?, prioridade?, checklist?}
+//   PATCH  /api/todos          -> body {id, done?, status?, prioridade?, checklist?, analista?, empresa?, empresaLogo?, projeto?, texto?, comentario?}
+//                                 checklist = [{id?, texto, done}] (lista de verificação)
 //   PUT    /api/todos          -> body {order:[id,...], moved?:{id, projeto?}} (reordena)
 //   DELETE /api/todos?id=...   -> remove a tarefa
 // ============================================================================
@@ -60,11 +61,29 @@ function normPrio(v) {
   const p = String(v == null ? '' : v).trim();
   return PRIOS.includes(p) ? p : 'media';
 }
+// Lista de verificação (sub-tarefas): [{id, texto, done}]. Itens sem texto caem.
+function normChecklist(v) {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((c, i) => ({
+      id: c && c.id ? String(c.id) : 'c_' + i + '_' + Math.random().toString(36).slice(2, 7),
+      texto: String((c && c.texto) || '').trim(),
+      done: !!(c && c.done),
+    }))
+    .filter((c) => c.texto)
+    .slice(0, 200);
+}
+
 // Registros antigos só tinham `done`: completa status/prioridade na leitura.
 function migrar(list) {
   return list.map((t) => {
     const status = normStatus(t.status, !!t.done);
-    return Object.assign({}, t, { status, prioridade: normPrio(t.prioridade), done: status === 'concluida' });
+    return Object.assign({}, t, {
+      status,
+      prioridade: normPrio(t.prioridade),
+      checklist: normChecklist(t.checklist),
+      done: status === 'concluida',
+    });
   });
 }
 
@@ -102,6 +121,7 @@ export default async function handler(req, res) {
         comentario: b.comentario ? String(b.comentario).trim() : '',
         status: status,
         prioridade: normPrio(b.prioridade),
+        checklist: normChecklist(b.checklist),
         done: status === 'concluida',
         criadoEm: new Date().toISOString(),
       };
@@ -126,6 +146,8 @@ export default async function handler(req, res) {
         it.done = it.status === 'concluida';
       }
       if (Object.prototype.hasOwnProperty.call(b, 'prioridade')) it.prioridade = normPrio(b.prioridade);
+      if (Object.prototype.hasOwnProperty.call(b, 'checklist')) it.checklist = normChecklist(b.checklist);
+      if (Object.prototype.hasOwnProperty.call(b, 'analista') && String(b.analista).trim()) it.analista = String(b.analista).trim();
       if (Object.prototype.hasOwnProperty.call(b, 'projeto')) it.projeto = String(b.projeto || '').trim();
       if (Object.prototype.hasOwnProperty.call(b, 'comentario')) it.comentario = String(b.comentario || '').trim();
       if (Object.prototype.hasOwnProperty.call(b, 'texto') && String(b.texto).trim()) it.texto = String(b.texto).trim();

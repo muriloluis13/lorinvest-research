@@ -1629,6 +1629,9 @@
           </style>
 
           <div class="ov-panel" data-ovp="todo">
+          <div class="todo-toolbar">
+            <button class="todo-add-top" id="todoAddTop" type="button"><span class="plus">+</span> Adicionar tarefa</button>
+          </div>
           <div class="todo-grid" id="todoGrid" aria-busy="true"><div class="todo-loading">Carregando tarefas…</div></div>
           </div>
 
@@ -5119,13 +5122,18 @@
     .todo-sel-opt:hover{background:var(--bg-card-soft)}
     .todo-sel-ck{width:11px;flex:none;font-size:11px;line-height:1;color:var(--accent-1)}
 
+    .todo-chk-badge{display:inline-flex;align-items:center;gap:3px;margin-left:7px;font-size:10px;font-weight:700;color:var(--muted);background:var(--chip);border-radius:999px;padding:1px 7px;vertical-align:1px}
     .todo-c-acts{display:flex;align-items:center;justify-content:flex-end;gap:1px}
     .todo-del{flex:none;border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:2px 3px;border-radius:6px;opacity:.4}
     .todo-del:hover{color:var(--accent-danger);opacity:1;background:rgba(226,58,46,.09)}
     .todo-edit{flex:none;border:none;background:transparent;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;padding:3px;border-radius:6px;opacity:.4}
     .todo-edit:hover{color:var(--accent-1);opacity:1;background:var(--chip)}
-    .todo-add-btn{align-self:flex-start;margin-top:4px;border:1px dashed var(--line);background:var(--bg-card-soft);color:var(--accent-1);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:8px;cursor:pointer}
-    .todo-add-btn:hover{border-color:var(--accent-2);background:#fff}
+    /* Botão único de nova tarefa, acima dos cards dos analistas. */
+    .todo-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
+    .todo-add-top{display:inline-flex;align-items:center;gap:7px;border:none;background:#7B68EE;color:#fff;font:inherit;font-size:12.5px;font-weight:600;padding:9px 17px;border-radius:9px;cursor:pointer;box-shadow:0 1px 2px rgba(19,32,46,.12)}
+    .todo-add-top:hover{background:#6A56DB}
+    .todo-add-top:active{background:#5E4BC9}
+    .todo-add-top .plus{font-size:16px;line-height:1;margin-top:-1px}
 
     /* Telas estreitas: nome numa linha, os dois seletores na linha de baixo. */
     @media (max-width:719px){
@@ -5143,7 +5151,7 @@
        editar uma tarefa. ---- */
     body.todo-modal-open{overflow:hidden}
     .todo-modal-back{position:fixed;inset:0;z-index:900;background:rgba(19,32,46,.45);display:flex;align-items:center;justify-content:center;padding:18px}
-    .todo-modal{width:100%;max-width:720px;max-height:88vh;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(19,32,46,.28);padding:14px 20px 18px;display:flex;flex-direction:column;gap:11px}
+    .todo-modal{width:100%;max-width:940px;max-height:92vh;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(19,32,46,.28);padding:14px 22px 18px;display:flex;flex-direction:column;gap:11px}
     .todo-modal-top{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:9px}
     .todo-modal-crumb{flex:1;min-width:0;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .todo-modal-x{border:none;background:transparent;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:0 5px;border-radius:6px}
@@ -5151,8 +5159,23 @@
     .todo-modal-title-row{display:flex;align-items:flex-start;gap:10px}
     .todo-check-lg svg{width:21px;height:21px}
     .todo-modal-meta{font-size:11px;color:var(--muted);margin:-6px 0 0 41px}
-    .todo-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 16px}
+    .todo-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 18px}
     .todo-f{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .todo-f-span2{grid-column:1/-1}
+    /* Lista de verificação: sub-tarefas com checkbox, como no Planner. */
+    .todo-chk-list{display:flex;flex-direction:column;gap:1px}
+    .todo-chk-item{display:flex;align-items:center;gap:8px;padding:2px 0}
+    .todo-check-sm svg{width:15px;height:15px}
+    .todo-modal .todo-chk-txt{flex:1;min-width:0;border-color:transparent;background:transparent;padding:5px 7px;font-size:12.5px}
+    .todo-modal .todo-chk-txt:hover{border-color:var(--line)}
+    .todo-modal .todo-chk-txt:focus{border-color:var(--accent-2);background:#fff;outline:none}
+    .todo-modal .todo-chk-txt.is-done{text-decoration:line-through;color:var(--muted)}
+    .todo-chk-del{flex:none;border:none;background:transparent;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:2px 5px;border-radius:6px;opacity:.4}
+    .todo-chk-del:hover{color:var(--accent-danger);opacity:1;background:rgba(226,58,46,.09)}
+    .todo-chk-add{display:flex;align-items:center;gap:8px;padding:2px 0}
+    .todo-chk-add .plus{width:15px;text-align:center;flex:none;color:var(--muted);font-size:15px;line-height:1}
+    .todo-modal .todo-chk-new{flex:1;min-width:0;border-style:dashed;padding:5px 7px;font-size:12.5px}
+    .todo-chk-cnt{font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0}
     .todo-f-label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
     .todo-modal input,.todo-modal textarea{font:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
     .todo-modal textarea{resize:vertical;min-height:62px}
@@ -5209,6 +5232,13 @@
     }
     function canonEmpresa(raw){ return matchEmpresa(raw) || String(raw == null ? '' : raw).trim(); }
     function grupoKey(raw){ return normKey(canonEmpresa(raw)); }
+    // O analista precisa existir em ANALISTAS: render() agrupa por nome exato, e
+    // um nome digitado à mão deixaria a tarefa sem card nenhum.
+    function canonAnalista(raw){
+      var n = normKey(raw); if (!n) return null;
+      for (var i=0;i<ANALISTAS.length;i++) if (normKey(ANALISTAS[i].nome) === n) return ANALISTAS[i].nome;
+      return null;
+    }
     // Chamada à API. O middleware protege /api/*; o navegador reenvia o Basic Auth sozinho.
     function api(method, body, qs){
       return fetch('/api/todos' + (qs || ''), {
@@ -5357,6 +5387,12 @@
             return head + lista.map(function(t){
               var com = String(t.comentario || '').trim();
               var st = statusDe(t), pr = prioDe(t), feito = st === 'concluida';
+              // Selo com o andamento da lista de verificação (ex.: ✓ 2/5).
+              var cl = Array.isArray(t.checklist) ? t.checklist : [];
+              var selo = cl.length
+                ? '<span class="todo-chk-badge" title="Lista de verificação">✓ '
+                  + cl.filter(function(c){ return c.done; }).length + '/' + cl.length + '</span>'
+                : '';
               // Não é um <label>: clicar no texto abre o card de detalhes (só o
               // checkbox conclui/desconclui a tarefa).
               return '<div class="todo-item' + (feito ? ' is-done' : '') + '" data-id="' + esc(t.id) + '">'
@@ -5364,7 +5400,7 @@
                    +     '<span class="todo-drag" title="Arrastar para reordenar" aria-hidden="true">⠿</span>'
                    +     '<button class="todo-check" type="button" role="checkbox" aria-checked="' + (feito ? 'true' : 'false') + '" aria-label="Concluir tarefa">' + icCheck() + '</button>'
                    +     '<span class="todo-item-text" title="Abrir detalhes da tarefa">'
-                   +       '<span class="todo-item-title">' + esc(t.texto) + '</span>'
+                   +       '<span class="todo-item-title">' + esc(t.texto) + selo + '</span>'
                    +       (com ? '<span class="todo-item-comment">' + esc(com) + '</span>' : '')
                    +     '</span>'
                    +   '</div>'
@@ -5396,9 +5432,7 @@
              +       '<div class="an-contact"><a class="emp-contact-link" href="mailto:' + esc(a.email) + '">✉ Email</a>'
              +         '<a class="emp-contact-link" href="tel:' + esc(a.phone) + '">📞 Call</a></div></div>'
              +     '<svg class="an-chev" aria-hidden="true"><use href="#ic-chev"/></svg></div>'
-             +   '<div class="an-body">' + emps
-             +     '<button class="todo-add-btn" type="button">+ Adicionar tarefa</button>'
-             +   '</div></div>';
+             +   '<div class="an-body">' + emps + '</div></div>';
       }).join('');
     }
 
@@ -5418,8 +5452,8 @@
       return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
-    // t = tarefa existente (edição) ou null (nova). analista é obrigatório nos dois.
-    function abrirDetalhes(analista, t){
+    // t = tarefa existente (edição) ou null (nova, aberta pelo botão do topo).
+    function abrirDetalhes(t){
       fecharModal();
       fecharMenus();
       var st = t ? statusDe(t) : 'nao_iniciado';
@@ -5430,7 +5464,7 @@
       modalBack.innerHTML =
           '<div class="todo-modal" role="dialog" aria-modal="true" aria-label="Detalhes da tarefa">'
         +   '<div class="todo-modal-top">'
-        +     '<span class="todo-modal-crumb">' + esc(analista) + ' · ' + (t ? 'Detalhes da tarefa' : 'Nova tarefa') + '</span>'
+        +     '<span class="todo-modal-crumb">' + (t ? 'Detalhes da tarefa' : 'Nova tarefa') + '</span>'
         +     '<button class="todo-modal-x" type="button" aria-label="Fechar">×</button>'
         +   '</div>'
         +   '<div class="todo-modal-title-row">'
@@ -5444,11 +5478,15 @@
         +       '<div class="todo-sel-wrap todo-sel-box" data-col="status">' + selHtml('status', st) + '</div></div>'
         +     '<div class="todo-f"><span class="todo-f-label">Prioridade</span>'
         +       '<div class="todo-sel-wrap todo-sel-box" data-col="prio">' + selHtml('prio', pr) + '</div></div>'
+        +     '<div class="todo-f"><span class="todo-f-label">Analista</span>'
+        +       '<input class="todo-f-an" placeholder="Selecione o analista" autocomplete="off"></div>'
         +     '<div class="todo-f"><span class="todo-f-label">Empresa</span>'
         +       '<input class="todo-f-emp" placeholder="Selecione ou digite uma empresa" autocomplete="off"></div>'
-        +     '<div class="todo-f"><span class="todo-f-label">Projeto</span>'
+        +     '<div class="todo-f todo-f-span2"><span class="todo-f-label">Projeto</span>'
         +       '<input class="todo-f-proj" placeholder="Selecione ou digite um projeto" autocomplete="off"></div>'
         +   '</div>'
+        +   '<div class="todo-f"><span class="todo-f-label">Lista de verificação <span class="todo-chk-cnt"></span></span>'
+        +     '<div class="todo-chk-list"></div></div>'
         +   '<div class="todo-f"><span class="todo-f-label">Anotações</span>'
         +     '<textarea class="todo-f-com" placeholder="Comentários sobre a tarefa (opcional)"></textarea></div>'
         +   '<div class="todo-modal-acts">'
@@ -5460,20 +5498,77 @@
         + '</div>';
 
       var modal = modalBack.querySelector('.todo-modal');
-      var empEl  = modal.querySelector('.todo-f-emp'),  projEl = modal.querySelector('.todo-f-proj'),
+      var anEl   = modal.querySelector('.todo-f-an'),
+          empEl  = modal.querySelector('.todo-f-emp'),  projEl = modal.querySelector('.todo-f-proj'),
           txtEl  = modal.querySelector('.todo-modal-title'), comEl = modal.querySelector('.todo-f-com'),
           checkEl = modal.querySelector('.todo-check'), save = modal.querySelector('.todo-btn-save');
-      // Combos: empresas = lista fixa; projetos = só os já usados na empresa escolhida.
+      // Combos: analistas e empresas = listas fixas; projetos = só os já usados na
+      // empresa escolhida.
+      makeCombo(anEl, function(){ return ANALISTAS.map(function(a){ return a.nome; }); });
       makeCombo(empEl, function(){ return COMPANIES.map(function(c){ return c.name; }); });
       makeCombo(projEl, function(){ return projetosDe(empEl.value); });
       if (t) {
+        anEl.value = t.analista || '';
         empEl.value = t.empresa || ''; projEl.value = t.projeto || '';
         txtEl.value = t.texto || '';   comEl.value = t.comentario || '';
       }
 
-      // O <textarea> do título cresce com o conteúdo (parece um campo de uma linha).
+      // Os dois <textarea> crescem com o conteúdo: o título parece um campo de uma
+      // linha e as anotações longas aparecem inteiras (o card é que rola).
       function ajustaTitulo(){ txtEl.style.height = 'auto'; txtEl.style.height = (txtEl.scrollHeight + 2) + 'px'; }
+      function ajustaCom(){
+        comEl.style.height = 'auto';
+        comEl.style.height = Math.max(120, Math.min(comEl.scrollHeight + 2, Math.round(window.innerHeight * 0.5))) + 'px';
+      }
       txtEl.addEventListener('input', ajustaTitulo);
+      comEl.addEventListener('input', ajustaCom);
+
+      // ---- Lista de verificação: sub-tarefas com checkbox. Vive em memória
+      // enquanto o card está aberto e é gravada junto com a tarefa no Salvar. ----
+      var chk = (t && Array.isArray(t.checklist) ? t.checklist : []).map(function(c){
+        return { id: c.id, texto: String(c.texto || ''), done: !!c.done };
+      });
+      var chkBox = modal.querySelector('.todo-chk-list'), chkCnt = modal.querySelector('.todo-chk-cnt');
+      function novoIdChk(){ return 'c_' + Math.random().toString(36).slice(2, 8); }
+      function renderChk(){
+        // Preserva o que já estava digitado na linha de "adicionar item".
+        var atual = chkBox.querySelector('.todo-chk-new');
+        var pend = atual ? atual.value : '';
+        chkBox.innerHTML = chk.map(function(c, i){
+          return '<div class="todo-chk-item" data-i="' + i + '">'
+               +   '<button class="todo-check todo-check-sm' + (c.done ? ' is-done' : '') + '" type="button" role="checkbox"'
+               +     ' aria-checked="' + (c.done ? 'true' : 'false') + '">' + icCheck() + '</button>'
+               +   '<input class="todo-chk-txt' + (c.done ? ' is-done' : '') + '" value="' + esc(c.texto) + '">'
+               +   '<button class="todo-chk-del" type="button" title="Remover item" aria-label="Remover item">×</button>'
+               + '</div>';
+        }).join('')
+        + '<div class="todo-chk-add"><span class="plus">+</span>'
+        +   '<input class="todo-chk-new" placeholder="Adicionar um item" value="' + esc(pend) + '"></div>';
+        chkCnt.textContent = chk.length ? '(' + chk.filter(function(c){ return c.done; }).length + '/' + chk.length + ')' : '';
+      }
+      function addItem(input){
+        var v = input.value.trim(); if (!v) return false;
+        chk.push({ id: novoIdChk(), texto: v, done: false });
+        input.value = '';
+        renderChk();
+        return true;
+      }
+      chkBox.addEventListener('click', function(e){
+        var item = e.target.closest('.todo-chk-item'); if (!item) return;
+        var i = Number(item.getAttribute('data-i'));
+        if (e.target.closest('.todo-check')) { chk[i].done = !chk[i].done; renderChk(); return; }
+        if (e.target.closest('.todo-chk-del')) { chk.splice(i, 1); renderChk(); }
+      });
+      chkBox.addEventListener('input', function(e){
+        var item = e.target.closest('.todo-chk-item');
+        if (item && e.target.classList.contains('todo-chk-txt')) chk[Number(item.getAttribute('data-i'))].texto = e.target.value;
+      });
+      chkBox.addEventListener('keydown', function(e){
+        if (e.key !== 'Enter' || !e.target.classList.contains('todo-chk-new')) return;
+        e.preventDefault();
+        if (addItem(e.target)) { var n = chkBox.querySelector('.todo-chk-new'); if (n) n.focus(); }
+      });
+      renderChk();
 
       // Status/prioridade e o checkbox do topo só valem ao salvar — nada é
       // persistido enquanto o card está aberto.
@@ -5506,17 +5601,22 @@
       if (del) del.onclick = function(){ if (removerTarefa(t.id, t.texto)) fechar(); };
 
       save.onclick = function(){
-        var empresa = empEl.value.trim(), texto = txtEl.value.trim();
-        if (!empresa) { empEl.focus(); empEl.style.borderColor = 'var(--accent-danger)'; return; }
-        if (!texto)   { txtEl.focus(); txtEl.style.borderColor = 'var(--accent-danger)'; return; }
+        var analista = canonAnalista(anEl.value), empresa = empEl.value.trim(), texto = txtEl.value.trim();
+        if (!analista) { anEl.focus();  anEl.style.borderColor  = 'var(--accent-danger)'; return; }
+        if (!empresa)  { empEl.focus(); empEl.style.borderColor = 'var(--accent-danger)'; return; }
+        if (!texto)    { txtEl.focus(); txtEl.style.borderColor = 'var(--accent-danger)'; return; }
+        // Item digitado e ainda não confirmado com Enter também entra na lista.
+        var novo = chkBox.querySelector('.todo-chk-new');
+        if (novo) addItem(novo);
         var canon = canonEmpresa(empresa);
         var campos = {
-          empresa: canon, projeto: projEl.value.trim(), texto: texto,
-          comentario: comEl.value.trim(), status: st, prioridade: pr
+          analista: analista, empresa: canon, projeto: projEl.value.trim(), texto: texto,
+          comentario: comEl.value.trim(), status: st, prioridade: pr,
+          checklist: chk.filter(function(c){ return String(c.texto || '').trim(); })
         };
         save.disabled = true; save.textContent = 'Salvando…';
         if (!t) {
-          api('POST', Object.assign({ analista: analista, empresaLogo: logoDe(canon) }, campos))
+          api('POST', Object.assign({ empresaLogo: logoDe(canon) }, campos))
             .then(function(item){ todos.push(item); fechar(); render(); })
             .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
           return;
@@ -5537,8 +5637,8 @@
 
       document.body.appendChild(modalBack);
       document.body.classList.add('todo-modal-open');
-      ajustaTitulo();
-      (t ? txtEl : empEl).focus();
+      ajustaTitulo(); ajustaCom();
+      (t ? txtEl : anEl).focus();
     }
 
     document.addEventListener('keydown', function(e){
@@ -5550,9 +5650,11 @@
     function openEditForm(item){
       var id = item.getAttribute('data-id');
       var t = todos.find(function(x){ return x.id === id; });
-      if (!t) return;
-      abrirDetalhes(t.analista, t);
+      if (t) abrirDetalhes(t);
     }
+    // Botão único de nova tarefa (acima dos cards): o analista vira campo do card.
+    var addTop = document.getElementById('todoAddTop');
+    if (addTop) addTop.onclick = function(){ abrirDetalhes(null); };
 
     // Exclusão (usada pelo × da linha e pelo botão do card de detalhes).
     function removerTarefa(id, titulo){
@@ -5625,12 +5727,6 @@
       // Texto da tarefa = abrir os detalhes (o checkbox, ao lado, é quem conclui).
       var txt = e.target.closest('.todo-item-text');
       if (txt) { e.preventDefault(); e.stopPropagation(); openEditForm(txt.closest('.todo-item')); return; }
-      var add = e.target.closest('.todo-add-btn');
-      if (add) {
-        e.preventDefault();
-        abrirDetalhes(add.closest('.an-card').getAttribute('data-analista'), null);
-        return;
-      }
       var head = e.target.closest('.an-head');
       if (head && !e.target.closest('a')) { head.parentElement.classList.toggle('an-open'); }
     });
