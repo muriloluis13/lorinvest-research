@@ -5151,8 +5151,27 @@
       });
     }
 
+    // Estado de abertura (card do analista e <details> de cada empresa) precisa
+    // viver fora do DOM: render() recria o grid inteiro, então sem isso qualquer
+    // ação — marcar/desmarcar uma tarefa, salvar, excluir, arrastar — fecharia
+    // tudo o que estava aberto.
+    var abertoAnalista = {}, abertoEmpresa = {};
+    function lerAberturas(){
+      var cards = grid.querySelectorAll('.an-card');
+      if (!cards.length) return; // 1ª render (ou tela de erro): mantém o que já havia
+      abertoAnalista = {}; abertoEmpresa = {};
+      Array.prototype.forEach.call(cards, function(card){
+        var nome = card.getAttribute('data-analista') || '';
+        if (card.classList.contains('an-open')) abertoAnalista[nome] = 1;
+        Array.prototype.forEach.call(card.querySelectorAll('details.todo-emp'), function(d){
+          if (d.open) abertoEmpresa[nome + '||' + (d.getAttribute('data-emp') || '')] = 1;
+        });
+      });
+    }
+
     function render(){
       grid.removeAttribute('aria-busy');
+      lerAberturas();
       grid.innerHTML = ANALISTAS.map(function(a){
         var meus = todos.filter(function(t){ return t.analista === a.nome; });
         var ordem = [], grupos = {}, rotulos = {};
@@ -5178,17 +5197,20 @@
               var com = String(t.comentario || '').trim();
               return '<div class="todo-item" data-id="' + esc(t.id) + '">'
                    +   '<span class="todo-drag" title="Arrastar para reordenar" aria-hidden="true">⠿</span>'
-                   +   '<label class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
-                   +     '<span class="todo-item-text">'
+                   // Não é um <label>: clicar no texto abre a edição (só o
+                   // checkbox conclui/desconclui a tarefa).
+                   +   '<div class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
+                   +     '<span class="todo-item-text" title="Clique para editar">'
                    +       '<span class="todo-item-title"' + risk + '>' + esc(t.texto) + '</span>'
                    +       (com ? '<span class="todo-item-comment">' + esc(com) + '</span>' : '')
-                   +     '</span></label>'
+                   +     '</span></div>'
                    +   '<button class="todo-edit" type="button" title="Editar tarefa" aria-label="Editar">✎</button>'
                    +   '<button class="todo-del" type="button" title="Excluir tarefa" aria-label="Excluir">×</button>'
                    + '</div>';
             }).join('');
           }).join('');
-          return '<details class="todo-emp"><summary>' + logoHtml
+          return '<details class="todo-emp" data-emp="' + esc(key) + '"'
+               +   (abertoEmpresa[a.nome + '||' + key] ? ' open' : '') + '><summary>' + logoHtml
                +   '<span class="todo-emp-name">' + esc(emp) + '</span>'
                +   '<span class="cnt">' + grupos[key].length + '</span>'
                +   '<svg class="todo-emp-chev" aria-hidden="true"><use href="#ic-chev"/></svg></summary>'
@@ -5197,7 +5219,7 @@
         var avatar = a.avatar
           ? '<img class="an-avatar" src="' + esc(a.avatar) + '" alt="' + esc(a.nome) + '" loading="lazy">'
           : '<div class="an-avatar an-initials">' + esc(iniciais(a.nome)) + '</div>';
-        return '<div class="an-card an-collapsible" data-analista="' + esc(a.nome) + '">'
+        return '<div class="an-card an-collapsible' + (abertoAnalista[a.nome] ? ' an-open' : '') + '" data-analista="' + esc(a.nome) + '">'
              +   '<div class="an-head">' + avatar
              +     '<div class="an-hinfo"><div class="an-name">' + esc(a.nome) + (a.cfa ? ' <span class="cfa">CFA</span>' : '') + '</div>'
              +       '<div class="an-role">' + esc(a.role) + '</div>'
@@ -5315,11 +5337,19 @@
     }
 
     // Delegação: sobrevive a re-render.
+    var cliqueBloqueado = false; // ignora o clique sintético que fecha um arrasto
+    // Rede de segurança: se o clique esperado não vier (arrasto terminou fora do
+    // grid, pointercancel...), o próximo gesto limpa a trava.
+    document.addEventListener('pointerdown', function(){ cliqueBloqueado = false; }, true);
     grid.addEventListener('click', function(e){
+      if (cliqueBloqueado) { cliqueBloqueado = false; e.preventDefault(); e.stopPropagation(); return; }
       var del = e.target.closest('.todo-del');
       if (del) { e.preventDefault(); e.stopPropagation(); onDelete(del.closest('.todo-item')); return; }
       var edit = e.target.closest('.todo-edit');
       if (edit) { e.preventDefault(); e.stopPropagation(); openEditForm(edit.closest('.todo-item')); return; }
+      // Texto da tarefa = editar (o checkbox, ao lado, é quem conclui).
+      var txt = e.target.closest('.todo-item-text');
+      if (txt) { e.preventDefault(); e.stopPropagation(); openEditForm(txt.closest('.todo-item')); return; }
       var add = e.target.closest('.todo-add-btn');
       if (add) { e.preventDefault(); openAddForm(add); return; }
       var head = e.target.closest('.an-head');
@@ -5426,6 +5456,9 @@
       if (estavaAtivo) finalizarDrag();
       if (dragEl) dragEl.classList.remove('dragging');
       document.body.classList.remove('todo-dragging');
+      // Depois de arrastar (inclusive o press-and-hold no toque) o navegador ainda
+      // dispara um click: sem isso ele cairia no texto e abriria a edição.
+      if (estavaAtivo) cliqueBloqueado = true;
       dragEl = null; dragPid = null; dragActive = false; dragId = null;
       if (estavaAtivo) render(); // reflete a nova ordem/projeto
       dragList = null;
