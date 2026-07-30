@@ -5128,8 +5128,18 @@
     .todo-del:hover{color:var(--accent-danger);opacity:1;background:rgba(226,58,46,.09)}
     .todo-edit{flex:none;border:none;background:transparent;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;padding:3px;border-radius:6px;opacity:.4}
     .todo-edit:hover{color:var(--accent-1);opacity:1;background:var(--chip)}
+    /* KPIs do analista: contagem por status, antes dos cards de empresa. O número
+       fica em tinta neutra e a cor do status vive só no ícone, que vem sempre
+       acompanhado do rótulo. */
+    .an-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+    .an-kpi{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:10px;background:var(--bg-card-soft);padding:9px 11px}
+    .an-kpi-top{display:flex;align-items:center;gap:6px;min-width:0}
+    .an-kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .an-kpi-val{font-size:20px;font-weight:700;line-height:1.05;color:var(--ink)}
+    @media (max-width:520px){.an-kpi{padding:8px 9px}.an-kpi-lbl{font-size:9px;letter-spacing:.02em}.an-kpi-val{font-size:17px}}
+
     /* Botão único de nova tarefa, acima dos cards dos analistas. */
-    .todo-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
+    .todo-toolbar{display:flex;justify-content:flex-start;margin-bottom:12px}
     .todo-add-top{display:inline-flex;align-items:center;gap:7px;border:none;background:#7B68EE;color:#fff;font:inherit;font-size:12.5px;font-weight:600;padding:9px 17px;border-radius:9px;cursor:pointer;box-shadow:0 1px 2px rgba(19,32,46,.12)}
     .todo-add-top:hover{background:#6A56DB}
     .todo-add-top:active{background:#5E4BC9}
@@ -5422,6 +5432,20 @@
                +     '<div class="todo-head-row"><span>Nome da tarefa</span><span>Status</span><span>Prioridade</span><span></span></div>'
                +     itens + '</div></details>';
         }).join('');
+        // Faixa de KPIs do analista: quantas tarefas em cada status.
+        var cont = { nao_iniciado: 0, em_andamento: 0, concluida: 0 };
+        meus.forEach(function(t){ cont[statusDe(t)]++; });
+        var kpis = meus.length
+          ? '<div class="an-kpis">' + [
+              { k: 'nao_iniciado', rot: 'Não iniciadas' },
+              { k: 'em_andamento', rot: 'Em andamento' },
+              { k: 'concluida',    rot: 'Concluídas' }
+            ].map(function(o){
+              return '<div class="an-kpi"><div class="an-kpi-top">' + icStatus(o.k)
+                   +   '<span class="an-kpi-lbl">' + esc(o.rot) + '</span></div>'
+                   +   '<span class="an-kpi-val">' + cont[o.k] + '</span></div>';
+            }).join('') + '</div>'
+          : '';
         var avatar = a.avatar
           ? '<img class="an-avatar" src="' + esc(a.avatar) + '" alt="' + esc(a.nome) + '" loading="lazy">'
           : '<div class="an-avatar an-initials">' + esc(iniciais(a.nome)) + '</div>';
@@ -5432,7 +5456,7 @@
              +       '<div class="an-contact"><a class="emp-contact-link" href="mailto:' + esc(a.email) + '">✉ Email</a>'
              +         '<a class="emp-contact-link" href="tel:' + esc(a.phone) + '">📞 Call</a></div></div>'
              +     '<svg class="an-chev" aria-hidden="true"><use href="#ic-chev"/></svg></div>'
-             +   '<div class="an-body">' + emps + '</div></div>';
+             +   '<div class="an-body">' + kpis + emps + '</div></div>';
       }).join('');
     }
 
