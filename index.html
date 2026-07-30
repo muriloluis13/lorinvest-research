@@ -5069,39 +5069,111 @@
   <style>
     .todo-loading,.todo-error{padding:16px;color:var(--muted);font-size:13px}
     .todo-error{color:var(--accent-danger)}
-    .todo-item{display:flex;gap:6px;align-items:flex-start;border-radius:8px;-webkit-touch-callout:none}
+
+    /* ---- Linha da tarefa em colunas (Nome da tarefa / Status / Prioridade), no
+       formato do Planner. Cabeçalho e linhas compartilham a mesma grade, então as
+       colunas alinham sem precisar de <table> (e o arrasto continua movendo só
+       .todo-item dentro do .todo-list). ---- */
+    .todo-list{gap:1px}
+    .todo-head-row,.todo-item{display:grid;grid-template-columns:minmax(0,1fr) 152px 136px 48px;align-items:center;column-gap:8px}
+    .todo-head-row{padding:2px 4px 7px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+    .todo-item{padding:5px 4px;border-radius:8px;border-bottom:1px solid #EDF1F5;cursor:default;-webkit-touch-callout:none}
+    .todo-item:last-child{border-bottom:none}
+    .todo-item:hover{background:var(--bg-card-soft)}
     .todo-item.dragging{opacity:.75;background:var(--bg-card-soft);box-shadow:var(--shadow-soft)}
-    .todo-drag{flex:none;cursor:grab;color:var(--muted);opacity:.45;font-size:15px;line-height:1.3;padding:2px 4px;margin:-2px -1px;user-select:none;touch-action:none}
+    .todo-c-name{display:flex;align-items:flex-start;gap:7px;min-width:0}
+    .todo-drag{flex:none;cursor:grab;color:var(--muted);opacity:.35;font-size:15px;line-height:1.25;padding:1px 2px;user-select:none;touch-action:none}
     .todo-drag:hover{opacity:.9}
     .todo-drag:active{cursor:grabbing}
     body.todo-dragging{cursor:grabbing;user-select:none;-webkit-user-select:none}
     body.todo-dragging .todo-item{-webkit-user-select:none;user-select:none}
-    .todo-item-main{display:flex;gap:8px;align-items:flex-start;flex:1;min-width:0;cursor:pointer;font-size:12px;line-height:1.42;color:#33424F}
-    .todo-item-main input{margin-top:2px;flex:none}
-    .todo-item-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+
+    /* Checkbox redondo (não é <input>: precisa do ✓ interno como no Planner). */
+    .todo-check{flex:none;border:none;background:transparent;padding:0;margin-top:1px;line-height:0;cursor:pointer}
+    .todo-check svg{width:17px;height:17px;display:block}
+    .todo-check .ck-c{fill:#fff;stroke:#9AA8B6;stroke-width:1.4}
+    .todo-check .ck-v{fill:none;stroke:transparent;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .todo-check:hover .ck-v{stroke:#9AA8B6}
+    .todo-check.is-done .ck-c,.todo-item.is-done .todo-check .ck-c{fill:var(--accent-3);stroke:var(--accent-3)}
+    .todo-check.is-done .ck-v,.todo-item.is-done .todo-check .ck-v{stroke:#fff}
+
+    .todo-item-text{display:flex;flex-direction:column;gap:2px;min-width:0;cursor:pointer;font-size:12px;line-height:1.42;color:#33424F}
     .todo-item-title{font-weight:600;color:#2B3945}
+    .todo-item.is-done .todo-item-title{text-decoration:line-through;color:var(--muted);font-weight:500}
     .todo-item-comment{font-size:11px;line-height:1.4;color:var(--muted)}
-    .todo-proj-head{margin:9px 0 3px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-    .todo-proj-head:first-child{margin-top:0}
-    .todo-del{margin-left:6px;flex:none;border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 3px;border-radius:6px;opacity:.45}
+    .todo-proj-head{margin:11px 0 4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .todo-proj-head:first-child,.todo-head-row + .todo-proj-head{margin-top:7px}
+
+    /* Seletores de status/prioridade: discretos na linha, ganham moldura ao passar
+       o mouse ou quando abertos (igual ao Planner). */
+    .todo-sel-wrap{position:relative;min-width:0}
+    .todo-sel{display:flex;align-items:center;gap:6px;width:100%;border:1px solid transparent;background:transparent;border-radius:7px;padding:4px 6px;font:inherit;font-size:11.5px;color:#33424F;cursor:pointer;text-align:left}
+    .todo-sel:hover{border-color:var(--line);background:#fff}
+    .todo-sel.is-open{border-color:var(--accent-2);background:#fff;box-shadow:0 0 0 2px rgba(61,74,92,.10)}
+    .todo-sel-rot{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .todo-sel-chev{width:11px;height:11px;flex:none;color:var(--muted);opacity:0}
+    .todo-sel:hover .todo-sel-chev,.todo-sel.is-open .todo-sel-chev{opacity:1}
+    .todo-ic{width:14px;height:14px;flex:none;display:block}
+    .todo-sel-menu{position:absolute;z-index:80;top:calc(100% + 3px);left:0;min-width:100%;white-space:nowrap;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow-soft);padding:4px}
+    .todo-sel-opt{display:flex;align-items:center;gap:7px;width:100%;border:none;background:transparent;font:inherit;font-size:12px;color:var(--ink);padding:7px 10px 7px 4px;border-radius:6px;cursor:pointer;text-align:left}
+    .todo-sel-opt:hover{background:var(--bg-card-soft)}
+    .todo-sel-ck{width:11px;flex:none;font-size:11px;line-height:1;color:var(--accent-1)}
+
+    .todo-c-acts{display:flex;align-items:center;justify-content:flex-end;gap:1px}
+    .todo-del{flex:none;border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:2px 3px;border-radius:6px;opacity:.4}
     .todo-del:hover{color:var(--accent-danger);opacity:1;background:rgba(226,58,46,.09)}
-    .todo-edit{flex:none;border:none;background:transparent;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;padding:0 3px;border-radius:6px;opacity:.45;margin-left:2px}
-    .todo-edit:hover{color:var(--accent-1);opacity:1;background:var(--bg-card-soft)}
+    .todo-edit{flex:none;border:none;background:transparent;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;padding:3px;border-radius:6px;opacity:.4}
+    .todo-edit:hover{color:var(--accent-1);opacity:1;background:var(--chip)}
     .todo-add-btn{align-self:flex-start;margin-top:4px;border:1px dashed var(--line);background:var(--bg-card-soft);color:var(--accent-1);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:8px;cursor:pointer}
     .todo-add-btn:hover{border-color:var(--accent-2);background:#fff}
-    .todo-add-form{display:flex;flex-direction:column;gap:7px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg-card-soft);margin-top:4px}
-    .todo-add-form label.todo-f-label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:-3px}
-    .todo-add-form input,.todo-add-form textarea{font:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
-    .todo-add-form textarea{resize:vertical;min-height:40px}
-    .todo-add-actions{display:flex;gap:8px}
-    .todo-add-actions button{font:inherit;font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:7px;cursor:pointer;border:1px solid var(--line)}
+
+    /* Telas estreitas: nome numa linha, os dois seletores na linha de baixo. */
+    @media (max-width:719px){
+      .todo-head-row{display:none}
+      .todo-item{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+      .todo-c-name{grid-column:1;grid-row:1}
+      .todo-c-acts{grid-column:2;grid-row:1;align-self:start}
+      .todo-item > .todo-sel-wrap{grid-row:2}
+      .todo-item > .todo-sel-wrap[data-col=status]{grid-column:1;justify-self:start;padding-left:22px}
+      .todo-item > .todo-sel-wrap[data-col=prio]{grid-column:2;justify-self:end}
+      .todo-sel-chev{opacity:1}
+    }
+
+    /* ---- Card de detalhes no centro da tela: mesmo formulário para criar e
+       editar uma tarefa. ---- */
+    body.todo-modal-open{overflow:hidden}
+    .todo-modal-back{position:fixed;inset:0;z-index:900;background:rgba(19,32,46,.45);display:flex;align-items:center;justify-content:center;padding:18px}
+    .todo-modal{width:100%;max-width:720px;max-height:88vh;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(19,32,46,.28);padding:14px 20px 18px;display:flex;flex-direction:column;gap:11px}
+    .todo-modal-top{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:9px}
+    .todo-modal-crumb{flex:1;min-width:0;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .todo-modal-x{border:none;background:transparent;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:0 5px;border-radius:6px}
+    .todo-modal-x:hover{background:var(--bg-card-soft);color:var(--ink)}
+    .todo-modal-title-row{display:flex;align-items:flex-start;gap:10px}
+    .todo-check-lg svg{width:21px;height:21px}
+    .todo-modal-meta{font-size:11px;color:var(--muted);margin:-6px 0 0 41px}
+    .todo-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 16px}
+    .todo-f{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .todo-f-label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+    .todo-modal input,.todo-modal textarea{font:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
+    .todo-modal textarea{resize:vertical;min-height:62px}
+    .todo-modal textarea.todo-modal-title{flex:1;min-width:0;font-size:16px;font-weight:700;color:var(--ink);border-color:transparent;background:transparent;padding:2px 6px;min-height:0;resize:none;overflow:hidden}
+    .todo-modal textarea.todo-modal-title:hover{border-color:var(--line)}
+    .todo-modal textarea.todo-modal-title:focus{border-color:var(--accent-2);background:#fff;outline:none}
+    .todo-sel-box .todo-sel{border-color:var(--line);padding:7px 9px;font-size:12.5px}
+    .todo-sel-box .todo-sel-chev{opacity:1}
+    .todo-modal-acts{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:13px}
+    .todo-modal-acts .sp{flex:1}
+    .todo-modal-acts button{font:inherit;font-size:12px;font-weight:600;padding:7px 15px;border-radius:8px;cursor:pointer;border:1px solid var(--line)}
     .todo-btn-save{background:var(--accent-1);color:#fff;border-color:var(--accent-1)}
     .todo-btn-save:disabled{opacity:.6;cursor:default}
     .todo-btn-cancel{background:#fff;color:var(--muted)}
+    .todo-btn-del{background:#fff;color:var(--accent-danger);border-color:#F2C9C6}
+    .todo-btn-del:hover{background:rgba(226,58,46,.07)}
+    @media (max-width:600px){.todo-modal-grid{grid-template-columns:1fr}.todo-modal{padding:12px 14px 16px}}
     /* Combobox: dropdown clicável (empresas/projetos) que também aceita digitação.
        Substitui o <datalist> nativo, que no mobile quase nunca abre a lista. */
     .todo-combo{position:relative;width:100%}
-    .todo-add-form .todo-combo input{padding-right:26px}
+    .todo-modal .todo-combo input{padding-right:26px}
     .todo-combo-toggle{position:absolute;top:0;right:0;height:100%;width:26px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--muted);font-size:10px;line-height:1;cursor:pointer;padding:0}
     .todo-combo-toggle:hover{color:var(--accent-1)}
     .todo-combo-menu{display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:50;max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-soft);padding:3px}
@@ -5151,6 +5223,94 @@
       });
     }
 
+    // ---- Status e prioridade (modelo do Planner). Os ícones são SVG inline:
+    // são poucos por linha e não dependem de sprite/fonte externa. ----
+    var STATUS = [
+      { k: 'nao_iniciado', rot: 'Não iniciado' },
+      { k: 'em_andamento', rot: 'Em andamento' },
+      { k: 'concluida',    rot: 'Concluída' }
+    ];
+    var PRIOS = [
+      { k: 'urgente',    rot: 'Urgente' },
+      { k: 'importante', rot: 'Importante' },
+      { k: 'media',      rot: 'Média' },
+      { k: 'baixa',      rot: 'Baixa' }
+    ];
+    function icStatus(k){
+      if (k === 'concluida')    return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#2E7D4F"/><path d="M4.7 8.2 6.9 10.5l4.4-4.7" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      if (k === 'em_andamento') return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.6 8a6.4 6.4 0 0 0 12.8 0Z" fill="#1F6FB2"/><circle cx="8" cy="8" r="6.4" fill="none" stroke="#1F6FB2" stroke-width="1.5"/></svg>';
+      return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="#93A2B1" stroke-width="1.5"/></svg>';
+    }
+    function icPrio(k){
+      if (k === 'urgente')    return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.2 6.4v3c0 .5.4.9.9.9h1.1l.9 3.1c.1.3.4.5.7.5h.6c.4 0 .7-.4.6-.8l-.8-2.8h.4l6 2.7c.4.2.9-.1.9-.6V3.4c0-.5-.5-.8-.9-.6l-6 2.7H3.1c-.5 0-.9.4-.9.9z" fill="#D0342C"/></svg>';
+      if (k === 'importante') return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.9c.8 0 1.4.7 1.3 1.5l-.5 5.3a.8.8 0 0 1-1.6 0l-.5-5.3C6.6 2.6 7.2 1.9 8 1.9z" fill="#D0342C"/><circle cx="8" cy="12.6" r="1.35" fill="#D0342C"/></svg>';
+      if (k === 'baixa')      return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.2v8.3M4.5 8.3 8 11.8l3.5-3.5" fill="none" stroke="#1F6FB2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      return '<svg class="todo-ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.5" fill="#13A10E"/></svg>';
+    }
+    function icCheck(){
+      return '<svg viewBox="0 0 18 18" aria-hidden="true"><circle class="ck-c" cx="9" cy="9" r="8"/>'
+           +   '<path class="ck-v" d="M5.3 9.2 7.8 11.7l4.9-5.3"/></svg>';
+    }
+    function opcoes(tipo){ return tipo === 'status' ? STATUS : PRIOS; }
+    function icone(tipo, k){ return tipo === 'status' ? icStatus(k) : icPrio(k); }
+    function rotuloDe(tipo, k){
+      var l = opcoes(tipo);
+      for (var i=0;i<l.length;i++) if (l[i].k === k) return l[i].rot;
+      return l[tipo === 'status' ? 0 : 2].rot;
+    }
+    // Tarefas antigas só tinham `done`: o status é derivado dele quando falta.
+    function statusDe(t){
+      var s = t && t.status;
+      for (var i=0;i<STATUS.length;i++) if (STATUS[i].k === s) return s;
+      return (t && t.done) ? 'concluida' : 'nao_iniciado';
+    }
+    function prioDe(t){
+      var p = t && t.prioridade;
+      for (var i=0;i<PRIOS.length;i++) if (PRIOS[i].k === p) return p;
+      return 'media';
+    }
+    function selHtml(tipo, k){
+      return '<button class="todo-sel" type="button" data-sel="' + tipo + '" aria-haspopup="listbox">'
+           +   icone(tipo, k)
+           +   '<span class="todo-sel-rot">' + esc(rotuloDe(tipo, k)) + '</span>'
+           +   '<svg class="todo-sel-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+           + '</button>';
+    }
+    // Menu do seletor: some ao escolher, ao clicar fora ou com Esc.
+    function fecharMenus(){
+      Array.prototype.forEach.call(document.querySelectorAll('.todo-sel-menu'), function(m){ m.remove(); });
+      Array.prototype.forEach.call(document.querySelectorAll('.todo-sel.is-open'), function(b){ b.classList.remove('is-open'); });
+    }
+    function abrirMenu(btn, tipo, atual, onPick){
+      fecharMenus();
+      var menu = document.createElement('div');
+      menu.className = 'todo-sel-menu';
+      menu.setAttribute('role', 'listbox');
+      menu.innerHTML = opcoes(tipo).map(function(o){
+        return '<button type="button" class="todo-sel-opt" role="option" data-k="' + o.k + '"'
+             +   (o.k === atual ? ' aria-selected="true"' : '') + '>'
+             +   '<span class="todo-sel-ck">' + (o.k === atual ? '✓' : '') + '</span>'
+             +   icone(tipo, o.k) + '<span>' + esc(o.rot) + '</span></button>';
+      }).join('');
+      menu.addEventListener('click', function(e){
+        var opt = e.target.closest('.todo-sel-opt'); if (!opt) return;
+        e.preventDefault(); e.stopPropagation();
+        var k = opt.getAttribute('data-k');
+        fecharMenus();
+        onPick(k);
+      });
+      btn.parentNode.appendChild(menu);
+      btn.classList.add('is-open');
+    }
+    // Alterna o menu do botão clicado (usado na linha e dentro do card de detalhes).
+    function toggleSel(btn, tipo, atual, onPick){
+      if (btn.classList.contains('is-open')) { fecharMenus(); return; }
+      abrirMenu(btn, tipo, atual, onPick);
+    }
+    document.addEventListener('click', function(e){
+      if (!e.target.closest || !e.target.closest('.todo-sel-wrap')) fecharMenus();
+    }, true);
+
     // Estado de abertura (card do analista e <details> de cada empresa) precisa
     // viver fora do DOM: render() recria o grid inteiro, então sem isso qualquer
     // ação — marcar/desmarcar uma tarefa, salvar, excluir, arrastar — fecharia
@@ -5191,21 +5351,29 @@
             var head = pRotulos[pk] ? '<div class="todo-proj-head">' + esc(pRotulos[pk]) + '</div>' : '';
             // Concluídas descem para o fim do projeto (só exibição: a ordem-base
             // não muda, então desmarcar devolve o item ao lugar original).
-            var lista = pGrupos[pk].slice().sort(function(a,b){ return (a.done ? 1 : 0) - (b.done ? 1 : 0); });
+            var lista = pGrupos[pk].slice().sort(function(a,b){
+              return (statusDe(a) === 'concluida' ? 1 : 0) - (statusDe(b) === 'concluida' ? 1 : 0);
+            });
             return head + lista.map(function(t){
-              var risk = t.done ? ' style="text-decoration:line-through;opacity:.55"' : '';
               var com = String(t.comentario || '').trim();
-              return '<div class="todo-item" data-id="' + esc(t.id) + '">'
-                   +   '<span class="todo-drag" title="Arrastar para reordenar" aria-hidden="true">⠿</span>'
-                   // Não é um <label>: clicar no texto abre a edição (só o
-                   // checkbox conclui/desconclui a tarefa).
-                   +   '<div class="todo-item-main"><input type="checkbox"' + (t.done ? ' checked' : '') + ' aria-label="Concluir tarefa">'
-                   +     '<span class="todo-item-text" title="Clique para editar">'
-                   +       '<span class="todo-item-title"' + risk + '>' + esc(t.texto) + '</span>'
+              var st = statusDe(t), pr = prioDe(t), feito = st === 'concluida';
+              // Não é um <label>: clicar no texto abre o card de detalhes (só o
+              // checkbox conclui/desconclui a tarefa).
+              return '<div class="todo-item' + (feito ? ' is-done' : '') + '" data-id="' + esc(t.id) + '">'
+                   +   '<div class="todo-c-name">'
+                   +     '<span class="todo-drag" title="Arrastar para reordenar" aria-hidden="true">⠿</span>'
+                   +     '<button class="todo-check" type="button" role="checkbox" aria-checked="' + (feito ? 'true' : 'false') + '" aria-label="Concluir tarefa">' + icCheck() + '</button>'
+                   +     '<span class="todo-item-text" title="Abrir detalhes da tarefa">'
+                   +       '<span class="todo-item-title">' + esc(t.texto) + '</span>'
                    +       (com ? '<span class="todo-item-comment">' + esc(com) + '</span>' : '')
-                   +     '</span></div>'
-                   +   '<button class="todo-edit" type="button" title="Editar tarefa" aria-label="Editar">✎</button>'
-                   +   '<button class="todo-del" type="button" title="Excluir tarefa" aria-label="Excluir">×</button>'
+                   +     '</span>'
+                   +   '</div>'
+                   +   '<div class="todo-sel-wrap" data-col="status">' + selHtml('status', st) + '</div>'
+                   +   '<div class="todo-sel-wrap" data-col="prio">' + selHtml('prio', pr) + '</div>'
+                   +   '<div class="todo-c-acts">'
+                   +     '<button class="todo-edit" type="button" title="Editar tarefa" aria-label="Editar">✎</button>'
+                   +     '<button class="todo-del" type="button" title="Excluir tarefa" aria-label="Excluir">×</button>'
+                   +   '</div>'
                    + '</div>';
             }).join('');
           }).join('');
@@ -5214,7 +5382,9 @@
                +   '<span class="todo-emp-name">' + esc(emp) + '</span>'
                +   '<span class="cnt">' + grupos[key].length + '</span>'
                +   '<svg class="todo-emp-chev" aria-hidden="true"><use href="#ic-chev"/></svg></summary>'
-               +   '<div class="todo-list">' + itens + '</div></details>';
+               +   '<div class="todo-list">'
+               +     '<div class="todo-head-row"><span>Nome da tarefa</span><span>Status</span><span>Prioridade</span><span></span></div>'
+               +     itens + '</div></details>';
         }).join('');
         var avatar = a.avatar
           ? '<img class="an-avatar" src="' + esc(a.avatar) + '" alt="' + esc(a.nome) + '" loading="lazy">'
@@ -5232,105 +5402,187 @@
       }).join('');
     }
 
-    // Monta o formulário (mesmos campos para adicionar e editar). vals pré-preenche
-    // os campos (no modo edição). Retorna o form e as referências aos inputs.
-    function makeForm(vals){
-      var form = document.createElement('div');
-      form.className = 'todo-add-form';
-      form.innerHTML = '<label class="todo-f-label">Empresa</label>'
-                     + '<input class="todo-f-emp" placeholder="Selecione ou digite uma empresa" autocomplete="off">'
-                     + '<label class="todo-f-label">Projeto</label>'
-                     + '<input class="todo-f-proj" placeholder="Selecione ou digite um projeto" autocomplete="off">'
-                     + '<label class="todo-f-label">Descrição da tarefa</label>'
-                     + '<textarea class="todo-f-txt" placeholder="Descrição da tarefa"></textarea>'
-                     + '<label class="todo-f-label">Comentários</label>'
-                     + '<textarea class="todo-f-com" placeholder="Comentários (opcional)"></textarea>'
-                     + '<div class="todo-add-actions"><button class="todo-btn-save" type="button">Salvar</button>'
-                     + '<button class="todo-btn-cancel" type="button">Cancelar</button></div>';
-      var empEl = form.querySelector('.todo-f-emp'), projEl = form.querySelector('.todo-f-proj'),
-          txtEl = form.querySelector('.todo-f-txt'), comEl = form.querySelector('.todo-f-com');
-      // Dropdown clicável (também aceita digitação). Empresas: lista fixa.
+    // ---- Card de detalhes no centro da tela. Mesmo formulário para criar
+    // ("+ Adicionar tarefa") e editar (clique no texto ou na caneta). ----
+    var modalBack = null;
+
+    function fecharModal(){
+      if (!modalBack) return;
+      modalBack.remove(); modalBack = null;
+      document.body.classList.remove('todo-modal-open');
+    }
+
+    function dataBr(iso){
+      if (!iso) return '';
+      var d = new Date(iso);
+      return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    // t = tarefa existente (edição) ou null (nova). analista é obrigatório nos dois.
+    function abrirDetalhes(analista, t){
+      fecharModal();
+      fecharMenus();
+      var st = t ? statusDe(t) : 'nao_iniciado';
+      var pr = t ? prioDe(t) : 'media';
+
+      modalBack = document.createElement('div');
+      modalBack.className = 'todo-modal-back';
+      modalBack.innerHTML =
+          '<div class="todo-modal" role="dialog" aria-modal="true" aria-label="Detalhes da tarefa">'
+        +   '<div class="todo-modal-top">'
+        +     '<span class="todo-modal-crumb">' + esc(analista) + ' · ' + (t ? 'Detalhes da tarefa' : 'Nova tarefa') + '</span>'
+        +     '<button class="todo-modal-x" type="button" aria-label="Fechar">×</button>'
+        +   '</div>'
+        +   '<div class="todo-modal-title-row">'
+        +     '<button class="todo-check todo-check-lg' + (st === 'concluida' ? ' is-done' : '') + '" type="button" role="checkbox"'
+        +       ' aria-checked="' + (st === 'concluida' ? 'true' : 'false') + '" aria-label="Concluir tarefa">' + icCheck() + '</button>'
+        +     '<textarea class="todo-modal-title" rows="1" placeholder="Nome da tarefa"></textarea>'
+        +   '</div>'
+        +   (t && t.criadoEm ? '<div class="todo-modal-meta">Criado em ' + esc(dataBr(t.criadoEm)) + '</div>' : '')
+        +   '<div class="todo-modal-grid">'
+        +     '<div class="todo-f"><span class="todo-f-label">Status</span>'
+        +       '<div class="todo-sel-wrap todo-sel-box" data-col="status">' + selHtml('status', st) + '</div></div>'
+        +     '<div class="todo-f"><span class="todo-f-label">Prioridade</span>'
+        +       '<div class="todo-sel-wrap todo-sel-box" data-col="prio">' + selHtml('prio', pr) + '</div></div>'
+        +     '<div class="todo-f"><span class="todo-f-label">Empresa</span>'
+        +       '<input class="todo-f-emp" placeholder="Selecione ou digite uma empresa" autocomplete="off"></div>'
+        +     '<div class="todo-f"><span class="todo-f-label">Projeto</span>'
+        +       '<input class="todo-f-proj" placeholder="Selecione ou digite um projeto" autocomplete="off"></div>'
+        +   '</div>'
+        +   '<div class="todo-f"><span class="todo-f-label">Anotações</span>'
+        +     '<textarea class="todo-f-com" placeholder="Comentários sobre a tarefa (opcional)"></textarea></div>'
+        +   '<div class="todo-modal-acts">'
+        +     (t ? '<button class="todo-btn-del" type="button">Excluir</button>' : '')
+        +     '<span class="sp"></span>'
+        +     '<button class="todo-btn-cancel" type="button">Cancelar</button>'
+        +     '<button class="todo-btn-save" type="button">Salvar</button>'
+        +   '</div>'
+        + '</div>';
+
+      var modal = modalBack.querySelector('.todo-modal');
+      var empEl  = modal.querySelector('.todo-f-emp'),  projEl = modal.querySelector('.todo-f-proj'),
+          txtEl  = modal.querySelector('.todo-modal-title'), comEl = modal.querySelector('.todo-f-com'),
+          checkEl = modal.querySelector('.todo-check'), save = modal.querySelector('.todo-btn-save');
+      // Combos: empresas = lista fixa; projetos = só os já usados na empresa escolhida.
       makeCombo(empEl, function(){ return COMPANIES.map(function(c){ return c.name; }); });
-      // Projetos: só os já cadastrados na empresa escolhida (recalculado a cada abertura).
       makeCombo(projEl, function(){ return projetosDe(empEl.value); });
-      if (vals) {
-        empEl.value = vals.empresa || ''; projEl.value = vals.projeto || '';
-        txtEl.value = vals.texto || ''; comEl.value = vals.comentario || '';
+      if (t) {
+        empEl.value = t.empresa || ''; projEl.value = t.projeto || '';
+        txtEl.value = t.texto || '';   comEl.value = t.comentario || '';
       }
-      form.querySelector('.todo-btn-cancel').onclick = function(){ render(); };
-      return { form: form, empEl: empEl, projEl: projEl, txtEl: txtEl, comEl: comEl };
-    }
 
-    // Lê e valida os campos; retorna null (e sinaliza o campo) se algo faltar.
-    function lerForm(f) {
-      var empresa = f.empEl.value.trim(), texto = f.txtEl.value.trim();
-      if (!empresa) { f.empEl.focus(); f.empEl.style.borderColor = 'var(--accent-danger)'; return null; }
-      if (!texto)   { f.txtEl.focus(); f.txtEl.style.borderColor = 'var(--accent-danger)'; return null; }
-      return { empresa: empresa, projeto: f.projEl.value.trim(), texto: texto, comentario: f.comEl.value.trim() };
-    }
+      // O <textarea> do título cresce com o conteúdo (parece um campo de uma linha).
+      function ajustaTitulo(){ txtEl.style.height = 'auto'; txtEl.style.height = (txtEl.scrollHeight + 2) + 'px'; }
+      txtEl.addEventListener('input', ajustaTitulo);
 
-    function openAddForm(btn){
-      var card = btn.closest('.an-card');
-      var analista = card.getAttribute('data-analista');
-      var f = makeForm(null);
-      btn.replaceWith(f.form);
-      f.empEl.focus(); // abre a lista de empresas assim que o form aparece
-      f.form.querySelector('.todo-btn-save').onclick = function(){
-        var v = lerForm(f); if (!v) return;
-        var save = f.form.querySelector('.todo-btn-save');
+      // Status/prioridade e o checkbox do topo só valem ao salvar — nada é
+      // persistido enquanto o card está aberto.
+      function pintaStatus(){
+        var feito = st === 'concluida';
+        checkEl.classList.toggle('is-done', feito);
+        checkEl.setAttribute('aria-checked', feito ? 'true' : 'false');
+      }
+      function trocaSel(tipo, k){
+        if (tipo === 'status') st = k; else pr = k;
+        modal.querySelector('.todo-sel-box[data-col=' + (tipo === 'status' ? 'status' : 'prio') + ']').innerHTML = selHtml(tipo, k);
+        if (tipo === 'status') pintaStatus();
+      }
+      modal.addEventListener('click', function(e){
+        var sel = e.target.closest('.todo-sel');
+        if (sel) {
+          e.preventDefault(); e.stopPropagation();
+          var tipo = sel.getAttribute('data-sel');
+          toggleSel(sel, tipo, tipo === 'status' ? st : pr, function(k){ trocaSel(tipo, k); });
+        }
+      });
+      checkEl.onclick = function(){ st = (st === 'concluida') ? 'nao_iniciado' : 'concluida'; trocaSel('status', st); };
+
+      function fechar(){ fecharModal(); }
+      modal.querySelector('.todo-modal-x').onclick = fechar;
+      modal.querySelector('.todo-btn-cancel').onclick = fechar;
+      modalBack.addEventListener('mousedown', function(e){ if (e.target === modalBack) fechar(); });
+
+      var del = modal.querySelector('.todo-btn-del');
+      if (del) del.onclick = function(){ if (removerTarefa(t.id, t.texto)) fechar(); };
+
+      save.onclick = function(){
+        var empresa = empEl.value.trim(), texto = txtEl.value.trim();
+        if (!empresa) { empEl.focus(); empEl.style.borderColor = 'var(--accent-danger)'; return; }
+        if (!texto)   { txtEl.focus(); txtEl.style.borderColor = 'var(--accent-danger)'; return; }
+        var canon = canonEmpresa(empresa);
+        var campos = {
+          empresa: canon, projeto: projEl.value.trim(), texto: texto,
+          comentario: comEl.value.trim(), status: st, prioridade: pr
+        };
         save.disabled = true; save.textContent = 'Salvando…';
-        var canon = canonEmpresa(v.empresa);
-        api('POST', { analista: analista, empresa: canon, empresaLogo: logoDe(canon), projeto: v.projeto, texto: v.texto, comentario: v.comentario })
-          .then(function(item){ todos.push(item); render(); })
-          .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
-      };
-    }
-
-    // Edição de uma tarefa existente: troca o item pelo formulário pré-preenchido.
-    function openEditForm(item){
-      var id = item.getAttribute('data-id');
-      var t = todos.find(function(x){ return x.id === id; });
-      if (!t) return;
-      var f = makeForm({ empresa: t.empresa, projeto: t.projeto, texto: t.texto, comentario: t.comentario });
-      item.replaceWith(f.form);
-      f.txtEl.focus();
-      f.form.querySelector('.todo-btn-save').onclick = function(){
-        var v = lerForm(f); if (!v) return;
-        var save = f.form.querySelector('.todo-btn-save');
-        save.disabled = true; save.textContent = 'Salvando…';
-        var canon = canonEmpresa(v.empresa);
+        if (!t) {
+          api('POST', Object.assign({ analista: analista, empresaLogo: logoDe(canon) }, campos))
+            .then(function(item){ todos.push(item); fechar(); render(); })
+            .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
+          return;
+        }
         // Logo da nova empresa; se a empresa não mudou e não há logo no cadastro,
         // preserva o que já existia (ex.: seeds com logo custom).
         var logo = logoDe(canon);
         if (!logo && grupoKey(canon) === grupoKey(t.empresa)) logo = t.empresaLogo || '';
-        api('PATCH', { id: id, empresa: canon, empresaLogo: logo, projeto: v.projeto, texto: v.texto, comentario: v.comentario })
+        campos.empresaLogo = logo;
+        api('PATCH', Object.assign({ id: t.id }, campos))
           .then(function(){
-            t.empresa = canon; t.empresaLogo = logo; t.projeto = v.projeto; t.texto = v.texto; t.comentario = v.comentario;
-            render();
+            Object.assign(t, campos);
+            t.done = st === 'concluida';
+            fechar(); render();
           })
           .catch(function(err){ save.disabled = false; save.textContent = 'Salvar'; alert('Erro ao salvar: ' + err.message); });
       };
+
+      document.body.appendChild(modalBack);
+      document.body.classList.add('todo-modal-open');
+      ajustaTitulo();
+      (t ? txtEl : empEl).focus();
     }
 
-    function onDelete(item){
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      if (document.querySelector('.todo-sel-menu')) { fecharMenus(); return; }
+      fecharModal();
+    });
+
+    function openEditForm(item){
       var id = item.getAttribute('data-id');
-      var span = item.querySelector('.todo-item-title');
-      if (!confirm('Excluir esta tarefa?\n\n' + (span ? span.textContent : ''))) return;
+      var t = todos.find(function(x){ return x.id === id; });
+      if (!t) return;
+      abrirDetalhes(t.analista, t);
+    }
+
+    // Exclusão (usada pelo × da linha e pelo botão do card de detalhes).
+    function removerTarefa(id, titulo){
+      if (!confirm('Excluir esta tarefa?\n\n' + (titulo || ''))) return false;
       api('DELETE', null, '?id=' + encodeURIComponent(id))
         .then(function(){ todos = todos.filter(function(t){ return t.id !== id; }); render(); })
         .catch(function(err){ alert('Erro ao excluir: ' + err.message); });
+      return true;
     }
 
-    function onToggle(cb){
-      var item = cb.closest('.todo-item'), id = item.getAttribute('data-id'), done = cb.checked;
+    function onDelete(item){
+      var span = item.querySelector('.todo-item-title');
+      removerTarefa(item.getAttribute('data-id'), span ? span.textContent : '');
+    }
+
+    // Aplica campos na tarefa, re-renderiza na hora e persiste; se a API falhar,
+    // desfaz. Concluída desce para o fim do projeto (só exibição: a ordem-base
+    // não muda, então desmarcar devolve o item ao lugar original).
+    function atualizar(id, campos){
       var t = todos.find(function(x){ return x.id === id; });
-      if (t) t.done = done;
-      // Re-render: concluída desce para o fim do projeto; ao desmarcar, volta ao
-      // lugar original (a ordem-base não muda).
+      if (!t) return;
+      var antes = {};
+      Object.keys(campos).forEach(function(k){ antes[k] = t[k]; });
+      Object.assign(t, campos);
+      t.done = statusDe(t) === 'concluida';
       render();
-      api('PATCH', { id: id, done: done })
+      api('PATCH', Object.assign({ id: id }, campos))
         .catch(function(err){
-          if (t) t.done = !done;
+          Object.assign(t, antes);
+          t.done = statusDe(t) === 'concluida';
           render();
           alert('Erro ao atualizar: ' + err.message);
         });
@@ -5343,20 +5595,44 @@
     document.addEventListener('pointerdown', function(){ cliqueBloqueado = false; }, true);
     grid.addEventListener('click', function(e){
       if (cliqueBloqueado) { cliqueBloqueado = false; e.preventDefault(); e.stopPropagation(); return; }
+      // Checkbox redondo: conclui/desconclui na hora.
+      var ck = e.target.closest('.todo-check');
+      if (ck) {
+        e.preventDefault(); e.stopPropagation();
+        var itemCk = ck.closest('.todo-item');
+        var idCk = itemCk.getAttribute('data-id');
+        var tCk = todos.find(function(x){ return x.id === idCk; });
+        atualizar(idCk, { status: statusDe(tCk) === 'concluida' ? 'nao_iniciado' : 'concluida' });
+        return;
+      }
+      // Seletores de status/prioridade da linha: gravam na escolha.
+      var sel = e.target.closest('.todo-sel');
+      if (sel) {
+        e.preventDefault(); e.stopPropagation();
+        var itemSel = sel.closest('.todo-item');
+        var idSel = itemSel.getAttribute('data-id');
+        var tSel = todos.find(function(x){ return x.id === idSel; });
+        var tipo = sel.getAttribute('data-sel');
+        toggleSel(sel, tipo, tipo === 'status' ? statusDe(tSel) : prioDe(tSel), function(k){
+          atualizar(idSel, tipo === 'status' ? { status: k } : { prioridade: k });
+        });
+        return;
+      }
       var del = e.target.closest('.todo-del');
       if (del) { e.preventDefault(); e.stopPropagation(); onDelete(del.closest('.todo-item')); return; }
       var edit = e.target.closest('.todo-edit');
       if (edit) { e.preventDefault(); e.stopPropagation(); openEditForm(edit.closest('.todo-item')); return; }
-      // Texto da tarefa = editar (o checkbox, ao lado, é quem conclui).
+      // Texto da tarefa = abrir os detalhes (o checkbox, ao lado, é quem conclui).
       var txt = e.target.closest('.todo-item-text');
       if (txt) { e.preventDefault(); e.stopPropagation(); openEditForm(txt.closest('.todo-item')); return; }
       var add = e.target.closest('.todo-add-btn');
-      if (add) { e.preventDefault(); openAddForm(add); return; }
+      if (add) {
+        e.preventDefault();
+        abrirDetalhes(add.closest('.an-card').getAttribute('data-analista'), null);
+        return;
+      }
       var head = e.target.closest('.an-head');
       if (head && !e.target.closest('a')) { head.parentElement.classList.toggle('an-open'); }
-    });
-    grid.addEventListener('change', function(e){
-      if (e.target.matches('.todo-item-main input[type=checkbox]')) onToggle(e.target);
     });
 
     // ---- Arrastar-e-soltar via Pointer Events (funciona com mouse E toque).
@@ -5425,6 +5701,9 @@
 
     grid.addEventListener('pointerdown', function(e){
       var item = e.target.closest('.todo-item'); if (!item) return;
+      // Controles da linha (checkbox, seletores, ✎/×) não pegam o item: no toque,
+      // o "pressionar e segurar" atrapalharia o clique neles.
+      if (e.target.closest('.todo-sel-wrap, .todo-check, .todo-c-acts')) return;
       if (e.target.closest('.todo-drag')) {
         // Alça: pega na hora (mouse com botão esquerdo, ou toque na alça).
         if (e.pointerType === 'mouse' && e.button !== 0) return;

@@ -6,8 +6,8 @@
 // cliente. Aceita as duas convenções de nome que o add-on pode injetar.
 //
 //   GET    /api/todos          -> lista todas as tarefas (semeia na 1ª vez)
-//   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?}
-//   PATCH  /api/todos          -> body {id, done?, empresa?, empresaLogo?, projeto?, texto?, comentario?}
+//   POST   /api/todos          -> body {analista, empresa, empresaLogo?, projeto?, texto, comentario?, status?, prioridade?}
+//   PATCH  /api/todos          -> body {id, done?, status?, prioridade?, empresa?, empresaLogo?, projeto?, texto?, comentario?}
 //   PUT    /api/todos          -> body {order:[id,...], moved?:{id, projeto?}} (reordena)
 //   DELETE /api/todos?id=...   -> remove a tarefa
 // ============================================================================
@@ -47,11 +47,32 @@ const SEED = [
   { id: 'seed_14', analista: 'Murilo Nunes', empresa: 'GBS', empresaLogo: 'logos/gbs-logo.jpg', texto: 'Avaliar quanto do prejuízo fiscal da Tann (R$ 50 mi) seria aproveitável' },
 ].map(function (t) { return Object.assign({ done: false, criadoEm: '2026-07-20T00:00:00.000Z' }, t); });
 
+// Status e prioridade seguem o modelo do Planner. `done` continua existindo e
+// espelha status === 'concluida' — assim nada que já lia o campo quebra.
+const STATUS = ['nao_iniciado', 'em_andamento', 'concluida'];
+const PRIOS = ['urgente', 'importante', 'media', 'baixa'];
+function normStatus(v, done) {
+  const s = String(v == null ? '' : v).trim();
+  if (STATUS.includes(s)) return s;
+  return done ? 'concluida' : 'nao_iniciado';
+}
+function normPrio(v) {
+  const p = String(v == null ? '' : v).trim();
+  return PRIOS.includes(p) ? p : 'media';
+}
+// Registros antigos só tinham `done`: completa status/prioridade na leitura.
+function migrar(list) {
+  return list.map((t) => {
+    const status = normStatus(t.status, !!t.done);
+    return Object.assign({}, t, { status, prioridade: normPrio(t.prioridade), done: status === 'concluida' });
+  });
+}
+
 async function load() {
   const list = await redis.get(KEY); // @upstash/redis já entrega o JSON parseado
-  if (Array.isArray(list)) return list;
+  if (Array.isArray(list)) return migrar(list);
   await redis.set(KEY, SEED);        // primeira vez: semeia
-  return SEED.slice();
+  return migrar(SEED);
 }
 
 function novoId() {
@@ -70,6 +91,7 @@ export default async function handler(req, res) {
       if (!b.analista || !b.empresa || !texto) {
         return res.status(400).json({ error: 'analista, empresa e texto são obrigatórios' });
       }
+      const status = normStatus(b.status, !!b.done);
       const item = {
         id: novoId(),
         analista: String(b.analista),
@@ -78,7 +100,9 @@ export default async function handler(req, res) {
         projeto: b.projeto ? String(b.projeto).trim() : '',
         texto: texto,
         comentario: b.comentario ? String(b.comentario).trim() : '',
-        done: false,
+        status: status,
+        prioridade: normPrio(b.prioridade),
+        done: status === 'concluida',
         criadoEm: new Date().toISOString(),
       };
       const list = await load();
@@ -92,7 +116,16 @@ export default async function handler(req, res) {
       const list = await load();
       const it = list.find(function (t) { return t.id === b.id; });
       if (!it) return res.status(404).json({ error: 'tarefa não encontrada' });
-      if (Object.prototype.hasOwnProperty.call(b, 'done')) it.done = !!b.done;
+      // `done` e `status` andam juntos; quando os dois vêm, o status manda.
+      if (Object.prototype.hasOwnProperty.call(b, 'done')) {
+        it.done = !!b.done;
+        it.status = it.done ? 'concluida' : (it.status === 'concluida' ? 'nao_iniciado' : normStatus(it.status, false));
+      }
+      if (Object.prototype.hasOwnProperty.call(b, 'status')) {
+        it.status = normStatus(b.status, !!it.done);
+        it.done = it.status === 'concluida';
+      }
+      if (Object.prototype.hasOwnProperty.call(b, 'prioridade')) it.prioridade = normPrio(b.prioridade);
       if (Object.prototype.hasOwnProperty.call(b, 'projeto')) it.projeto = String(b.projeto || '').trim();
       if (Object.prototype.hasOwnProperty.call(b, 'comentario')) it.comentario = String(b.comentario || '').trim();
       if (Object.prototype.hasOwnProperty.call(b, 'texto') && String(b.texto).trim()) it.texto = String(b.texto).trim();
