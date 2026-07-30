@@ -5080,9 +5080,16 @@
     .todo-list{gap:1px}
     .todo-head-row,.todo-item{display:grid;grid-template-columns:minmax(0,1fr) 152px 136px 48px;align-items:center;column-gap:8px}
     .todo-head-row{padding:2px 4px 7px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
-    .todo-item{padding:5px 4px;border-radius:8px;border-bottom:1px solid #EDF1F5;cursor:default;-webkit-touch-callout:none}
+    .todo-item{padding:5px 4px;border-radius:8px;border-bottom:1px solid rgba(19,32,46,.06);cursor:default;-webkit-touch-callout:none}
     .todo-item:last-child{border-bottom:none}
-    .todo-item:hover{background:var(--bg-card-soft)}
+    /* Branco translúcido: clareia por cima do fundo tingido da empresa. */
+    .todo-item:hover{background:rgba(255,255,255,.62)}
+
+    /* Cada card de empresa ganha um véu da cor da marca (--emp-* vêm do render,
+       a partir de COMPANIES[].cor). Sem cor cadastrada, cai no neutro de antes. */
+    .todo-emp{background:var(--emp-bg,var(--bg-card));border-color:var(--emp-bd,var(--line))}
+    .todo-emp>summary{background:var(--emp-hd,transparent)}
+    .todo-emp[open]>summary{border-bottom-color:var(--emp-bd,var(--line))}
     .todo-item.dragging{opacity:.75;background:var(--bg-card-soft);box-shadow:var(--shadow-soft)}
     .todo-c-name{display:flex;align-items:flex-start;gap:7px;min-width:0}
     .todo-drag{flex:none;cursor:grab;color:var(--muted);opacity:.35;font-size:15px;line-height:1.25;padding:1px 2px;user-select:none;touch-action:none}
@@ -5229,6 +5236,19 @@
       var e = String(empresa || '').trim().toLowerCase();
       for (var i=0;i<COMPANIES.length;i++){ if (COMPANIES[i].name.toLowerCase() === e) return COMPANIES[i].logo; }
       return '';
+    }
+    // Cor primária da marca (extraída do logo, gravada em data/empresas.js). Vira
+    // um fundo bem suave no card da empresa — empresa fora do cadastro fica neutra.
+    function corDe(empresa){
+      var e = String(empresa || '').trim().toLowerCase();
+      for (var i=0;i<COMPANIES.length;i++){ if (COMPANIES[i].name.toLowerCase() === e) return COMPANIES[i].cor || ''; }
+      return '';
+    }
+    function rgba(hex, alfa){
+      var h = String(hex || '').replace('#', '');
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      if (!/^[0-9a-fA-F]{6}$/.test(h)) return '';
+      return 'rgba(' + parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16) + ',' + parseInt(h.slice(4,6),16) + ',' + alfa + ')';
     }
     // Normaliza (caixa/acento/espaço) e resolve o nome canônico da empresa em
     // COMPANIES — assim "GBS", "GBS Storage", "gbs" e "BioRen"/"Bioren" caem no
@@ -5423,7 +5443,12 @@
                    + '</div>';
             }).join('');
           }).join('');
-          return '<details class="todo-emp" data-emp="' + esc(key) + '"'
+          // Fundo do card na cor da marca, em opacidade bem baixa.
+          var cor = corDe(emp);
+          var tinta = cor
+            ? ' style="--emp-bg:' + rgba(cor, .055) + ';--emp-hd:' + rgba(cor, .11) + ';--emp-bd:' + rgba(cor, .28) + '"'
+            : '';
+          return '<details class="todo-emp" data-emp="' + esc(key) + '"' + tinta
                +   (abertoEmpresa[a.nome + '||' + key] ? ' open' : '') + '><summary>' + logoHtml
                +   '<span class="todo-emp-name">' + esc(emp) + '</span>'
                +   '<span class="cnt">' + grupos[key].length + '</span>'
