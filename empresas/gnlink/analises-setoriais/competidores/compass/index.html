@@ -639,7 +639,7 @@ footer b{letter-spacing:.1em;color:var(--accent)}
   </div>
 </div>
 <footer>
-  Guia da Lorinvest. Consolida dados de relatórios de início de cobertura de terceiros (equity research) sobre a Compass (PASS3), todos de 17-jun-2026 (BofA, Bradesco BBI, Itaú BBA, BTG Pactual e Citi). <span id="pxfoot">Preço de referência ~R$25,00/ação.</span> As estimativas são dos respectivos bancos e não constituem recomendação da Lorinvest.
+  Guia da Lorinvest. Consolida dados de relatórios de início de cobertura de terceiros (equity research) sobre a Compass (PASS3), todos de 17-jun-2026 (BofA, Bradesco BBI, Itaú BBA, BTG Pactual, Citi e J.P. Morgan). <span id="pxfoot">Preço de referência ~R$25,00/ação.</span> As estimativas são dos respectivos bancos e não constituem recomendação da Lorinvest.
 </footer>
 <script>
 
@@ -658,6 +658,7 @@ const BANKS=[
  {id:'itau',name:'Itaú BBA',color:'#EC7000',rating:'Outperform',tp:35,upside:0.40,irr:0.147,irrTxt:'14,7% (12,0% só dist.)',equity:24887,edgeEq:8745,edgeEv:9345,method:'SOTP/DCF · Ke 10% dist., 12% Edge · g 2,5%',base:'YE26 (Brent corrigido)'},
  {id:'btg',name:'BTG Pactual',color:'#12294F',rating:'Buy',tp:38,upside:0.521,irr:0.135,irrTxt:'13,5% real',equity:27086,edgeEq:9212,edgeEv:11730,method:'SOTP/FCFF · WACC real 6,4% discos / 6,8% Edge',base:'12m'},
  {id:'citi',name:'Citi',color:'#056DAE',rating:'Buy',tp:38,upside:0.521,irr:0.16,irrTxt:'16,0% real',equity:26866,edgeEq:10296,edgeEv:10296,method:'SOTP/FCFF · Ke real 10% dist. / 12% Edge',base:'YE26'},
+ {id:'jpm',name:'J.P. Morgan',color:'#7A5230',rating:'Overweight',tp:34,upside:0.36,irr:0.12,irrTxt:'12,0% real',equity:24034,edgeEq:9175,edgeEv:9175,method:'DCF/SOTP · Ke real 10% dist. / 12% Edge · g inflação',base:'YE27 (Dez/2027)'},
 ];
 const SHARES_OUT=714190095;
 // Posições de balanço (R$ mn) e EBITDA (R$ bi) para recalcular market cap / EV / EV/EBITDA
@@ -667,7 +668,6 @@ const EXTRA=[
  {id:'xp',name:'XP',color:'#1F2937',rating:'Buy',tp:36.70},
  {id:'ubs',name:'UBS',color:'#D71921',rating:'Buy',tp:38.00},
  {id:'santander',name:'Santander',color:'#B23A48',rating:'Outperform',tp:34.05},
- {id:'jpm',name:'JP Morgan',color:'#7A5230',rating:'Overweight',tp:34.00},
  {id:'jef',name:'Jefferies',color:'#2E4374',rating:'Buy',tp:37.00},
 ].map(b=>Object.assign({},b,{upside:b.tp/PRICE-1,equity:b.tp*SHARES_OUT/1e6,irr:null}));
 const CONS=[...BANKS,...EXTRA];
@@ -712,19 +712,20 @@ const SOTP={
  itau:{comgas:14933,edge:8745,ldcs:2946,holding:-1737,netdebt:0},
  btg:{comgas:16686,edge:9212,ldcs:4783,holding:-3596,netdebt:0},
  citi:{comgas:23279,edge:10296,ldcs:5426,holding:-1062,netdebt:-11073},
+ jpm:{comgas:12679,edge:9175,ldcs:3343,holding:-1163,netdebt:0},
 };
 const SOTP_BUCKETS=[['comgas','Comgás','#3D4A5C'],['edge','Edge','#E23A2E'],['ldcs','Outras LDCs','#6E8299'],['holding','Holding','#B79A45'],['netdebt','Dívida líq. (Citi)','#9AA7B5']];
-const EBITDA={bofa:[5437,5948,6754],bbi:[5381,5989,6976],itau:[5458,6001,6759],btg:[5274,5938,6914],citi:[5526,6234,7153]};
-const NETINC={bofa:[1630,1830,2253],bbi:[1394,1855,2302],itau:[1454,1921,2392],btg:[1266,1744,2377],citi:[1771,2277,2817]};
+const EBITDA={bofa:[5437,5948,6754],bbi:[5381,5989,6976],itau:[5458,6001,6759],btg:[5274,5938,6914],citi:[5526,6234,7153],jpm:[5078,5333,5958]};
+const NETINC={bofa:[1630,1830,2253],bbi:[1394,1855,2302],itau:[1454,1921,2392],btg:[1266,1744,2377],citi:[1771,2277,2817],jpm:[1569,1774,2124]};
 const EDGE_EBITDA={bofa:[800,850,900],bbi:[953,1281,1817],itau:[799,897,1434],btg:[808,1194,1638],citi:[852,1230,1839]};
 const YRS3=[2026,2027,2028];
 // --- Séries histórico + projetado (2024-2028) por banco, para a mediana consolidada ---
 // Fonte: aba DRE de cada arquivo em "3 - Output Support Documents". 2024/2025 = realizado; 2026-2028 = estimativa.
 const YRS5=[2024,2025,2026,2027,2028];
 const HIST5=[true,true,false,false,false];
-const REV5 ={bofa:[18383,16604,14193,14990,16289],bbi:[18383,16604,16711,21929,27793],itau:[18383,16604,16982,19210,22282],btg:[16781,15036,17854,24719,30682],citi:[18383,16604,19153,23160,29494]};
-const EBITDA5={bofa:[4603,4858,5437,5948,6754],bbi:[4758,4914,5381,5989,6976],itau:[5032,4974,5458,6001,6759],btg:[4603,4858,5274,5938,6914],citi:[4603,4858,5526,6234,7153]};
-const NETINC5={bofa:[1693,1322,1630,1830,2253],bbi:[1849,1387,1394,1855,2302],itau:[2122,1460,1454,1921,2392],btg:[1693,1284,1266,1744,2377],citi:[1849,1460,1771,2277,2817]};
+const REV5 ={bofa:[18383,16604,14193,14990,16289],bbi:[18383,16604,16711,21929,27793],itau:[18383,16604,16982,19210,22282],btg:[16781,15036,17854,24719,30682],citi:[18383,16604,19153,23160,29494],jpm:[19653,16373,14850,17861,20910]};
+const EBITDA5={bofa:[4603,4858,5437,5948,6754],bbi:[4758,4914,5381,5989,6976],itau:[5032,4974,5458,6001,6759],btg:[4603,4858,5274,5938,6914],citi:[4603,4858,5526,6234,7153],jpm:[4688,5202,5078,5333,5958]};
+const NETINC5={bofa:[1693,1322,1630,1830,2253],bbi:[1849,1387,1394,1855,2302],itau:[2122,1460,1454,1921,2392],btg:[1693,1284,1266,1744,2377],citi:[1849,1460,1771,2277,2817],jpm:[2239,1645,1569,1774,2124]};
 // --- Edge: séries granulares de fonte única (poucos bancos abrem esse detalhe; não há mediana) ---
 // EBITDA histórico da Edge (2023-2025) — Bradesco BBI, Figure 43 (único banco que abre a série).
 // A projeção 2026-2028 usa a mediana dos 5 bancos (EDGE_EBITDA).
@@ -742,7 +743,7 @@ const EDGE_VOL_SEG=[
  {n:'Biometano (GNR)',c:'#2E7D4F',v:[0,0.2,0.4,0.4,0.4,0.4,0.4]},
 ];
 // Constrói, por ano, a mediana + a faixa (mín-máx) entre os bancos.
-function medRows(obj,years,hist){years=years||YRS5;hist=hist||HIST5;return years.map((_,i)=>{const vs=BANKS.map(b=>obj[b.id][i]);return{med:_med(vs),min:_min(vs),max:_max(vs),hist:hist[i]};});}
+function medRows(obj,years,hist){years=years||YRS5;hist=hist||HIST5;return years.map((_,i)=>{const vs=BANKS.map(b=>obj[b.id]).filter(Boolean).map(a=>a[i]);return{med:_med(vs),min:_min(vs),max:_max(vs),hist:hist[i]};});}
 function medLegend(c,opts){opts=opts||{};
   var histLbl=opts.hist||'Realizado (2024–2025)', projLbl=opts.proj||'Estimativa (2026–2028)';
   return '<div class="legend">'+
@@ -789,8 +790,8 @@ function chYearBars(years, vals, hist, opts){
     if(hist)svg+=`<text class="axt" x="${cx.toFixed(1)}" y="${(F.y1+30).toFixed(1)}" text-anchor="middle" fill="#8A93A0">${hist[i]?'realizado':'estimativa'}</text>`;});
   return svg+'</svg>';
 }
-const EVEB={bofa:[6.2,5.8],bbi:[6.1,5.8],itau:[5.5,5.3],btg:[6.1,5.6],citi:[5.2,4.8]};
-const PE={bofa:[10.9,9.7],bbi:[12.8,9.6],itau:[12.3,9.3],btg:[14.1,10.2],citi:[10.1,7.8]};
+const EVEB={bofa:[6.2,5.8],bbi:[6.1,5.8],itau:[5.5,5.3],btg:[6.1,5.6],citi:[5.2,4.8],jpm:[6.1,6.1]};
+const PE={bofa:[10.9,9.7],bbi:[12.8,9.6],itau:[12.3,9.3],btg:[14.1,10.2],citi:[10.1,7.8],jpm:[11.4,10.1]};
 const DY={bofa:[0.068,0.077],bbi:[0.065,0.081],itau:[0.061,0.070],btg:[0.053,0.097],citi:[0.050,0.096]};
 // --- Edge isolada: EV, divida liquida, EBITDA (26,27,28), lucro liquido, equity ---
 const EDGEM={
@@ -1030,7 +1031,7 @@ function timeline(nodes){return '<div class="tml">'+nodes.map(n=>`<div class="tm
 // linhas com barra de progresso: {n:nome, v:valor, d:detalhe, fill:0-100|null, c:cor}
 function vectors(rows){return '<div class="vec">'+rows.map(r=>`<div class="vrow" style="--pc:${r.c||'#3D4A5C'}"><div class="vn">${esc(r.n)}</div><div class="vv">${r.v}</div>${r.fill!=null?`<div class="vbar"><i style="width:${Math.max(2,Math.min(100,r.fill))}%"></i></div>`:''}<div class="vd">${r.d}</div></div>`).join('')+'</div>';}
 // lista de riscos com dot-meter (n de 5): {t:risco, d:descrição, n:nº bancos, by:rótulo, c:cor}
-function riskList(items){return '<div class="rkl">'+items.map(r=>{const dots=Array.from({length:5},(_,i)=>`<i class="${i<r.n?'on':''}"></i>`).join('');return `<div class="rkr" style="--pc:${r.c}"><div class="rkn">${esc(r.t)}</div><div class="rkc"><div class="dots">${dots}</div><div class="rkby">${esc(r.by)}</div></div><div class="rkd">${esc(r.d)}</div></div>`;}).join('')+'</div>';}
+function riskList(items){return '<div class="rkl">'+items.map(r=>{const dots=Array.from({length:6},(_,i)=>`<i class="${i<r.n?'on':''}"></i>`).join('');return `<div class="rkr" style="--pc:${r.c}"><div class="rkn">${esc(r.t)}</div><div class="rkc"><div class="dots">${dots}</div><div class="rkby">${esc(r.by)}</div></div><div class="rkd">${esc(r.d)}</div></div>`;}).join('')+'</div>';}
 // KPI cards estilo moderno: {lbl, val, pill, icon, feat, dir:'up'|'down'}
 const KIC={
   dollar:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -1200,7 +1201,7 @@ function renderOver(){
   const M=(l,v,cls)=>`<div class="m"><div class="l">${l}</div><div class="v${cls||''}">${v}</div></div>`;
   const strip=`<div class="msbar">${M('Recomendação','Compra')}${M('Preço-alvo (mediano)','R$'+med.toFixed(2).replace('.',','))}${M('Preço atual'+(PRICE_LIVE?' <span class="pxlive" title="Cotação ao vivo · Yahoo Finance (PASS3.SA)">● ao vivo</span>':''),'R$'+PRICE.toFixed(2).replace('.',','))}${M('Upside','+'+up+'%',' up')}<div class="sep"></div>${M('PA piso','R$'+mn+',00')}${M('PA teto','R$'+mx+',00')}<div class="sep"></div>${M('Bancos cobrindo','10')}</div>`;
   $('p-over').innerHTML=`
-  <div class="cap" style="margin:0 2px 12px">Compass (PASS3) — maior plataforma de gás natural do Brasil, controlada pela Cosan. Consenso de 5 bancos (BofA, Bradesco BBI, Itaú BBA, BTG Pactual e Citi), início de cobertura em 17-jun-2026.</div>
+  <div class="cap" style="margin:0 2px 12px">Compass (PASS3) — maior plataforma de gás natural do Brasil, controlada pela Cosan. Consenso de 6 bancos (BofA, Bradesco BBI, Itaú BBA, BTG Pactual, Citi e J.P. Morgan), início de cobertura em 17-jun-2026.</div>
   ${strip}
   <div class="row31">
    <div class="card"><h2>Risco-Retorno</h2>
@@ -1445,7 +1446,7 @@ function renderEmp(){
 // ---------- 3. Tese & Riscos ----------
 function renderTese(){
   $('p-tese').innerHTML=`
-  <div class="card tinted"><h2>Por que comprar (consenso dos 5 bancos)</h2>
+  <div class="card tinted"><h2>Por que comprar (consenso dos 6 bancos)</h2>
     ${steps([
      {n:'#1',t:'Plataforma líder e regulada',p:'Maior distribuidora do Brasil, concessões longas (2044–2057), fluxo previsível e protegido da inflação via expansão do RAB.',c:'#3D4A5C'},
      {n:'#2',t:'Comgás compõe valor',p:'EBITDA cresceu ~10% a.a. desde 2012 mesmo com volume estável — mix mais rico e eficiência de custos. Runway até 2049.',c:'#3D4A5C'},
@@ -1456,18 +1457,18 @@ function renderTese(){
     ])}
   </div>
   <div class="card"><h2>Principais riscos</h2>
-    <div class="cap">Ordenados por consenso — os pontos preenchidos indicam quantos dos 5 relatórios destacam cada risco</div>
+    <div class="cap">Ordenados por consenso — os pontos preenchidos indicam quantos dos 6 relatórios destacam cada risco</div>
     ${riskList([
-     {t:'Regulatório',d:'Revisões tarifárias, reconhecimento de capex, mudança de metodologia, regra estadual das LDCs.',n:5,by:'5 de 5',c:'#E23A2E'},
-     {t:'Margem/execução da Edge',d:'Volumes e margens de LNG no médio/longo prazo; adoção de off-grid/transporte pode demorar.',n:5,by:'5 de 5',c:'#E23A2E'},
-     {t:'Renovação do contrato Total',d:'Contrato de LNG com a TotalEnergies expira em 2033; termos de renovação desconhecidos.',n:5,by:'5 de 5',c:'#E23A2E'},
-     {t:'Competição',d:'Petrobras e novos comercializadores; competição de terminais de LNG na área do TRSP.',n:5,by:'5 de 5',c:'#E23A2E'},
+     {t:'Regulatório',d:'Revisões tarifárias, reconhecimento de capex, mudança de metodologia, regra estadual das LDCs. JPM: risco de corte no reg. WACC e descasamento plano regulatório × operacional.',n:6,by:'6 de 6',c:'#E23A2E'},
+     {t:'Margem/execução da Edge',d:'Volumes e margens de LNG no médio/longo prazo; adoção de off-grid/transporte pode demorar. JPM: risco central da tese (JPMe 20% EBITDA CAGR 2026-32e).',n:6,by:'6 de 6',c:'#E23A2E'},
+     {t:'Renovação do contrato Total',d:'Contrato de LNG com a TotalEnergies expira em 2033; termos de renovação desconhecidos.',n:6,by:'6 de 6',c:'#E23A2E'},
+     {t:'Competição',d:'Petrobras e novos comercializadores; competição de terminais de LNG na área do TRSP (JPM: novos terminais de regas no Sudeste).',n:6,by:'6 de 6',c:'#E23A2E'},
      {t:'Subida da Serra',d:'Disputa ANP × ARSESP; reclassificação do gasoduto tiraria ~3% do RAB da Comgás (R$350–500mn).',n:3,by:'BofA · BTG · Itaú',c:'#C55A17'},
      {t:'Juros reais (NTN-B)',d:'Como utility, o valor cai quando os juros reais sobem; NTN-B já acima de 7%.',n:3,by:'BBI · Itaú · Citi',c:'#C55A17'},
      {t:'Overhang da Cosan',d:'Alavancagem da holding controladora (Raízen ~R$65bn em recuperação) pode pressionar dividendos.',n:2,by:'BofA · BBI',c:'#55677C'},
      {t:'Recebível da Sulgás',d:'Debate 100% vs 80% do volume; recebível pode chegar a R$6,6bn (2044) — risco e opcionalidade.',n:1,by:'BTG',c:'#8B97A5'},
     ])}
-    <div class="warn">Os pontos indicam quantos dos 5 relatórios destacam o risco. Consolidação da Lorinvest a partir das seções de riscos.</div>
+    <div class="warn">Os pontos indicam quantos dos 6 relatórios destacam o risco. Consolidação da Lorinvest a partir das seções de riscos.</div>
   </div>`;
 }
 
@@ -1612,14 +1613,14 @@ function renderTP(){
   const rows=[
     {label:'Preço-alvo (R$/ação)', min:_min(tp), max:_max(tp), med:_med(tp), ref:PRICE, refTxt:'atual R$'+PRICE.toFixed(2).replace('.',','), fmt:fR},
     {label:'Upside implícito (%)', min:_min(up), max:_max(up), med:_med(up), ref:0, refTxt:'0%', fmt:v=>Math.round(v)+'%'},
-    {label:'TIR real implícita (%)', sub:'apenas 5 bancos c/ estimativa', min:_min(irr), max:_max(irr), med:_med(irr), ref:null, fmt:v=>(Math.round(v*10)/10).toString().replace('.',',')+'%'},
+    {label:'TIR real implícita (%)', sub:'apenas 6 bancos c/ estimativa', min:_min(irr), max:_max(irr), med:_med(irr), ref:null, fmt:v=>(Math.round(v*10)/10).toString().replace('.',',')+'%'},
     {label:'Equity value (R$ bi)', min:_min(eq), max:_max(eq), med:_med(eq), ref:PRICE*SHARES_OUT/1e9, refTxt:'atual R$'+(PRICE*SHARES_OUT/1e9).toFixed(1).replace('.',',')+' bi', fmt:v=>fR(v)+' bi'},
   ];
   $('p-tp').innerHTML=`
   <div class="card"><h2>Football field — consenso sell-side por variável</h2>
     <div class="cap">Barra = faixa mín.–máx. entre os bancos · ponto laranja = mediana · linha tracejada = preço atual / referência</div>
     ${chFootball(rows)}
-    <div class="note">A faixa de <b>TIR real</b> cobre apenas os 5 bancos com estimativa reportada (Bradesco BBI 18,3% ao preço atual cai a 10,9% no alvo; Itaú 14,7% total vs. 12,0% só distribuição). As demais variáveis cobrem os 10 bancos. <b>Equity value</b> = preço-alvo × ${(SHARES_OUT/1e6).toFixed(1)} mn ações; referência = market cap ao preço atual (~R$${(PRICE*SHARES_OUT/1e9).toFixed(1).replace('.',',')} bi).</div>
+    <div class="note">A faixa de <b>TIR real</b> cobre apenas os 6 bancos com estimativa reportada (Bradesco BBI 18,3% ao preço atual cai a 10,9% no alvo; Itaú 14,7% total vs. 12,0% só distribuição; J.P. Morgan 12,0% real). As demais variáveis cobrem os 10 bancos. <b>Equity value</b> = preço-alvo × ${(SHARES_OUT/1e6).toFixed(1)} mn ações; referência = market cap ao preço atual (~R$${(PRICE*SHARES_OUT/1e9).toFixed(1).replace('.',',')} bi).</div>
   </div>`;
 }
 // ---------- 9. SOTP ----------
@@ -1658,8 +1659,8 @@ function renderSOTP(){
   <div id="sotpvp1" class="subpane" style="display:none">
   <div class="card"><h2>Valor da Edge — dispersão entre os bancos (EV, R$ bn)</h2>
     ${(()=>{const med=_med(evBars.map(x=>x.v));return chBankBars(evBars,{h:250,fmt:v=>v.toFixed(0),tip:v=>'R$'+v.toFixed(1).replace('.',',')+'bn',yTitle:'Edge — EV (R$ bn)',ref:med,refColor:'#2E7D4F',refTxt:'R$'+med.toFixed(1).replace('.',',')+'bn'});})()}
-    <div class="legend"><span><i style="width:18px;height:0;border-radius:0;background:none;border-top:2px dashed #2E7D4F"></i>Mediana dos 5 bancos</span></div>
-    <div class="note">Em base de <b>Enterprise Value</b>, a Edge vai de ~R$9,4bn (BofA e Itaú) a R$13,4bn (Bradesco BBI) — ~40% de diferença. É essa divergência (não o EBITDA de curto prazo) que explica boa parte do leque de preços-alvo. Como é a parte menos madura e menos regulada, concentra as premissas mais sensíveis (volumes de LNG, margens de LP e a renovação do contrato com a Total em 2033).</div>
+    <div class="legend"><span><i style="width:18px;height:0;border-radius:0;background:none;border-top:2px dashed #2E7D4F"></i>Mediana dos 6 bancos</span></div>
+    <div class="note">Em base de <b>Enterprise Value</b>, a Edge vai de ~R$9,2bn (J.P. Morgan) e ~R$9,4bn (BofA e Itaú) a R$13,4bn (Bradesco BBI) — ~45% de diferença. É essa divergência (não o EBITDA de curto prazo) que explica boa parte do leque de preços-alvo. Como é a parte menos madura e menos regulada, concentra as premissas mais sensíveis (volumes de LNG, margens de LP e a renovação do contrato com a Total em 2033).</div>
   </div>
   <div class="card"><h2>Quanto cada peça vale — build-up do BofA</h2>
     <div class="cap">Único banco que atribui valor (equity, R$ bn) a cada sub-segmento da Edge — build-up até o equity total</div>
@@ -1673,22 +1674,22 @@ function renderSOTP(){
 }
 // ---------- 10. Projeções ----------
 function renderProj(){
-  const edgeEb=BANKS.map(b=>({name:b.name,color:b.color,vals:EDGE_EBITDA[b.id]}));
+  const edgeEb=BANKS.filter(b=>EDGE_EBITDA[b.id]).map(b=>({name:b.name,color:b.color,vals:EDGE_EBITDA[b.id]}));
   $('p-proj').innerHTML=`
   ${subBar('prj',['Consolidado','Edge'])}
   <div id="prjp0" class="subpane">
-  <div class="card"><h2>Receita líquida — mediana dos 5 bancos (R$ mn)</h2>
+  <div class="card"><h2>Receita líquida — mediana dos 6 bancos (R$ mn)</h2>
     <div class="lead">A receita recua em 2025 pela migração de clientes ao mercado livre e volta a crescer com a expansão da Edge — mas é onde os bancos mais divergem (a faixa de 2028 vai de ~R$16,3bn a ~R$30,7bn).</div>
     ${chMedian(YRS5,medRows(REV5),{h:330,yTitle:'Receita líquida (R$ mn)',cProj:'#12294F'})}${medLegend('#12294F')}
   </div>
-  <div class="card"><h2>EBITDA — mediana dos 5 bancos (R$ mn)</h2>
+  <div class="card"><h2>EBITDA — mediana dos 6 bancos (R$ mn)</h2>
     <div class="lead">Alta convergência entre os bancos: a mediana sai de ~R$4,6bn (2024) para ~R$6,9bn (2028), e a faixa entre eles é estreita. A divergência de preço-alvo vem quase toda do valor da Edge e das premissas de longo prazo — não das estimativas de EBITDA de curto prazo.</div>
     ${chMedian(YRS5,medRows(EBITDA5),{h:330,yTitle:'EBITDA (R$ mn)',cProj:'#2E7D4F'})}${medLegend('#2E7D4F')}
   </div>
-  <div class="card"><h2>Lucro líquido — mediana dos 5 bancos (R$ mn)</h2><div class="cap">Maior dispersão que o EBITDA (estrutura de capital e resultado financeiro)</div>
+  <div class="card"><h2>Lucro líquido — mediana dos 6 bancos (R$ mn)</h2><div class="cap">Maior dispersão que o EBITDA (estrutura de capital e resultado financeiro)</div>
     <div class="lead">A mediana do lucro líquido sobe de ~R$1,85bn (2024) para ~R$2,38bn (2028). A dispersão entre bancos é proporcionalmente maior que a do EBITDA, refletindo diferenças de estrutura de capital, resultado financeiro e alíquota efetiva.</div>
     ${chMedian(YRS5,medRows(NETINC5),{h:330,yTitle:'Lucro líquido (R$ mn)',cProj:'#B23A1E'})}${medLegend('#B23A1E')}
-    <div class="note">Lucro líquido do <b>BofA</b> em base <b>ajustada</b> (linha "Lucro Líquido ajustado" do Exhibit 67), consistente com a aba de múltiplos. Demais bancos: lucro líquido reportado da DRE. 2024/2025 realizado; 2026–2028 estimativa dos bancos.</div>
+    <div class="note">Lucro líquido do <b>BofA</b> e do <b>J.P. Morgan</b> em base <b>ajustada</b> (Adj. Net Income), consistente com a aba de múltiplos. Demais bancos: lucro líquido reportado da DRE. 2024/2025 realizado; 2026–2028 estimativa dos bancos.</div>
   </div>
   </div>
   <div id="prjp1" class="subpane" style="display:none">
@@ -1720,13 +1721,13 @@ function renderProj(){
 // ---------- 11. Múltiplos & Dividendos ----------
 function multSub(i){for(let k=0;k<2;k++){$('msub'+k).style.display=k===i?'':'none';$('mst'+k).classList.toggle('on',k===i);}window.scrollTo({top:0,behavior:'smooth'});}
 function renderMult(){
-  const tbl=(obj,fmt)=>`<div class="twrap"><table><thead><tr><th class="l">Banco</th><th>2026e</th></tr></thead><tbody>${BANKS.map(b=>`<tr><td class="l">${bankDot(b)}<b>${b.name}</b></td><td>${fmt(obj[b.id][0])}</td></tr>`).join('')}</tbody></table></div>`;
+  const tbl=(obj,fmt)=>`<div class="twrap"><table><thead><tr><th class="l">Banco</th><th>2026e</th></tr></thead><tbody>${BANKS.filter(b=>obj[b.id]).map(b=>`<tr><td class="l">${bankDot(b)}<b>${b.name}</b></td><td>${fmt(obj[b.id][0])}</td></tr>`).join('')}</tbody></table></div>`;
   const peerRows=PEERS_IRR.map(p=>[p[0],p[1]]);
   // --- multiplos da Edge ---
-  const evbEdge=BANKS.map(b=>({name:b.name,v:EDGEM[b.id].ev/EDGEM[b.id].eb[0],color:b.color}));
+  const evbEdge=BANKS.filter(b=>EDGEM[b.id]).map(b=>({name:b.name,v:EDGEM[b.id].ev/EDGEM[b.id].eb[0],color:b.color}));
   const medEdge=_med(evbEdge.map(x=>x.v));
   const ndFmt=v=>typeof v==='number'?('R$'+(v/1000).toFixed(1).replace('.',',')+'bn'):v;
-  const erows=BANKS.map(b=>{const m=EDGEM[b.id];
+  const erows=BANKS.filter(b=>EDGEM[b.id]).map(b=>{const m=EDGEM[b.id];
     const e26=m.ev/m.eb[0];
     const pe26=(m.ni&&m.eqEdge)?m.eqEdge/m.ni[0]:null;
     return `<tr><td class="l">${bankDot(b)}<b>${b.name}</b></td>
@@ -1749,7 +1750,8 @@ function renderMult(){
   <div class="card"><h2>Onde cada banco aloca a dívida líquida</h2>
     <div class="lead">A Compass tem <b>uma</b> dívida líquida consolidada (~R$11–14,5bn); na soma das partes, cada banco a "fatia" entre as subsidiárias de forma diferente. <b>BBI e Itaú</b> ancoram a maior parte na <b>Comgás</b> (madura, geradora de caixa: R$9,2–10,6bn) e deixam a <b>Edge leve</b> (R$0,6–0,8bn). O <b>BTG</b> é o único que distribui — menos na Comgás (R$7,3bn) e mais na Edge (R$2,5bn) e na Holding — e ainda modela uma dívida total maior (R$14,5bn).</div>
     ${(()=>{const rows=[['Comgás','comgas'],['Edge','edge'],['Holding','holding'],['Dívida líq. consolidada','total']];
-      return `<div class="twrap"><table><thead><tr><th class="l">Alocação da dívida líquida</th>${BANKS.map(b=>`<th>${b.name}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>{const isTot=r[1]==='total';return `<tr${isTot?' class="tot"':''}><td class="l">${r[0]}</td>${BANKS.map(b=>{const v=NDALLOC[r[1]][b.id];const star=(r[1]==='edge'&&b.id==='itau')||(isTot&&b.id==='bofa');return `<td>${ndCell(b.id,v,star)}</td>`;}).join('')}</tr>`;}).join('')}</tbody></table></div>`;})()}
+      const ndBanks=BANKS.filter(b=>NDALLOC.total[b.id]!=null);
+      return `<div class="twrap"><table><thead><tr><th class="l">Alocação da dívida líquida</th>${ndBanks.map(b=>`<th>${b.name}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>{const isTot=r[1]==='total';return `<tr${isTot?' class="tot"':''}><td class="l">${r[0]}</td>${ndBanks.map(b=>{const v=NDALLOC[r[1]][b.id];const star=(r[1]==='edge'&&b.id==='itau')||(isTot&&b.id==='bofa');return `<td>${ndCell(b.id,v,star)}</td>`;}).join('')}</tr>`;}).join('')}</tbody></table></div>`;})()}
     <div class="note"><b>BBI, Itaú e BTG</b> abrem a dívida por ativo (o Itaú via seu modelo financeiro). O <b>BofA</b> avalia em base de equity; o <b>Citi</b> deduz o total numa linha única. Repare: BBI e Itaú põem R$9,2–10,6bn na Comgás e só R$0,6–0,8bn na Edge; o BTG inverte — R$7,3bn na Comgás e R$2,5bn na Edge. É a mesma dívida, repartida de formas diferentes — por isso comparar equity value e P/E da Edge entre bancos é enganoso.</div>
     <div class="warn">(*) BofA total = dívida bruta de LP − caixa (calculado). Os valores por ativo não somam exatamente ao consolidado por causa de outras LDCs, participações minoritárias (com caixa líquido), leasing e data de referência. Dívida líquida de 2026e. Itaú conforme o modelo financeiro (a Holding aparece com caixa líquido de R$0,5bn).</div>
   </div>

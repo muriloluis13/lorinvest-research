@@ -8,9 +8,22 @@ __pycache__/
 # Confidential deal documents (do not commit)
 *.pdf
 *.xlsx
+*.xlsm
 *.pptx
+*.doc
+*.docx
 gnlink/bbog-model/*.pdf
 gnlink/bbog-model/*.xlsx
+
+# Bases geoespaciais brutas (shapefiles) - pesadas demais para o repo
+*.shp
+*.shp.xml
+*.dbf
+*.shx
+*.sbn
+*.sbx
+*.prj
+*.cpg
 
 # Node / Vercel
 node_modules/

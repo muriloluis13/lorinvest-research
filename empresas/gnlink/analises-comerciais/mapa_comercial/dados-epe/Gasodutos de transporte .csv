@@ -1,0 +1,130 @@
+﻿Nome;Categoria;Diâmetro (Polegada);Extensão (km);Município Origem;Município Destino;Fontes;Pressão Máx. Operação;Transportadora;FID
+GASBOL - Trecho Norte (Ramal Gemini);Existente;8;1.7341573;Paulínia;Paulínia;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2413
+GASBOL - Trecho Norte (Ramal Gemini);Existente;12;0.01047013;Paulínia;Paulínia;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2414
+GASBOL - Trecho Norte (Ramal ECOMP Paulínia);Existente;32;0.55009036;Paulínia;Paulínia;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2415
+GASBOL - Trecho Norte (Ramal ECOMP Paulínia);Existente;32;0.56014236;Paulínia;Paulínia;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2416
+Jacutinga-Uberaba (ramal Pocos Caldas);Indicativo;12;20.18961603;Vargem Grande do Sul (MG);Pocos de Caldas (MG);PIG 2022;100;Estudo EPE;2417
+Jacutinga-Uberaba;Indicativo;18;320.88076877;Jacutinga (MG);Uberaba (MG);PIG 2022;100;Estudo EPE;2418
+Duque de Caxias - Taubaté (GASDUT) ;Indicativo;28;294.5;Duque de Caxias (RJ);Taubaté (SP);PNIIGB (set/2025) e PIG 2024;100;Estudo EPE;2420
+São João da Barra-Macaé;Indicativo;22;100.61593753;São João da Barra (RJ);Macaé (RJ);PIG 2022;100;Estudo EPE;2421
+Penápolis-Canoas (Chimarrão A);Indicativo;20;1154.60732606;PENÁPOLIS (SP);CANOAS (RS);PIG 2020; ;Estudo EPE;2423
+Porto Central-GASCAV;Indicativo;20;14.52524408;PRESIDENTE KENNEDY (ES);PRESIDENTE KENNEDY (ES);PIG 2019; ;Estudo EPE;2426
+São Carlos - Brasília (Brasil Central);Indicativo;20/18;833.31345621;SÃO CARLOS (SP);BRASÍLIA (DF);PIG 2019; ;Estudo EPE;2429
+Mina Guaíba-Triunfo;Indicativo;16;17.95409377;CHARQUEADAS (RS);TRIUNFO (RS);PIG 2019; ;Estudo EPE;2432
+Porto Imbituba-GASBOL;Indicativo; 20;46.02687754;IMBITUBA (SC);SÃO MARTINHO (SC);PIG 2019; ;Estudo EPE;2433
+Cubatão-GASAN;Indicativo;20;19.64620983;CUBATÃO (SP);SÃO BERNARDO DO CAMPO (SP);PIG 2019; ;Estudo EPE;2434
+Porto de Itaguaí-GASCAR;Indicativo;24;35.42002609;ITAGUAÍ (RJ);SEROPÉDICA (RJ);PIG 2019; ;Estudo EPE;2435
+GASBOL - Trecho Sul (Siderópolis-Canoas);Existente;16;250.05904763;Siderópolis;Canoas;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2436
+GASBOL - Trecho Sul (Biguaçu-Siderópolis);Existente;18;175.77227113;Biguaçu;Canoas;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2437
+GASBOL - Trecho Sul (Araucária-Biguaçu);Existente;20;273.37570877;Araucária;Biguaçu;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2438
+GASBOL - Trecho Sul (Paulínia-Araucária);Existente;24;471.50295309;Paulínia;Araucária;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2439
+GASBOL - Trecho Sul (Ramal Emed Garuva);Existente;18;0.18787301;Garuva;Garuva;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2440
+GASBOL - Trecho Norte (Paulínia-Guararema);Existente;24;153.10442415;Paulínia;Guararema;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2441
+GASBOL - Trecho Sul (Ramal EMED Garuva);Existente;18;0.0138235;Garuva;Garuva;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2442
+Coari-Manaus (Gascom);Existente;20;391.93626562;Coari (AM);Manaus (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);120;TAG;2443
+Coari-Manaus (Ramal Iranduba);Existente;3;7.58512097;IRANDUBA (AM);IRANDUBA (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2444
+Coari-Manaus (Ramal Anamã);Existente;3;23.65159117;ANAMÃ (AM);ANAMÃ (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2445
+Coari-Manaus (Ramal Anori);Existente;3;27.45526991;Anori (AM);Anori (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2446
+Coari-Manaus (Ramal Aparecida);Existente;14;17.79238586;Iranduba (AM);Manaus (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2447
+Coari-Manaus (Ramal Coari);Existente;4;25.73456706;Coari (AM);Coari (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2448
+Coari-Manaus (Ramal Caapiranga);Existente;3;7.05522165;Caapiranga (AM);Caapiranga (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2449
+Coari-Manaus (Ramal Codajas);Existente;3;19.01591222;Codajas (AM);Codajas (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2450
+Coari-Manaus (Ramal Manacapuru);Existente;3;7.58416219;Manacapuru (AM);Manacapuru (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);80;TAG;2452
+Urucu-Coari (Garsol);Existente;3;278.76107241;Coari (AM);Coari (AM);TAG - Transportadora Associada de Gás S.A (maio 2023);120;TAG;2453
+Santiago-Camacari 18 (SANCAM 18);Existente;18;32.0056222;Pojuca (BA);Camacari (BA);TAG - Transportadora Associada de Gás S.A (maio 2023);31;TAG;2464
+Candeias-Dow-Aratu-Camacari 14 (Cancam 14);Existente;14;8.83157272;Candeias(BA);Camacari (BA);TAG - Transportadora Associada de Gás S.A (maio 2023); ;TAG;2469
+Candeias-Aratu 12;Existente;12;8.79979486;Candeias (BA);Aratu (BA);TAG - Transportadora Associada de Gás S.A (maio 2023); ;TAG;2470
+Candeias-Aratu 12;Existente;12;12.90945905;Candeias(BA);Aratu (BA);TAG - Transportadora Associada de Gás S.A (maio 2023); ;TAG;2471
+Candeias-Camacari 12 (Cancam 12);Existente;12;36.81426035;Candeias(BA);Camacari (BA);TAG - Transportadora Associada de Gás S.A (maio 2023); ;TAG;2472
+Candeias-Dow-Aratu-Camacari 14 (Cancam 14);Existente;14;8.83157272;Candeias(BA);Camacari (BA);TAG - Transportadora Associada de Gás S.A (maio 2023); ;TAG;2473
+Candeias-Dow-Aratu-Camacari 14 (Cancam 14);Existente;14;19.92839236;Candeias(BA);Camacari (BA);TAG - Transportadora Associada de Gás S.A (maio 2023); ;TAG;2474
+Santiago-Camacari 14 (SANCAM 14);Existente;14;31.99078226;Pojuca (BA);Camacari (BA);TAG - Transportadora Associada de Gás S.A (maio 2023);31;TAG;2475
+Urucu-Porto Velho;Autorizado;14;242;Urucu (AM);Porto Velho (RO);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;120;;2481
+Manaus-Nhamundá;Autorizado;20;463.65230005;MANAUS (AM);NHAMUNDÁ (AM);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;100; ;2482
+Uruguaiana-Porto Alegre (trecho 3);Existente;24;22.27165296;CANOAS (RS);TRIUNFO (RS);MME - Boletim Mensal Acompanhamento Indústria Gás Natural  Março 2023 - Anexo Informações Complementares;100;TSB;2483
+Uruguaiana-Porto Alegre (trecho 1);Existente;24;24.42786693;URUGUAIANA (RS);URUGUAIANA (RS);MME - Boletim Mensal Acompanhamento Indústria Gás Natural  Março 2023 - Anexo Informações Complementares;76;TSB;2485
+Lateral Cuiabá;Existente;18;280.3236446;CÁCERES (MT);CUIABÁ (MT);MME - Boletim Mensal Acompanhamento Indústria Gás Natural  Março 2023 - Anexo Informações Complementares;101;GASOCIDENTE;2486
+GASBEL II (ESVOL - ESTAP);Existente;18;87.00597921;Rio das Flores (RJ);Volta Redonda (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2488
+GASBEL (REDUC - ESMAN);Existente;16;169.18851912;Duque de Caxias (RJ);Santos Dumont (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2489
+GASBEL II (ESTAP - ESMAN);Existente;18;97.39053115;Rio das Flores (MG);Santos Dumont (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2490
+GASBEL II (ESMAN - Queluzito);Existente;18;82.73747081;Santos Dumont (MG);Queluzito (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2491
+GASBEL (ESMAN - REGAP);Existente;16;182.25546432;Santos Dumont (MG);Betim (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2492
+GASAN 12 (RPBC - RECAP);Existente;12;42.29088284;Cubatao (SP);Maua (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2493
+GASAN II 22 (Maua - S.B. Campo);Existente;22;38.04672756;Maua (SP);Sao Bernardo do Campo (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2494
+GASPAL II 22 (Guararema - Maua);Existente;22;54.60914364;Guararema (SP);Maua (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2495
+GASPAL 22 (Guararema - RECAP);Existente;22;61.14204519;Guararema (SP);Maua (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2496
+GASTAU 28 (Caraguatatuba - Taubate));Existente;28;96.41679212;Caraguatatuba (SP);Taubate (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2497
+GASPAJ 14 (Paulinia - Jacutinga);Existente;14;93.12235169;Paulinia (SP);Jacutinga (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2498
+GASPAL 22 (ESVOL - Lorena);Existente;22;128.81261936;Volta Redonda (RJ);Maua (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2499
+GASPAL 22 (Lorena - Guararema);Existente;22;129.8976055;Volta Redonda (RJ);Maua (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2500
+GASCAR 28 (REPLAN - Taubate);Existente;28;198.75643947;Paulinia (SP);Taubate (SP);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2501
+GASPAJ 14 (Paulinia - Jacutinga);Existente;14;93.12235169;Paulinia (SP);Jacutinga (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2502
+GASCAR 28 (Arapei - Japeri);Existente;28;98.16751707;Paulinia (SP);Japeri (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2503
+GASVOL 14 (ESVOL - TEVOL);Existente;14;5.33060131;Volta Redonda (RJ);Volta Redonda (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2504
+GASVOL 18 (ESJAP - ESVOL);Existente;18;51.93753787;Arapei (RJ);Japeri (RJ;NTS - Nova Transportadora do Sudeste S.A. (maio 2023);100;NTS;2505
+GASJAP 28 (REDUC - ESJAP);Existente;28;45.26101884;Duque de Caxias (RJ);Japeri (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2506
+GASVOL 18 (REDUC - ESJAP);Existente;18;41.08954233;Duque de Caxias (RJ);Japeri (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2507
+GASVOL (Ramal de Campos Elíseos 16);Existente;16;3.66812332;Duque de Caxias (RJ);Duque de Caxias (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2508
+GASDUC III (CABIÚNAS - REDUC);Existente;38;184.46869556;Macaé (RJ);Duque de Caxias (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);100;NTS;2509
+GASBEL II (ESMAN-Queluzito);Existente;18;82.73747081;Santos Dumont (MG);Betim (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);65;NTS;2510
+GASBEL II (ESTAP-ESMAN);Existente;18;97.39053115;Duque de Caxias (RJ);Betim (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);65;NTS;2511
+GASBEL II (ESVOL-ESTAP);Existente;18;87.00597921;Volta Redonda (RJ);Queluzito (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);100;NTS;2512
+GASBEL (REDUC - ESMAN);Existente;16;169.18851912;Duque de Caxias (RJ);Betim (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);65;NTS;2513
+GASBEL I (ESMAN-REGAP);Existente;16;182.25546432;Duque de Caxias (RJ);Betim (MG);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);65;NTS;2514
+Gasduc I (Ramal Campos Eliseos);Existente;20;2.30797061;Campos Eliseos (RJ);Campos Eliseos (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);100;NTS;2515
+Gasduc I (Ramal Campos Eliseos);Existente;16;3.66812332;Campos Eliseos (RJ);Campos Eliseos (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);100;NTS;2516
+Reduc-ESJAP (GASVOL);Existente;18;41.08954233;Duque de Caxias (RJ);Volta Redonda (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2517
+Itaboraí-Guapimirim (GASIG);Existente;24;10.92028115;Itaborai (RJ);Guapimirim (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023);100;NTS;2518
+Cacimbas-Vitoria (GASCAV - Ramal UTG-Sul);Existente;10;9.88496943;Anchieta (ES);Anchieta (ES);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2519
+GASVOL 18 (REDUC - ESJAP);Existente;18;41.08954233;Caxias (RJ);Japeri (RJ);NTS - Nova Transportadora do Sudeste S.A. (maio 2023); ;NTS;2524
+GASIG (Itaboraí-Guapimirim);Existente;24;10.56821268;ITABORAi (RJ);GUAPIMIRIM (RJ);PDE 2024-2034;100;NTS;2526
+Terminal Gás Sul (TGS)-GASBOL;Indicativo;20;31.78461268;ITAPOÁ (SC);GARUVA (SC);PIG 2019; ;Estudo EPE;2528
+GASINF (São João da Barra-Macaé);Indicativo;24;95.13592449;São João da Barra (RJ);Macaé (RJ);PNIIGB (set/2025);;NTS;2530
+GASBOL - Trecho Norte (Corumbá-Paulínia);Existente;30;0.14430438;Puerto Suárez;Corumbá;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2532
+GASBOL - Trecho Norte (Corumbá-Paulínia);Existente;32;1255.69437238;Corumbá;Paulínia;TBG - Transportadora Brasileira Gasoduto Bolívia-Brasil (maio 2023);100/75;TBG;2533
+Bilac-Santa Maria (Chimarrão B);Indicativo;20;1218.32202593;BILAC (SP);SANTA MARIA (RS);PIG 2020; ;Estudo EPE;2534
+GASFOR II (Serra do Mel-Horizonte);Indicativo;6;215.62352839;SERRA DO MEL (RN);HORIZONTE (CE);PDE 2024-2034;100;TAG;2535
+Cacimbas-Vitoria (GASVIC);Existente;26;117.96684807;Cacimbas (ES);Serra (ES);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2536
+Lagoa Parda-VB-10;Existente;8;77.76355097;Linhares (ES);Serra (ES);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2537
+Cabiunas-Vitoria (GASCAV);Existente;28;296.85417304;Macaé (RJ);Vitoria (RJ);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2538
+Cacimbas-Vitoria (GASCAV - Ramal Vitoria);Existente;16;12.40553142;Serra (ES);Vitoria (ES);TAG - Transportadora Associada de Gás S.A (maio 2023);52;TAG;2539
+Açailândia-Belém ;Autorizado;14;529.03538445;AÇAILÂNDIA (MA);BELÉM E BARCARENA (PA);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;; ;2540
+Meio Norte (Ramal Miranda do Norte-Imperatriz);Autorizado;12;441.60184046;MIRANDA DO NORTE (MA);IMPERATRIZ (MA);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;N/D; ;2541
+Meio Norte (Ramal Piripiri-Parnaíba);Autorizado;8;186.09586835;PIRIPIRI (PI);PARNAÍBA (PI);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;N/D; ;2542
+Centro Norte;Autorizado;20;1258.05887762;ANÁPOLIS (GO);IMPERATRIZ (MA);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;100; ;2543
+Meio-Norte (Ramais Caucáia-Miranda do Norte + Miranda do Norte-São Luiz);Autorizado;20;942.16997147;CAUCAIA (CE);MIRANDA DO NORTE (MA);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;N/D; ;2544
+Açailândia - Marabá;Autorizado;20;403.43157627;AÇAILÂNDIA (MA);MARABÁ (PA);Autorizações outorgadas para a construção e operação de gasodutos de transporte antes Resolução ANP nº 52/2015;; ;2545
+Gaseb (Sergipe-Bahia);Existente;14;223.98700986;Aracaju (SE);Pojuca (SE);TAG - Transportadora Associada de Gás S.A (maio 2023);28;TAG;2546
+Cacimbas-Catu (GASCAC);Existente;28;947.74061784;Cacimbas (ES);Catu (BA);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2547
+Ramal FAFEN II;Existente;8;8.56443563;Divina Pastora (SE);Laranjeiras (SE);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2548
+Atalaia-Itaporanga (Gai);Existente;14;29.34649385;Atalaia (SE);Itaporanga (SE);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2549
+Gaseb (Sergipe-Bahia);Existente;14;223.98700986;Aracaju (SE);Pojuca (SE);TAG - Transportadora Associada de Gás S.A (maio 2023);28;TAG;2550
+Atalaia-Laranjeiras (Gal);Existente;14;27.40942532;Aracaju (SE);Laranjeiras (SE);TAG - Transportadora Associada de Gás S.A (maio 2023);38,7;TAG;2551
+Catu-Pilar (Catu-Carmopolis);Existente;26;67.37389635;Itaporanga (SE);Carmopolis (SE);TAG - Transportadora Associada de Gás S.A (maio 2023);65;TAG;2552
+Pilar-Ipojuca;Existente;24;81.60395548;Pilar (AL);Ipojuca (PE);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2553
+Catu-Pilar (Carmopolis-Pilar);Existente;26;176.12459657;Carmopolis (SE);Pilar (AL);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2554
+Nordestao (Ramal Santa Rita);Existente;8;24.74482707;Santa Rita (PB);SÃO MIGUEL DO TAIPU (PB);TAG - Transportadora Associada de Gás S.A (maio 2023);30;TAG;2555
+Nordestao (Ramal Recife);Existente;12;31.53854936;Recife (PE);Jaboatão (PE);TAG - Transportadora Associada de Gás S.A (maio 2023);99,8;TAG;2556
+GASALP;Existente;12;200.87171493;Pilar (AL);Cabo de Santo Agostinho (PE);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2557
+GASALP (Ramal Termopernambuco);Existente;12;11.03910404;Ipojuca (PE);Ipojuca (PE);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2558
+Gasfor (Ramal Termoacu-Serra do Mel);Existente;14;31.41788302;Acu (RN);Serra do Mel (RN);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2559
+Nordestao (Guamare-Cabo);Existente;12;423.62843479;Guamaré (RN);Cabo de Santo Agostinho (PE);TAG - Transportadora Associada de Gás S.A (maio 2023);75;TAG;2560
+Gasfor (Guamare-Pecem);Existente;12;382.89799644;Guamare (RN);Caucaia (CE);TAG - Transportadora Associada de Gás S.A (maio 2023);100;TAG;2561
+Santo Antônio dos Lopes - Barcarena;Indicativo;20;675.23799025;SANTO ANTÔNIO DOS LOPES (MA);BARCARENA (PA);PIG 2020; ;Estudo EPE;2562
+Santo Antônio dos Lopes - São Luís;Indicativo;20;272.74306067;SANTO ANTÔNIO DOS LOPES (MA);SÃO LUÍS (MA);PIG 2020; ;Estudo EPE;2563
+Santo Antônio dos Lopes - Caucaia;Indicativo;20;677.88435533;SANTO ANTÔNIO DOS LOPES (MA);CAUCAIA (CE);PIG 2020; ;Estudo EPE;2564
+Presidente Kennedy - São Brás do Suaçuí;Indicativo;20;320.49192085;PRESIDENTE KENNEDY (ES);SÃO BRÁS DO SUAÇUÍ (MG);PIG 2020; ;Estudo EPE;2565
+Barcarena-Belém;Indicativo;12;48.62806158;Barcarena (PA);Belem (PA);PIG 2022;100;Estudo EPE;2566
+Linhares-Governador Valadares;Indicativo;20;279.36267174;Linhares (ES);Governador Valadares (MG);PIG 2022;100;Estudo EPE;2567
+GASFOR II (Horizonte-Caucaia);Existente;20;74.30629727;HORIZONTE (CE);CAUCAIA (CE);PDE 2024-2034;100;TAG;2568
+Conexão Terminal Sergipe;Existente;18;22.99492838;BARRA DOS COQUEIROS (SE);ROSÁRIO DO CATETE (SE);PDE 2024-2034; ;Estudo EPE;2569
+Santo Antônio dos Lopes - Imperatriz;Indicativo;18;422;Santo Antônio dos Lopes (MA);Imperatriz (MA);PIG 2024;100;Estudo EPE;2572
+Siderópolis - Porto Alegre;Indicativo;16;249;Siderópolis (SC);Porto Alegre (RS);PNIIGB (set/2025) e PIG 2024;100;Estudo EPE;2573
+Iacanga - Uberaba;Indicativo;20;260;Iacanga (SP);Uberaba (MG);PNIIGB (set/2025) e PIG 2024;;Estudo EPE;2574
+Porto Murtinho - Campo Grande;Indicativo;32;392;Porto Murtinho (MS);Campo Grande (MS);PIG 2024;100;Estudo EPE;2576
+Seropédica - Japeri;Indicativo;6;23;Seropédica (RJ);Japeri (RJ);PIG 2024;75;Estudo EPE;2577
+Sertãozinho - São Carlos;Indicativo;10;100;Sertãozinho (SP);São Carlos (SP);PIG 2024;100;Estudo EPE;2578
+Uruguaiana - Triunfo;Indicativo;24;593;Uruguaiana (RS);Triunfo (RS);PNIIGB (set/2025) e PIG 2024;100;Estudo EPE;2579
+Ipojuca-Igarassu (Veredas Fase 1);Indicativo;26;85;Ipojuca (PE);Igarassu (PE);PNIIGB (set/2025);;Estudo EPE;2580
+Bragança Paulista-Extrema (GASBEX);Indicativo;6;28;Bragança Paulista (SP);Extrema  (MG);PNIIGB (set/2025);;Estudo EPE;2581
+Porecatu-Bilac ;Indicativo;10;185;Porecatu (PR);Bilac (SP);PNIIGB (set/2025);100;Estudo EPE;2582
