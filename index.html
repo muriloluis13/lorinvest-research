@@ -2784,7 +2784,7 @@
                           novo:['#3E7C8C','Novo','novo'],
                           spot:['#C77DBF','Spot','spot'],
                           'nao-assinado':['#C0392B','Não assinado','não assinado']};
-              var BASES={rcaMai:'RCA · Mai/26',rcaJun:'RCA · Jun/26'};
+              var BASES={rcaAbr:'RCA · Abr/26',rcaMai:'RCA · Mai/26',rcaJun:'RCA · Jun/26'};
 
               function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
               function fmt(v){ return v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
@@ -3030,6 +3030,7 @@
               <span class="lbl">Base de dados</span>
               <div class="comm-seg" role="tablist" aria-label="Base de dados operacional">
                 <button type="button" class="active" data-view="rci">RCI · Dez/25</button>
+                <button type="button" data-view="rcaAbr">RCA · Abr/26</button>
                 <button type="button" data-view="rca">RCA · Mai/26</button>
                 <button type="button" data-view="rcaJun">RCA · Jun/26</button>
               </div>
@@ -3229,7 +3230,10 @@
               /* Toggle de base de dados (RCI Dez/25 x RCA Mai/26) */
               .comm-src{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:2px 0 16px}
               .comm-src .lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-              .comm-seg{display:inline-flex;background:#eef1f5;border:1px solid var(--line);border-radius:99px;padding:3px}
+              /* max-width + overflow: com 5 bases (RCI + 4 RCAs) a pílula passa de 500px e
+                 estouraria a tela no mobile; assim ela rola dentro de si em vez de vazar. */
+              .comm-seg{display:inline-flex;background:#eef1f5;border:1px solid var(--line);border-radius:99px;padding:3px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+              .comm-seg::-webkit-scrollbar{display:none}
               .comm-seg button{border:none;background:none;font:inherit;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--muted);padding:6px 16px;border-radius:99px;transition:all .15s;white-space:nowrap}
               .comm-seg button:hover{color:var(--ink)}
               .comm-seg button.active{background:var(--accent-1);color:#fff;box-shadow:0 1px 3px rgba(19,32,46,.2)}
@@ -3256,6 +3260,8 @@
               <span class="lbl">Base de dados</span>
               <div class="comm-seg" role="tablist" aria-label="Base de dados comercial">
                 <button type="button" class="active" data-view="rci">RCI · Dez/25</button>
+                <button type="button" data-view="rcaMar">RCA · Mar/26</button>
+                <button type="button" data-view="rcaAbr">RCA · Abr/26</button>
                 <button type="button" data-view="rca">RCA · Mai/26</button>
                 <button type="button" data-view="rcaJun">RCA · Jun/26</button>
               </div>
@@ -3271,6 +3277,32 @@
 
             <div id="gnlComDemRci"></div>
             </div><!-- /comm-view rci -->
+
+            <div class="comm-view" data-view="rcaMar">
+
+              <!-- Funil consolidado — RCA Mar/26 (slide 10) -->
+              <div id="gnlComFunRcaMar"></div>
+
+              <div id="gnlComNegRcaMar"></div>
+
+              <div id="gnlComAssRcaMar"></div>
+
+              <div id="gnlComCapMar"></div>
+
+            </div><!-- /comm-view rcaMar -->
+
+            <div class="comm-view" data-view="rcaAbr">
+
+              <!-- Funil consolidado — RCA Abr/26 (slide 6) -->
+              <div id="gnlComFunRcaAbr"></div>
+
+              <div id="gnlComNegRcaAbr"></div>
+
+              <div id="gnlComAssRcaAbr"></div>
+
+              <div id="gnlComCapAbr"></div>
+
+            </div><!-- /comm-view rcaAbr -->
 
             <div class="comm-view" data-view="rca">
 
@@ -3409,7 +3441,21 @@
                 var cpm=document.getElementById('gnlComCap'); if(cpm&&C.capacidade.rca) cpm.innerHTML=capacidade(C.capacidade.rca);
                 var cpj=document.getElementById('gnlComCapJun'); if(cpj&&C.capacidade.rcaJun) cpj.innerHTML=capacidade(C.capacidade.rcaJun);
               }
-              var caps={rci:'Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)',rca:'GNLink · RCA — mai/2026 (slide 6)',rcaJun:'GNLink · RCA — jun/2026 (slide 6)'};
+              // Bases mar/26 e abr/26: mesmos quatro cards das demais, montados em lote.
+              // Só renderiza o que a base tiver — mar/26 e abr/26 cobrem os quatro.
+              [['rcaMar','Mar'],['rcaAbr','Abr']].forEach(function(p){
+                var k=p[0], sfx=p[1];
+                if(!C) return;
+                var f=document.getElementById('gnlComFun'+k.charAt(0).toUpperCase()+k.slice(1));
+                if(f&&C.funil&&C.funil[k]) f.innerHTML=funil(C.funil[k]);
+                var n=document.getElementById('gnlComNeg'+k.charAt(0).toUpperCase()+k.slice(1));
+                if(n&&C.negociacao&&C.negociacao[k]) n.innerHTML=negoc(C.negociacao[k]);
+                var a=document.getElementById('gnlComAss'+k.charAt(0).toUpperCase()+k.slice(1));
+                if(a&&C.assinados&&C.assinados[k]) a.innerHTML=assinados(C.assinados[k]);
+                var c=document.getElementById('gnlComCap'+sfx);
+                if(c&&C.capacidade&&C.capacidade[k]) c.innerHTML=capacidade(C.capacidade[k]);
+              });
+              var caps={rci:'Comitê de Investimentos Lorinvest · 15/dez/2025 (slides 4–5)',rcaMar:'GNLink · RCA — mar/2026 (slide 10)',rcaAbr:'GNLink · RCA — abr/2026 (slide 6)',rca:'GNLink · RCA — mai/2026 (slide 6)',rcaJun:'GNLink · RCA — jun/2026 (slide 6)'};
               var btns=panel.querySelectorAll('.comm-seg button');
               var views=panel.querySelectorAll('.comm-view');
               var cap=panel.querySelector('#commSrcCap');
@@ -3556,6 +3602,8 @@
                 <span class="lbl">Base de dados</span>
                 <div class="comm-seg" role="tablist" aria-label="Base de dados do or&#231;amento 2026">
                   <button type="button" data-view="rci">RCI &#183; Dez/25</button>
+                  <button type="button" data-view="rcaMar">RCA &#183; Mar/26</button>
+                  <button type="button" data-view="rcaAbr">RCA &#183; Abr/26</button>
                   <button type="button" data-view="rcaMai">RCA &#183; Mai/26</button>
                   <button type="button" data-view="rcaJun">RCA &#183; Jun/26</button>
                 </div>
@@ -3565,6 +3613,8 @@
               <!-- Cada base é preenchida pelo script a partir de F.orc2026[base]:
                    com dados → cards de DRE + fluxo mensal; sem dados → placeholder. -->
               <div class="comm-view active" data-view="rci"><div id="orcBaseRci"></div></div>
+              <div class="comm-view" data-view="rcaMar"><div id="orcBaseRcaMar"></div></div>
+              <div class="comm-view" data-view="rcaAbr"><div id="orcBaseRcaAbr"></div></div>
               <div class="comm-view" data-view="rcaMai"><div id="orcBaseRcaMai"></div></div>
               <div class="comm-view" data-view="rcaJun"><div id="orcBaseRcaJun"></div></div>
 
@@ -3665,6 +3715,8 @@
             if(F.fcxHist){ var mh=document.getElementById('gnlFinHist'); if(mh) mh.innerHTML=fcxCard(F.fcxHist,'Fluxo de Caixa Histórico'); }
             var O=F.orc2026||{};
             renderOrcBase(O.rci,'orcBaseRci','RCI Dez/25');
+            renderOrcBase(O.rcaMar,'orcBaseRcaMar','RCA Mar/26');
+            renderOrcBase(O.rcaAbr,'orcBaseRcaAbr','RCA Abr/26');
             renderOrcBase(O.rcaMai,'orcBaseRcaMai','RCA Mai/26');
             renderOrcBase(O.rcaJun,'orcBaseRcaJun','RCA Jun/26');
           })();
@@ -3692,11 +3744,12 @@
           </script>
 
           <script>
-          // Seletor de base de dados do Orçamento 2026 (RCI Dez/25 / RCA Mai/26 / RCA Jun/26).
+          // Seletor de base de dados do Orçamento 2026 (RCI Dez/25 → RCA Jun/26).
           // Aninhado dentro da visão orc2026; escopo em filhos diretos do host para
           // não colidir com o seletor de visão do painel. Sem data-default: o default é
-          // a base mais nova (último botão = RCA Jun/26, que já traz o fluxo mensal).
-          // O RCA Mai/26 segue sem fluxos e cai no placeholder quando selecionado.
+          // a base mais nova (último botão = RCA Jun/26).
+          // O RCA Mar/26 é a única base sem DRE mensal — o deck de mar/26 só publica
+          // mês, YTD e forecast por trimestre —, então ela mostra KPIs + fluxo de caixa.
           (function(){
             var host=document.querySelector('.emp-panel[data-emp="resultados"] .comm-view[data-view="orc2026"]');
             if(!host) return;
@@ -3705,8 +3758,10 @@
             var btns=seg.querySelectorAll('button');
             var cap=host.querySelector('#orcBaseCap');
             var caps={rci:'RCI · Comitê de Investimentos Lorinvest, 15/dez/2025 (slides 8 e 20)',
-                      rcaMai:'RCA · Mai/26 — aguardando fluxos',
-                      rcaJun:'RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slide 16)'};
+                      rcaMar:'RCA · Mar/26 — Apresentação de Resultados GNLink, 24/abr/2026 (slides 6 e 18) · sem DRE mensal',
+                      rcaAbr:'RCA · Abr/26 — Apresentação de Resultados GNLink, 02/jun/2026 (slides 17 e 19)',
+                      rcaMai:'RCA · Mai/26 — Apresentação de Resultados GNLink (slides 17 e 19)',
+                      rcaJun:'RCA · Jun/26 — Apresentação de Resultados GNLink, 24/jun/2026 (slides 16 e 18)'};
             btns.forEach(function(b){ b.addEventListener('click',function(){
               var v=b.getAttribute('data-view');
               btns.forEach(function(x){ x.classList.toggle('active',x===b); });
@@ -3793,6 +3848,8 @@
             <span class="lbl">Base de dados</span>
             <div class="comm-seg" role="tablist" aria-label="Base de dados de alavancagem">
               <button type="button" data-view="rci">RCI &#183; Dez/25</button>
+              <button type="button" data-view="rcaMar">RCA &#183; Mar/26</button>
+              <button type="button" data-view="rcaAbr">RCA &#183; Abr/26</button>
               <button type="button" data-view="rcaMai">RCA &#183; Mai/26</button>
               <button type="button" data-view="rcaJun">RCA &#183; Jun/26</button>
             </div>
