@@ -53,18 +53,57 @@
           rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–abr/26)</span><span><i style="background:#4F7B8C"></i>Forecast (mai–dez/26)</span></div>',
           note:'Primeira base do painel com a capacidade aberta por planta. <b>A oferta já é a mesma de mai/26 e jun/26:</b> PR pleno em 39.580 desde jan/26; BA a 42.616 até set/26 e 85.232 a partir de out/26; RN parte em fev/26 a 32.416 e atinge 72.688 em out/26 — capacidade plena das três plantas (197.500 m³/dia) prevista para <b>out/26</b>. Ou seja, o escorregamento de mai/26 para out/26 já estava no deck de abril.<br>Fonte: GNLink — RCA, abr/2026 (linha “Capacidade Planta” · slides 21 · Barra Bonita, 26 · Itabuna, 31 · Assú).',
           noteGnc:'Capacidade de <b>GNC purga</b>, em quadro próprio nos mesmos slides. PR e RN sobem de 14.400 para <b>19.400 m³/dia</b> em jul/26; BA permanece em 14.400 o ano todo — mesmo desenho de jun/26.<br>Fonte: GNLink — RCA, abr/2026 (quadro de GNC · slides 21, 26 e 31).'}
-      },moleculaJun:{tag:"preço atual · jun/26",
-        note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. Preço médio ponderado de <b>R$ 1,90/m³</b> no volume atual (155.000 m³/dia) e <b>R$ 1,96/m³</b> no volume total contratado (210.000 m³/dia).<br>Fonte: GNLink — RCA, jun/2026.',groups:[
-        {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
-        {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,95",w:88,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
-        {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,76",w:79,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
-      ]},
-      molecula:{tag:"sem impostos · dez/25",note:'Premissas constantes para todas as linhas (omitidas da tabela): câmbio <b>R$ 5,45/US$</b> · Brent <b>US$ 68,97/bbl</b> · data <b>dez/25</b>. Preços <b>sem impostos</b>.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 18).',groups:[
-        {cls:"tra",nm:"Tradener",loc:"PR",rows:[{v:"R$ 2,36",w:100,mm:"11,62",br:"16,85%",cen:"Preços anteriores atualizados"},{v:"R$ 2,00",w:85,mm:"9,83",br:"14,26%",cen:""},{v:"R$ 1,70",w:72,mm:"8,37",br:"12,13%",cen:"Oferta Tradener"}]},
-        {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 2,06",w:87,mm:"10,12",br:"14,67%",cen:"GNC Industrial"},{v:"R$ 1,91",w:81,mm:"9,42",br:"13,65%",cen:"GNC Veicular"}]},
-        {cls:"btg",nm:"BTG",loc:"BA",rows:[{v:"R$ 2,03",w:86,brk:"molécula R$ 1,45 · gasoduto R$ 0,58",mm:"10,00",br:"10,35%",cen:"Firme"},{v:"R$ 1,98",w:84,brk:"molécula R$ 1,40 · gasoduto R$ 0,58",mm:"9,76",br:"10,00%",cen:"PUT"}]},
-        {cls:"pet",nm:"PetroRecôncavo",loc:"BA",rows:[{v:"R$ 2,01",w:85,brk:"molécula R$ 1,44 · gasoduto R$ 0,57",mm:"9,90",br:"10,30%",cen:"Para Bahiagás"},{v:"R$ 1,61",w:68,loc2:"RN",mm:"7,93",br:"11,50%",cen:"Base"},{v:"R$ 1,44",w:61,mm:"7,10",br:"10,30%",cen:"Para Cegás"},{v:"R$ 0,49",w:21,mm:"2,41",br:"3,50%",cen:"Geração de EE"}]}
-      ]}},comercial:{
+      },
+      // Custo de compra de molécula — UM card por base do seletor de oferta, com as MESMAS
+      // chaves de operacional.views. O render itera Object.keys(views) e busca aqui, então
+      // base nova sem molécula cai num aviso explícito em vez de sumir com a seção.
+      // As barras (w) são relativas ao maior preço da própria base.
+      // Os RCAs publicam só os três contratos CATIVOS de suprimento, sem US$/MMBtu nem
+      // % Brent — daí os "—" nessas colunas. O RCI Dez/25 é o único com cenários de oferta.
+      moleculaBases:{
+        rci:{tag:"sem impostos · dez/25",note:'Premissas constantes para todas as linhas (omitidas da tabela): câmbio <b>R$ 5,45/US$</b> · Brent <b>US$ 68,97/bbl</b> · data <b>dez/25</b>. Preços <b>sem impostos</b>.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 18).',groups:[
+          {cls:"tra",nm:"Tradener",loc:"PR",rows:[{v:"R$ 2,36",w:100,mm:"11,62",br:"16,85%",cen:"Preços anteriores atualizados"},{v:"R$ 2,00",w:85,mm:"9,83",br:"14,26%",cen:""},{v:"R$ 1,70",w:72,mm:"8,37",br:"12,13%",cen:"Oferta Tradener"}]},
+          {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 2,06",w:87,mm:"10,12",br:"14,67%",cen:"GNC Industrial"},{v:"R$ 1,91",w:81,mm:"9,42",br:"13,65%",cen:"GNC Veicular"}]},
+          {cls:"btg",nm:"BTG",loc:"BA",rows:[{v:"R$ 2,03",w:86,brk:"molécula R$ 1,45 · gasoduto R$ 0,58",mm:"10,00",br:"10,35%",cen:"Firme"},{v:"R$ 1,98",w:84,brk:"molécula R$ 1,40 · gasoduto R$ 0,58",mm:"9,76",br:"10,00%",cen:"PUT"}]},
+          {cls:"pet",nm:"PetroRecôncavo",loc:"BA",rows:[{v:"R$ 2,01",w:85,brk:"molécula R$ 1,44 · gasoduto R$ 0,57",mm:"9,90",br:"10,30%",cen:"Para Bahiagás"},{v:"R$ 1,61",w:68,loc2:"RN",mm:"7,93",br:"11,50%",cen:"Base"},{v:"R$ 1,44",w:61,mm:"7,10",br:"10,30%",cen:"Para Cegás"},{v:"R$ 0,49",w:21,mm:"2,41",br:"3,50%",cen:"Geração de EE"}]}
+        ]},
+        // srcCap só aqui: é a única base sem view de oferta, então a legenda de fonte do
+        // seletor operacional não tem de onde sair a não ser deste card. As demais bases
+        // herdam a legenda de operacional.views[k].srcCap.
+        rcaMar:{srcCap:"GNLink · RCA — mar/2026 (slide 11) · sem capacidade por planta neste deck",
+          tag:"preço atual · mar/26",
+          note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. Preço médio ponderado de <b>R$ 1,87/m³</b> no volume atual (155.000 m³/dia) e <b>R$ 1,94/m³</b> no volume total contratado (210.000 m³/dia). &nbsp; O contrato da BBOG não tem take-or-pay; a Bahiagás e a PetroRecôncavo têm <b>70%</b>, com apuração anual e trimestral. O início do ToP da PetroRecôncavo segue em aberto por causa da discussão sobre a especificação do gás fornecido.<br>Fonte: GNLink — RCA, mar/2026 (slide 11).',groups:[
+          {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,97",w:89,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,71",w:77,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
+        ]},
+        rcaAbr:{tag:"preço atual · abr/26",
+          note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. <b>Preços idênticos aos de mar/26</b> — nenhum dos três supridores foi reprecificado entre os dois decks; a média ponderada segue em <b>R$ 1,87/m³</b> no volume atual (155.000 m³/dia) e <b>R$ 1,94/m³</b> no volume total contratado (210.000 m³/dia).<br>Fonte: GNLink — RCA, abr/2026 (slide 10).',groups:[
+          {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,97",w:89,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,71",w:77,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
+        ]},
+        rca:{tag:"preço atual · mai/26",
+          note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. Duas reprecificações vs. abr/26, em sentidos opostos: <b>Bahiagás cai de 1,97 para 1,95</b> e <b>PetroRecôncavo sobe de 1,71 para 1,76</b>. Como a PetroRecôncavo responde por 100.000 dos 155.000 m³/dia atuais, o custo médio ponderado <b>sobe</b> de R$ 1,87 para <b>R$ 1,90/m³</b> (R$ 1,96/m³ no volume total contratado). &nbsp; O deck de maio acrescenta duas ressalvas: o volume de Assú usado para <b>geração de energia</b> é desconsiderado da compra de molécula, e o contrato da BBOG, <b>apesar de não ter take-or-pay</b>, exige retirada mínima de <b>30% da QDC</b>, sob pena de multa e quebra de contrato.<br>Fonte: GNLink — RCA, mai/2026 (slide 10).',groups:[
+          {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos · mín. 30% QDC"}]},
+          {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,95",w:88,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,76",w:79,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
+        ]},
+        rcaJun:{tag:"preço atual · jun/26",
+          note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. <b>Preços iguais aos de mai/26</b>: preço médio ponderado de <b>R$ 1,90/m³</b> no volume atual (155.000 m³/dia) e <b>R$ 1,96/m³</b> no volume total contratado (210.000 m³/dia).<br>Fonte: GNLink — RCA, jun/2026 (slide 9).',groups:[
+          {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,95",w:88,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
+          {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,76",w:79,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
+        ]}
+      },
+      // Ordem e rótulos das bases do painel operacional — FONTE ÚNICA do seletor.
+      // Os botões, as views de oferta e as de molécula são todos gerados a partir daqui,
+      // então acrescentar uma base é acrescentar uma linha nesta lista. Nem toda base tem
+      // as duas seções: mar/26 publica molécula (slide 11) mas não abre capacidade por
+      // planta, e cada render mostra um aviso no lugar do que falta.
+      baseOrder:["rci","rcaMar","rcaAbr","rca","rcaJun"],
+      baseLabels:{rci:"RCI · Dez/25",rcaMar:"RCA · Mar/26",rcaAbr:"RCA · Abr/26",rca:"RCA · Mai/26",rcaJun:"RCA · Jun/26"}
+      },comercial:{
         funil:{
           rci:{tag:"valores em m³/dia",note:'Da demanda total mapeada até os contratos assinados. <b>Mais de R$ 1 bilhão</b> em contratos já assinados.',rows:[["Mercado mapeado","1.673.638",100],["Em prospecção","1.099.537",65.7],["Em negociação","275.000",16.4],["Negociações contratuais","96.500",5.8],["Contratos assinados","56.865 – 132.175",7.9]]},
           rca:{tag:"valores em m³/dia · ex. Norte",note:'Da demanda total mapeada (exceto Norte) até os contratos assinados. <b>Mais de R$ 1,1 bilhão</b> em contratos assinados.',rows:[["Mercado mapeado","1.847.776",100],["Em prospecção","1.118.561",60.5],["Em negociação — BID","596.050",32.3],["Em contrato","45.100",12],["Contratos assinados","90.065 – 222.675",15]]},

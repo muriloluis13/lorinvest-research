@@ -1032,7 +1032,6 @@
     }
     .emp-analyst-name { font-size: 13px; font-weight: 700; color: var(--ink); }
     .emp-analyst-role { font-size: 11px; color: var(--muted); }
-    .emp-updated { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .emp-avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; border: 1px solid var(--line); }
     .emp-contact { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
     .emp-contact-link { font-size: 12px; font-weight: 600; color: var(--accent-2); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
@@ -1740,7 +1739,6 @@
                   <a class="emp-doclink" role="button"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="flex:none"><rect x="1" y="1" width="14" height="14" rx="2.5" fill="#C43E1C"/><text x="8" y="11.7" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Arial, sans-serif">P</text></svg> BP aprovado 2025–2030</a>
                 </div>
                 <div class="emp-tags" id="e2Tags"></div>
-                <div class="emp-updated" style="margin-top: 10px;">Atualizado em 16/07/2026</div>
               </div>
               <div class="emp-head-side">
                 <div class="emp-covered-label">Coberto por</div>
@@ -1788,7 +1786,6 @@
                 <span class="tag">Oil &amp; Gas</span>
                 <span class="tag tag-yellow">Small Scale LNG</span>
               </div>
-              <div class="emp-updated" style="margin-top: 10px;">Atualizado em 13 Jul 2026</div>
             </div>
             <div class="emp-head-side">
               <div class="emp-covered-label">Coberto por</div>
@@ -3028,12 +3025,11 @@
 
             <div class="comm-src">
               <span class="lbl">Base de dados</span>
-              <div class="comm-seg" role="tablist" aria-label="Base de dados operacional">
-                <button type="button" class="active" data-view="rci">RCI · Dez/25</button>
-                <button type="button" data-view="rcaAbr">RCA · Abr/26</button>
-                <button type="button" data-view="rca">RCA · Mai/26</button>
-                <button type="button" data-view="rcaJun">RCA · Jun/26</button>
-              </div>
+              <!-- Botões gerados de EMP['GNLink'].operacional.baseOrder/baseLabels: este
+                   seletor comanda DUAS seções (oferta e molécula), e mantê-lo estático já
+                   deixou a molécula sumir em bases sem card. Agora as três coisas saem da
+                   mesma lista. -->
+              <div class="comm-seg" role="tablist" aria-label="Base de dados operacional" id="opBaseSeg"></div>
               <span class="src-cap" id="opSrcCap">Comitê de Investimentos Lorinvest · 15/dez/2025 (slide 5)</span>
             </div>
 
@@ -3043,7 +3039,7 @@
             // Operacional (plantas + ramp-up + tabela mensal): gerado de
             // window.EMP['GNLink'].operacional. O ramp-up e os totais da tabela são
             // DERIVADOS da matriz mensal (supply) — sem números duplicados no markup.
-            // A tabela de molécula (abaixo) segue estática por ora.
+            // Seletor, views de oferta e views de molécula saem todos de baseOrder.
             (function(){
               var panel=document.querySelector('.emp-panel[data-emp="operacional"]');
               if(!panel) return;
@@ -3085,14 +3081,31 @@
                   var totRow='<tr style="font-weight:800"><td>Total</td>'+totals+'</tr>';
                   return '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Oferta GNC purga mensal — 2026</div><span class="tag">m³/dia</span></div><div class="card-body"><div class="table-scroll"><table class="placeholder-table"><thead><tr><th>Planta</th>'+th+'</tr></thead><tbody>'+body+totRow+'</tbody></table></div><p class="card-note" style="margin-top:10px">'+(v.noteGnc||'')+'</p></div></div>';
                 }
+                // Base cujo deck não abre capacidade por planta (caso do RCA Mar/26, que só
+                // publica a capacidade consolidada): a view existe, com o aviso no lugar
+                // das tabelas — assim o seletor nunca aponta para uma tela vazia.
+                function viewVazia(key,i,label){
+                  return '<div class="comm-view'+(i===0?' active':'')+'" data-view="'+key+'"><div class="card" style="margin-bottom:14px">'
+                    + '<div class="card-header"><div class="card-title">Oferta GNL — capacidade por planta</div></div>'
+                    + '<div class="card-body"><p class="card-note" style="margin:0">O deck do <b>'+esc(label)+'</b> não abre a capacidade por planta — publica apenas a capacidade <b>consolidada</b> '
+                    + '(GNL e GNC purga) nos quadros de evolutivo de volume. O custo de molécula deste mesmo deck está no card abaixo.</p></div></div></div>';
+                }
                 function view(key,i){
                   var v=O.views[key];
+                  if(!v) return viewVazia(key,i,(O.baseLabels||{})[key]||key);
                   return '<div class="comm-view'+(i===0?' active':'')+'" data-view="'+key+'"><div class="op-plants">'+v.plants.map(plantCard).join('')+'</div>'+ramp(v)+table(v)+tableGnc(v)+'</div>';
                 }
-                mount.innerHTML=Object.keys(O.views).map(view).join('');
+                mount.innerHTML=(O.baseOrder||Object.keys(O.views)).map(view).join('');
               }
-              // Toggle RCI/RCA + legenda de fonte (caps lidas de EMP, sem duplicar).
-              var caps={}; if(O){ Object.keys(O.views).forEach(function(k){ caps[k]=O.views[k].srcCap; }); }
+              // Seletor + legenda de fonte, ambos derivados de baseOrder/baseLabels.
+              var ORDER=(O&&O.baseOrder)||(O?Object.keys(O.views):[]);
+              var LBL=(O&&O.baseLabels)||{};
+              var seg=panel.querySelector('#opBaseSeg');
+              if(seg) seg.innerHTML=ORDER.map(function(k,i){
+                return '<button type="button"'+(i===0?' class="active"':'')+' data-view="'+k+'">'+esc(LBL[k]||k)+'</button>'; }).join('');
+              // Base sem view de oferta (RCA Mar/26) herda a legenda do card de molécula.
+              var caps={}; if(O){ var MBc=O.moleculaBases||{}; ORDER.forEach(function(k){
+                caps[k]=(O.views[k]&&O.views[k].srcCap) || (MBc[k]&&MBc[k].srcCap) || ''; }); }
               var btns=panel.querySelectorAll('.comm-seg button');
               var cap=panel.querySelector('#opSrcCap'); if(cap&&caps.rci) cap.textContent=caps.rci;
               btns.forEach(function(b){b.addEventListener('click',function(){
@@ -3142,12 +3155,17 @@
               @media(max-width:720px){.mol-val{width:60px}.mol-brk{margin-left:0}}
             </style>
 
-            <!-- Tabela de custo da molécula: gerada de EMP['GNLink'].operacional.molecula. -->
+            <!-- Tabela de custo da molécula: gerada de EMP['GNLink'].operacional.moleculaBases.
+                 IMPORTANTE: estes .comm-view moram no mesmo painel que os de oferta e são
+                 alternados pelo MESMO seletor (o handler acima faz panel.querySelectorAll
+                 ('.comm-view'), sem escopo). Por isso a molécula precisa ter uma view para
+                 CADA chave de operacional.views — senão a seção some ao trocar de base.
+                 O loop abaixo garante isso: itera as bases do seletor, não chaves fixas. -->
             <div id="gnlMolView"></div>
             <script>
             (function(){
-              var g=(window.EMP||{})['GNLink'], M=g&&g.operacional&&g.operacional.molecula;
-              var mount=document.getElementById('gnlMolView'); if(!M||!mount) return;
+              var g=(window.EMP||{})['GNLink'], O=g&&g.operacional;
+              var mount=document.getElementById('gnlMolView'); if(!O||!O.views||!mount) return;
               function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
               // molCard(): mesma tabela para todas as bases — só mudam dados e título.
               function molCard(D,titulo,view,ativo){
@@ -3171,9 +3189,19 @@
                   + '<tbody>'+rows+'</tbody></table></div>'
                   + '<p class="card-note" style="margin-top:12px">'+D.note+'</p></div></div></div>';
               }
-              var J=g&&g.operacional&&g.operacional.moleculaJun;
-              mount.innerHTML = molCard(M,'Custos atuais de compra de molécula','rci',true)
-                + (J ? molCard(J,'Custos atuais de compra de molécula','rcaJun',false) : '');
+              // Aviso para base cujo deck não publica o quadro de molécula: mantém a seção
+              // visível e diz o porquê, em vez de deixar um buraco na tela.
+              function molVazio(view,label){
+                return '<div class="comm-view" data-view="'+view+'"><div class="card" style="margin-bottom:14px">'
+                  + '<div class="card-header"><div class="card-title">Custos atuais de compra de molécula</div></div>'
+                  + '<div class="card-body"><p class="card-note" style="margin:0">O deck do <b>'+esc(label)+'</b> não publica o quadro de contratos de compra de molécula. '
+                  + 'Use a base anterior para a referência de custo de suprimento.</p></div></div></div>';
+              }
+              var MB=O.moleculaBases||{}, LBL=O.baseLabels||{};
+              mount.innerHTML = (O.baseOrder||Object.keys(O.views)).map(function(k,i){
+                return MB[k] ? molCard(MB[k],'Custos atuais de compra de molécula',k,i===0)
+                             : molVazio(k,LBL[k]||k);
+              }).join('');
             })();
             </script>
 
