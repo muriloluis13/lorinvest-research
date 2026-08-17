@@ -295,7 +295,7 @@ bulk(GA_ROW+2, [[f"=SUM({c}${bc}:{c}${bc+NTOT-1})" for c in COLS]])
 # ---------------- indice de clientes ----------------
 put(f"B{IDX0-2}", "ÍNDICE DE CLIENTES")
 hdr = ["ID", "Cliente", "Planta", "GNL/GNC", "Vol. Máximo (m³/dia)",
-       "Início da Operação", "Fim do Contrato", "Molécula (1=sim)"]
+       "Início da Operação", "Fim do Contrato", "Molécula (1=sim)", "No horizonte"]
 for k, h in enumerate(hdr):
     put(f"{cl(1+k)}{IDX0-1}", h)
 idx = []
@@ -306,7 +306,17 @@ for i in range(NTOT):
                 f"=Clientes!E{sr}", f"=Clientes!G{sr}", f"=Clientes!L{sr}",
                 f"=Clientes!N{sr}", f"=Clientes!J{sr}"])
 ws.Range(ws.Cells(IDX0, 1), ws.Cells(IDX0 + NTOT - 1, 8)).Formula = tuple(tuple(r) for r in idx)
-ws.Range(ws.Cells(IDX0, 6), ws.Cells(IDX0 + NTOT - 1, 7)).NumberFormat = "mmm/yy"
+ws.Range(ws.Cells(IDX0, 6), ws.Cells(IDX0 + NTOT - 1, 7)).NumberFormat = "mmm/aa"
+# "No horizonte" = contrato alcanca o mes zero E a linha tem algum numero.
+# Exclui os que terminaram antes do 1o mes Orcado e os [Inserir Cliente] em branco.
+MZ = 'INDEX($I$2:$GR$2,MATCH(0,$I$4:$GR$4,0))'
+flags = []
+for i in range(NTOT):
+    r = IDX0 + i
+    v, rc, cx = B["vol"] + i, B["rec"] + i, B["capex"] + i
+    flags.append([f'=IF(AND($G{r}>={MZ},'
+                  f'SUM($I{v}:$GR{v})+SUM($I{rc}:$GR{rc})+ABS(SUM($I{cx}:$GR{cx}))<>0),"Sim","Não")'])
+ws.Range(ws.Cells(IDX0, 9), ws.Cells(IDX0 + NTOT - 1, 9)).Formula = tuple(tuple(x) for x in flags)
 
 # ---------------- blocos mensais ----------------
 def stub(base):
@@ -452,7 +462,8 @@ h2 = ["ID", "Cliente", "Planta", "GNL/GNC", "Vol. Máx (m³/dia)", "Início", "F
       "Volume total (m³)", "Receita (R$)", "Margem contrib. (R$)", "Margem (R$/m³)", "Capex dedicado (R$)",
       "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
       "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
-      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)"]
+      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
+      "No horizonte projetado"]
 ws.Range(ws.Cells(MET0-1, 1), ws.Cells(MET0-1, len(h1))).Value = tuple([tuple(h1)])
 ws.Range(ws.Cells(MET0, 1), ws.Cells(MET0, len(h2))).Value = tuple([tuple(h2)])
 MR0 = MET0 + 1
@@ -482,6 +493,7 @@ for i in range(NTOT):
           f'=IFERROR(1+{cV}{m}/ABS(SUMPRODUCT($I{cx}:$GR{cx},1/(1+{W_AM})^$I$4:$GR$4)),"n.a.")',
           f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")',
           f'=IFERROR({cV}{m}/$E{m},"n.a.")']
+    row.append(f"=$I${r_idx}")
     met.append(row)
 ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + NTOT - 1, len(h2))).Formula = tuple(tuple(r) for r in met)
 ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NTOT - 1, 7)).NumberFormat = "mmm/yy"

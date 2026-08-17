@@ -170,10 +170,11 @@ print("painel ok")
 
 # ---------- indice de clientes ----------
 bar(IDX_TIT, 1, 8, GREY, WHITE)
-bar(IDX0 - 1, 1, 8, NAVY, WHITE)
-R(IDX0 - 1, 1, IDX0 - 1, 8).HorizontalAlignment = -4108
-R(IDX0 - 1, 1, IDX0 - 1, 8).WrapText = True
-idx = R(IDX0, 1, IDX0 + NTOT - 1, 8)
+bar(IDX0 - 1, 1, 9, NAVY, WHITE)
+R(IDX0 - 1, 1, IDX0 - 1, 9).HorizontalAlignment = -4108
+R(IDX0 - 1, 1, IDX0 - 1, 9).WrapText = True
+R(IDX0, 9, IDX0 + NTOT - 1, 9).HorizontalAlignment = -4108
+idx = R(IDX0, 1, IDX0 + NTOT - 1, 9)
 idx.Borders(11).LineStyle = 1
 idx.Borders(11).Color = rgb(0xD9, 0xD9, 0xD9)
 idx.Borders(12).LineStyle = 1
@@ -214,7 +215,7 @@ for r, nome in BLOCOS:
 print("blocos ok")
 
 # ---------- metricas ----------
-NCOLM = 31
+NCOLM = 32
 bar(MET_TIT, 1, NCOLM, NAVY, WHITE, size=12)
 R(MET_TIT + 1, 1, MET_TIT + 1, NCOLM).Font.Italic = True
 R(MET_TIT + 1, 1, MET_TIT + 1, NCOLM).Font.Color = MID

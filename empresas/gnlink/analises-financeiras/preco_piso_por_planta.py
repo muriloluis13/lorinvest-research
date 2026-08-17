@@ -77,7 +77,7 @@ D = f"$I${DISC}:$GR${DISC}"
 HDR = ["ID","Cliente","Planta","Vol. Máx (m³/dia)","Prazo (meses)",
        "VP Volume (m³)","VP Capacidade (m³)","Fator de carga",
        "VP Margem contrib. (R$)","VP Custo de capacidade (R$)","VP G&A (R$)","VP Capex líquido (R$)",
-       "MARGEM REALIZADA (R$/m³)","PISO EXIGIDO (R$/m³)","FOLGA (R$/m³)","Situação"]
+       "MARGEM REALIZADA (R$/m³)","PISO EXIGIDO (R$/m³)","FOLGA (R$/m³)","Situação","No horizonte"]
 ws.Range(ws.Cells(CLI_H,1), ws.Cells(CLI_H,len(HDR))).Value = tuple([tuple(HDR)])
 rows=[]
 for i in range(NTOT):
@@ -99,7 +99,8 @@ for i in range(NTOT):
       f'=IFERROR($I{m}/$F{m},"–")',
       f'=IFERROR(($J{m}+$K{m}+$L{m})/$F{m},"–")',
       f'=IFERROR($M{m}-$N{m},"–")',
-      f'=IF($F{m}<=0,"sem volume",IF($O{m}>=0,"paga-se","abaixo do piso"))',
+      f'=IF($Q{m}<>"Sim","fora do horizonte",IF($F{m}<=0,"sem volume",IF($O{m}>=0,"paga-se","abaixo do piso")))',
+      f"=$I${ident}",
     ])
 ws.Range(ws.Cells(CLI0,1), ws.Cells(CLI0+NTOT-1,len(HDR))).Formula = tuple(tuple(r) for r in rows)
 print("tabela por cliente ok")
@@ -114,22 +115,24 @@ PH = ["Planta","#","Fator de carga","VP Volume (m³)",
 ws.Range(ws.Cells(PL0,2), ws.Cells(PL0,1+len(PH))).Value = tuple([tuple(PH)])
 NOMES = ["PARANÁ","BAHIA","RIO GRANDE DO NORTE"]
 CR = f"$C${CLI0}:$C${CLI0+NTOT-1}"
+HZ = f'$Q${CLI0}:$Q${CLI0+NTOT-1},"Sim"'
 def col(letter, s): return f"${letter}${CLI0}:${letter}${CLI0+NTOT-1}"
+def soma(letter, s): return f"SUMIFS({col(letter,s)},{CR},$C{s},{HZ})"
 prows=[]
 for p in range(3):
     s = PL0 + 1 + p
     pf, pe = panel(p,11), panel(p,16)
     prows.append([
       NOMES[p], p+1,
-      f"=IFERROR(SUMIF({CR},$C{s},{col('F',s)})/SUMIF({CR},$C{s},{col('G',s)}),\"–\")",
-      f"=SUMIF({CR},$C{s},{col('F',s)})",
+      f"=IFERROR({soma('F',s)}/{soma('G',s)},\"–\")",
+      f"={soma('F',s)}",
       f"=-SUMPRODUCT($I{pf}:$GR{pf}+$I{pe}:$GR{pe},{D})",
-      f"=SUMIF({CR},$C{s},{col('J',s)})",
+      f"={soma('J',s)}",
       f'=IFERROR($G{s}/$E{s},"–")',
-      f"=IFERROR(SUMIF({CR},$C{s},{col('K',s)})/$E{s},\"–\")",
-      f"=IFERROR(SUMIF({CR},$C{s},{col('L',s)})/$E{s},\"–\")",
+      f"=IFERROR({soma('K',s)}/$E{s},\"–\")",
+      f"=IFERROR({soma('L',s)}/$E{s},\"–\")",
       f'=IFERROR($H{s}+$I{s}+$J{s},"–")',
-      f"=IFERROR(SUMIF({CR},$C{s},{col('I',s)})/$E{s},\"–\")",
+      f"=IFERROR({soma('I',s)}/$E{s},\"–\")",
       f'=IFERROR($L{s}-$K{s},"–")',
       f'=IFERROR($F{s}/$E{s},"–")',
       f'=IFERROR($N{s}-$H{s},"–")',
@@ -175,6 +178,13 @@ R(CLI0,9,CLI0+NTOT-1,12).NumberFormat = FMT_R
 R(CLI0,13,CLI0+NTOT-1,15).NumberFormat = FMT_2
 R(CLI0,14,CLI0+NTOT-1,14).Interior.Color = AMBER
 R(CLI0,13,CLI0+NTOT-1,15).Font.Bold = True
+R(CLI0,17,CLI0+NTOT-1,17).HorizontalAlignment = -4108
+fora = R(CLI0,1,CLI0+NTOT-1,len(HDR))
+try:
+    fcx = fora.FormatConditions.Add(Type=2, Formula1=f'=$Q{CLI0}<>"Sim"')
+    fcx.Font.Color = rgb(0xA6,0xA6,0xA6); fcx.Font.Strikethrough = True
+except Exception as e:
+    print("  cf fora do horizonte:", str(e)[:50])
 sit = R(CLI0,16,CLI0+NTOT-1,16)
 sit.HorizontalAlignment = -4108
 for formula, cor, fundo in ((f'=$P{CLI0}="paga-se"', GREEN, LGREEN),
@@ -221,6 +231,7 @@ lst=[]
 for i in range(NTOT):
     r = CLI0+i
     nome = ws.Cells(r,2).Text; vv = ws.Cells(r,6).Value
+    if ws.Cells(r,17).Text != "Sim": continue
     if not nome or not isinstance(vv,(int,float)) or vv<=0: continue
     lst.append((ws.Cells(r,15).Value, nome, ws.Cells(r,3).Text, ws.Cells(r,5).Text,
                 ws.Cells(r,8).Text, ws.Cells(r,13).Text, ws.Cells(r,14).Text,
@@ -231,7 +242,7 @@ print(f"{'Cliente':32s} {'Pl':3s} {'mes':>4s} {'carga':>7s} {'margem':>7s} {'pis
 for _,nome,pl,pz,cg,mg,pi,fo,si in lst:
     print(f"{nome[:31]:32s} {PLN.get(pl,pl):3s} {pz:>4s} {cg:>7s} {mg:>7s} {pi:>7s} {fo:>7s}  {si}")
 print("")
-print(f"resumo: {sum(1 for x in lst if x[8]=='paga-se')} pagam-se de {len(lst)} clientes com volume")
+print(f"resumo: {sum(1 for x in lst if x[8]=='paga-se')} pagam-se de {len(lst)} clientes no horizonte projetado")
 wb.Save()
 print("\nsalvo")
 wb.Close(SaveChanges=False); xl.Quit()
