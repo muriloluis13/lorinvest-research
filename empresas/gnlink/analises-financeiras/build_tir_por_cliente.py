@@ -173,11 +173,12 @@ prem = [
  ("% Residual do capex — Infraestrutura",           "=0", "0%"),
  ("Dias de recebimento (DSO)",                      "=30", "0"),
  ("Dias de pagamento a fornecedores (DPO)",         "=30", "0"),
- ("Driver do G&A Matriz  (1 = Receita | 2 = Capacidade)", "=1", "0"),
+ ("Driver do G&A Matriz  (1 = igual por planta | 2 = Receita)", "=1", "0"),
  ("Compensar prejuízo fiscal (1 = sim | 0 = não)",  "=1", "0"),
  ("Capacidade ocupada (1 = só contratada | 2 = máx(contratada, realizada))", "=2", "0"),
  ("Desembolso mínimo para a TIR ser significativa (% das entradas)", "=0.01", "0.0%"),
  ("TIR máxima significativa (% a.a.) — acima disso a TIR não informa", "=5", "0%"),
+ ("Nº de plantas para o rateio do G&A Matriz", "=3", "0"),
 ]
 put("B8", "PREMISSAS  (editáveis)")
 for k, (lab, f, fmt) in enumerate(prem):
@@ -186,8 +187,8 @@ for k, (lab, f, fmt) in enumerate(prem):
     putf(f"D{r}", f)
     ws.Range(f"D{r}").NumberFormat = fmt
     ws.Range(f"D{r}").Font.Color = 0xC00000
-W_AA, W_AM, TAX, VIDA, RES_EQ, RES_IN, DSO, DPO, DRV_GA, USA_PF, DRV_CAP, MIN_INV, MAX_TIR = \
-    [f"$D${R_PREM+k}" for k in range(13)]
+W_AA, W_AM, TAX, VIDA, RES_EQ, RES_IN, DSO, DPO, DRV_GA, USA_PF, DRV_CAP, MIN_INV, MAX_TIR, N_PL = \
+    [f"$D${R_PREM+k}" for k in range(14)]
 
 # ---------------- painel por planta ----------------
 put(f"B{PANEL0-2}", "PAINEL POR PLANTA — pools de custo, capacidade e ociosidade")
@@ -270,7 +271,8 @@ for p in range(3):
             rows[16+kk].append(f"=SUMIF($C${bs}:$C${bs+NTOT-1},$C${r0},{c}${bs}:{c}${bs+NTOT-1})")
         # +20 custo orfao = tudo que os pools carregam e nao foi alocado a nenhum cliente
         rows[19].append(f"={c}{r0+6}*(1-{c}{r0+19})+{c}{r0+7}*(1-{c}{r0+18})"
-                        f"+({c}{r0+11}+{c}{r0+16})*(1-{c}{r0+17})")
+                        f"+({c}{r0+11}+{c}{r0+16})*(1-{c}{r0+17})"
+                        f"+IF({DRV_GA}=1,{c}${GA_ROW}/{N_PL}*(1-{c}{r0+17}),0)")
     bulk(r0 + 1, rows)
     for k in (1, 2, 3, 4, 5):
         ws.Range(ws.Cells(r0+k, C0), ws.Cells(r0+k, C1)).NumberFormat = "#,##0"
@@ -288,7 +290,7 @@ bulk(GA_ROW+2, [[f"=SUM({c}${bc}:{c}${bc+NTOT-1})" for c in COLS]])
 # ---------------- indice de clientes ----------------
 put(f"B{IDX0-2}", "ÍNDICE DE CLIENTES")
 hdr = ["ID", "Cliente", "Planta", "GNL/GNC", "Vol. Máximo (m³/dia)",
-       "Início do Contrato", "Fim do Contrato", "Molécula (1=sim)"]
+       "Início da Operação", "Fim do Contrato", "Molécula (1=sim)"]
 for k, h in enumerate(hdr):
     put(f"{cl(1+k)}{IDX0-1}", h)
 idx = []
@@ -296,7 +298,7 @@ for i in range(NTOT):
     p, j = plant_of(i)
     sr = CLI_SRC[p][0] + j
     idx.append([f"=Clientes!A{sr}", f"=Clientes!C{sr}", f"=Clientes!D{sr}",
-                f"=Clientes!E{sr}", f"=Clientes!G{sr}", f"=Clientes!K{sr}",
+                f"=Clientes!E{sr}", f"=Clientes!G{sr}", f"=Clientes!L{sr}",
                 f"=Clientes!N{sr}", f"=Clientes!J{sr}"])
 ws.Range(ws.Cells(IDX0, 1), ws.Cells(IDX0 + NTOT - 1, 8)).Formula = tuple(tuple(r) for r in idx)
 ws.Range(ws.Cells(IDX0, 6), ws.Cells(IDX0 + NTOT - 1, 7)).NumberFormat = "mmm/yy"
@@ -367,9 +369,9 @@ for key, titulo in BLOCOS:
             elif key == "encargo":
                 f = f"={c}{panel_row(p,16)}*{c}{B['shcap']+i}"
             elif key == "ga":
-                f = (f"={c}${GA_ROW}*IF({DRV_GA}=1,"
-                     f"IFERROR(MAX(0,{c}{B['rec']+i})/{c}${GA_ROW+1},0),"
-                     f"IFERROR({c}{B['capat']+i}/{c}${GA_ROW+2},0))")
+                f = (f"=IF({DRV_GA}=1,"
+                     f"{c}${GA_ROW}/{N_PL}*{c}{B['shcap']+i},"
+                     f"{c}${GA_ROW}*IFERROR(MAX(0,{c}{B['rec']+i})/{c}${GA_ROW+1},0))")
             elif key == "capex":
                 parts = []
                 for k2 in ("cx_di", "cx_de", "cx_ri", "cx_re"):
@@ -515,8 +517,10 @@ recs.append(("Custos fixos de planta: Σ alocado + Σ órfão − pool",
              lambda c: f"={sumblk('fixo',c)}+{sumblk('encargo',c)}+({panel_sum2(11,17,c)})+({panel_sum2(16,17,c)})-(({panel_sum(11,c)})+({panel_sum(16,c)}))"))
 recs.append(("Capex: Σ clientes + Σ planta − modelo",
              lambda c: f"=-{sumblk('capex',c)}+({panel_sum(12,c)})-(Capex!{c}677+Capex!{c}678+Capex!{c}679)"))
-recs.append(("G&A Matriz: Σ alocado − consolidado (≠0 = meses pré-operacionais, sem cliente para ratear)",
-             lambda c: f"={sumblk('ga',c)}-{c}${GA_ROW}"))
+recs.append(("G&A Matriz: Σ alocado + Σ não alocado − consolidado",
+             lambda c: f"={sumblk('ga',c)}+IF({DRV_GA}=1,"
+                       + "+".join(f"{c}${GA_ROW}/{N_PL}*(1-{c}{panel_row(p,17)})" for p in range(3))
+                       + f",0)-{c}${GA_ROW}"))
 recs.append(("Share de capacidade: excedente sobre 100% por planta (deve ser 0)",
              lambda c: "=MAX(0," + ",".join(f"{c}{panel_row(p,17)}-1" for p in range(3)) + ")"))
 for k, (lab, fn) in enumerate(recs):
@@ -533,10 +537,11 @@ notas = [
  ("NOTAS METODOLÓGICAS", ""),
  ("", ""),
  ("Escopo", "3 plantas operacionais (PR, BA, RN), 78 linhas de cliente, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
+ ("Janela de capacidade", "O cliente ocupa capacidade a partir do INÍCIO DA OPERAÇÃO (não da assinatura) até o fim do contrato. Meses entre assinatura e partida não geram rateio."),
  ("Fluxo", "Desalavancado. A dívida não é rateada por cliente: a TIR do cliente é comparada ao WACC. A alavancagem continua no nível planta/consolidado do DCF."),
  ("Nível 1 — incremental", "Receita − molécula − liquefação/compressão variável − distribuição direta − regás direto − capex dedicado + residual ± capital de giro − IR. Responde 'aceito este contrato a este preço?'."),
  ("Nível 2 — com capacidade", "Nível 1 − custos fixos de planta − encargo de capacidade do capex de planta, ambos rateados por capacidade ocupada. Responde 'este preço paga a planta?'."),
- ("Nível 3 — fully loaded", "Nível 2 − G&A da matriz rateado por receita líquida positiva. Teste de sanidade do portfólio."),
+ ("Nível 3 — fully loaded", "Nível 2 − G&A da matriz. O G&A é dividido igualmente pelo nº de plantas operacionais (premissa) e, dentro da planta, distribuído por capacidade ocupada. A parcela da ociosidade vai para o custo órfão, não para os clientes."),
  ("Driver: capacidade", "Custos de capacidade rateados por m³/dia ocupados / capacidade nominal da planta. O que não é alocado vira CUSTO ÓRFÃO da planta (ociosidade) — não é jogado em cliente nenhum."),
  ("Driver: volume", "Molécula e custos variáveis de liquefação rateados por m³ efetivos. Molécula só entra em cliente com a flag Custo Molécula = 1 na aba Clientes."),
  ("Encargo de capacidade", "Depreciação econômica linear (vida útil da premissa) + custo de capital sobre o saldo do ativo. Autoextingue-se — não cobra capex em perpetuidade."),

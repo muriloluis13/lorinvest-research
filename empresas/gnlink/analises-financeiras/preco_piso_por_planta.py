@@ -36,6 +36,12 @@ wb = xl.Workbooks.Open(ARQ, UpdateLinks=0)
 xl.Calculation = -4135
 ws = wb.Worksheets(ABA); ws.Activate()
 
+cprem = ws.Cells(R_PREM + 13, 4)
+cprem.Font.Color = rgb(0,0,0xC0); cprem.Font.Bold = True
+cprem.Interior.Color = LGREY; cprem.HorizontalAlignment = -4108
+cprem.NumberFormat = "0"; cprem.Font.Name = "Arial"; cprem.Font.Size = 10
+for b in (7,8,9,10): cprem.Borders(b).LineStyle = 1
+
 lastrow = ws.Cells(ws.Rows.Count, 2).End(-4162).Row
 S0 = lastrow + 4                     # inicio da nova secao
 DISC = S0 + 2                        # linha do fator de desconto
@@ -184,6 +190,19 @@ except Exception as e:
     print("  autofilter:", str(e)[:50])
 ws.Rows(f"{DISC}:{DISC}").Group()
 
+ws.Cells(PL0,20).Value = "PISO PLENO DA PLANTA c/ ociosidade (R$/m³)"
+ws.Cells(PL0,21).Value = "FOLGA contra o piso pleno (R$/m³)"
+for p in range(3):
+    s2 = PL0+1+p
+    ws.Cells(s2,20).Formula = f'=IFERROR($N{s2}+$I{s2}+$J{s2},"–")'
+    ws.Cells(s2,21).Formula = f'=IFERROR($L{s2}-$T{s2},"–")'
+rgp = R(PL0+1,20,PL0+3,21)
+rgp.NumberFormat = FMT_2; rgp.Font.Bold = True; rgp.Interior.Color = AMBER
+hdp = R(PL0,20,PL0,21)
+hdp.Interior.Color = NAVY; hdp.Font.Color = WHITE; hdp.Font.Bold = True
+hdp.WrapText = True; hdp.HorizontalAlignment = -4108
+hdp.Font.Name = "Arial"; hdp.Font.Size = 10
+
 xl.Calculation = -4105
 xl.Calculate(); ws.Calculate()
 print("\n=== PISO POR PLANTA ===")
@@ -193,8 +212,26 @@ for p in range(3):
           f"+G&A={ws.Cells(s,9).Text:>6s} +capex={ws.Cells(s,10).Text:>6s} | PISO N3={ws.Cells(s,11).Text:>7s} "
           f"| realizada={ws.Cells(s,12).Text:>7s} folga={ws.Cells(s,13).Text:>7s} "
           f"| piso planta={ws.Cells(s,14).Text:>7s} ociosidade={ws.Cells(s,15).Text:>6s}")
-    print(f"     sensibilidade de carga: 100%={ws.Cells(s,16).Text:>6s}  85%={ws.Cells(s,17).Text:>6s}  "
+    print(f"     PISO PLENO={ws.Cells(s,20).Text:>7s}  folga plena={ws.Cells(s,21).Text:>7s}  |  "
+          f"carga 100%={ws.Cells(s,16).Text:>6s}  85%={ws.Cells(s,17).Text:>6s}  "
           f"70%={ws.Cells(s,18).Text:>6s}  55%={ws.Cells(s,19).Text:>6s}")
+print("")
+print("=== POR CLIENTE (ordenado pela folga) ===")
+lst=[]
+for i in range(NTOT):
+    r = CLI0+i
+    nome = ws.Cells(r,2).Text; vv = ws.Cells(r,6).Value
+    if not nome or not isinstance(vv,(int,float)) or vv<=0: continue
+    lst.append((ws.Cells(r,15).Value, nome, ws.Cells(r,3).Text, ws.Cells(r,5).Text,
+                ws.Cells(r,8).Text, ws.Cells(r,13).Text, ws.Cells(r,14).Text,
+                ws.Cells(r,15).Text, ws.Cells(r,16).Text))
+lst.sort(key=lambda x: x[0] if isinstance(x[0],(int,float)) else -9e9, reverse=True)
+PLN={"1":"PR","2":"BA","3":"RN"}
+print(f"{'Cliente':32s} {'Pl':3s} {'mes':>4s} {'carga':>7s} {'margem':>7s} {'piso':>7s} {'folga':>7s}  situacao")
+for _,nome,pl,pz,cg,mg,pi,fo,si in lst:
+    print(f"{nome[:31]:32s} {PLN.get(pl,pl):3s} {pz:>4s} {cg:>7s} {mg:>7s} {pi:>7s} {fo:>7s}  {si}")
+print("")
+print(f"resumo: {sum(1 for x in lst if x[8]=='paga-se')} pagam-se de {len(lst)} clientes com volume")
 wb.Save()
 print("\nsalvo")
 wb.Close(SaveChanges=False); xl.Quit()
