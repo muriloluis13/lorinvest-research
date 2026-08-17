@@ -19,7 +19,7 @@ FMT_2  = '0,00;[Red](0,00);"–"'
 FMT_P  = '0,0%;[Red](0,0%);"–"'
 
 # ---- geometria da aba (mesma do script gerador) ----
-R_PREM, PANEL0, PANEL_H = 9, 25, 22
+R_PREM, PANEL0, PANEL_H = 10, 26, 22
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # 92
 IDX0 = GA_ROW + 4                          # 96
 BLK0, STEP = IDX0 + NTOT + 4, NTOT + 3     # 178, 81
@@ -66,10 +66,10 @@ ws.Cells(S0+1,2).Value = ("Piso derivado do custo de capacidade da planta, não 
                           "(no break-even o resultado é zero).")
 R(S0+1,2,S0+1,C1).Font.Italic = True
 R(S0+1,2,S0+1,C1).Font.Color = MID
-ws.Cells(DISC,2).Value = "Fator de desconto ao WACC mensal"
+ws.Cells(DISC,2).Value = "Fator de desconto ao WACC mensal (mês zero = 1º mês Orçado)"
 R(DISC,1,DISC,C1).Font.Color = MID
 ws.Range(ws.Cells(DISC,C0), ws.Cells(DISC,C1)).Formula = \
-    tuple([tuple(f"=1/(1+{W_AM})^(COLUMN()-{C0})" for _ in range(C1-C0+1))])
+    tuple([tuple(f"=1/(1+{W_AM})^{cl(c)}$4" for c in range(C0, C1+1))])
 R(DISC,C0,DISC,C1).NumberFormat = '0,0000'
 D = f"$I${DISC}:$GR${DISC}"
 

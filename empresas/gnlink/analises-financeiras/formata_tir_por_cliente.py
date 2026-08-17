@@ -116,10 +116,12 @@ bar(2, 1, C1, TEAL, WHITE)
 R(2, C0, 2, C1).NumberFormat = FMT_MES
 R(3, 1, 3, C1).Font.Color = MID
 R(3, C0, 3, C1).NumberFormat = "0"
-R(4, 1, 4, C1).Font.Bold = True
-R(4, 1, 4, C1).Font.Color = MID
-R(1, C0, 4, C1).HorizontalAlignment = -4108
-R(1, 2, 4, 2).HorizontalAlignment = -4131
+R(4, 1, 4, C1).Font.Color = MID          # contador de periodos (mes zero = 1o orcado)
+R(4, C0, 4, C1).NumberFormat = "0"
+R(5, 1, 5, C1).Font.Bold = True          # status Realizado/Orcado
+R(5, 1, 5, C1).Font.Color = MID
+R(1, C0, 5, C1).HorizontalAlignment = -4108
+R(1, 2, 5, 2).HorizontalAlignment = -4131
 
 # ---------- titulo ----------
 ttl = find("TIR POR CLIENTE")
@@ -130,7 +132,7 @@ R(ttl + 1, 1, ttl + 1, C1).Font.Color = MID
 
 # ---------- premissas ----------
 bar(R_PREM - 1, 1, 4, GREY, WHITE)
-prem_end = R_PREM + 12
+prem_end = R_PREM + 13
 R(R_PREM, 2, prem_end, 2).IndentLevel = 1
 box = R(R_PREM, 4, prem_end, 4)
 box.Font.Color = BLUE
@@ -340,7 +342,7 @@ w = xl.ActiveWindow
 w.ScrollColumn = 1
 w.ScrollRow = 1
 w.SplitColumn = 8      # congela A:H (identificacao do cliente)
-w.SplitRow = 4         # congela as 4 linhas de cabecalho de datas
+w.SplitRow = 5         # congela as 5 linhas de cabecalho (inclui o contador)
 w.FreezePanes = True
 print(f"   congelado em col={w.SplitColumn} row={w.SplitRow}")
 xl.ActiveWindow.Zoom = 85

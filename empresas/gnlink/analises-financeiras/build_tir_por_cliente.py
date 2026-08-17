@@ -71,8 +71,8 @@ def q(sh):
     return f"'{sh}'" if any(ch in sh for ch in " -&") else sh
 
 # ---------------- layout da aba nova ----------------
-R_PREM = 9          # primeira linha de premissas
-PANEL0 = 25         # inicio do painel por planta (premissas vao ate a linha 21)
+R_PREM = 10         # primeira linha de premissas (linha 4 = contador de períodos)
+PANEL0 = 26         # inicio do painel por planta (premissas vao ate a linha 23)
 PANEL_H = 22        # linhas por planta no painel
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # linha do G&A Matriz (global)
 IDX0 = GA_ROW + 4                          # tabela indice de clientes
@@ -155,10 +155,15 @@ def bulk(r0, rows):
     rng.Formula = tuple(tuple(r) for r in rows)
 
 # ---------------- cabecalho ----------------
-put("B1", "Ano"); put("B2", "Mês"); put("B3", "Dias"); put("B4", "Status")
+put("B1", "Ano"); put("B2", "Mês"); put("B3", "Dias")
+put("B4", "Discounting count"); put("B5", "Status")
+# t = 0 no primeiro mes Orcado; realizado fica negativo (capitalizado), orcado positivo.
+# O ancoramento e dinamico: quando o corte de realizado andar, o contador anda junto.
+CONT = [f'=COLUMN()-IFERROR(MATCH("Orçado",$I$5:$GR$5,0),1)-8' for _ in COLS]
 bulk(1, [[f"=Receita!{c}1" for c in COLS],
          [f"=Receita!{c}2" for c in COLS],
          [f"=Receita!{c}3" for c in COLS],
+         CONT,
          [f"=Receita!{c}4" for c in COLS]])
 put("B6", "TIR POR CLIENTE — GNLink · fluxo de caixa desalavancado, mensal, por cliente")
 put("B7", "Todas as células são fórmulas linkadas às abas do modelo. Nenhum valor digitado, exceto as premissas em azul abaixo.")
@@ -423,7 +428,7 @@ for key, titulo in BLOCOS:
                      f"+{c}{B['capex']+i}+{c}{B['resid']+i}+{c}{B['wc']+i}+{c}{B['ir3']+i}")
             elif key in ("ac1", "ac2", "ac3"):
                 lvl = key[-1]
-                disc = f"{c}{B['fc'+lvl]+i}/(1+{W_AM})^({ci})"
+                disc = f"{c}{B['fc'+lvl]+i}/(1+{W_AM})^{c}$4"
                 f = f"={disc}" if prev is None else f"={prev}{B[key]+i}+{disc}"
             else:
                 f = "=0"
@@ -473,8 +478,8 @@ for i in range(NTOT):
            f'IFERROR(IF((1+IRR($I{f}:$GR{f},0.02))^12-1>{MAX_TIR},"n.a. TIR>"&TEXT({MAX_TIR},"0%"),(1+IRR($I{f}:$GR{f},0.02))^12-1),'
            f'IFERROR(IF((1+IRR($I{f}:$GR{f},-0.25))^12-1>{MAX_TIR},"n.a. TIR>"&TEXT({MAX_TIR},"0%"),(1+IRR($I{f}:$GR{f},-0.25))^12-1),"n.a.")))'),
           f'=IF(-SUMIF($I{f}:$GR{f},"<0")<={MIN_INV}*SUMIF($I{f}:$GR{f},">0"),"n.a. s/ desembolso",IFERROR((1+MIRR($I{f}:$GR{f},{W_AM},{W_AM}))^12-1,"n.a."))',
-          f"=NPV({W_AM},$I{f}:$GR{f})",
-          f'=IFERROR(1+{cV}{m}/ABS(NPV({W_AM},$I{cx}:$GR{cx})),"n.a.")',
+          f"=SUMPRODUCT($I{f}:$GR{f},1/(1+{W_AM})^$I$4:$GR$4)",
+          f'=IFERROR(1+{cV}{m}/ABS(SUMPRODUCT($I{cx}:$GR{cx},1/(1+{W_AM})^$I$4:$GR$4)),"n.a.")',
           f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")',
           f'=IFERROR({cV}{m}/$E{m},"n.a.")']
     met.append(row)
@@ -538,6 +543,7 @@ notas = [
  ("", ""),
  ("Escopo", "3 plantas operacionais (PR, BA, RN), 78 linhas de cliente, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
  ("Janela de capacidade", "O cliente ocupa capacidade a partir do INÍCIO DA OPERAÇÃO (não da assinatura) até o fim do contrato. Meses entre assinatura e partida não geram rateio."),
+ ("Desconto", "Mês zero = primeiro mês Orçado (linha 4, contador dinâmico). O realizado é capitalizado para frente (expoente negativo) e o orçado descontado para trás. O VPL fica em reais do primeiro mês orçado — inclui o custo de oportunidade do que já foi investido. TIR, payback, índice de lucratividade e preço-piso são invariantes à âncora."),
  ("Fluxo", "Desalavancado. A dívida não é rateada por cliente: a TIR do cliente é comparada ao WACC. A alavancagem continua no nível planta/consolidado do DCF."),
  ("Nível 1 — incremental", "Receita − molécula − liquefação/compressão variável − distribuição direta − regás direto − capex dedicado + residual ± capital de giro − IR. Responde 'aceito este contrato a este preço?'."),
  ("Nível 2 — com capacidade", "Nível 1 − custos fixos de planta − encargo de capacidade do capex de planta, ambos rateados por capacidade ocupada. Responde 'este preço paga a planta?'."),
