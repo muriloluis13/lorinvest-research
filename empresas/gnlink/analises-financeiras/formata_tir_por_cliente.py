@@ -215,7 +215,15 @@ for r, nome in BLOCOS:
 print("blocos ok")
 
 # ---------- metricas ----------
-NCOLM = 32
+NCOLM = 31
+# a tabela de metricas so traz clientes no horizonte -> descobrir quantas linhas tem
+_col = ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + 90, 1)).Value
+NMET = 0
+for _v in _col:
+    _x = _v[0] if isinstance(_v, tuple) else _v
+    if _x is None or str(_x).strip() == "": break
+    NMET += 1
+print(f"   tabela de metricas: {NMET} linhas")
 bar(MET_TIT, 1, NCOLM, NAVY, WHITE, size=12)
 R(MET_TIT + 1, 1, MET_TIT + 1, NCOLM).Font.Italic = True
 R(MET_TIT + 1, 1, MET_TIT + 1, NCOLM).Font.Color = MID
@@ -228,31 +236,31 @@ for c0, tint in ((9, LGREY), (14, LBLUE), (20, rgb(0xFF, 0xF2, 0xCC)), (26, rgb(
     rg.Font.Bold = True
     rg.HorizontalAlignment = -4108
     rg.Merge()
-    R(MET0, c0, MR0 + NTOT - 1, c0 + n - 1).Borders(7).LineStyle = 1
-    R(MET0, c0, MR0 + NTOT - 1, c0 + n - 1).Borders(10).LineStyle = 1
+    R(MET0, c0, MR0 + NMET - 1, c0 + n - 1).Borders(7).LineStyle = 1
+    R(MET0, c0, MR0 + NMET - 1, c0 + n - 1).Borders(10).LineStyle = 1
 bar(MET0, 1, NCOLM, NAVY, WHITE)
 hdr = R(MET0, 1, MET0, NCOLM)
 hdr.WrapText = True
 hdr.HorizontalAlignment = -4108
 ws.Rows(MET0).RowHeight = 42
-tab = R(MR0, 1, MR0 + NTOT - 1, NCOLM)
+tab = R(MR0, 1, MR0 + NMET - 1, NCOLM)
 tab.Borders(11).LineStyle = 1
 tab.Borders(11).Color = rgb(0xD9, 0xD9, 0xD9)
 tab.Borders(12).LineStyle = 1
 tab.Borders(12).Color = rgb(0xD9, 0xD9, 0xD9)
-R(MR0, 6, MR0 + NTOT - 1, 7).NumberFormat = FMT_MES
-R(MR0, 5, MR0 + NTOT - 1, 5).NumberFormat = FMT_M3
-R(MR0, 9, MR0 + NTOT - 1, 11).NumberFormat = FMT_R
-R(MR0, 12, MR0 + NTOT - 1, 12).NumberFormat = '0,00;[Red](0,00);"–"'
-R(MR0, 13, MR0 + NTOT - 1, 13).NumberFormat = FMT_R
+R(MR0, 6, MR0 + NMET - 1, 7).NumberFormat = FMT_MES
+R(MR0, 5, MR0 + NMET - 1, 5).NumberFormat = FMT_M3
+R(MR0, 9, MR0 + NMET - 1, 11).NumberFormat = FMT_R
+R(MR0, 12, MR0 + NMET - 1, 12).NumberFormat = '0,00;[Red](0,00);"–"'
+R(MR0, 13, MR0 + NMET - 1, 13).NumberFormat = FMT_R
 for c0 in (14, 20, 26):
-    R(MR0, c0, MR0 + NTOT - 1, c0 + 1).NumberFormat = FMT_TIR
-    R(MR0, c0 + 2, MR0 + NTOT - 1, c0 + 2).NumberFormat = FMT_R
-    R(MR0, c0 + 3, MR0 + NTOT - 1, c0 + 3).NumberFormat = FMT_IL
-    R(MR0, c0 + 4, MR0 + NTOT - 1, c0 + 4).NumberFormat = FMT_MES
-    R(MR0, c0 + 5, MR0 + NTOT - 1, c0 + 5).NumberFormat = FMT_R
+    R(MR0, c0, MR0 + NMET - 1, c0 + 1).NumberFormat = FMT_TIR
+    R(MR0, c0 + 2, MR0 + NMET - 1, c0 + 2).NumberFormat = FMT_R
+    R(MR0, c0 + 3, MR0 + NMET - 1, c0 + 3).NumberFormat = FMT_IL
+    R(MR0, c0 + 4, MR0 + NMET - 1, c0 + 4).NumberFormat = FMT_MES
+    R(MR0, c0 + 5, MR0 + NMET - 1, c0 + 5).NumberFormat = FMT_R
     # texto "n.a." em cinza claro
-    rg = R(MR0, c0, MR0 + NTOT - 1, c0 + 1)
+    rg = R(MR0, c0, MR0 + NMET - 1, c0 + 1)
     try:
         col = chr(64 + c0) if c0 < 27 else "A" + chr(64 + c0 - 26)
         fc = rg.FormatConditions.Add(Type=2, Formula1=f'=ISTEXT(${col}{MR0})')
@@ -262,7 +270,7 @@ for c0 in (14, 20, 26):
         print("   cf texto falhou:", str(e)[:60])
 # barras de dados no VPL de cada nivel
 for c0 in (16, 22, 28):
-    rg = R(MR0, c0, MR0 + NTOT - 1, c0)
+    rg = R(MR0, c0, MR0 + NMET - 1, c0)
     try:
         db = rg.FormatConditions.AddDatabar()
     except Exception as e:
@@ -278,7 +286,7 @@ try:
     ws.AutoFilterMode = False
 except Exception:
     pass
-for tentativa in (lambda: R(MET0, 1, MR0 + NTOT - 1, NCOLM).AutoFilter(1),
+for tentativa in (lambda: R(MET0, 1, MR0 + NMET - 1, NCOLM).AutoFilter(1),
                   lambda: R(MET0, 1, MET0, NCOLM).AutoFilter(1)):
     try:
         tentativa(); print("   autofilter ok"); break
@@ -337,17 +345,18 @@ R(ttl + 1, 6, ttl + 1, 11).HorizontalAlignment = -4131
 # ---------- congelar paineis ----------
 xl.ScreenUpdating = True
 ws.Activate()
-xl.ActiveWindow.FreezePanes = False
-# definir o split explicitamente: Select() nao e confiavel aqui
-w = xl.ActiveWindow
-w.ScrollColumn = 1
-w.ScrollRow = 1
-w.SplitColumn = 8      # congela A:H (identificacao do cliente)
-w.SplitRow = 5         # congela as 5 linhas de cabecalho (inclui o contador)
-w.FreezePanes = True
-print(f"   congelado em col={w.SplitColumn} row={w.SplitRow}")
-xl.ActiveWindow.Zoom = 85
-ws.Range("B6").Select()
+try:
+    w = wb.Windows(1)          # a janela DESTE workbook (ActiveWindow pode ser outra)
+    w.FreezePanes = False
+    w.ScrollColumn = 1
+    w.ScrollRow = 1
+    w.SplitColumn = 8          # congela A:H (identificacao do cliente)
+    w.SplitRow = 5             # congela as 5 linhas de cabecalho (inclui o contador)
+    w.FreezePanes = True
+    w.Zoom = 85
+    print(f"   congelado em col={w.SplitColumn} row={w.SplitRow}")
+except Exception as e:
+    print("   congelamento falhou (nao critico):", str(e)[-70:])
 
 xl.Calculation = -4105
 xl.Calculate()

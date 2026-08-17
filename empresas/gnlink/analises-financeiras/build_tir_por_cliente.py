@@ -309,13 +309,20 @@ ws.Range(ws.Cells(IDX0, 1), ws.Cells(IDX0 + NTOT - 1, 8)).Formula = tuple(tuple(
 ws.Range(ws.Cells(IDX0, 6), ws.Cells(IDX0 + NTOT - 1, 7)).NumberFormat = "mmm/aa"
 # "No horizonte" = contrato alcanca o mes zero E a linha tem algum numero.
 # Exclui os que terminaram antes do 1o mes Orcado e os [Inserir Cliente] em branco.
+# "No horizonte" = tem algum financial nos meses ORÇADOS (contador >= 0).
+# Pega de uma vez os contratos encerrados antes do mês zero e as linhas em branco.
+# "No horizonte" exige as DUAS coisas:
+#   (a) o contrato alcanca o mes zero  -> exclui contrato encerrado antes do 1o Orcado
+#   (b) ha algum financial nos meses Orcados -> exclui linha em branco e linha zerada
+# So (b) nao basta: cliente encerrado pode ter capex residual caindo em mes futuro.
+OR_ = '$I$4:$GR$4,">=0",'
 MZ = 'INDEX($I$2:$GR$2,MATCH(0,$I$4:$GR$4,0))'
 flags = []
 for i in range(NTOT):
     r = IDX0 + i
     v, rc, cx = B["vol"] + i, B["rec"] + i, B["capex"] + i
-    flags.append([f'=IF(AND($G{r}>={MZ},'
-                  f'SUM($I{v}:$GR{v})+SUM($I{rc}:$GR{rc})+ABS(SUM($I{cx}:$GR{cx}))<>0),"Sim","Não")'])
+    flags.append([f'=IF(AND($G{r}>={MZ},SUMIF({OR_}$I{v}:$GR{v})+SUMIF({OR_}$I{rc}:$GR{rc})'
+                  f'+ABS(SUMIF({OR_}$I{cx}:$GR{cx}))<>0),"Sim","Não")'])
 ws.Range(ws.Cells(IDX0, 9), ws.Cells(IDX0 + NTOT - 1, 9)).Formula = tuple(tuple(x) for x in flags)
 
 # ---------------- blocos mensais ----------------
@@ -462,14 +469,21 @@ h2 = ["ID", "Cliente", "Planta", "GNL/GNC", "Vol. Máx (m³/dia)", "Início", "F
       "Volume total (m³)", "Receita (R$)", "Margem contrib. (R$)", "Margem (R$/m³)", "Capex dedicado (R$)",
       "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
       "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
-      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
-      "No horizonte projetado"]
+      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)"]
 ws.Range(ws.Cells(MET0-1, 1), ws.Cells(MET0-1, len(h1))).Value = tuple([tuple(h1)])
 ws.Range(ws.Cells(MET0, 1), ws.Cells(MET0, len(h2))).Value = tuple([tuple(h2)])
 MR0 = MET0 + 1
+print("Calculando para apurar o horizonte...")
+xl.Calculation = -4105
+ws.Calculate()
+_fl = ws.Range(ws.Cells(IDX0, 9), ws.Cells(IDX0 + NTOT - 1, 9)).Value
+KEEP = [i for i, v in enumerate(_fl) if (v[0] if isinstance(v, tuple) else v) == "Sim"]
+NK = len(KEEP)
+xl.Calculation = -4135
+print(f"   {NK} clientes com financials projetados (de {NTOT} linhas)")
 met = []
-for i in range(NTOT):
-    m = MR0 + i
+for j, i in enumerate(KEEP):
+    m = MR0 + j
     r_idx = IDX0 + i
     v, mc, cx = B["vol"] + i, B["mc"] + i, B["capex"] + i
     row = [f"=$A${r_idx}", f"=$B${r_idx}", f"=$C${r_idx}", f"=$D${r_idx}",
@@ -493,22 +507,21 @@ for i in range(NTOT):
           f'=IFERROR(1+{cV}{m}/ABS(SUMPRODUCT($I{cx}:$GR{cx},1/(1+{W_AM})^$I$4:$GR$4)),"n.a.")',
           f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")',
           f'=IFERROR({cV}{m}/$E{m},"n.a.")']
-    row.append(f"=$I${r_idx}")
     met.append(row)
-ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + NTOT - 1, len(h2))).Formula = tuple(tuple(r) for r in met)
-ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NTOT - 1, 7)).NumberFormat = "mmm/yy"
-ws.Range(ws.Cells(MR0, 9), ws.Cells(MR0 + NTOT - 1, 11)).NumberFormat = "#,##0"
-ws.Range(ws.Cells(MR0, 12), ws.Cells(MR0 + NTOT - 1, 12)).NumberFormat = "0.00"
-ws.Range(ws.Cells(MR0, 13), ws.Cells(MR0 + NTOT - 1, 13)).NumberFormat = "#,##0"
+ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + NK - 1, len(h2))).Formula = tuple(tuple(r) for r in met)
+ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NK - 1, 7)).NumberFormat = "mmm/yy"
+ws.Range(ws.Cells(MR0, 9), ws.Cells(MR0 + NK - 1, 11)).NumberFormat = "#,##0"
+ws.Range(ws.Cells(MR0, 12), ws.Cells(MR0 + NK - 1, 12)).NumberFormat = "0.00"
+ws.Range(ws.Cells(MR0, 13), ws.Cells(MR0 + NK - 1, 13)).NumberFormat = "#,##0"
 for c0 in (14, 20, 26):
-    ws.Range(ws.Cells(MR0, c0), ws.Cells(MR0 + NTOT - 1, c0 + 1)).NumberFormat = "0.0%"
-    ws.Range(ws.Cells(MR0, c0 + 2), ws.Cells(MR0 + NTOT - 1, c0 + 2)).NumberFormat = "#,##0"
-    ws.Range(ws.Cells(MR0, c0 + 3), ws.Cells(MR0 + NTOT - 1, c0 + 3)).NumberFormat = "0.00"
-    ws.Range(ws.Cells(MR0, c0 + 4), ws.Cells(MR0 + NTOT - 1, c0 + 4)).NumberFormat = "mmm/yy"
-    ws.Range(ws.Cells(MR0, c0 + 5), ws.Cells(MR0 + NTOT - 1, c0 + 5)).NumberFormat = "#,##0"
+    ws.Range(ws.Cells(MR0, c0), ws.Cells(MR0 + NK - 1, c0 + 1)).NumberFormat = "0.0%"
+    ws.Range(ws.Cells(MR0, c0 + 2), ws.Cells(MR0 + NK - 1, c0 + 2)).NumberFormat = "#,##0"
+    ws.Range(ws.Cells(MR0, c0 + 3), ws.Cells(MR0 + NK - 1, c0 + 3)).NumberFormat = "0.00"
+    ws.Range(ws.Cells(MR0, c0 + 4), ws.Cells(MR0 + NK - 1, c0 + 4)).NumberFormat = "mmm/yy"
+    ws.Range(ws.Cells(MR0, c0 + 5), ws.Cells(MR0 + NK - 1, c0 + 5)).NumberFormat = "#,##0"
 
 # ---------------- reconciliacao ----------------
-REC0 = MR0 + NTOT + 3
+REC0 = MR0 + NK + 3
 put(f"B{REC0-2}", "RECONCILIAÇÃO CONTRA O MODELO  —  toda linha deve dar zero em todos os meses")
 recs = []
 def sumblk(k, c):
@@ -553,6 +566,7 @@ NOT0 = REC0 + len(recs) + 3
 notas = [
  ("NOTAS METODOLÓGICAS", ""),
  ("", ""),
+ ("Filtro de análise", "As tabelas de MÉTRICAS e de PREÇO-PISO trazem apenas clientes que (a) têm contrato alcançando o mês zero e (b) têm algum financial nos meses Orçados (volume, receita ou capex de t>=0). Contratos encerrados antes do mês zero e linhas em branco ficam de fora. O ÍNDICE DE CLIENTES e os blocos mensais mantêm as 78 linhas — é sobre elas que a reconciliação roda."),
  ("Escopo", "3 plantas operacionais (PR, BA, RN), 78 linhas de cliente, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
  ("Janela de capacidade", "O cliente ocupa capacidade a partir do INÍCIO DA OPERAÇÃO (não da assinatura) até o fim do contrato. Meses entre assinatura e partida não geram rateio."),
  ("Desconto", "Mês zero = primeiro mês Orçado (linha 4, contador dinâmico). O realizado é capitalizado para frente (expoente negativo) e o orçado descontado para trás. O VPL fica em reais do primeiro mês orçado — inclui o custo de oportunidade do que já foi investido. TIR, payback, índice de lucratividade e preço-piso são invariantes à âncora."),

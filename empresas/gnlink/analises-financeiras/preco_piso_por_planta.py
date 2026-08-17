@@ -77,11 +77,15 @@ D = f"$I${DISC}:$GR${DISC}"
 HDR = ["ID","Cliente","Planta","Vol. Máx (m³/dia)","Prazo (meses)",
        "VP Volume (m³)","VP Capacidade (m³)","Fator de carga",
        "VP Margem contrib. (R$)","VP Custo de capacidade (R$)","VP G&A (R$)","VP Capex líquido (R$)",
-       "MARGEM REALIZADA (R$/m³)","PISO EXIGIDO (R$/m³)","FOLGA (R$/m³)","Situação","No horizonte"]
+       "MARGEM REALIZADA (R$/m³)","PISO EXIGIDO (R$/m³)","FOLGA (R$/m³)","Situação"]
 ws.Range(ws.Cells(CLI_H,1), ws.Cells(CLI_H,len(HDR))).Value = tuple([tuple(HDR)])
+_fl = ws.Range(ws.Cells(IDX0,9), ws.Cells(IDX0+NTOT-1,9)).Value
+KEEP = [i for i,v in enumerate(_fl) if (v[0] if isinstance(v,tuple) else v) == "Sim"]
+NK = len(KEEP)
+print(f"   {NK} clientes no horizonte projetado")
 rows=[]
-for i in range(NTOT):
-    m = CLI0 + i
+for j, i in enumerate(KEEP):
+    m = CLI0 + j
     ident = IDX0 + i
     v, mc = B["vol"]+i, B["mc"]+i
     fx, en, ga = B["fixo"]+i, B["encargo"]+i, B["ga"]+i
@@ -99,10 +103,9 @@ for i in range(NTOT):
       f'=IFERROR($I{m}/$F{m},"–")',
       f'=IFERROR(($J{m}+$K{m}+$L{m})/$F{m},"–")',
       f'=IFERROR($M{m}-$N{m},"–")',
-      f'=IF($Q{m}<>"Sim","fora do horizonte",IF($F{m}<=0,"sem volume",IF($O{m}>=0,"paga-se","abaixo do piso")))',
-      f"=$I${ident}",
+      f'=IF($F{m}<=0,"sem volume",IF($O{m}>=0,"paga-se","abaixo do piso"))',
     ])
-ws.Range(ws.Cells(CLI0,1), ws.Cells(CLI0+NTOT-1,len(HDR))).Formula = tuple(tuple(r) for r in rows)
+ws.Range(ws.Cells(CLI0,1), ws.Cells(CLI0+NK-1,len(HDR))).Formula = tuple(tuple(r) for r in rows)
 print("tabela por cliente ok")
 
 # ---------- resumo por planta ----------
@@ -114,10 +117,9 @@ PH = ["Planta","#","Fator de carga","VP Volume (m³)",
       "Piso @100% carga","Piso @85%","Piso @70%","Piso @55%"]
 ws.Range(ws.Cells(PL0,2), ws.Cells(PL0,1+len(PH))).Value = tuple([tuple(PH)])
 NOMES = ["PARANÁ","BAHIA","RIO GRANDE DO NORTE"]
-CR = f"$C${CLI0}:$C${CLI0+NTOT-1}"
-HZ = f'$Q${CLI0}:$Q${CLI0+NTOT-1},"Sim"'
-def col(letter, s): return f"${letter}${CLI0}:${letter}${CLI0+NTOT-1}"
-def soma(letter, s): return f"SUMIFS({col(letter,s)},{CR},$C{s},{HZ})"
+CR = f"$C${CLI0}:$C${CLI0+NK-1}"
+def col(letter, s): return f"${letter}${CLI0}:${letter}${CLI0+NK-1}"
+def soma(letter, s): return f"SUMIF({CR},$C{s},{col(letter,s)})"
 prows=[]
 for p in range(3):
     s = PL0 + 1 + p
@@ -145,8 +147,8 @@ ws.Range(ws.Cells(PL0+1,2), ws.Cells(PL0+3,1+len(PH))).Formula = tuple(tuple(r) 
 print("resumo por planta ok")
 
 # ---------- formatacao ----------
-R(S0,1,CLI0+NTOT+1,60).Font.Name = "Arial"
-R(S0,1,CLI0+NTOT+1,60).Font.Size = 10
+R(S0,1,CLI0+NK+1,60).Font.Name = "Arial"
+R(S0,1,CLI0+NK+1,60).Font.Size = 10
 bar(PL0,2,1+len(PH),NAVY,WHITE)
 R(PL0,2,PL0,1+len(PH)).WrapText = True
 R(PL0,2,PL0,1+len(PH)).HorizontalAlignment = -4108
@@ -167,25 +169,18 @@ bar(CLI_H,1,len(HDR),NAVY,WHITE)
 R(CLI_H,1,CLI_H,len(HDR)).WrapText = True
 R(CLI_H,1,CLI_H,len(HDR)).HorizontalAlignment = -4108
 ws.Rows(CLI_H).RowHeight = 46
-ct = R(CLI0,1,CLI0+NTOT-1,len(HDR))
+ct = R(CLI0,1,CLI0+NK-1,len(HDR))
 ct.Borders(11).LineStyle = 1; ct.Borders(11).Color = rgb(0xD9,0xD9,0xD9)
 ct.Borders(12).LineStyle = 1; ct.Borders(12).Color = rgb(0xD9,0xD9,0xD9)
-R(CLI0,4,CLI0+NTOT-1,4).NumberFormat = FMT_M3
-R(CLI0,5,CLI0+NTOT-1,5).NumberFormat = '0'
-R(CLI0,6,CLI0+NTOT-1,7).NumberFormat = FMT_M3
-R(CLI0,8,CLI0+NTOT-1,8).NumberFormat = FMT_P
-R(CLI0,9,CLI0+NTOT-1,12).NumberFormat = FMT_R
-R(CLI0,13,CLI0+NTOT-1,15).NumberFormat = FMT_2
-R(CLI0,14,CLI0+NTOT-1,14).Interior.Color = AMBER
-R(CLI0,13,CLI0+NTOT-1,15).Font.Bold = True
-R(CLI0,17,CLI0+NTOT-1,17).HorizontalAlignment = -4108
-fora = R(CLI0,1,CLI0+NTOT-1,len(HDR))
-try:
-    fcx = fora.FormatConditions.Add(Type=2, Formula1=f'=$Q{CLI0}<>"Sim"')
-    fcx.Font.Color = rgb(0xA6,0xA6,0xA6); fcx.Font.Strikethrough = True
-except Exception as e:
-    print("  cf fora do horizonte:", str(e)[:50])
-sit = R(CLI0,16,CLI0+NTOT-1,16)
+R(CLI0,4,CLI0+NK-1,4).NumberFormat = FMT_M3
+R(CLI0,5,CLI0+NK-1,5).NumberFormat = '0'
+R(CLI0,6,CLI0+NK-1,7).NumberFormat = FMT_M3
+R(CLI0,8,CLI0+NK-1,8).NumberFormat = FMT_P
+R(CLI0,9,CLI0+NK-1,12).NumberFormat = FMT_R
+R(CLI0,13,CLI0+NK-1,15).NumberFormat = FMT_2
+R(CLI0,14,CLI0+NK-1,14).Interior.Color = AMBER
+R(CLI0,13,CLI0+NK-1,15).Font.Bold = True
+sit = R(CLI0,16,CLI0+NK-1,16)
 sit.HorizontalAlignment = -4108
 for formula, cor, fundo in ((f'=$P{CLI0}="paga-se"', GREEN, LGREEN),
                             (f'=$P{CLI0}="abaixo do piso"', RED, LRED)):
@@ -195,7 +190,7 @@ for formula, cor, fundo in ((f'=$P{CLI0}="paga-se"', GREEN, LGREEN),
     except Exception as e:
         print("  cf:", str(e)[:50])
 try:
-    R(CLI_H,1,CLI0+NTOT-1,len(HDR)).AutoFilter(1)
+    R(CLI_H,1,CLI0+NK-1,len(HDR)).AutoFilter(1)
 except Exception as e:
     print("  autofilter:", str(e)[:50])
 ws.Rows(f"{DISC}:{DISC}").Group()
@@ -228,10 +223,9 @@ for p in range(3):
 print("")
 print("=== POR CLIENTE (ordenado pela folga) ===")
 lst=[]
-for i in range(NTOT):
+for i in range(NK):
     r = CLI0+i
     nome = ws.Cells(r,2).Text; vv = ws.Cells(r,6).Value
-    if ws.Cells(r,17).Text != "Sim": continue
     if not nome or not isinstance(vv,(int,float)) or vv<=0: continue
     lst.append((ws.Cells(r,15).Value, nome, ws.Cells(r,3).Text, ws.Cells(r,5).Text,
                 ws.Cells(r,8).Text, ws.Cells(r,13).Text, ws.Cells(r,14).Text,
