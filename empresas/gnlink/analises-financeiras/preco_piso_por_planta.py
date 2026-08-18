@@ -53,6 +53,17 @@ cprem.Interior.Color = LGREY; cprem.HorizontalAlignment = -4108
 cprem.NumberFormat = "0"; cprem.Font.Name = "Arial"; cprem.Font.Size = 10
 for b in (7,8,9,10): cprem.Borders(b).LineStyle = 1
 
+# se ja existe uma secao PRECO-PISO, apaga antes de reescrever (idempotencia)
+_last = ws.Cells(ws.Rows.Count, 2).End(-4162).Row
+_ant = None
+for _r in range(1, _last + 1):
+    if "PREÇO-PISO" in str(ws.Cells(_r, 2).Text):
+        _ant = _r
+        break
+if _ant:
+    print("   removendo secao PRECO-PISO anterior (linhas %d..%d)" % (_ant, _last))
+    ws.Rows("%d:%d" % (_ant, _last)).Delete()
+
 lastrow = ws.Cells(ws.Rows.Count, 2).End(-4162).Row
 S0 = lastrow + 4                     # inicio da nova secao
 DISC = S0 + 2                        # linha do fator de desconto
