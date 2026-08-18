@@ -22,11 +22,11 @@ FMT_P  = '0,0%;[Red](0,0%);"–"'
 R_PREM, PANEL0, PANEL_H = 10, 26, 22
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # 92
 IDX0 = GA_ROW + 4                          # 96
-BLK0, STEP = IDX0 + NTOT + 4, NTOT + 3     # 178, 81
+BLK0 = STEP = None                         # dependem de NK, apurado apos abrir
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
        "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
        "pf3","ir3","fc3","ac1","ac2","ac3"]
-B = {k: BLK0 + i * STEP for i, k in enumerate(ORD)}
+B = {}
 def panel(p, off): return PANEL0 + p * PANEL_H + off
 W_AM = f"$D${R_PREM+1}"
 
@@ -35,6 +35,17 @@ xl.Visible = True; xl.DisplayAlerts = False; xl.ScreenUpdating = False
 wb = xl.Workbooks.Open(ARQ, UpdateLinks=0)
 xl.Calculation = -4135
 ws = wb.Worksheets(ABA); ws.Activate()
+
+# quantos clientes a aba tem (o gerador ja escreveu so os do escopo)
+_ci = ws.Range(ws.Cells(IDX0, 1), ws.Cells(IDX0 + 90, 1)).Value
+NK = 0
+for _v in _ci:
+    _x = _v[0] if isinstance(_v, tuple) else _v
+    if _x is None or str(_x).strip() == "": break
+    NK += 1
+BLK0, STEP = IDX0 + NK + 4, NK + 3
+B = {k: BLK0 + i * STEP for i, k in enumerate(ORD)}
+print(f"   {NK} clientes na aba")
 
 cprem = ws.Cells(R_PREM + 13, 4)
 cprem.Font.Color = rgb(0,0,0xC0); cprem.Font.Bold = True
@@ -79,17 +90,13 @@ HDR = ["ID","Cliente","Planta","Vol. Máx (m³/dia)","Prazo (meses)",
        "VP Margem contrib. (R$)","VP Custo de capacidade (R$)","VP G&A (R$)","VP Capex líquido (R$)",
        "MARGEM REALIZADA (R$/m³)","PISO EXIGIDO (R$/m³)","FOLGA (R$/m³)","Situação"]
 ws.Range(ws.Cells(CLI_H,1), ws.Cells(CLI_H,len(HDR))).Value = tuple([tuple(HDR)])
-_fl = ws.Range(ws.Cells(IDX0,9), ws.Cells(IDX0+NTOT-1,9)).Value
-KEEP = [i for i,v in enumerate(_fl) if (v[0] if isinstance(v,tuple) else v) == "Sim"]
-NK = len(KEEP)
-print(f"   {NK} clientes no horizonte projetado")
 rows=[]
-for j, i in enumerate(KEEP):
+for j in range(NK):
     m = CLI0 + j
-    ident = IDX0 + i
-    v, mc = B["vol"]+i, B["mc"]+i
-    fx, en, ga = B["fixo"]+i, B["encargo"]+i, B["ga"]+i
-    cx, rs, cp = B["capex"]+i, B["resid"]+i, B["capat"]+i
+    ident = IDX0 + j
+    v, mc = B["vol"]+j, B["mc"]+j
+    fx, en, ga = B["fixo"]+j, B["encargo"]+j, B["ga"]+j
+    cx, rs, cp = B["capex"]+j, B["resid"]+j, B["capat"]+j
     rows.append([
       f"=$A${ident}", f"=$B${ident}", f"=$C${ident}", f"=$E${ident}",
       f'=IFERROR(DATEDIF($F${ident},$G${ident},"m"),0)',

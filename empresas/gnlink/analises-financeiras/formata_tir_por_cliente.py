@@ -169,12 +169,20 @@ for r in (GA_ROW, GA_ROW + 1, GA_ROW + 2):
 print("painel ok")
 
 # ---------- indice de clientes ----------
+_ci = ws.Range(ws.Cells(IDX0, 3), ws.Cells(IDX0 + 90, 3)).Value
+PLC = []
+for _v in _ci:
+    _x = _v[0] if isinstance(_v, tuple) else _v
+    if _x is None or str(_x).strip() == "": break
+    PLC.append(int(_x))
+NTOT = len(PLC)                       # clientes efetivamente na aba
+CUTS = [k for k in range(1, NTOT) if PLC[k] != PLC[k-1]]
+print(f"   clientes na aba: {NTOT} | quebras de planta em {CUTS}")
 bar(IDX_TIT, 1, 8, GREY, WHITE)
-bar(IDX0 - 1, 1, 9, NAVY, WHITE)
-R(IDX0 - 1, 1, IDX0 - 1, 9).HorizontalAlignment = -4108
-R(IDX0 - 1, 1, IDX0 - 1, 9).WrapText = True
-R(IDX0, 9, IDX0 + NTOT - 1, 9).HorizontalAlignment = -4108
-idx = R(IDX0, 1, IDX0 + NTOT - 1, 9)
+bar(IDX0 - 1, 1, 8, NAVY, WHITE)
+R(IDX0 - 1, 1, IDX0 - 1, 8).HorizontalAlignment = -4108
+R(IDX0 - 1, 1, IDX0 - 1, 8).WrapText = True
+idx = R(IDX0, 1, IDX0 + NTOT - 1, 8)
 idx.Borders(11).LineStyle = 1
 idx.Borders(11).Color = rgb(0xD9, 0xD9, 0xD9)
 idx.Borders(12).LineStyle = 1
@@ -208,14 +216,14 @@ for r, nome in BLOCOS:
     else:
         ws.Rows(f"{b0}:{b1}").Group()
     # separadores entre plantas
-    for cut in (b0 + 24, b0 + 56):
+    for cut in (b0 + k for k in CUTS):
         bd = R(cut, 1, cut, C1).Borders(8)
         bd.LineStyle = 1
         bd.Color = rgb(0xA6, 0xA6, 0xA6)
 print("blocos ok")
 
 # ---------- metricas ----------
-NCOLM = 31
+NCOLM = 28
 # a tabela de metricas so traz clientes no horizonte -> descobrir quantas linhas tem
 _col = ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + 90, 1)).Value
 NMET = 0
@@ -228,8 +236,8 @@ bar(MET_TIT, 1, NCOLM, NAVY, WHITE, size=12)
 R(MET_TIT + 1, 1, MET_TIT + 1, NCOLM).Font.Italic = True
 R(MET_TIT + 1, 1, MET_TIT + 1, NCOLM).Font.Color = MID
 bar(MET0 - 1, 1, NCOLM, WHITE, NAVY)
-for c0, tint in ((9, LGREY), (14, LBLUE), (20, rgb(0xFF, 0xF2, 0xCC)), (26, rgb(0xE2, 0xEF, 0xDA))):
-    n = 5 if c0 == 9 else 6
+for c0, tint in ((9, LGREY), (14, LBLUE), (19, rgb(0xFF, 0xF2, 0xCC)), (24, rgb(0xE2, 0xEF, 0xDA))):
+    n = 5
     rg = R(MET0 - 1, c0, MET0 - 1, c0 + n - 1)
     rg.Interior.Color = tint
     rg.Font.Color = NAVY
@@ -253,12 +261,11 @@ R(MR0, 5, MR0 + NMET - 1, 5).NumberFormat = FMT_M3
 R(MR0, 9, MR0 + NMET - 1, 11).NumberFormat = FMT_R
 R(MR0, 12, MR0 + NMET - 1, 12).NumberFormat = '0,00;[Red](0,00);"–"'
 R(MR0, 13, MR0 + NMET - 1, 13).NumberFormat = FMT_R
-for c0 in (14, 20, 26):
+for c0 in (14, 19, 24):
     R(MR0, c0, MR0 + NMET - 1, c0 + 1).NumberFormat = FMT_TIR
     R(MR0, c0 + 2, MR0 + NMET - 1, c0 + 2).NumberFormat = FMT_R
     R(MR0, c0 + 3, MR0 + NMET - 1, c0 + 3).NumberFormat = FMT_IL
     R(MR0, c0 + 4, MR0 + NMET - 1, c0 + 4).NumberFormat = FMT_MES
-    R(MR0, c0 + 5, MR0 + NMET - 1, c0 + 5).NumberFormat = FMT_R
     # texto "n.a." em cinza claro
     rg = R(MR0, c0, MR0 + NMET - 1, c0 + 1)
     try:
@@ -269,7 +276,7 @@ for c0 in (14, 20, 26):
     except Exception as e:
         print("   cf texto falhou:", str(e)[:60])
 # barras de dados no VPL de cada nivel
-for c0 in (16, 22, 28):
+for c0 in (16, 21, 26):
     rg = R(MR0, c0, MR0 + NMET - 1, c0)
     try:
         db = rg.FormatConditions.AddDatabar()

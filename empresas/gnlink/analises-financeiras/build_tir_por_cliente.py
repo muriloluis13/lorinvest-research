@@ -63,6 +63,9 @@ P = {
     "capex_t":("Capex",(677, 678, 679)),
     "cap_gnl":("Receita", (9, 10, 11)),
     "cap_gnc":("Receita", (18, 19, 20)),
+    "vol_gnl_t":("Receita", (365, 392, 427)),   # volume total da planta, m3
+    "vol_gnc_t":("Receita", (523, 550, 585)),
+    "mol_unit":("OPEX", (363, 364, 365)),       # custo unitario da molecula, R$/m3
 }
 DRE_MENSAL = "'Demonstrativo Financeiro Mensal'"
 GA_MATRIZ_ROW = 89
@@ -76,8 +79,8 @@ PANEL0 = 26         # inicio do painel por planta (premissas vao ate a linha 23)
 PANEL_H = 22        # linhas por planta no painel
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # linha do G&A Matriz (global)
 IDX0 = GA_ROW + 4                          # tabela indice de clientes
-BLK0 = IDX0 + NTOT + 4                     # primeiro bloco mensal
-BLK_STEP = NTOT + 3                        # 78 linhas + titulo + folga
+BLK0 = None                                # definidos apos apurar NK
+BLK_STEP = None
 
 BLOCOS = [
  ("vol",      "VOLUME DO CLIENTE (m³/mês)"),
@@ -111,9 +114,7 @@ BLOCOS = [
  ("ac3",      "FC DESCONTADO ACUMULADO — NÍVEL 3 (R$)"),
 ]
 B = {}
-for i, (k, _) in enumerate(BLOCOS):
-    B[k] = BLK0 + i * BLK_STEP
-MET0 = BLK0 + len(BLOCOS) * BLK_STEP + 2   # tabela de metricas
+MET0 = None
 
 def plant_of(i):
     """indice global 0..77 -> (planta 0..2, indice dentro da planta)"""
@@ -136,11 +137,66 @@ wb = xl.Workbooks.Open(ARQ, UpdateLinks=0)
 xl.Calculation = -4135   # manual
 print("Aberto:", wb.Name)
 
+# ---------------- quem entra na aba ----------------
+# Le direto do modelo (a aba ainda nem existe): fica quem tem contrato
+# alcancando o mes zero E algum financial nos meses Orcados.
+_rec = wb.Worksheets("Receita")
+_cli = wb.Worksheets("Clientes")
+_st = _rec.Range(_rec.Cells(4, C0), _rec.Cells(4, C1)).Value[0]
+FIRST_ORC = next(k for k, v in enumerate(_st) if isinstance(v, str) and v.strip().startswith("Or"))
+MES_ZERO = _rec.Cells(2, C0 + FIRST_ORC).Value
+print(f"mes zero = {MES_ZERO} (coluna {C0+FIRST_ORC})")
+
+def _leia(sheet, r0, n):
+    rg = wb.Worksheets(sheet).Range(wb.Worksheets(sheet).Cells(r0, C0),
+                                    wb.Worksheets(sheet).Cells(r0 + n - 1, C1)).Value
+    return [[x if isinstance(x, (int, float)) else 0 for x in linha] for linha in rg]
+
+_proj = {}
+for k in ("vol_gnl", "vol_gnc", "rec_gnl", "rec_gnc", "rec_alug", "rec_outr",
+          "rec_serv", "cx_di", "cx_de", "cx_ri", "cx_re"):
+    sh, starts = SRC[k]
+    _proj[k] = []
+    for p in range(3):
+        _proj[k].extend(_leia(sh, starts[p], NC[p]))
+
+_fim = []
+for p in range(3):
+    r0, n = CLI_SRC[p]
+    col = _cli.Range(_cli.Cells(r0, 14), _cli.Cells(r0 + n - 1, 14)).Value
+    _fim.extend([(x[0] if isinstance(x, tuple) else x) for x in col])
+
+KEEP = []
+for i in range(NTOT):
+    fim = _fim[i]
+    try:
+        vivo = fim is not None and fim >= MES_ZERO
+    except TypeError:
+        vivo = False
+    if not vivo:
+        continue
+    tot = 0.0
+    for k in ("vol_gnl", "vol_gnc", "rec_gnl", "rec_gnc", "rec_alug", "rec_outr", "rec_serv"):
+        tot += sum(_proj[k][i][FIRST_ORC:])
+    for k in ("cx_di", "cx_de", "cx_ri", "cx_re"):
+        tot += abs(sum(_proj[k][i][FIRST_ORC:]))
+    if abs(tot) > 1e-9:
+        KEEP.append(i)
+NK = len(KEEP)
+NCK = [sum(1 for i in KEEP if plant_of(i)[0] == p) for p in range(3)]
+print(f"{NK} clientes com financials projetados (de {NTOT} linhas do modelo) -> PR {NCK[0]}, BA {NCK[1]}, RN {NCK[2]}")
+
 for s in list(wb.Worksheets):
     if s.Name == ABA:
         s.Delete()
 ws = wb.Worksheets.Add(After=wb.Worksheets(wb.Worksheets.Count))
 ws.Name = ABA
+
+BLK0 = IDX0 + NK + 4
+BLK_STEP = NK + 3
+for _k, (_key, _) in enumerate(BLOCOS):
+    B[_key] = BLK0 + _k * BLK_STEP
+MET0 = BLK0 + len(BLOCOS) * BLK_STEP + 2
 
 def put(rng, val):
     ws.Range(rng).Value = val
@@ -232,13 +288,13 @@ for p in range(3):
         # +1 capacidade nominal
         rows[0].append(f"=Receita!{c}{P['cap_gnl'][1][p]}+Receita!{c}{P['cap_gnc'][1][p]}")
         # +2 capacidade contratada ativa
-        rows[1].append(f"=SUMIF($C${b_cap}:$C${b_cap+NTOT-1},$C${r0},{c}${b_cap}:{c}${b_cap+NTOT-1})")
+        rows[1].append(f"=SUMIF($C${b_cap}:$C${b_cap+NK-1},$C${r0},{c}${b_cap}:{c}${b_cap+NK-1})")
         # +3 denominador
         rows[2].append(f"=MAX({c}{r0+1},{c}{r0+2})")
         # +4 volume total
-        rows[3].append(f"=SUMIF($C${b_vol}:$C${b_vol+NTOT-1},$C${r0},{c}${b_vol}:{c}${b_vol+NTOT-1})")
+        rows[3].append(f"=Receita!{c}{P['vol_gnl_t'][1][p]}+Receita!{c}{P['vol_gnc_t'][1][p]}")
         # +5 volume com molecula
-        rows[4].append(f"=SUMIFS({c}${b_vol}:{c}${b_vol+NTOT-1},$C${b_vol}:$C${b_vol+NTOT-1},$C${r0},$H${b_vol}:$H${b_vol+NTOT-1},1)")
+        rows[4].append(f"=IFERROR(OPEX!{c}{P['molec'][1][p]}/OPEX!{c}{P['mol_unit'][1][p]},0)")
         # +6 pool molecula
         rows[5].append(f"=-OPEX!{c}{P['molec'][1][p]}")
         # +7 pool liquefacao variavel
@@ -247,15 +303,15 @@ for p in range(3):
         rows[7].append(f"=-(OPEX!{c}{P['om'][1][p]}+OPEX!{c}{P['outliq'][1][p]}+OPEX!{c}{P['compr'][1][p]}+OPEX!{c}{P['term'][1][p]}+OPEX!{c}{P['sga'][1][p]})")
         # +9 pool distribuicao indireta = total - diretos
         bd = B["dist"]
-        rows[8].append(f"=-OPEX!{c}{P['dist_t'][1][p]}-SUMIF($C${bd}:$C${bd+NTOT-1},$C${r0},{c}${bd}:{c}${bd+NTOT-1})")
+        rows[8].append(f"=-OPEX!{c}{P['dist_t'][1][p]}-SUMIF($C${bd}:$C${bd+NK-1},$C${r0},{c}${bd}:{c}${bd+NK-1})")
         # +10 pool regas indireto = total - diretos
         br = B["regas"]
-        rows[9].append(f"=-OPEX!{c}{P['reg_t'][1][p]}-SUMIF($C${br}:$C${br+NTOT-1},$C${r0},{c}${br}:{c}${br+NTOT-1})")
+        rows[9].append(f"=-OPEX!{c}{P['reg_t'][1][p]}-SUMIF($C${br}:$C${br+NK-1},$C${r0},{c}${br}:{c}${br+NK-1})")
         # +11 pool fixo total a ratear
         rows[10].append(f"={c}{r0+8}+{c}{r0+9}+{c}{r0+10}")
         # +12 capex de planta no mes = total - capex dos clientes
         bx = B["capex"]
-        rows[11].append(f"=Capex!{c}{P['capex_t'][1][p]}+SUMIF($C${bx}:$C${bx+NTOT-1},$C${r0},{c}${bx}:{c}${bx+NTOT-1})")
+        rows[11].append(f"=Capex!{c}{P['capex_t'][1][p]}+SUMIF($C${bx}:$C${bx+NK-1},$C${r0},{c}${bx}:{c}${bx+NK-1})")
         ci = COLS.index(c)
         prev = COLS[ci - 1] if ci > 0 else None
         # +13 adicoes acumuladas
@@ -273,7 +329,7 @@ for p in range(3):
         # +17/+18/+19 somas dos shares (capacidade, volume, volume c/ molecula)
         for kk, bk in enumerate(("shcap", "shvol", "shvolmol")):
             bs = B[bk]
-            rows[16+kk].append(f"=SUMIF($C${bs}:$C${bs+NTOT-1},$C${r0},{c}${bs}:{c}${bs+NTOT-1})")
+            rows[16+kk].append(f"=SUMIF($C${bs}:$C${bs+NK-1},$C${r0},{c}${bs}:{c}${bs+NK-1})")
         # +20 custo orfao = tudo que os pools carregam e nao foi alocado a nenhum cliente
         rows[19].append(f"={c}{r0+6}*(1-{c}{r0+19})+{c}{r0+7}*(1-{c}{r0+18})"
                         f"+({c}{r0+11}+{c}{r0+16})*(1-{c}{r0+17})"
@@ -287,54 +343,52 @@ put(f"B{GA_ROW}", "G&A MATRIZ / HOLDING (R$) — consolidado, a ratear")
 bulk(GA_ROW, [[f"=-ABS({DRE_MENSAL}!{c}{GA_MATRIZ_ROW})" for c in COLS]])
 put(f"B{GA_ROW+1}", "Receita líquida positiva total das 3 plantas (R$) — base do rateio de G&A")
 br = B["rec"]
-bulk(GA_ROW+1, [[f"=SUMPRODUCT(({c}${br}:{c}${br+NTOT-1}>0)*({c}${br}:{c}${br+NTOT-1}))" for c in COLS]])
+bulk(GA_ROW+1, [[f"=SUMPRODUCT(({c}${br}:{c}${br+NK-1}>0)*({c}${br}:{c}${br+NK-1}))" for c in COLS]])
+FORA = [i for i in range(NTOT) if i not in set(KEEP)]
+put(f"B{GA_ROW+3}", f"Receita líquida dos {len(FORA)} clientes fora do escopo (R$) — só para a reconciliação")
+_lin = []
+for c in COLS:
+    parts = []
+    for i in FORA:
+        for k2 in ("rec_gnl", "rec_gnc", "rec_alug", "rec_outr", "rec_serv"):
+            sh, rr = src_row(k2, i)
+            parts.append(f"{sh}!{c}{rr}")
+    _lin.append("=" + "+".join(parts) if parts else "=0")
+bulk(GA_ROW + 3, [_lin])
+
 put(f"B{GA_ROW+2}", "Capacidade contratada ativa total das 3 plantas (m³/dia)")
 bc = B["capat"]
-bulk(GA_ROW+2, [[f"=SUM({c}${bc}:{c}${bc+NTOT-1})" for c in COLS]])
+bulk(GA_ROW+2, [[f"=SUM({c}${bc}:{c}${bc+NK-1})" for c in COLS]])
 
 # ---------------- indice de clientes ----------------
 put(f"B{IDX0-2}", "ÍNDICE DE CLIENTES")
 hdr = ["ID", "Cliente", "Planta", "GNL/GNC", "Vol. Máximo (m³/dia)",
-       "Início da Operação", "Fim do Contrato", "Molécula (1=sim)", "No horizonte"]
+       "Início da Operação", "Fim do Contrato", "Molécula (1=sim)"]
 for k, h in enumerate(hdr):
     put(f"{cl(1+k)}{IDX0-1}", h)
 idx = []
-for i in range(NTOT):
+for i in KEEP:
     p, j = plant_of(i)
     sr = CLI_SRC[p][0] + j
     idx.append([f"=Clientes!A{sr}", f"=Clientes!C{sr}", f"=Clientes!D{sr}",
                 f"=Clientes!E{sr}", f"=Clientes!G{sr}", f"=Clientes!L{sr}",
                 f"=Clientes!N{sr}", f"=Clientes!J{sr}"])
-ws.Range(ws.Cells(IDX0, 1), ws.Cells(IDX0 + NTOT - 1, 8)).Formula = tuple(tuple(r) for r in idx)
-ws.Range(ws.Cells(IDX0, 6), ws.Cells(IDX0 + NTOT - 1, 7)).NumberFormat = "mmm/aa"
+ws.Range(ws.Cells(IDX0, 1), ws.Cells(IDX0 + NK - 1, 8)).Formula = tuple(tuple(r) for r in idx)
+ws.Range(ws.Cells(IDX0, 6), ws.Cells(IDX0 + NK - 1, 7)).NumberFormat = "mmm/aa"
 # "No horizonte" = contrato alcanca o mes zero E a linha tem algum numero.
 # Exclui os que terminaram antes do 1o mes Orcado e os [Inserir Cliente] em branco.
 # "No horizonte" = tem algum financial nos meses ORÇADOS (contador >= 0).
 # Pega de uma vez os contratos encerrados antes do mês zero e as linhas em branco.
-# "No horizonte" exige as DUAS coisas:
-#   (a) o contrato alcanca o mes zero  -> exclui contrato encerrado antes do 1o Orcado
-#   (b) ha algum financial nos meses Orcados -> exclui linha em branco e linha zerada
-# So (b) nao basta: cliente encerrado pode ter capex residual caindo em mes futuro.
-OR_ = '$I$4:$GR$4,">=0",'
-MZ = 'INDEX($I$2:$GR$2,MATCH(0,$I$4:$GR$4,0))'
-flags = []
-for i in range(NTOT):
-    r = IDX0 + i
-    v, rc, cx = B["vol"] + i, B["rec"] + i, B["capex"] + i
-    flags.append([f'=IF(AND($G{r}>={MZ},SUMIF({OR_}$I{v}:$GR{v})+SUMIF({OR_}$I{rc}:$GR{rc})'
-                  f'+ABS(SUMIF({OR_}$I{cx}:$GR{cx}))<>0),"Sim","Não")'])
-ws.Range(ws.Cells(IDX0, 9), ws.Cells(IDX0 + NTOT - 1, 9)).Formula = tuple(tuple(x) for x in flags)
-
 # ---------------- blocos mensais ----------------
 def stub(base):
     """colunas A-H de identificacao repetidas em cada bloco"""
     rows = []
-    for i in range(NTOT):
-        r = IDX0 + i
+    for j in range(NK):
+        r = IDX0 + j
         rows.append([f"=$A${r}", f"=$B${r}", f"=$C${r}", f"=$D${r}",
                      f"=$E${r}", f"=$F${r}", f"=$G${r}", f"=$H${r}"])
-    ws.Range(ws.Cells(base, 1), ws.Cells(base + NTOT - 1, 8)).Formula = tuple(tuple(x) for x in rows)
-    ws.Range(ws.Cells(base, 6), ws.Cells(base + NTOT - 1, 7)).NumberFormat = "mmm/yy"
+    ws.Range(ws.Cells(base, 1), ws.Cells(base + NK - 1, 8)).Formula = tuple(tuple(x) for x in rows)
+    ws.Range(ws.Cells(base, 6), ws.Cells(base + NK - 1, 7)).NumberFormat = "mmm/yy"
 
 def panel_row(p, off):
     return PANEL0 + p * PANEL_H + off
@@ -345,9 +399,9 @@ for key, titulo in BLOCOS:
     put(f"B{base-2}", titulo)
     stub(base)
     rows = []
-    for i in range(NTOT):
-        p, j = plant_of(i)
-        r = base + i
+    for jj, i in enumerate(KEEP):
+        p, _ = plant_of(i)
+        r = base + jj
         line = []
         for ci, c in enumerate(COLS):
             prev = COLS[ci - 1] if ci > 0 else None
@@ -356,23 +410,23 @@ for key, titulo in BLOCOS:
                 f = f"={sh}!{c}{rr}+{sh}!{c}{r2}"
             elif key == "capat":
                 f = (f"=IF(AND({c}$2>=$F{r},{c}$2<$G{r}),"
-                     f"IF({DRV_CAP}=2,MAX($E{r},IFERROR({c}{B['vol']+i}/{c}$3,0)),$E{r}),"
-                     f"IF({DRV_CAP}=2,IFERROR({c}{B['vol']+i}/{c}$3,0),0))")
+                     f"IF({DRV_CAP}=2,MAX($E{r},IFERROR({c}{B['vol']+jj}/{c}$3,0)),$E{r}),"
+                     f"IF({DRV_CAP}=2,IFERROR({c}{B['vol']+jj}/{c}$3,0),0))")
             elif key == "shvol":
-                f = f"=IFERROR({c}{B['vol']+i}/{c}{panel_row(p,4)},0)"
+                f = f"=IFERROR({c}{B['vol']+jj}/{c}{panel_row(p,4)},0)"
             elif key == "shvolmol":
-                f = f"=IFERROR($H{r}*{c}{B['vol']+i}/{c}{panel_row(p,5)},0)"
+                f = f"=IFERROR($H{r}*{c}{B['vol']+jj}/{c}{panel_row(p,5)},0)"
             elif key == "shcap":
-                f = f"=IFERROR({c}{B['capat']+i}/{c}{panel_row(p,3)},0)"
+                f = f"=IFERROR({c}{B['capat']+jj}/{c}{panel_row(p,3)},0)"
             elif key == "rec":
                 parts = []
                 for k2 in ("rec_gnl", "rec_gnc", "rec_alug", "rec_outr", "rec_serv"):
                     sh, rr = src_row(k2, i); parts.append(f"{sh}!{c}{rr}")
                 f = "=" + "+".join(parts)
             elif key == "molec":
-                f = f"={c}{panel_row(p,6)}*{c}{B['shvolmol']+i}"
+                f = f"={c}{panel_row(p,6)}*{c}{B['shvolmol']+jj}"
             elif key == "liqvar":
-                f = f"={c}{panel_row(p,7)}*{c}{B['shvol']+i}"
+                f = f"={c}{panel_row(p,7)}*{c}{B['shvol']+jj}"
             elif key == "dist":
                 parts = []
                 for k2 in ("frete_fix", "frete_var", "alug_log", "out_dist"):
@@ -384,16 +438,16 @@ for key, titulo in BLOCOS:
                     sh, rr = src_row(k2, i); parts.append(f"N({sh}!{c}{rr})")
                 f = "=-(" + "+".join(parts) + ")"
             elif key == "mc":
-                f = (f"={c}{B['rec']+i}+{c}{B['molec']+i}+{c}{B['liqvar']+i}"
-                     f"+{c}{B['dist']+i}+{c}{B['regas']+i}")
+                f = (f"={c}{B['rec']+jj}+{c}{B['molec']+jj}+{c}{B['liqvar']+jj}"
+                     f"+{c}{B['dist']+jj}+{c}{B['regas']+jj}")
             elif key == "fixo":
-                f = f"={c}{panel_row(p,11)}*{c}{B['shcap']+i}"
+                f = f"={c}{panel_row(p,11)}*{c}{B['shcap']+jj}"
             elif key == "encargo":
-                f = f"={c}{panel_row(p,16)}*{c}{B['shcap']+i}"
+                f = f"={c}{panel_row(p,16)}*{c}{B['shcap']+jj}"
             elif key == "ga":
                 f = (f"=IF({DRV_GA}=1,"
-                     f"{c}${GA_ROW}/{N_PL}*{c}{B['shcap']+i},"
-                     f"{c}${GA_ROW}*IFERROR(MAX(0,{c}{B['rec']+i})/{c}${GA_ROW+1},0))")
+                     f"{c}${GA_ROW}/{N_PL}*{c}{B['shcap']+jj},"
+                     f"{c}${GA_ROW}*IFERROR(MAX(0,{c}{B['rec']+jj})/{c}${GA_ROW+1},0))")
             elif key == "capex":
                 parts = []
                 for k2 in ("cx_di", "cx_de", "cx_ri", "cx_re"):
@@ -406,43 +460,43 @@ for key, titulo in BLOCOS:
                 inf = f"(SUM({shi}!$I{rri}:$GR{rri})+SUM({shn}!$I{rrn}:$GR{rrn}))*{RES_IN}"
                 f = f"=IF({c}$2=$G{r},{eq}+{inf},0)"
             elif key == "wc":
-                cur = (f"({c}{B['rec']+i}*{DSO}/30+({c}{B['molec']+i}+{c}{B['liqvar']+i}"
-                       f"+{c}{B['dist']+i}+{c}{B['regas']+i})*{DPO}/30)")
+                cur = (f"({c}{B['rec']+jj}*{DSO}/30+({c}{B['molec']+jj}+{c}{B['liqvar']+jj}"
+                       f"+{c}{B['dist']+jj}+{c}{B['regas']+jj})*{DPO}/30)")
                 if prev is None:
                     f = f"=-{cur}"
                 else:
-                    pv = (f"({prev}{B['rec']+i}*{DSO}/30+({prev}{B['molec']+i}+{prev}{B['liqvar']+i}"
-                          f"+{prev}{B['dist']+i}+{prev}{B['regas']+i})*{DPO}/30)")
+                    pv = (f"({prev}{B['rec']+jj}*{DSO}/30+({prev}{B['molec']+jj}+{prev}{B['liqvar']+jj}"
+                          f"+{prev}{B['dist']+jj}+{prev}{B['regas']+jj})*{DPO}/30)")
                     f = f"=-({cur}-{pv})"
             elif key in ("pf1", "pf2", "pf3"):
                 nb = {"pf1": B['mc'], "pf2": B['mc'], "pf3": B['mc']}[key]
                 if key == "pf1":
-                    base_res = f"{c}{B['mc']+i}"
+                    base_res = f"{c}{B['mc']+jj}"
                 elif key == "pf2":
-                    base_res = f"({c}{B['mc']+i}+{c}{B['fixo']+i}+{c}{B['encargo']+i})"
+                    base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj})"
                 else:
-                    base_res = f"({c}{B['mc']+i}+{c}{B['fixo']+i}+{c}{B['encargo']+i}+{c}{B['ga']+i})"
+                    base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj})"
                 pr = f"{prev}{B[key]+i}" if prev else "0"
                 f = f"=MAX(0,{pr}-MAX(0,{base_res}))+MAX(0,-{base_res})"
             elif key in ("ir1", "ir2", "ir3"):
                 lvl = key[-1]
                 if lvl == "1":
-                    base_res = f"{c}{B['mc']+i}"
+                    base_res = f"{c}{B['mc']+jj}"
                 elif lvl == "2":
-                    base_res = f"({c}{B['mc']+i}+{c}{B['fixo']+i}+{c}{B['encargo']+i})"
+                    base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj})"
                 else:
-                    base_res = f"({c}{B['mc']+i}+{c}{B['fixo']+i}+{c}{B['encargo']+i}+{c}{B['ga']+i})"
+                    base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj})"
                 pf = f"{prev}{B['pf'+lvl]+i}" if prev else "0"
                 f = (f"=-{TAX}*MAX(0,{base_res}-IF({USA_PF}=1,{pf},0))")
             elif key == "fc1":
-                f = (f"={c}{B['mc']+i}+{c}{B['capex']+i}+{c}{B['resid']+i}"
-                     f"+{c}{B['wc']+i}+{c}{B['ir1']+i}")
+                f = (f"={c}{B['mc']+jj}+{c}{B['capex']+jj}+{c}{B['resid']+jj}"
+                     f"+{c}{B['wc']+jj}+{c}{B['ir1']+jj}")
             elif key == "fc2":
-                f = (f"={c}{B['mc']+i}+{c}{B['fixo']+i}+{c}{B['encargo']+i}"
-                     f"+{c}{B['capex']+i}+{c}{B['resid']+i}+{c}{B['wc']+i}+{c}{B['ir2']+i}")
+                f = (f"={c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}"
+                     f"+{c}{B['capex']+jj}+{c}{B['resid']+jj}+{c}{B['wc']+jj}+{c}{B['ir2']+jj}")
             elif key == "fc3":
-                f = (f"={c}{B['mc']+i}+{c}{B['fixo']+i}+{c}{B['encargo']+i}+{c}{B['ga']+i}"
-                     f"+{c}{B['capex']+i}+{c}{B['resid']+i}+{c}{B['wc']+i}+{c}{B['ir3']+i}")
+                f = (f"={c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj}"
+                     f"+{c}{B['capex']+jj}+{c}{B['resid']+jj}+{c}{B['wc']+jj}+{c}{B['ir3']+jj}")
             elif key in ("ac1", "ac2", "ac3"):
                 lvl = key[-1]
                 disc = f"{c}{B['fc'+lvl]+i}/(1+{W_AM})^{c}$4"
@@ -453,7 +507,7 @@ for key, titulo in BLOCOS:
         rows.append(line)
     bulk(base, rows)
     fmt = "0.0%" if key.startswith("sh") else ("#,##0" if key != "capat" else "#,##0")
-    ws.Range(ws.Cells(base, C0), ws.Cells(base + NTOT - 1, C1)).NumberFormat = fmt
+    ws.Range(ws.Cells(base, C0), ws.Cells(base + NK - 1, C1)).NumberFormat = fmt
     print("   bloco", key, "linha", base)
 
 
@@ -462,25 +516,17 @@ print("Escrevendo metricas...")
 put(f"B{MET0-3}", "MÉTRICAS POR CLIENTE")
 put(f"B{MET0-2}", "Nível 1 = incremental (decisão comercial)  ·  Nível 2 = + capacidade da planta (precificação)  ·  Nível 3 = + G&A Matriz (portfólio).  TIR mensal anualizada.")
 h1 = ["", "", "", "", "", "", "", "", "GERAL", "", "", "", "",
-      "NÍVEL 1 — INCREMENTAL", "", "", "", "", "",
-      "NÍVEL 2 — COM CAPACIDADE", "", "", "", "", "",
-      "NÍVEL 3 — FULLY LOADED", "", "", "", "", ""]
+      "NÍVEL 1 — INCREMENTAL", "", "", "", "",
+      "NÍVEL 2 — COM CAPACIDADE", "", "", "", "",
+      "NÍVEL 3 — FULLY LOADED", "", "", "", ""]
 h2 = ["ID", "Cliente", "Planta", "GNL/GNC", "Vol. Máx (m³/dia)", "Início", "Fim", "Prazo (meses)",
       "Volume total (m³)", "Receita (R$)", "Margem contrib. (R$)", "Margem (R$/m³)", "Capex dedicado (R$)",
-      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
-      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)",
-      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.", "VPL / m³dia (R$)"]
+      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.",
+      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc.",
+      "TIR (% a.a.)", "MTIR (% a.a.)", "VPL (R$)", "IL (x)", "Payback desc."]
 ws.Range(ws.Cells(MET0-1, 1), ws.Cells(MET0-1, len(h1))).Value = tuple([tuple(h1)])
 ws.Range(ws.Cells(MET0, 1), ws.Cells(MET0, len(h2))).Value = tuple([tuple(h2)])
 MR0 = MET0 + 1
-print("Calculando para apurar o horizonte...")
-xl.Calculation = -4105
-ws.Calculate()
-_fl = ws.Range(ws.Cells(IDX0, 9), ws.Cells(IDX0 + NTOT - 1, 9)).Value
-KEEP = [i for i, v in enumerate(_fl) if (v[0] if isinstance(v, tuple) else v) == "Sim"]
-NK = len(KEEP)
-xl.Calculation = -4135
-print(f"   {NK} clientes com financials projetados (de {NTOT} linhas)")
 met = []
 for j, i in enumerate(KEEP):
     m = MR0 + j
@@ -490,11 +536,11 @@ for j, i in enumerate(KEEP):
            f"=$E${r_idx}", f"=$F${r_idx}", f"=$G${r_idx}",
            f'=IFERROR(DATEDIF($F{m},$G{m},"m"),0)',
            f"=SUM($I{v}:$GR{v})",
-           f"=SUM($I{B['rec']+i}:$GR{B['rec']+i})",
+           f"=SUM($I{B['rec']+jj}:$GR{B['rec']+jj})",
            f"=SUM($I{mc}:$GR{mc})",
            f"=IFERROR($K{m}/$I{m},0)",
            f"=SUM($I{cx}:$GR{cx})"]
-    for lvl, c0 in (("1", 14), ("2", 20), ("3", 26)):
+    for lvl, c0 in (("1", 14), ("2", 19), ("3", 24)):
         f = B["fc" + lvl] + i
         a = B["ac" + lvl] + i
         cV = cl(c0 + 2)
@@ -505,27 +551,25 @@ for j, i in enumerate(KEEP):
           f'=IF(-SUMIF($I{f}:$GR{f},"<0")<={MIN_INV}*SUMIF($I{f}:$GR{f},">0"),"n.a. s/ desembolso",IFERROR((1+MIRR($I{f}:$GR{f},{W_AM},{W_AM}))^12-1,"n.a."))',
           f"=SUMPRODUCT($I{f}:$GR{f},1/(1+{W_AM})^$I$4:$GR$4)",
           f'=IFERROR(1+{cV}{m}/ABS(SUMPRODUCT($I{cx}:$GR{cx},1/(1+{W_AM})^$I$4:$GR$4)),"n.a.")',
-          f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")',
-          f'=IFERROR({cV}{m}/$E{m},"n.a.")']
+          f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")']
     met.append(row)
 ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + NK - 1, len(h2))).Formula = tuple(tuple(r) for r in met)
 ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NK - 1, 7)).NumberFormat = "mmm/yy"
 ws.Range(ws.Cells(MR0, 9), ws.Cells(MR0 + NK - 1, 11)).NumberFormat = "#,##0"
 ws.Range(ws.Cells(MR0, 12), ws.Cells(MR0 + NK - 1, 12)).NumberFormat = "0.00"
 ws.Range(ws.Cells(MR0, 13), ws.Cells(MR0 + NK - 1, 13)).NumberFormat = "#,##0"
-for c0 in (14, 20, 26):
+for c0 in (14, 19, 24):
     ws.Range(ws.Cells(MR0, c0), ws.Cells(MR0 + NK - 1, c0 + 1)).NumberFormat = "0.0%"
     ws.Range(ws.Cells(MR0, c0 + 2), ws.Cells(MR0 + NK - 1, c0 + 2)).NumberFormat = "#,##0"
     ws.Range(ws.Cells(MR0, c0 + 3), ws.Cells(MR0 + NK - 1, c0 + 3)).NumberFormat = "0.00"
-    ws.Range(ws.Cells(MR0, c0 + 4), ws.Cells(MR0 + NK - 1, c0 + 4)).NumberFormat = "mmm/yy"
-    ws.Range(ws.Cells(MR0, c0 + 5), ws.Cells(MR0 + NK - 1, c0 + 5)).NumberFormat = "#,##0"
+    ws.Range(ws.Cells(MR0, c0 + 4), ws.Cells(MR0 + NK - 1, c0 + 4)).NumberFormat = "mmm/aa"
 
 # ---------------- reconciliacao ----------------
 REC0 = MR0 + NK + 3
 put(f"B{REC0-2}", "RECONCILIAÇÃO CONTRA O MODELO  —  toda linha deve dar zero em todos os meses")
 recs = []
 def sumblk(k, c):
-    b = B[k]; return f"SUM({c}${b}:{c}${b+NTOT-1})"
+    b = B[k]; return f"SUM({c}${b}:{c}${b+NK-1})"
 def panel_sum(off, c):
     return "+".join(f"{c}{panel_row(p,off)}" for p in range(3))
 def panel_sum2(off_pool, off_share, c):
@@ -533,8 +577,8 @@ def panel_sum2(off_pool, off_share, c):
     return "+".join(f"{c}{panel_row(p,off_pool)}*(1-{c}{panel_row(p,off_share)})" for p in range(3))
 def opex3(key, c):
     return "+".join(f"OPEX!{c}{P[key][1][p]}" for p in range(3))
-recs.append(("Receita líquida: Σ clientes − modelo",
-             lambda c: f"={sumblk('rec',c)}-(Receita!{c}727+Receita!{c}733+Receita!{c}739)"))
+recs.append(("Receita líquida: Σ clientes na aba + Σ fora do escopo − modelo",
+             lambda c: f"={sumblk('rec',c)}+{c}${GA_ROW+3}-(Receita!{c}727+Receita!{c}733+Receita!{c}739)"))
 recs.append(("Molécula: Σ clientes − modelo",
              lambda c: f"=-({sumblk('molec',c)}+({panel_sum2(6,19,c)}))-({opex3('molec',c)})"))
 recs.append(("Liquefação/compressão variável: Σ clientes − modelo",
@@ -566,8 +610,9 @@ NOT0 = REC0 + len(recs) + 3
 notas = [
  ("NOTAS METODOLÓGICAS", ""),
  ("", ""),
- ("Filtro de análise", "As tabelas de MÉTRICAS e de PREÇO-PISO trazem apenas clientes que (a) têm contrato alcançando o mês zero e (b) têm algum financial nos meses Orçados (volume, receita ou capex de t>=0). Contratos encerrados antes do mês zero e linhas em branco ficam de fora. O ÍNDICE DE CLIENTES e os blocos mensais mantêm as 78 linhas — é sobre elas que a reconciliação roda."),
- ("Escopo", "3 plantas operacionais (PR, BA, RN), 78 linhas de cliente, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
+ ("Filtro de escopo", f"Entram apenas clientes que (a) têm contrato alcançando o mês zero e (b) têm algum financial nos meses Orçados (volume, receita ou capex de t>=0). Das {NTOT} linhas de cliente do modelo, {NTOT-NK} ficaram de fora: linhas em branco, contratos encerrados antes do mês zero e agregados de histórico sem projeção."),
+ ("Denominadores do rateio", "Os shares de volume e de capacidade têm como denominador o total DA PLANTA lido do modelo, não a soma das linhas desta aba. Assim o custo dos clientes fora do escopo não é empurrado para os que ficaram — cai no custo órfão. É isso que mantém a reconciliação fechando."),
+ ("Escopo", f"3 plantas operacionais (PR, BA, RN) e {NK} clientes, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
  ("Janela de capacidade", "O cliente ocupa capacidade a partir do INÍCIO DA OPERAÇÃO (não da assinatura) até o fim do contrato. Meses entre assinatura e partida não geram rateio."),
  ("Desconto", "Mês zero = primeiro mês Orçado (linha 4, contador dinâmico). O realizado é capitalizado para frente (expoente negativo) e o orçado descontado para trás. O VPL fica em reais do primeiro mês orçado — inclui o custo de oportunidade do que já foi investido. TIR, payback, índice de lucratividade e preço-piso são invariantes à âncora."),
  ("Fluxo", "Desalavancado. A dívida não é rateada por cliente: a TIR do cliente é comparada ao WACC. A alavancagem continua no nível planta/consolidado do DCF."),
