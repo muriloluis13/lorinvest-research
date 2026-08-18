@@ -528,21 +528,21 @@ ws.Range(ws.Cells(MET0-1, 1), ws.Cells(MET0-1, len(h1))).Value = tuple([tuple(h1
 ws.Range(ws.Cells(MET0, 1), ws.Cells(MET0, len(h2))).Value = tuple([tuple(h2)])
 MR0 = MET0 + 1
 met = []
-for j, i in enumerate(KEEP):
+for j in range(NK):
     m = MR0 + j
-    r_idx = IDX0 + i
-    v, mc, cx = B["vol"] + i, B["mc"] + i, B["capex"] + i
+    r_idx = IDX0 + j
+    v, mc, cx = B["vol"] + j, B["mc"] + j, B["capex"] + j
     row = [f"=$A${r_idx}", f"=$B${r_idx}", f"=$C${r_idx}", f"=$D${r_idx}",
            f"=$E${r_idx}", f"=$F${r_idx}", f"=$G${r_idx}",
            f'=IFERROR(DATEDIF($F{m},$G{m},"m"),0)',
            f"=SUM($I{v}:$GR{v})",
-           f"=SUM($I{B['rec']+jj}:$GR{B['rec']+jj})",
+           f"=SUM($I{B['rec']+j}:$GR{B['rec']+j})",
            f"=SUM($I{mc}:$GR{mc})",
            f"=IFERROR($K{m}/$I{m},0)",
            f"=SUM($I{cx}:$GR{cx})"]
     for lvl, c0 in (("1", 14), ("2", 19), ("3", 24)):
-        f = B["fc" + lvl] + i
-        a = B["ac" + lvl] + i
+        f = B["fc" + lvl] + j
+        a = B["ac" + lvl] + j
         cV = cl(c0 + 2)
         row += [
           (f'=IF(-SUMIF($I{f}:$GR{f},"<0")<={MIN_INV}*SUMIF($I{f}:$GR{f},">0"),"n.a. s/ desembolso",'
@@ -554,7 +554,7 @@ for j, i in enumerate(KEEP):
           f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")']
     met.append(row)
 ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + NK - 1, len(h2))).Formula = tuple(tuple(r) for r in met)
-ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NK - 1, 7)).NumberFormat = "mmm/yy"
+ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NK - 1, 7)).NumberFormat = "mmm/aa"
 ws.Range(ws.Cells(MR0, 9), ws.Cells(MR0 + NK - 1, 11)).NumberFormat = "#,##0"
 ws.Range(ws.Cells(MR0, 12), ws.Cells(MR0 + NK - 1, 12)).NumberFormat = "0.00"
 ws.Range(ws.Cells(MR0, 13), ws.Cells(MR0 + NK - 1, 13)).NumberFormat = "#,##0"
