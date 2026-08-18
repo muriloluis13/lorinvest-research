@@ -476,7 +476,7 @@ for key, titulo in BLOCOS:
                     base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj})"
                 else:
                     base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj})"
-                pr = f"{prev}{B[key]+i}" if prev else "0"
+                pr = f"{prev}{B[key]+jj}" if prev else "0"
                 f = f"=MAX(0,{pr}-MAX(0,{base_res}))+MAX(0,-{base_res})"
             elif key in ("ir1", "ir2", "ir3"):
                 lvl = key[-1]
@@ -486,7 +486,7 @@ for key, titulo in BLOCOS:
                     base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj})"
                 else:
                     base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj})"
-                pf = f"{prev}{B['pf'+lvl]+i}" if prev else "0"
+                pf = f"{prev}{B['pf'+lvl]+jj}" if prev else "0"
                 f = (f"=-{TAX}*MAX(0,{base_res}-IF({USA_PF}=1,{pf},0))")
             elif key == "fc1":
                 f = (f"={c}{B['mc']+jj}+{c}{B['capex']+jj}+{c}{B['resid']+jj}"
@@ -499,8 +499,8 @@ for key, titulo in BLOCOS:
                      f"+{c}{B['capex']+jj}+{c}{B['resid']+jj}+{c}{B['wc']+jj}+{c}{B['ir3']+jj}")
             elif key in ("ac1", "ac2", "ac3"):
                 lvl = key[-1]
-                disc = f"{c}{B['fc'+lvl]+i}/(1+{W_AM})^{c}$4"
-                f = f"={disc}" if prev is None else f"={prev}{B[key]+i}+{disc}"
+                disc = f"{c}{B['fc'+lvl]+jj}/(1+{W_AM})^{c}$4"
+                f = f"={disc}" if prev is None else f"={prev}{B[key]+jj}+{disc}"
             else:
                 f = "=0"
             line.append(f)
