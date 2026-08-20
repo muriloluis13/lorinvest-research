@@ -184,13 +184,34 @@ for i in range(NTOT):
         KEEP.append(i)
 NK = len(KEEP)
 NCK = [sum(1 for i in KEEP if plant_of(i)[0] == p) for p in range(3)]
+OC = cl(C0 + FIRST_ORC)          # 1a coluna Orcada: toda metrica de VP olha daqui pra frente
+print(f"janela do VPL: horizonte completo I..GR (1o mes Orcado = {OC}, t=0)")
 print(f"{NK} clientes com financials projetados (de {NTOT} linhas do modelo) -> PR {NCK[0]}, BA {NCK[1]}, RN {NCK[2]}")
 
-for s in list(wb.Worksheets):
-    if s.Name == ABA:
-        s.Delete()
-ws = wb.Worksheets.Add(After=wb.Worksheets(wb.Worksheets.Count))
-ws.Name = ABA
+# NUNCA apagar a aba: outras abas referenciam ela por nome. A DRE Mensal usa
+# 'TIR por Cliente'!$D$11 (WACC mensal) e o contador de periodos nas linhas de
+# DCF/EV. Um Delete transformaria todas essas formulas em #REF! silenciosamente.
+# Por isso: reaproveita a aba existente e so limpa o conteudo.
+ws = None
+for _s in list(wb.Worksheets):
+    if _s.Name == ABA:
+        ws = _s
+        break
+if ws is None:
+    ws = wb.Worksheets.Add(After=wb.Worksheets(wb.Worksheets.Count))
+    ws.Name = ABA
+    print("aba criada")
+else:
+    try:
+        ws.AutoFilterMode = False
+    except Exception:
+        pass
+    try:
+        ws.Cells.ClearOutline()
+    except Exception:
+        pass
+    ws.Cells.Clear()
+    print("aba existente reaproveitada (conteudo limpo, referencias externas preservadas)")
 
 BLK0 = IDX0 + NK + 4
 BLK_STEP = NK + 3
@@ -642,6 +663,7 @@ notas = [
  ("Denominadores do rateio", "Os shares de volume e de capacidade têm como denominador o total DA PLANTA lido do modelo, não a soma das linhas desta aba. Assim o custo dos clientes fora do escopo não é empurrado para os que ficaram — cai no custo órfão. É isso que mantém a reconciliação fechando."),
  ("Escopo", f"3 plantas operacionais (PR, BA, RN) e {NK} clientes, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
  ("Janela de capacidade", "O cliente ocupa capacidade a partir do INÍCIO DA OPERAÇÃO (não da assinatura) até o fim do contrato. Meses entre assinatura e partida não geram rateio."),
+ ("Janela do VPL", "Horizonte completo: jan/23 a dez/38. O realizado entra no valor, capitalizado para o mês zero (expoente negativo). É o que mantém o capex de construção dentro da conta — restrito ao orçado, a planta apareceria de graça para quem chegou depois e o preço-piso desabaria (cai de 1,11 para 1,05 no PR e a ociosidade de 0,37 para 0,03)."),
  ("Desconto", "Mês zero = primeiro mês Orçado (linha 4, contador dinâmico). O realizado é capitalizado para frente (expoente negativo) e o orçado descontado para trás. O VPL fica em reais do primeiro mês orçado — inclui o custo de oportunidade do que já foi investido. TIR, payback, índice de lucratividade e preço-piso são invariantes à âncora."),
  ("Fluxo", "Desalavancado. A dívida não é rateada por cliente: a TIR do cliente é comparada ao WACC. A alavancagem continua no nível planta/consolidado do DCF."),
  ("Nível 1 — incremental", "Receita − molécula − liquefação/compressão variável − distribuição direta − regás direto − capex dedicado + residual ± capital de giro − IR. Responde 'aceito este contrato a este preço?'."),

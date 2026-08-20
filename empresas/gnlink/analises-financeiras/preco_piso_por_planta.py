@@ -88,7 +88,7 @@ ws.Cells(S0+1,2).Value = ("Piso derivado do custo de capacidade da planta, não 
                           "(no break-even o resultado é zero).")
 R(S0+1,2,S0+1,C1).Font.Italic = True
 R(S0+1,2,S0+1,C1).Font.Color = MID
-ws.Cells(DISC,2).Value = "Fator de desconto ao WACC mensal (mês zero = 1º mês Orçado)"
+ws.Cells(DISC,2).Value = "Fator de desconto ao WACC mensal (mês zero = 1º mês Orçado; realizado capitalizado)"
 R(DISC,1,DISC,C1).Font.Color = MID
 ws.Range(ws.Cells(DISC,C0), ws.Cells(DISC,C1)).Formula = \
     tuple([tuple(f"=1/(1+{W_AM})^{cl(c)}$4" for c in range(C0, C1+1))])
