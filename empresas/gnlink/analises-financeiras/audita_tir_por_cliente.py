@@ -26,9 +26,9 @@ P = {"molec":("OPEX",(372,373,374)),"energia":("OPEX",(398,399,400)),"insumos":(
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
        "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
        "pf3","ir3","fc3","ac1","ac2","ac3"]
-R_PREM, PANEL0, PANEL_H = 10, 26, 22
+R_PREM, PANEL0, PANEL_H = 10, 28, 22
 GA_ROW = PANEL0 + 3*PANEL_H + 1
-IDX0 = GA_ROW + 4
+IDX0 = GA_ROW + 9
 
 xl = win32.gencache.EnsureDispatch("Excel.Application"); xl.Visible=False; xl.DisplayAlerts=False
 wb = xl.Workbooks.Open(os.path.abspath("Modelo - Realizado Jun.26 (v ajust) - TIR por Cliente.xlsx"), UpdateLinks=0)
@@ -100,12 +100,12 @@ def chk_ext(ctx,row,p,k,sh,rr,esp):
     problemas.append((ctx,row,"aba inesperada: %s!%d" % (sh,rr)))
 
 def chk_int(ctx,row,p,k,j,rr):
-    if rr <= 5 or R_PREM <= rr <= R_PREM+13: return
+    if rr <= 5 or R_PREM <= rr <= R_PREM+14: return
     if PANEL0 <= rr < PANEL0 + 3*PANEL_H:
         pp = (rr - PANEL0)//PANEL_H
         if pp != p: problemas.append((ctx,row,"painel L%d e da planta %d, cliente da %d" % (rr,pp+1,p+1)))
         return
-    if GA_ROW <= rr <= GA_ROW+3: return
+    if GA_ROW <= rr <= GA_ROW+7: return
     if IDX0 <= rr < IDX0+NK:
         if rr != IDX0+j: problemas.append((ctx,row,"indice L%d deveria ser %d" % (rr, IDX0+j)))
         return

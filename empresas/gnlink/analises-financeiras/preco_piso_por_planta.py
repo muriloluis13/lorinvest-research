@@ -19,9 +19,9 @@ FMT_2  = '0,00;[Red](0,00);"–"'
 FMT_P  = '0,0%;[Red](0,0%);"–"'
 
 # ---- geometria da aba (mesma do script gerador) ----
-R_PREM, PANEL0, PANEL_H = 10, 26, 22
+R_PREM, PANEL0, PANEL_H = 10, 28, 22
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # 92
-IDX0 = GA_ROW + 4                          # 96
+IDX0 = GA_ROW + 9
 BLK0 = STEP = None                         # dependem de NK, apurado apos abrir
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
        "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
@@ -47,7 +47,7 @@ BLK0, STEP = IDX0 + NK + 4, NK + 3
 B = {k: BLK0 + i * STEP for i, k in enumerate(ORD)}
 print(f"   {NK} clientes na aba")
 
-cprem = ws.Cells(R_PREM + 13, 4)
+cprem = ws.Cells(R_PREM + 14, 4)
 cprem.Font.Color = rgb(0,0,0xC0); cprem.Font.Bold = True
 cprem.Interior.Color = LGREY; cprem.HorizontalAlignment = -4108
 cprem.NumberFormat = "0"; cprem.Font.Name = "Arial"; cprem.Font.Size = 10

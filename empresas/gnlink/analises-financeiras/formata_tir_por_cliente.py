@@ -132,7 +132,7 @@ R(ttl + 1, 1, ttl + 1, C1).Font.Color = MID
 
 # ---------- premissas ----------
 bar(R_PREM - 1, 1, 4, GREY, WHITE)
-prem_end = R_PREM + 13
+prem_end = R_PREM + 14
 R(R_PREM, 2, prem_end, 2).IndentLevel = 1
 box = R(R_PREM, 4, prem_end, 4)
 box.Font.Color = BLUE
@@ -143,7 +143,7 @@ for b in (7, 8, 9, 10):
     box.Borders(b).LineStyle = 1
     box.Borders(b).Color = rgb(0xBF, 0xBF, 0xBF)
 FMT_PREM = ['0,00%', '0,0000%', '0%', '0 "anos"', '0%', '0%',
-            '0 "dias"', '0 "dias"', '0', '0', '0', '0,0%', '0%']
+            '0 "dias"', '0 "dias"', '0', '0', '0', '0,0%', '0%', '0', '0']
 for k, f in enumerate(FMT_PREM):
     ws.Cells(R_PREM + k, 4).NumberFormat = f
 
@@ -163,7 +163,7 @@ for orow in ORFAO:
     rg.Font.Bold = True
     rg.Font.Color = RED
     rg.Interior.Color = LRED
-for r in (GA_ROW, GA_ROW + 1, GA_ROW + 2):
+for r in range(GA_ROW, GA_ROW + 8):
     R(r, 1, r, C1).Font.Bold = True
     R(r, C0, r, C1).NumberFormat = FMT_R
 print("painel ok")

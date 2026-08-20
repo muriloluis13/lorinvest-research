@@ -75,10 +75,10 @@ def q(sh):
 
 # ---------------- layout da aba nova ----------------
 R_PREM = 10         # primeira linha de premissas (linha 4 = contador de períodos)
-PANEL0 = 26         # inicio do painel por planta (premissas vao ate a linha 23)
+PANEL0 = 28         # inicio do painel por planta (premissas vao ate a linha 24)
 PANEL_H = 22        # linhas por planta no painel
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # linha do G&A Matriz (global)
-IDX0 = GA_ROW + 4                          # tabela indice de clientes
+IDX0 = GA_ROW + 9                          # indice (GA_ROW+4..+7 = linhas globais de IR)
 BLK0 = None                                # definidos apos apurar NK
 BLK_STEP = None
 
@@ -240,6 +240,7 @@ prem = [
  ("Desembolso mínimo para a TIR ser significativa (% das entradas)", "=0.01", "0.0%"),
  ("TIR máxima significativa (% a.a.) — acima disso a TIR não informa", "=5", "0%"),
  ("Nº de plantas para o rateio do G&A Matriz", "=3", "0"),
+ ("Origem do IR (1 = 34% sobre o resultado do cliente | 2 = rateio do IR efetivo do modelo)", "=2", "0"),
 ]
 put("B8", "PREMISSAS  (editáveis)")
 for k, (lab, f, fmt) in enumerate(prem):
@@ -248,8 +249,8 @@ for k, (lab, f, fmt) in enumerate(prem):
     putf(f"D{r}", f)
     ws.Range(f"D{r}").NumberFormat = fmt
     ws.Range(f"D{r}").Font.Color = 0xC00000
-W_AA, W_AM, TAX, VIDA, RES_EQ, RES_IN, DSO, DPO, DRV_GA, USA_PF, DRV_CAP, MIN_INV, MAX_TIR, N_PL = \
-    [f"$D${R_PREM+k}" for k in range(14)]
+W_AA, W_AM, TAX, VIDA, RES_EQ, RES_IN, DSO, DPO, DRV_GA, USA_PF, DRV_CAP, MIN_INV, MAX_TIR, N_PL, DRV_IR = \
+    [f"$D${R_PREM+k}" for k in range(15)]
 
 # ---------------- painel por planta ----------------
 put(f"B{PANEL0-2}", "PAINEL POR PLANTA — pools de custo, capacidade e ociosidade")
@@ -344,6 +345,22 @@ bulk(GA_ROW, [[f"=-ABS({DRE_MENSAL}!{c}{GA_MATRIZ_ROW})" for c in COLS]])
 put(f"B{GA_ROW+1}", "Receita líquida positiva total das 3 plantas (R$) — base do rateio de G&A")
 br = B["rec"]
 bulk(GA_ROW+1, [[f"=SUMPRODUCT(({c}${br}:{c}${br+NK-1}>0)*({c}${br}:{c}${br+NK-1}))" for c in COLS]])
+IR_MOD = GA_ROW + 4
+DEN = {"1": GA_ROW + 5, "2": GA_ROW + 6, "3": GA_ROW + 7}
+put(f"B{IR_MOD}", "IR/CSLL efetivo do modelo (R$) — base do rateio de imposto")
+# sinal preservado: em mes de credito fiscal a linha do modelo e positiva,
+# e -ABS() transformaria credito em custo (descolava R$ 24 mil do modelo).
+bulk(IR_MOD, [[f"={DRE_MENSAL}!{c}116" for c in COLS]])
+def _rng(k, c):
+    return f"{c}${B[k]}:{c}${B[k]+NK-1}"
+for lvl, comps in (("1", ["mc"]), ("2", ["mc","fixo","encargo"]), ("3", ["mc","fixo","encargo","ga"])):
+    put(f"B{DEN[lvl]}", f"Σ base tributável positiva dos clientes — Nível {lvl} (R$)")
+    linha = []
+    for c in COLS:
+        expr = "+".join(_rng(k, c) for k in comps)
+        linha.append(f"=SUMPRODUCT((({expr})>0)*({expr}))")
+    bulk(DEN[lvl], [linha])
+
 FORA = [i for i in range(NTOT) if i not in set(KEEP)]
 put(f"B{GA_ROW+3}", f"Receita líquida dos {len(FORA)} clientes fora do escopo (R$) — só para a reconciliação")
 _lin = []
@@ -487,7 +504,11 @@ for key, titulo in BLOCOS:
                 else:
                     base_res = f"({c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj})"
                 pf = f"{prev}{B['pf'+lvl]+jj}" if prev else "0"
-                f = (f"=-{TAX}*MAX(0,{base_res}-IF({USA_PF}=1,{pf},0))")
+                proprio = f"-{TAX}*MAX(0,{base_res}-IF({USA_PF}=1,{pf},0))"
+                # rateio: o imposto que a companhia de fato paga, distribuido pela
+                # base tributavel positiva de cada cliente no mes.
+                rateio = f"{c}${IR_MOD}*IFERROR(MAX(0,{base_res})/{c}${DEN[lvl]},0)"
+                f = f"=IF({DRV_IR}=1,{proprio},{rateio})"
             elif key == "fc1":
                 f = (f"={c}{B['mc']+jj}+{c}{B['capex']+jj}+{c}{B['resid']+jj}"
                      f"+{c}{B['wc']+jj}+{c}{B['ir1']+jj}")
@@ -595,6 +616,13 @@ recs.append(("G&A Matriz: Σ alocado + Σ não alocado − consolidado",
              lambda c: f"={sumblk('ga',c)}+IF({DRV_GA}=1,"
                        + "+".join(f"{c}${GA_ROW}/{N_PL}*(1-{c}{panel_row(p,17)})" for p in range(3))
                        + f",0)-{c}${GA_ROW}"))
+def _naoaloc(c):
+    return "+".join(f"IF({c}${DEN[l]}=0,{c}${IR_MOD},0)" for l in ("1","2","3"))
+recs.append(("IR/CSLL: Σ clientes + não alocado − modelo (pior dos 3 níveis)",
+             lambda c: "=IF(" + DRV_IR + "<>2,0,MAX("
+                       + ",".join(
+                           f"ABS({sumblk('ir'+l,c)}+IF({c}${DEN[l]}=0,{c}${IR_MOD},0)-{c}${IR_MOD})"
+                           for l in ("1","2","3")) + "))"))
 recs.append(("Share de capacidade: excedente sobre 100% por planta (deve ser 0)",
              lambda c: "=MAX(0," + ",".join(f"{c}{panel_row(p,17)}-1" for p in range(3)) + ")"))
 for k, (lab, fn) in enumerate(recs):
@@ -624,7 +652,8 @@ notas = [
  ("Encargo de capacidade", "Depreciação econômica linear (vida útil da premissa) + custo de capital sobre o saldo do ativo. Autoextingue-se — não cobra capex em perpetuidade."),
  ("Residual do capex", "Por decisão do analista: equipamento volta 100% do valor NOMINAL no mês de fim de contrato — sem depreciação, sem probabilidade de reuso, sem custo de desmobilização. Infraestrutura tem residual 0% (fica no site do cliente). Ambos os percentuais são editáveis nas premissas."),
  ("ATENÇÃO — residual", "O residual é um crédito sintético: ele NÃO existe no caixa da companhia. Por isso a soma dos fluxos dos clientes não bate com o DCF da planta — a diferença é exatamente o residual. É premissa deliberada, não erro."),
- ("Imposto", "34% sobre o resultado do nível, com compensação integral de prejuízo fiscal acumulado do próprio cliente (sem a trava de 30%). Base = resultado operacional, sem depreciação."),
+ ("Imposto", "Por padrão (premissa Origem do IR = 2) o IR não é 34% teórico: é o IR/CSLL efetivo do modelo, rateado mês a mês pela base tributável positiva de cada cliente. A companhia mal é pagante no horizonte (EBT acumulado de R$ 19,6 mi), então cobrar 34% cheio de cada cliente inventava imposto e derrubava as TIRs. Com o rateio, a soma dos clientes fecha com o modelo. Origem do IR = 1 volta ao 34% próprio com prejuízo fiscal por cliente."),
+ ("Imposto — modo 1 (alternativo)", "34% sobre o resultado do nível, com compensação integral de prejuízo fiscal acumulado do próprio cliente (sem a trava de 30%). Base = resultado operacional, sem depreciação."),
  ("TIR", "Calculada sobre o fluxo mensal e anualizada. Marcada 'n.a. s/ desembolso' quando o desembolso é irrelevante frente às entradas — a TIR não é definida nesses casos. Use VPL, IL e margem R$/m³ nesses clientes."),
  ("Reconciliação", "Todas as linhas do bloco de reconciliação devem marcar OK. A única exceção esperada é o G&A da matriz em meses pré-operacionais, quando não há cliente para receber o rateio."),
  ("Observação", "O capex por cliente é o efetivamente lançado na aba Capex (dimensionado pelo volume), que difere do campo 'CAPEX utilizado' da aba Clientes — este último é referência de input, não o valor contabilizado."),
