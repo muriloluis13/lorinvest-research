@@ -24,7 +24,7 @@ GA_ROW = PANEL0 + 3 * PANEL_H + 1          # 92
 IDX0 = GA_ROW + 12
 BLK0 = STEP = None                         # dependem de NK, apurado apos abrir
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
-       "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
+       "fixo","encargo","ga","capex","resid","cxacum","cxsaldo","cxfwd","wc","pf1","ir1","fc1","pf2","ir2","fc2",
        "pf3","ir3","fc3","ac1","ac2","ac3"]
 B = {}
 def panel(p, off): return PANEL0 + p * PANEL_H + off
@@ -91,14 +91,14 @@ R(S0+1,2,S0+1,C1).Font.Color = MID
 ws.Cells(DISC,2).Value = "Fator de desconto ao WACC mensal (mês zero = 1º mês Orçado; realizado capitalizado)"
 R(DISC,1,DISC,C1).Font.Color = MID
 ws.Range(ws.Cells(DISC,C0), ws.Cells(DISC,C1)).Formula = \
-    tuple([tuple(f"=1/(1+{W_AM})^{cl(c)}$4" for c in range(C0, C1+1))])
+    tuple([tuple(f"=IF({cl(c)}$5=\"Realizado\",0,1/(1+{W_AM})^{cl(c)}$4)" for c in range(C0, C1+1))])
 R(DISC,C0,DISC,C1).NumberFormat = '0,0000'
 D = f"$I${DISC}:$GR${DISC}"
 
 # ---------- tabela por cliente (calculada primeiro; a planta agrega dela) ----------
 HDR = ["ID","Cliente","Planta","Vol. Máx (m³/dia)","Prazo (meses)",
        "VP Volume (m³)","VP Capacidade (m³)","Fator de carga",
-       "VP Margem contrib. (R$)","VP Custo de capacidade (R$)","VP G&A (R$)","VP Capex líquido (R$)",
+       "VP Margem contrib. (R$)","VP Custo de capacidade (R$)","VP G&A (R$)","VP Ativo dedicado líquido (R$)",
        "MARGEM REALIZADA (R$/m³)","PISO EXIGIDO (R$/m³)","FOLGA (R$/m³)","Situação"]
 ws.Range(ws.Cells(CLI_H,1), ws.Cells(CLI_H,len(HDR))).Value = tuple([tuple(HDR)])
 rows=[]
@@ -108,6 +108,7 @@ for j in range(NK):
     v, mc = B["vol"]+j, B["mc"]+j
     fx, en, ga = B["fixo"]+j, B["encargo"]+j, B["ga"]+j
     cx, rs, cp = B["capex"]+j, B["resid"]+j, B["capat"]+j
+    ce = B["cxfwd"]+j
     rows.append([
       f"=$A${ident}", f"=$B${ident}", f"=$C${ident}", f"=$E${ident}",
       f'=IFERROR(DATEDIF($F${ident},$G${ident},"m"),0)',
@@ -117,7 +118,7 @@ for j in range(NK):
       f"=SUMPRODUCT($I{mc}:$GR{mc},{D})",
       f"=-SUMPRODUCT($I{fx}:$GR{fx}+$I{en}:$GR{en},{D})",
       f"=-SUMPRODUCT($I{ga}:$GR{ga},{D})",
-      f"=-SUMPRODUCT($I{cx}:$GR{cx}+$I{rs}:$GR{rs},{D})",
+      f"=-SUMPRODUCT($I{ce}:$GR{ce}+$I{rs}:$GR{rs},{D})",
       f'=IFERROR($I{m}/$F{m},"–")',
       f'=IFERROR(($J{m}+$K{m}+$L{m})/$F{m},"–")',
       f'=IFERROR($M{m}-$N{m},"–")',
@@ -129,7 +130,7 @@ print("tabela por cliente ok")
 # ---------- resumo por planta ----------
 PH = ["Planta","#","Fator de carga","VP Volume (m³)",
       "Custo de capacidade — pool cheio (R$)","Custo de capacidade — alocado (R$)",
-      "PISO N2 · capacidade (R$/m³)","+ G&A (R$/m³)","+ capex dedicado (R$/m³)",
+      "PISO N2 · capacidade (R$/m³)","+ G&A (R$/m³)","+ ativo dedicado (R$/m³)",
       "PISO N3 · TOTAL (R$/m³)","Margem média realizada (R$/m³)","FOLGA (R$/m³)",
       "PISO DA PLANTA c/ ociosidade (R$/m³)","Preço da ociosidade (R$/m³)",
       "Piso @100% carga","Piso @85%","Piso @70%","Piso @55%"]
