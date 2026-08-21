@@ -24,7 +24,7 @@ P = {"molec":("OPEX",(372,373,374)),"energia":("OPEX",(398,399,400)),"insumos":(
      "vol_gnl_t":("Receita",(365,392,427)),"vol_gnc_t":("Receita",(523,550,585)),
      "mol_unit":("OPEX",(363,364,365)),"rec_t":("Receita",(727,733,739))}
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
-       "fixo","encargo","ga","capex","resid","cxacum","cxsaldo","cxfwd","wc","pf1","ir1","fc1","pf2","ir2","fc2",
+       "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
        "pf3","ir3","fc3","ac1","ac2","ac3"]
 R_PREM, PANEL0, PANEL_H = 10, 28, 22
 GA_ROW = PANEL0 + 3*PANEL_H + 1

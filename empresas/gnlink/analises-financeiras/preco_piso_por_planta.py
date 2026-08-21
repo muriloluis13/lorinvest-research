@@ -24,7 +24,7 @@ GA_ROW = PANEL0 + 3 * PANEL_H + 1          # 92
 IDX0 = GA_ROW + 12
 BLK0 = STEP = None                         # dependem de NK, apurado apos abrir
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
-       "fixo","encargo","ga","capex","resid","cxacum","cxsaldo","cxfwd","wc","pf1","ir1","fc1","pf2","ir2","fc2",
+       "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
        "pf3","ir3","fc3","ac1","ac2","ac3"]
 B = {}
 def panel(p, off): return PANEL0 + p * PANEL_H + off
@@ -108,7 +108,6 @@ for j in range(NK):
     v, mc = B["vol"]+j, B["mc"]+j
     fx, en, ga = B["fixo"]+j, B["encargo"]+j, B["ga"]+j
     cx, rs, cp = B["capex"]+j, B["resid"]+j, B["capat"]+j
-    ce = B["cxfwd"]+j
     rows.append([
       f"=$A${ident}", f"=$B${ident}", f"=$C${ident}", f"=$E${ident}",
       f'=IFERROR(DATEDIF($F${ident},$G${ident},"m"),0)',
@@ -118,7 +117,7 @@ for j in range(NK):
       f"=SUMPRODUCT($I{mc}:$GR{mc},{D})",
       f"=-SUMPRODUCT($I{fx}:$GR{fx}+$I{en}:$GR{en},{D})",
       f"=-SUMPRODUCT($I{ga}:$GR{ga},{D})",
-      f"=-SUMPRODUCT($I{ce}:$GR{ce}+$I{rs}:$GR{rs},{D})",
+      f"=-SUMPRODUCT($I{cx}:$GR{cx}+$I{rs}:$GR{rs},{D})",
       f'=IFERROR($I{m}/$F{m},"–")',
       f'=IFERROR(($J{m}+$K{m}+$L{m})/$F{m},"–")',
       f'=IFERROR($M{m}-$N{m},"–")',

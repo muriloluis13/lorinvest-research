@@ -12,10 +12,13 @@ ARQ = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else
 ABA = "TIR por Cliente"
 
 C0, C1 = 9, 200                      # colunas I..GR = jan/23..dez/38
-# ANALISE FORWARD: o valor olha do 1o mes Orcado em diante. Fluxos passados sao
-# sunk (receita, custos, SG&A, capital de giro) e ficam fora. O CAPEX passado NAO
-# some: vira saldo de ativo e e cobrado dos clientes futuros via encargo de
-# capacidade - o da planta e tambem o dedicado ao cliente.
+# ANALISE FORWARD: receita, custos, SG&A e capital de giro passados sao sunk e
+# ficam fora do valor. DUAS EXCECOES, ambas de horizonte cheio (jan/23..dez/38):
+#   - CAPEX DEDICADO AO CLIENTE: fica nos meses em que foi de fato desembolsado,
+#     nunca trazido para o mes zero. Meses realizados tem contador 0 na linha 4,
+#     entao entram a valor nominal.
+#   - TIR, MTIR e PAYBACK: metricas de retorno sobre investimento feito, so fazem
+#     sentido com o desembolso dentro da janela.
 FWD = True
 NCOL = C1 - C0 + 1                   # 192 meses
 NC = [24, 32, 22]                    # clientes por planta (PR, BA, RN)
@@ -107,9 +110,6 @@ BLOCOS = [
  ("ga",       "( − ) G&A MATRIZ RATEADO (R$)"),
  ("capex",    "( − ) CAPEX DEDICADO AO CLIENTE (R$)"),
  ("resid",    "( + ) RESIDUAL DO CAPEX NO FIM DO CONTRATO (R$)"),
- ("cxacum",   "CAPEX DEDICADO — ADIÇÕES ACUMULADAS (R$)"),
- ("cxsaldo",  "CAPEX DEDICADO — SALDO DO ATIVO (R$)"),
- ("cxfwd",    "( − ) ATIVO DEDICADO RECONHECIDO NA JANELA (R$)"),
  ("wc",       "( ± ) VARIAÇÃO DE CAPITAL DE GIRO (R$)"),
  ("pf1",      "SALDO DE PREJUÍZO FISCAL — NÍVEL 1 (R$)"),
  ("ir1",      "( − ) IR/CSLL — NÍVEL 1 (R$)"),
@@ -197,7 +197,8 @@ NK = len(KEEP)
 NCK = [sum(1 for i in KEEP if plant_of(i)[0] == p) for p in range(3)]
 OC = cl(C0 + FIRST_ORC)
 JAN = OC if FWD else 'I'   # 1a coluna que entra no valor          # 1a coluna Orcada: toda metrica de VP olha daqui pra frente
-_jan = "FORWARD - ativo dedicado entra como desembolso" if FWD else "horizonte completo"
+_jan = ("operacao FORWARD | capex dedicado, TIR, MTIR e payback em horizonte cheio"
+        if FWD else "horizonte completo")
 print(f"janela: {_jan} | t=0 em {OC}")
 print(f"{NK} clientes com financials projetados (de {NTOT} linhas do modelo) -> PR {NCK[0]}, BA {NCK[1]}, RN {NCK[2]}")
 
@@ -540,36 +541,12 @@ for key, titulo in BLOCOS:
                 for k2 in ("cx_di", "cx_de", "cx_ri", "cx_re"):
                     sh, rr = src_row(k2, i); parts.append(f"N({sh}!{c}{rr})")
                 f = "=-(" + "+".join(parts) + ")"
-            elif key == "resid" and FWD:
-                r0_ = B["cxfwd"] + jj
-                f = f'=IF({c}$2=$G{r},-SUM($I{r0_}:$GR{r0_})*{RES_EQ},0)'
             elif key == "resid":
                 she, rre = src_row("cx_de", i); shr, rrr = src_row("cx_re", i)
                 shi, rri = src_row("cx_di", i); shn, rrn = src_row("cx_ri", i)
                 eq = f"(SUM({she}!$I{rre}:$GR{rre})+SUM({shr}!$I{rrr}:$GR{rrr}))*{RES_EQ}"
                 inf = f"(SUM({shi}!$I{rri}:$GR{rri})+SUM({shn}!$I{rrn}:$GR{rrn}))*{RES_IN}"
                 f = f"=IF({c}$2=$G{r},{eq}+{inf},0)"
-            elif key == "cxacum":
-                gasto = f"(-{c}{B['capex']+jj})"
-                f = f"={gasto}" if prev is None else f"={prev}{B['cxacum']+jj}+{gasto}"
-            elif key == "cxsaldo":
-                lag = ci - 120
-                ant = f"{COLS[lag]}{B['cxacum']+jj}" if lag >= 0 else "0"
-                dep = f"(({c}{B['cxacum']+jj}-{ant})/({VIDA}*12))"
-                gasto = f"(-{c}{B['capex']+jj})"
-                f = (f"={gasto}-{dep}" if prev is None
-                     else f"={prev}{B['cxsaldo']+jj}+{gasto}-{dep}")
-            elif key == "cxfwd":
-                # O ativo dedicado entra como DESEMBOLSO, nunca como anuidade:
-                # a TIR exige saida concentrada no inicio e retornos depois.
-                #   - no mes zero: o saldo do ativo ja existente (custo de
-                #     oportunidade de mante-lo neste cliente em vez de realocar)
-                #   - depois: o capex futuro no mes em que ocorre
-                if prev is None:
-                    f = f"={c}{B['capex']+jj}"
-                else:
-                    f = (f'=IF({c}$5="Realizado",0,{c}{B["capex"]+jj}'
-                         f'+IF({prev}$5="Realizado",-{prev}{B["cxsaldo"]+jj},0))')
             elif key == "wc":
                 # capital de giro do proprio modelo (DRE mensal, por planta),
                 # rateado pela participacao do cliente na receita liquida da planta.
@@ -600,23 +577,19 @@ for key, titulo in BLOCOS:
                 rateio = f"{c}${IR_MOD}*IFERROR(MAX(0,{base_res})/{c}${DEN[lvl]},0)"
                 f = f"=IF({DRV_IR}=1,{proprio},{rateio})"
             elif key == "fc1":
-                _cx = (f"{c}{B['cxfwd']+jj}+{c}{B['resid']+jj}" if FWD
-                       else f"{c}{B['capex']+jj}+{c}{B['resid']+jj}")
+                _cx = f"{c}{B['capex']+jj}+{c}{B['resid']+jj}"
                 f = f"={c}{B['mc']+jj}+{_cx}+{c}{B['wc']+jj}+{c}{B['ir1']+jj}"
             elif key == "fc2":
-                _cx = (f"{c}{B['cxfwd']+jj}+{c}{B['resid']+jj}" if FWD
-                       else f"{c}{B['capex']+jj}+{c}{B['resid']+jj}")
+                _cx = f"{c}{B['capex']+jj}+{c}{B['resid']+jj}"
                 f = (f"={c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}"
                      f"+{_cx}+{c}{B['wc']+jj}+{c}{B['ir2']+jj}")
             elif key == "fc3":
-                _cx = (f"{c}{B['cxfwd']+jj}+{c}{B['resid']+jj}" if FWD
-                       else f"{c}{B['capex']+jj}+{c}{B['resid']+jj}")
+                _cx = f"{c}{B['capex']+jj}+{c}{B['resid']+jj}"
                 f = (f"={c}{B['mc']+jj}+{c}{B['fixo']+jj}+{c}{B['encargo']+jj}+{c}{B['ga']+jj}"
                      f"+{_cx}+{c}{B['wc']+jj}+{c}{B['ir3']+jj}")
             elif key in ("ac1", "ac2", "ac3"):
                 lvl = key[-1]
-                disc = (f"IF({c}$5=\"Realizado\",0,{c}{B['fc'+lvl]+jj}/(1+{W_AM})^{c}$4)"
-                        if FWD else f"{c}{B['fc'+lvl]+jj}/(1+{W_AM})^{c}$4")
+                disc = f"{c}{B['fc'+lvl]+jj}/(1+{W_AM})^{c}$4"
                 f = f"={disc}" if prev is None else f"={prev}{B[key]+jj}+{disc}"
             else:
                 f = "=0"
@@ -649,7 +622,7 @@ for j in range(NK):
     m = MR0 + j
     r_idx = IDX0 + j
     v, mc = B["vol"] + j, B["mc"] + j
-    cx = B["cxfwd"] + j if FWD else B["capex"] + j
+    cx = B["capex"] + j        # ativo dedicado: horizonte cheio, nos meses reais
     row = [f"=$A${r_idx}", f"=$B${r_idx}", f"=$C${r_idx}", f"=$D${r_idx}",
            f"=$E${r_idx}", f"=$F${r_idx}", f"=$G${r_idx}",
            f'=IFERROR(DATEDIF($F{m},$G{m},"m"),0)',
@@ -657,19 +630,27 @@ for j in range(NK):
            f"=SUM(${JAN}{B['rec']+j}:$GR{B['rec']+j})",
            f"=SUM(${JAN}{mc}:$GR{mc})",
            f"=IFERROR($K{m}/$I{m},0)",
-           f"=SUM(${JAN}{cx}:$GR{cx})"]
+           f"=SUM($I{cx}:$GR{cx})"]
     for lvl, c0 in (("1", 14), ("2", 19), ("3", 24)):
         f = B["fc" + lvl] + j
         a = B["ac" + lvl] + j
         cV = cl(c0 + 2)
+        # TIR / MTIR / payback: HORIZONTE CHEIO - o desembolso precisa estar dentro.
+        # VPL / IL: janela forward para a operacao, mas o capex dedicado entra pelo
+        # periodo inteiro. O termo subtraido devolve os meses Realizados de tudo que
+        # NAO e capex nem residual (receita, custos, SG&A, giro, IR): esses sao sunk.
+        DFI = f"1/(1+{W_AM})^$I$4:$GR$4"
+        cxr, rsr = B["capex"] + j, B["resid"] + j
+        sunk = (f'SUMPRODUCT(($I$5:$GR$5="Realizado")*'
+                f"($I{f}:$GR{f}-$I{cxr}:$GR{cxr}-$I{rsr}:$GR{rsr}),{DFI})")
         row += [
-          (f'=IF(-SUMIF(${JAN}{f}:$GR{f},"<0")<={MIN_INV}*SUMIF(${JAN}{f}:$GR{f},">0"),"n.a. s/ desembolso",'
-           f'IFERROR(IF((1+IRR(${JAN}{f}:$GR{f},0.02))^12-1>{MAX_TIR},"n.a. TIR>"&TEXT({MAX_TIR},"0%"),(1+IRR(${JAN}{f}:$GR{f},0.02))^12-1),'
-           f'IFERROR(IF((1+IRR(${JAN}{f}:$GR{f},-0.25))^12-1>{MAX_TIR},"n.a. TIR>"&TEXT({MAX_TIR},"0%"),(1+IRR(${JAN}{f}:$GR{f},-0.25))^12-1),"n.a.")))'),
-          f'=IF(-SUMIF(${JAN}{f}:$GR{f},"<0")<={MIN_INV}*SUMIF(${JAN}{f}:$GR{f},">0"),"n.a. s/ desembolso",IFERROR((1+MIRR(${JAN}{f}:$GR{f},{W_AM},{W_AM}))^12-1,"n.a."))',
-          f"=SUMPRODUCT(${JAN}{f}:$GR{f},1/(1+{W_AM})^${JAN}$4:$GR$4)",
-          f'=IFERROR(1+{cV}{m}/ABS(SUMPRODUCT(${JAN}{cx}:$GR{cx},1/(1+{W_AM})^${JAN}$4:$GR$4)),"n.a.")',
-          f'=IFERROR(INDEX(${JAN}$2:$GR$2,MATCH(TRUE,INDEX(${JAN}{a}:$GR{a}>0,0),0)),"n.a.")']
+          (f'=IF(-SUMIF($I{f}:$GR{f},"<0")<={MIN_INV}*SUMIF($I{f}:$GR{f},">0"),"n.a. s/ desembolso",'
+           f'IFERROR(IF((1+IRR($I{f}:$GR{f},0.02))^12-1>{MAX_TIR},"n.a. TIR>"&TEXT({MAX_TIR},"0%"),(1+IRR($I{f}:$GR{f},0.02))^12-1),'
+           f'IFERROR(IF((1+IRR($I{f}:$GR{f},-0.25))^12-1>{MAX_TIR},"n.a. TIR>"&TEXT({MAX_TIR},"0%"),(1+IRR($I{f}:$GR{f},-0.25))^12-1),"n.a.")))'),
+          f'=IF(-SUMIF($I{f}:$GR{f},"<0")<={MIN_INV}*SUMIF($I{f}:$GR{f},">0"),"n.a. s/ desembolso",IFERROR((1+MIRR($I{f}:$GR{f},{W_AM},{W_AM}))^12-1,"n.a."))',
+          f"=SUMPRODUCT($I{f}:$GR{f},{DFI})-{sunk}",
+          f'=IFERROR(1+{cV}{m}/ABS(SUMPRODUCT($I{cx}:$GR{cx},{DFI})),"n.a.")',
+          f'=IFERROR(INDEX($I$2:$GR$2,MATCH(TRUE,INDEX($I{a}:$GR{a}>0,0),0)),"n.a.")']
     met.append(row)
 ws.Range(ws.Cells(MR0, 1), ws.Cells(MR0 + NK - 1, len(h2))).Formula = tuple(tuple(r) for r in met)
 ws.Range(ws.Cells(MR0, 6), ws.Cells(MR0 + NK - 1, 7)).NumberFormat = "mmm/aa"
