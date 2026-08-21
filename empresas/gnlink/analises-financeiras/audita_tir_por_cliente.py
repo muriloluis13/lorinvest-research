@@ -22,13 +22,13 @@ P = {"molec":("OPEX",(372,373,374)),"energia":("OPEX",(398,399,400)),"insumos":(
      "dist_t":("OPEX",(701,702,703)),"reg_t":("OPEX",(1959,1960,1961)),"capex_t":("Capex",(677,678,679)),
      "cap_gnl":("Receita",(9,10,11)),"cap_gnc":("Receita",(18,19,20)),
      "vol_gnl_t":("Receita",(365,392,427)),"vol_gnc_t":("Receita",(523,550,585)),
-     "mol_unit":("OPEX",(363,364,365))}
+     "mol_unit":("OPEX",(363,364,365)),"rec_t":("Receita",(727,733,739))}
 ORD = ["vol","capat","shvol","shvolmol","shcap","rec","molec","liqvar","dist","regas","mc",
        "fixo","encargo","ga","capex","resid","wc","pf1","ir1","fc1","pf2","ir2","fc2",
        "pf3","ir3","fc3","ac1","ac2","ac3"]
 R_PREM, PANEL0, PANEL_H = 10, 28, 22
 GA_ROW = PANEL0 + 3*PANEL_H + 1
-IDX0 = GA_ROW + 9
+IDX0 = GA_ROW + 12
 
 xl = win32.gencache.EnsureDispatch("Excel.Application"); xl.Visible=False; xl.DisplayAlerts=False
 wb = xl.Workbooks.Open(os.path.abspath("Modelo - Realizado Jun.26 (v ajust) - TIR por Cliente.xlsx"), UpdateLinks=0)
@@ -105,7 +105,7 @@ def chk_int(ctx,row,p,k,j,rr):
         pp = (rr - PANEL0)//PANEL_H
         if pp != p: problemas.append((ctx,row,"painel L%d e da planta %d, cliente da %d" % (rr,pp+1,p+1)))
         return
-    if GA_ROW <= rr <= GA_ROW+7: return
+    if GA_ROW <= rr <= GA_ROW+9: return
     if IDX0 <= rr < IDX0+NK:
         if rr != IDX0+j: problemas.append((ctx,row,"indice L%d deveria ser %d" % (rr, IDX0+j)))
         return

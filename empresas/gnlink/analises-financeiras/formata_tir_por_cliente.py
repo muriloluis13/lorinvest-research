@@ -100,15 +100,7 @@ xl.ActiveWindow.DisplayGridlines = False
 ws.Tab.Color = rgb(0x10, 0x48, 0x62)
 print("base ok")
 
-# larguras
-ws.Columns("A").ColumnWidth = 7
-ws.Columns("B").ColumnWidth = 46
-ws.Columns("C").ColumnWidth = 7
-ws.Columns("D").ColumnWidth = 13
-ws.Columns("E").ColumnWidth = 12
-ws.Columns("F:G").ColumnWidth = 10
-ws.Columns("H").ColumnWidth = 9
-R(1, C0, 1, C1).EntireColumn.ColumnWidth = 12
+# larguras de coluna: NAO mexer - sao ajuste manual do analista
 
 # ---------- cabecalho de datas ----------
 bar(1, 1, C1, NAVY, WHITE)
@@ -163,7 +155,7 @@ for orow in ORFAO:
     rg.Font.Bold = True
     rg.Font.Color = RED
     rg.Interior.Color = LRED
-for r in range(GA_ROW, GA_ROW + 8):
+for r in range(GA_ROW, GA_ROW + 10):
     R(r, 1, r, C1).Font.Bold = True
     R(r, C0, r, C1).NumberFormat = FMT_R
 print("painel ok")

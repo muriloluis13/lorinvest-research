@@ -66,7 +66,10 @@ P = {
     "vol_gnl_t":("Receita", (365, 392, 427)),   # volume total da planta, m3
     "vol_gnc_t":("Receita", (523, 550, 585)),
     "mol_unit":("OPEX", (363, 364, 365)),       # custo unitario da molecula, R$/m3
+    "rec_t":   ("Receita", (727, 733, 739)),    # receita liquida da planta
 }
+# capital de giro por planta, direto da DRE mensal (mesmas linhas do FCFF do analista)
+WC_T = (482, 557, 631)
 DRE_MENSAL = "'Demonstrativo Financeiro Mensal'"
 GA_MATRIZ_ROW = 89
 
@@ -78,7 +81,7 @@ R_PREM = 10         # primeira linha de premissas (linha 4 = contador de períod
 PANEL0 = 28         # inicio do painel por planta (premissas vao ate a linha 24)
 PANEL_H = 22        # linhas por planta no painel
 GA_ROW = PANEL0 + 3 * PANEL_H + 1          # linha do G&A Matriz (global)
-IDX0 = GA_ROW + 9                          # indice (GA_ROW+4..+7 = linhas globais de IR)
+IDX0 = GA_ROW + 12                         # GA_ROW+4..+7 = IR, +8 = plantas em operacao
 BLK0 = None                                # definidos apos apurar NK
 BLK_STEP = None
 
@@ -200,6 +203,7 @@ for _s in list(wb.Worksheets):
 if ws is None:
     ws = wb.Worksheets.Add(After=wb.Worksheets(wb.Worksheets.Count))
     ws.Name = ABA
+    NOVA = True
     print("aba criada")
 else:
     try:
@@ -211,6 +215,7 @@ else:
     except Exception:
         pass
     ws.Cells.Clear()
+    NOVA = False
     print("aba existente reaproveitada (conteudo limpo, referencias externas preservadas)")
 
 BLK0 = IDX0 + NK + 4
@@ -218,6 +223,16 @@ BLK_STEP = NK + 3
 for _k, (_key, _) in enumerate(BLOCOS):
     B[_key] = BLK0 + _k * BLK_STEP
 MET0 = BLK0 + len(BLOCOS) * BLK_STEP + 2
+
+if NOVA:      # largura de coluna e ajuste manual do analista; so define na criacao
+    ws.Columns("A").ColumnWidth = 7
+    ws.Columns("B").ColumnWidth = 46
+    ws.Columns("C").ColumnWidth = 7
+    ws.Columns("D").ColumnWidth = 13
+    ws.Columns("E").ColumnWidth = 12
+    ws.Columns("F:G").ColumnWidth = 10
+    ws.Columns("H").ColumnWidth = 9
+    ws.Range(ws.Cells(1, C0), ws.Cells(1, C1)).EntireColumn.ColumnWidth = 12
 
 def put(rng, val):
     ws.Range(rng).Value = val
@@ -236,7 +251,9 @@ put("B1", "Ano"); put("B2", "Mês"); put("B3", "Dias")
 put("B4", "Discounting count"); put("B5", "Status")
 # t = 0 no primeiro mes Orcado; realizado fica negativo (capitalizado), orcado positivo.
 # O ancoramento e dinamico: quando o corte de realizado andar, o contador anda junto.
-CONT = [f'=COLUMN()-IFERROR(MATCH("Orçado",$I$5:$GR$5,0),1)-8' for _ in COLS]
+# Realizado entra com t=0 -> fator 1 -> peso NOMINAL, sem levar a valor futuro.
+# Orcado conta 0,1,2,... a partir do primeiro mes Orcado.
+CONT = [f'=MAX(0,COLUMN()-IFERROR(MATCH("Orçado",$I$5:$GR$5,0),1)-8)' for _ in COLS]
 bulk(1, [[f"=Receita!{c}1" for c in COLS],
          [f"=Receita!{c}2" for c in COLS],
          [f"=Receita!{c}3" for c in COLS],
@@ -253,14 +270,14 @@ prem = [
  ("Vida útil do capex de planta (anos)",            "=10", "0"),
  ("% Residual do capex — Equipamento",              "=1", "0%"),
  ("% Residual do capex — Infraestrutura",           "=0", "0%"),
- ("Dias de recebimento (DSO)",                      "=30", "0"),
- ("Dias de pagamento a fornecedores (DPO)",         "=30", "0"),
+ ("Dias de recebimento (DSO) — não utilizado",      "=30", "0"),
+ ("Dias de pagamento (DPO) — não utilizado",        "=30", "0"),
  ("Driver do G&A Matriz  (1 = igual por planta | 2 = Receita)", "=1", "0"),
  ("Compensar prejuízo fiscal (1 = sim | 0 = não)",  "=1", "0"),
  ("Capacidade ocupada (1 = só contratada | 2 = máx(contratada, realizada))", "=2", "0"),
  ("Desembolso mínimo para a TIR ser significativa (% das entradas)", "=0.01", "0.0%"),
  ("TIR máxima significativa (% a.a.) — acima disso a TIR não informa", "=5", "0%"),
- ("Nº de plantas para o rateio do G&A Matriz", "=3", "0"),
+ ("Nº de plantas p/ rateio do G&A (0 = dinâmico, só as em operação)", "=0", "0"),
  ("Origem do IR (1 = 34% sobre o resultado do cliente | 2 = rateio do IR efetivo do modelo)", "=2", "0"),
 ]
 put("B8", "PREMISSAS  (editáveis)")
@@ -272,6 +289,18 @@ for k, (lab, f, fmt) in enumerate(prem):
     ws.Range(f"D{r}").Font.Color = 0xC00000
 W_AA, W_AM, TAX, VIDA, RES_EQ, RES_IN, DSO, DPO, DRV_GA, USA_PF, DRV_CAP, MIN_INV, MAX_TIR, N_PL, DRV_IR = \
     [f"$D${R_PREM+k}" for k in range(15)]
+
+# --- plantas em operacao (Painel de Controle L53-55: D = inicio, F = fim) ---
+# Precisa estar definido ANTES do painel por planta, que usa ativa() no custo orfao.
+PC = "'Painel de Controle'"
+def ativa(c, p):
+    # planta EM OPERACAO: usada para dividir o G&A da matriz
+    return f"IF(AND({c}$2>={PC}!$D${53+p},{c}$2<{PC}!$F${53+p}),1,0)"
+def ate_fim(c, p):
+    # planta AINDA NAO ENCERRADA: os custos dela (inclusive o custo de capital
+    # do capex em obra) existem desde antes da partida e cessam no encerramento.
+    return f"IF({c}$2<{PC}!$F${53+p},1,0)"
+N_ATIV = GA_ROW + 8              # linha global: quantas plantas operam no mes
 
 # ---------------- painel por planta ----------------
 put(f"B{PANEL0-2}", "PAINEL POR PLANTA — pools de custo, capacidade e ociosidade")
@@ -353,9 +382,10 @@ for p in range(3):
             bs = B[bk]
             rows[16+kk].append(f"=SUMIF($C${bs}:$C${bs+NK-1},$C${r0},{c}${bs}:{c}${bs+NK-1})")
         # +20 custo orfao = tudo que os pools carregam e nao foi alocado a nenhum cliente
-        rows[19].append(f"={c}{r0+6}*(1-{c}{r0+19})+{c}{r0+7}*(1-{c}{r0+18})"
-                        f"+({c}{r0+11}+{c}{r0+16})*(1-{c}{r0+17})"
-                        f"+IF({DRV_GA}=1,{c}${GA_ROW}/{N_PL}*(1-{c}{r0+17}),0)")
+        _div = f"IF({N_PL}=0,{c}${N_ATIV},{N_PL})"
+        rows[19].append(f"={ate_fim(c,p)}*({c}{r0+6}*(1-{c}{r0+19})+{c}{r0+7}*(1-{c}{r0+18})"
+                        f"+({c}{r0+11}+{c}{r0+16})*(1-{c}{r0+17}))"
+                        f"+{ativa(c,p)}*IF({DRV_GA}=1,IFERROR({c}${GA_ROW}/{_div},0)*(1-{c}{r0+17}),0)")
     bulk(r0 + 1, rows)
     for k in (1, 2, 3, 4, 5):
         ws.Range(ws.Cells(r0+k, C0), ws.Cells(r0+k, C1)).NumberFormat = "#,##0"
@@ -393,6 +423,12 @@ for c in COLS:
             parts.append(f"{sh}!{c}{rr}")
     _lin.append("=" + "+".join(parts) if parts else "=0")
 bulk(GA_ROW + 3, [_lin])
+
+put(f"B{N_ATIV}", "Nº de plantas em operação no mês (Painel de Controle, fim de operação)")
+bulk(N_ATIV, [["=" + "+".join(ativa(c, p) for p in range(3)) for c in COLS]])
+GA_SP = GA_ROW + 9
+put(f"B{GA_SP}", "G&A da matriz em meses SEM planta em operação (R$) — não alocável")
+bulk(GA_SP, [[f"=IF({c}${N_ATIV}=0,{c}${GA_ROW},0)" for c in COLS]])
 
 put(f"B{GA_ROW+2}", "Capacidade contratada ativa total das 3 plantas (m³/dia)")
 bc = B["capat"]
@@ -447,7 +483,9 @@ for key, titulo in BLOCOS:
                 sh, rr = src_row("vol_gnl", i); _, r2 = src_row("vol_gnc", i)
                 f = f"={sh}!{c}{rr}+{sh}!{c}{r2}"
             elif key == "capat":
-                f = (f"=IF(AND({c}$2>=$F{r},{c}$2<$G{r}),"
+                # planta encerrada nao tem capacidade ocupada, mesmo que o
+                # contrato do cliente se estenda alem do fim de operacao.
+                f = (f"={ativa(c,p)}*IF(AND({c}$2>=$F{r},{c}$2<$G{r}),"
                      f"IF({DRV_CAP}=2,MAX($E{r},IFERROR({c}{B['vol']+jj}/{c}$3,0)),$E{r}),"
                      f"IF({DRV_CAP}=2,IFERROR({c}{B['vol']+jj}/{c}$3,0),0))")
             elif key == "shvol":
@@ -483,8 +521,9 @@ for key, titulo in BLOCOS:
             elif key == "encargo":
                 f = f"={c}{panel_row(p,16)}*{c}{B['shcap']+jj}"
             elif key == "ga":
+                div = f"IF({N_PL}=0,{c}${N_ATIV},{N_PL})"
                 f = (f"=IF({DRV_GA}=1,"
-                     f"{c}${GA_ROW}/{N_PL}*{c}{B['shcap']+jj},"
+                     f"{ativa(c,p)}*IFERROR({c}${GA_ROW}/{div},0)*{c}{B['shcap']+jj},"
                      f"{c}${GA_ROW}*IFERROR(MAX(0,{c}{B['rec']+jj})/{c}${GA_ROW+1},0))")
             elif key == "capex":
                 parts = []
@@ -498,14 +537,10 @@ for key, titulo in BLOCOS:
                 inf = f"(SUM({shi}!$I{rri}:$GR{rri})+SUM({shn}!$I{rrn}:$GR{rrn}))*{RES_IN}"
                 f = f"=IF({c}$2=$G{r},{eq}+{inf},0)"
             elif key == "wc":
-                cur = (f"({c}{B['rec']+jj}*{DSO}/30+({c}{B['molec']+jj}+{c}{B['liqvar']+jj}"
-                       f"+{c}{B['dist']+jj}+{c}{B['regas']+jj})*{DPO}/30)")
-                if prev is None:
-                    f = f"=-{cur}"
-                else:
-                    pv = (f"({prev}{B['rec']+jj}*{DSO}/30+({prev}{B['molec']+jj}+{prev}{B['liqvar']+jj}"
-                          f"+{prev}{B['dist']+jj}+{prev}{B['regas']+jj})*{DPO}/30)")
-                    f = f"=-({cur}-{pv})"
+                # capital de giro do proprio modelo (DRE mensal, por planta),
+                # rateado pela participacao do cliente na receita liquida da planta.
+                f = (f"=IFERROR({DRE_MENSAL}!{c}{WC_T[p]}*{c}{B['rec']+jj}"
+                     f"/Receita!{c}{P['rec_t'][1][p]},0)")
             elif key in ("pf1", "pf2", "pf3"):
                 nb = {"pf1": B['mc'], "pf2": B['mc'], "pf3": B['mc']}[key]
                 if key == "pf1":
@@ -633,10 +668,11 @@ recs.append(("Custos fixos de planta: Σ alocado + Σ órfão − pool",
              lambda c: f"={sumblk('fixo',c)}+{sumblk('encargo',c)}+({panel_sum2(11,17,c)})+({panel_sum2(16,17,c)})-(({panel_sum(11,c)})+({panel_sum(16,c)}))"))
 recs.append(("Capex: Σ clientes + Σ planta − modelo",
              lambda c: f"=-{sumblk('capex',c)}+({panel_sum(12,c)})-(Capex!{c}677+Capex!{c}678+Capex!{c}679)"))
-recs.append(("G&A Matriz: Σ alocado + Σ não alocado − consolidado",
+recs.append(("G&A Matriz: Σ alocado + Σ órfão + Σ sem planta − consolidado",
              lambda c: f"={sumblk('ga',c)}+IF({DRV_GA}=1,"
-                       + "+".join(f"{c}${GA_ROW}/{N_PL}*(1-{c}{panel_row(p,17)})" for p in range(3))
-                       + f",0)-{c}${GA_ROW}"))
+                       + "+".join(f"{ativa(c,p)}*IFERROR({c}${GA_ROW}/IF({N_PL}=0,{c}${N_ATIV},{N_PL}),0)*(1-{c}{panel_row(p,17)})"
+                                  for p in range(3))
+                       + f",0)+{c}${GA_SP}-{c}${GA_ROW}"))
 def _naoaloc(c):
     return "+".join(f"IF({c}${DEN[l]}=0,{c}${IR_MOD},0)" for l in ("1","2","3"))
 recs.append(("IR/CSLL: Σ clientes + não alocado − modelo (pior dos 3 níveis)",
@@ -663,7 +699,7 @@ notas = [
  ("Denominadores do rateio", "Os shares de volume e de capacidade têm como denominador o total DA PLANTA lido do modelo, não a soma das linhas desta aba. Assim o custo dos clientes fora do escopo não é empurrado para os que ficaram — cai no custo órfão. É isso que mantém a reconciliação fechando."),
  ("Escopo", f"3 plantas operacionais (PR, BA, RN) e {NK} clientes, jan/23 a dez/38 (192 meses). Terminal PE, Argentina e Outro ficam fora."),
  ("Janela de capacidade", "O cliente ocupa capacidade a partir do INÍCIO DA OPERAÇÃO (não da assinatura) até o fim do contrato. Meses entre assinatura e partida não geram rateio."),
- ("Janela do VPL", "Horizonte completo: jan/23 a dez/38. O realizado entra no valor, capitalizado para o mês zero (expoente negativo). É o que mantém o capex de construção dentro da conta — restrito ao orçado, a planta apareceria de graça para quem chegou depois e o preço-piso desabaria (cai de 1,11 para 1,05 no PR e a ociosidade de 0,37 para 0,03)."),
+ ("Janela do VPL", "Horizonte completo: jan/23 a dez/38. O realizado entra com t=0, ou seja a valor NOMINAL, sem ser capitalizado para o mês zero — decisão do analista, alinhada ao DCF do modelo, que também dá fator 1 ao passado. É o que mantém o capex de construção dentro da conta — restrito ao orçado, a planta apareceria de graça para quem chegou depois e o preço-piso desabaria (cai de 1,11 para 1,05 no PR e a ociosidade de 0,37 para 0,03)."),
  ("Desconto", "Mês zero = primeiro mês Orçado (linha 4, contador dinâmico). O realizado é capitalizado para frente (expoente negativo) e o orçado descontado para trás. O VPL fica em reais do primeiro mês orçado — inclui o custo de oportunidade do que já foi investido. TIR, payback, índice de lucratividade e preço-piso são invariantes à âncora."),
  ("Fluxo", "Desalavancado. A dívida não é rateada por cliente: a TIR do cliente é comparada ao WACC. A alavancagem continua no nível planta/consolidado do DCF."),
  ("Nível 1 — incremental", "Receita − molécula − liquefação/compressão variável − distribuição direta − regás direto − capex dedicado + residual ± capital de giro − IR. Responde 'aceito este contrato a este preço?'."),
@@ -674,6 +710,9 @@ notas = [
  ("Encargo de capacidade", "Depreciação econômica linear (vida útil da premissa) + custo de capital sobre o saldo do ativo. Autoextingue-se — não cobra capex em perpetuidade."),
  ("Residual do capex", "Por decisão do analista: equipamento volta 100% do valor NOMINAL no mês de fim de contrato — sem depreciação, sem probabilidade de reuso, sem custo de desmobilização. Infraestrutura tem residual 0% (fica no site do cliente). Ambos os percentuais são editáveis nas premissas."),
  ("ATENÇÃO — residual", "O residual é um crédito sintético: ele NÃO existe no caixa da companhia. Por isso a soma dos fluxos dos clientes não bate com o DCF da planta — a diferença é exatamente o residual. É premissa deliberada, não erro."),
+ ("G&A pré-operacional", "De jan/23 a jul/24 nenhuma planta operava. Nesses meses o G&A da matriz não tem planta para ratear e vai para a linha 'G&A da matriz em meses SEM planta em operação' — R$ 26,1 mi em VP. Sem essa linha o custo simplesmente sumia da conta."),
+ ("Planta encerrada", "O custo órfão de cada planta usa DUAS janelas: os custos da própria planta (pools e encargo de capacidade) valem de jan/23 até o fim de operação — o custo de capital do capex em obra é real e existe antes da partida —, enquanto o G&A da matriz só é rateado entre plantas EM OPERAÇÃO. Zerar tudo antes da partida descartava R$ 25 mi de custo de capital de construção. Cada planta para de gerar custo órfão a partir do seu fim de operação (Painel de Controle, coluna F das linhas 53-55: o PR encerra em mar/36). A partir daí o G&A da matriz passa a ser dividido só entre as plantas ainda operando — o divisor é a linha 'Nº de plantas em operação no mês', não um número fixo. Deixar o divisor fixo em 3 jogava um terço do G&A no órfão do PR para sempre."),
+ ("Capital de giro", "Vem do próprio modelo — linha (±) Variação de Capital de Giro da DRE mensal, por planta (L482 PR, L557 BA, L631 RN) — rateada pela participação do cliente na receita líquida da planta. As premissas DSO/DPO ficaram sem uso."),
  ("Imposto", "Por padrão (premissa Origem do IR = 2) o IR não é 34% teórico: é o IR/CSLL efetivo do modelo, rateado mês a mês pela base tributável positiva de cada cliente. A companhia mal é pagante no horizonte (EBT acumulado de R$ 19,6 mi), então cobrar 34% cheio de cada cliente inventava imposto e derrubava as TIRs. Com o rateio, a soma dos clientes fecha com o modelo. Origem do IR = 1 volta ao 34% próprio com prejuízo fiscal por cliente."),
  ("Imposto — modo 1 (alternativo)", "34% sobre o resultado do nível, com compensação integral de prejuízo fiscal acumulado do próprio cliente (sem a trava de 30%). Base = resultado operacional, sem depreciação."),
  ("TIR", "Calculada sobre o fluxo mensal e anualizada. Marcada 'n.a. s/ desembolso' quando o desembolso é irrelevante frente às entradas — a TIR não é definida nesses casos. Use VPL, IL e margem R$/m³ nesses clientes."),
