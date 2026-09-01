@@ -22,7 +22,7 @@
 **Parecer (conclusão).**
 - **Solidez do vínculo institucional com o governo (amplo): ALTA.** A FDC tem carteira consolidada de clientes públicos (agências reguladoras, STJ, TCE-MG, governos estaduais, BNDES, MPMG, Codemge) e legitimidade de elite (4º–5º lugar mundial em educação executiva no ranking do Financial Times, 2024–2025). **[FATO]**
 - **Relevância da FDC como ator de política de gás/transição energética: BAIXA/MARGINAL.** O circuito técnico que efetivamente alimenta MME/EPE/ANP/CNPE é ocupado por FGV Energia, GESEL/UFRJ, IBP, INEEP, Abegás e Abiogás. A FDC **não aparece** nesse circuito — nem no CNPE, nem em consultas públicas do PLANTE, nem como autora de estudos oficiais. **[INFERÊNCIA de alta confiança, ver §7 e Lacunas]**
-- **Independência: PRESERVADA, com pontos de atenção estruturais — não há conflito consumado comprovado.** Existem vínculos financeiros remunerados com estatais e com o setor de energia (Codemge, BNDES, o histórico "Núcleo Petrobras de Sustentabilidade", parcerias com IBP e CCEE, Energisa como cliente). Nenhum caso de estudo enviesado ou irregularidade foi localizado; a FDC **não** figura em Lava Jato/TCU/CGU. O risco é de **aparência** de conflito, não de conflito provado. **[FATO + INFERÊNCIA]**
+- **Independência: PRESERVADA, com pontos de atenção estruturais — não há conflito consumado comprovado.** Existem vínculos financeiros remunerados com estatais e com o setor de energia (Codemge, BNDES, o histórico "Núcleo Petrobras de Sustentabilidade", parcerias com IBP e CCEE, Energisa como cliente). **A consulta primária ao Portal da Transparência (§7.4) confirma 141 contratos federais entre 2010–2025, somando R$ 43,99 mi — dos quais 91 (R$ 15,22 mi) são da pasta do Ministério de Minas e Energia (81 com a Petrobras, além de ANP, EPE, ANEEL e ANM).** Ponto decisivo: **o objeto de todos esses contratos de energia é educação executiva / capacitação de lideranças — nenhum é estudo ou assessoria de política/regulação de gás.** Nenhum caso de estudo enviesado ou irregularidade foi localizado; a FDC **não** figura em Lava Jato/TCU/CGU. O risco é de **aparência** de conflito, não de conflito provado. **[FATO + INFERÊNCIA]**
 
 **Implicação para a Lorinvest/GNLink (§9).** Qualquer tese que posicione a FDC como *canal de influência sobre a política de gás* ou como *fonte técnica de referência no Novo Mercado de Gás* **não se sustenta na evidência**. A FDC é útil como (i) plataforma de *convocação* e *relacionamento institucional* (acesso a executivos e a quadros do Estado) e (ii) chancela reputacional — não como *think tank* de energia. Para influência técnica em política de gás, os interlocutores são outros (FGV Energia, IBP, GESEL, EPE).
 
@@ -48,7 +48,7 @@
 | Origem | Fundada em ago/1976, em BH, a partir do Centro de Extensão da PUC Minas. Fundadores: Cardeal Dom Serafim F. de Araújo e Emerson de Almeida. | [FATO] |
 | Sede | Campus Aloysio Faria, Nova Lima/MG; unidades em BH, SP e RJ. | [FATO] |
 | Modelo de receita | Majoritariamente **privado**: educação executiva (aberta e customizada), mestrados profissionais, redes de parceria empresarial (ex.: PAEX, ~500 empresas), patrocínio de núcleos/projetos. Última cifra pública de faturamento: **~R$ 215 mi (2015)**. | [FATO] / receita recente [LACUNA] |
-| Dependência de verba pública | **Baixa/moderada.** Recebimentos federais acumulados de **R$ 27,8 mi** (Portal da Transparência) + contrato não reembolsável do BNDES, ante faturamento anual da ordem de R$ 200 mi+. | [FATO] + [INFERÊNCIA] |
+| Dependência de verba pública | **Baixa.** Recursos federais efetivamente recebidos acumulados de **R$ 27,8 mi**; **valor contratado** federal de **R$ 43,99 mi em 141 contratos (2010–2025)** — média ~R$ 2,9 mi/ano, ante faturamento anual da ordem de R$ 200 mi+ (≈1–1,5% da receita). Ver §7.4. | [FATO] |
 | Governança | Conselho Curador (presidente Mozart Pereira dos Santos) com grande empresariado — Pedro Passos (Natura), Rubens Menin (MRV/Inter), Janete Vaz (Sabin), Henrique Salvador (Mater Dei) — e figuras internacionais (INSEAD, ex-VP do Banco Mundial). Diretoria Estatutária presidida por Emerson de Almeida (cofundador). **Presidente Executivo/Dean: Antonio Batista da Silva Junior.** | [FATO] |
 | Reputação | Elite global: **4º lugar (2025)** e **5º (2024)** em programas abertos de educação executiva no ranking do Financial Times; única brasileira no top 5–10. Acreditações AMBA e EQUIS. | [FATO] |
 | Controvérsias públicas | **Nenhuma localizada.** Cobertura de imprensa majoritariamente elogiosa. | [LACUNA]/[FATO] |
@@ -83,7 +83,7 @@ A relação é **real e multicanal**, mas concentra-se fora do domínio de energ
 - **Envolvimento indireto com o tema gás — duas naturezas:**
   1. **Educação executiva:** pós-graduação em **"Gestão Estratégica de Petróleo, Gás e Energias Renováveis"**, em parceria com o **IBP** (módulo "Gás Natural e Biocombustíveis"). É produto comercial de mercado (aluno paga), **não** estudo encomendado por governo. **[FATO]**
   2. **Relacionamento comercial/institucional:** executivos de petroleiras e distribuidoras cursam programas gerais da FDC (MBA, PDE) — educação genérica de gestão, não produção sobre gás. **[FATO]**
-- **Estudos encomendados sobre gás (MME/EPE/ANP/Petrobras/Gasmig/Comgás/IBP/Abegás):** **nenhum localizado.** Os estudos de referência sobre a abertura do mercado de gás são de **outras instituições** (FGV Energia, EPE, BNDES, IPEA, diagnóstico MDIC/MBC/FGV). A FDC não figura entre os produtores. **[FATO]**
+- **Estudos encomendados sobre gás (MME/EPE/ANP/Petrobras/Gasmig/Comgás/IBP/Abegás):** **nenhum localizado.** Atenção à distinção confirmada pela consulta ao Portal da Transparência (§7.4): a FDC **tem, sim, contratos** com entes da pasta de energia — inclusive com a própria **ANP** (regulador do petróleo, gás natural e biocombustíveis), a **EPE**, a **ANEEL** e a **Petrobras** —, mas **o objeto de todos eles é educação executiva / capacitação de lideranças e gestão**, não estudo ou assessoria sobre o mercado/regulação de gás. Os estudos de referência sobre a abertura do mercado de gás continuam sendo de **outras instituições** (FGV Energia, EPE, BNDES, IPEA, diagnóstico MDIC/MBC/FGV). A FDC não figura entre os produtores. **[FATO]**
 - **Câmaras técnicas / GTs / fóruns de política de gás (federal ou MG):** **nenhuma participação institucional da FDC localizada.** **[LACUNA]**
 
 **Leitura reputacional.** Para o objetivo "avaliar a relação da FDC com o governo *no tema gás*", a evidência aponta **ausência de pegada** da FDC como fornecedora de estudos ou assessoria. Esse vazio é, em si, o achado mais relevante do recorte de gás.
@@ -99,7 +99,7 @@ Diferentemente do gás, na transição energética a FDC **tem estrutura e prese
 - **Ponto de contato mais concreto com o governo (achado relevante, com ressalva de autoria):** houve **workshops de descarbonização da siderurgia** que reuniram **Casa Civil, MMA/Plano Clima, Ministério da Fazenda e ABDI**, além de ArcelorMittal, Gerdau e CSN, com **financiamento do Instituto Clima e Sociedade (iCS)**. Os eventos foram promovidos por **Imagine Brasil** (iniciativa ligada à FDC) + iCS; o vínculo direto "a FDC mediou" **não está plenamente confirmado** — o nome da FDC mais próximo do tema é o Prof. **Fabio Marques**, que é professor *associado* (fora do *core faculty* de 34), com trajetória em mercados de carbono/clima. De todo modo, é **articulação público-privada**, não assessoria técnica contratada por ministério de energia. **[FATO quanto ao evento e financiador / autoria FDC: confirmar — ver Anexo A, §A.3]**
 - **COP30 (Belém, 2025):** painéis com Amcham, Abiove e ENGIE; iniciativas "Banzeiro da Esperança" e "Road to COP30"; participação na "Carta da Amazônia". Discurso: transição exige coordenação público-privada e financiamento privado. **[FATO]**
 - **Parceria FDC × CCEE:** pós-graduação para o setor elétrico (fev/2025) — interface com o ecossistema institucional do setor elétrico (a CCEE opera o mercado sob regulação ANEEL/MME), embora a CCEE seja associação civil, não órgão de governo. **[FATO]**
-- **Sem convênio formal FDC–MME/EPE/MDIC** dedicado a transição energética localizado; a FDC **não** figura nominalmente nos comitês do Combustível do Futuro nem do PLANTE. **[LACUNA]**
+- **Sem contrato/convênio dedicado a transição energética** localizado com MME/EPE/MDIC. Há contratos com entes da pasta (EPE, ANEEL, Petrobras — ver §7.4), mas de **educação executiva/liderança**, não de transição energética; a FDC **não** figura nominalmente nos comitês do Combustível do Futuro nem do PLANTE. **[FATO]**
 
 **Leitura.** O padrão é inequívoco: a FDC **convoca, capacita e media** o diálogo sobre transição — **não desenha a política**. Isso lhe dá acesso e legitimidade junto ao Estado, mas não a coloca como assessora técnica da política energética.
 
@@ -123,6 +123,37 @@ Este é o eixo mais sensível do parecer. A avaliação distingue **conflito est
 - **Forte no formal:** Política de Conflito de Interesses (datada 23/06/2026), Carta de Convivência, canal de ética, demonstrações financeiras e prestação de contas dos contratos BNDES publicadas. **[FATO]**
 - **Fraca no substantivo:** a FDC **não divulga de forma aberta** (i) a lista de financiadores/patrocinadores por estudo/núcleo, (ii) os valores dos contratos privados com estatais, (iii) a autoria/patrocínio explícito em cada publicação. A remoção do nome "Petrobras" do núcleo ilustra a opacidade do patrocínio ao leitor final. **[FATO/INFERÊNCIA]**
 
+**7.4. Contratos federais — evidência primária do Portal da Transparência (consulta de 01/09/2026).**
+
+Consulta interativa ao Portal da Transparência (CNPJ 19.268.267/0001-92), que fecha a lacuna prioritária do parecer. **Todos os números abaixo são [FATO], extraídos da base oficial.** A lista completa dos 141 contratos (com órgão, objeto, modalidade, datas e valor) está no anexo de dados [`contratos-federais-fdc-portal-transparencia.csv`](contratos-federais-fdc-portal-transparencia.csv).
+
+**Panorama.** **141 contratos** com o Poder Executivo Federal entre **2010 e 2025**, somando **R$ 43,99 milhões** de valor contratado. Complementarmente: **7 convênios** (R$ 3,91 mi liberado, todos **antigos — 1996–2011**, com Min. Agricultura e MCTI) e **~R$ 27,8 mi** de recursos efetivamente recebidos (pagamentos). O valor federal é **modesto** (~R$ 2,9 mi/ano de contratos ante faturamento de R$ 200 mi+), confirmando **baixa dependência** de verba pública.
+
+**Modalidade de contratação (achado de governança).** Praticamente **inexistente a licitação competitiva**: 39 contratos por **inexigibilidade de licitação** (R$ 18,8 mi), 2 por dispensa (R$ 0,9 mi) e 100 sem modalidade informada (R$ 24,3 mi — tipicamente estatais/Petrobras). Confirma o vetor de risco reputacional já apontado: o relacionamento federal se dá **por contratação direta**, apoiada na "notória especialização".
+
+**Por órgão superior (top):**
+
+| Órgão superior | Nº | Valor contratado |
+|---|---:|---:|
+| **Ministério de Minas e Energia** | **91** | **R$ 15,22 mi** |
+| Ministério da Saúde (Fiocruz, ANVISA, ANS) | 7 | R$ 6,53 mi |
+| Ministério da Gestão e Inovação (MGI) | 2 | R$ 5,36 mi |
+| Ministério das Comunicações (Anatel) | 7 | R$ 3,85 mi |
+| MDIC (BNDES) | 3 | R$ 3,56 mi |
+| Ministério da Fazenda (Receita) | 7 | R$ 3,35 mi |
+| Demais (Integração, AGU, Cultura, Transportes, Defesa, Portos, MEC, MCTI, BC, Previdência, Trabalho) | 24 | ~R$ 6,1 mi |
+
+**O bloco "Minas e Energia" — leitura crítica.** É o maior por número e valor, mas **não representa atuação em política energética**:
+- **Composição:** Petrobras 81 contratos (R$ 11,32 mi) · **ANM** (Agência Nacional de Mineração) 4 (R$ 1,84 mi) · **ANP** (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) 3 (R$ 1,16 mi) · **EPE** (Empresa de Pesquisa Energética) 2 (R$ 0,69 mi) · **ANEEL** 1 (R$ 0,21 mi).
+- **Objeto (o ponto decisivo):** o objeto declarado de **todos** esses contratos é **educação executiva / capacitação de lideranças / desenvolvimento gerencial** — não estudo, consultoria de mercado ou assessoria regulatória de gás/energia. Exemplos textuais [FATO]:
+  - **ANP** (o próprio regulador do gás): *"elaboração e implantação da Gestão por Competências, do Dimensionamento da Força de Trabalho e da Sistematização da Gestão do Conhecimento na ANP"* (R$ 896 mil, 2016) e *"Escola de Líderes / Alta Performance em Liderança para servidores gestores da ANP"* (R$ 133,5 mil, 2013).
+  - **ANEEL:** *"treinamento fechado 'Gestão Pública Contemporânea' para 50 gestores da ANEEL"* (R$ 212 mil, 2015).
+  - **EPE:** *"desenvolvimento de liderança da EPE"* e *"Programa de Alta Performance em Equipes"* (R$ 358 mil, 2018; R$ 330 mil, 2020).
+  - **Petrobras** (maiores): *"soluções educacionais em temas relacionados à gestão"* (R$ 5,67 mi, 2013) e *"vagas para participação de empregados da Petrobras em cursos"* (R$ 2,20 mi, 2014).
+- **Temporalidade:** o bloco de energia é **majoritariamente histórico** — concentrado em 2013–2014 (Petrobras) e 2015–2020 (ANP/EPE/ANEEL). A atividade federal **recente** (2024–2025) é predominantemente **não-energética** (o maior contrato de 2025 é R$ 4,51 mi com o **MGI**); o único vínculo energético recente é com a **ANM (mineração)**, também de **capacitação de lideranças** (R$ 1,38 mi em 2025).
+
+**Síntese do §7.4.** A evidência primária **corrige** uma lacuna (existem, sim, contratos com toda a pasta de Minas e Energia — inclusive com a ANP, reguladora do gás) e, ao fazê-lo, **reforça de forma contundente a tese central do parecer**: mesmo a ANP contratou a FDC apenas para **treinar seus gestores**, não para estudar o mercado de gás. A pegada federal da FDC no setor de energia é **de fornecedora de educação executiva**, não de ator técnico de política. Do ponto de vista de independência, o dado a monitorar é a **contratação direta (inexigibilidade)** como padrão e a **concentração histórica em Petrobras** — ambos de **aparência**, sem irregularidade identificada.
+
 **Conclusão de independência.** A independência da FDC está, no estado atual da evidência, **preservada**: não há conflito consumado nem irregularidade. O que existe são **aparências de conflito estrutural** — inerentes a uma instituição financiada pelo grande empresariado (inclusive energético) que também dialoga com o Estado. Para um parecer reputacional, isso significa: **nenhuma acusação de conflito é sustentável hoje**, mas os vetores (patrocínio nominal de estatal, inexigibilidade, opacidade de financiadores por estudo) devem ser **registrados e monitorados**.
 
 ---
@@ -141,7 +172,7 @@ Para situar a FDC, é preciso enxergar o circuito real de influência sobre a po
 | **CBIE / Instituto E+** | Consultoria / think tank | Formadores de opinião no debate de preços e transição. |
 | **FDC** | **Escola de negócios (educação executiva)** | **Não** produz policy de energia. Interface via pós com IBP/CCEE e planejamento estratégico genérico com o Min. Planejamento. **Player marginal em política de energia.** |
 
-**Onde a FDC NÃO aparece:** não é citada por formuladores (MME/EPE/ANP) como fonte técnica; **não há evidência de assento no CNPE** (cujas cadeiras acadêmicas tendem a universidades públicas/centros de energia); **não consta** de consultas públicas do PLANTE nem de comitês do Novo Mercado de Gás. **[INFERÊNCIA de alta confiança; ver Lacunas]**
+**Onde a FDC NÃO aparece:** não é citada por formuladores (MME/EPE/ANP) como **fonte técnica** de política de energia — para esses órgãos ela é **fornecedora de treinamento de gestão** (§7.4), não de conhecimento setorial; **não há evidência de assento no CNPE** (cujas cadeiras acadêmicas tendem a universidades públicas/centros de energia); **não consta** de consultas públicas do PLANTE nem de comitês do Novo Mercado de Gás. **[INFERÊNCIA de alta confiança; ver Lacunas]**
 
 **Pano de fundo de política (2026), para referência:** *gas release* da União aprovado no CNPE (30/07/2026, venda direta via PPSA, meta de derrubar o preço industrial de ~US$12 para ~US$5/MMBtu); programa **"Gás para Empregar"** (industrial) — a não confundir com **"Gás do Povo"** (social/GLP, aprovado no Senado em 03/02/2026); **Lei do Combustível do Futuro** (14.993/2024, mandato de biometano de 1%→10%); marco do **Hidrogênio** (14.948/2024, Rehidro/PHBC); **mercado de carbono/SBCE** (15.042/2024); e a **COP30** em Belém. O gás é disputado como "combustível de transição" (a Abegás pediu formalmente seu reconhecimento em taxonomia verde) — debate técnico no qual a FDC **não é parte**.
 
@@ -170,7 +201,7 @@ Para situar a FDC, é preciso enxergar o circuito real de influência sobre a po
 ## 10. Lacunas e recomendações de diligência (antes de conclusões categóricas)
 
 Prioridade decrescente:
-1. **Contratos federais no Portal da Transparência / PNCP / Compras.gov.br** — consulta interativa pelo CNPJ 19.268.267/0001-92 para enumerar órgãos, objetos, valores e modalidade. É a lacuna prioritária para dimensionar o dinheiro público federal. **[LACUNA metodológica]**
+1. ~~**Contratos federais no Portal da Transparência**~~ — **RESOLVIDA (01/09/2026).** Consulta interativa concluída pelo CNPJ 19.268.267/0001-92: 141 contratos, R$ 43,99 mi, órgãos/objetos/modalidades detalhados no **§7.4**. Restam por confirmar apenas os **contratos estaduais** (Codemge/Gasmig via TCE-MG) e os **recursos recebidos** ano a ano.
 2. **Contrato Codemge nº 11.487** (e eventuais outros com estatais de MG) — objeto e valor, via TCE-MG / Diário Oficial de MG.
 3. **Composição nominal atual do CNPE** (Portarias 2023–2026) e **lista de contribuintes da consulta pública do PLANTE** — para confirmar negativamente a ausência da FDC no circuito de política energética.
 4. **Acervo do Núcleo (Petrobras) de Sustentabilidade (2007–2013)** — examinar o tratamento dado à patrocinadora nos estudos.
@@ -210,6 +241,9 @@ Prioridade decrescente:
 - ENGIE (Além da Energia) — FDC na COP30: https://www.alemdaenergia.engie.com.br/na-cop30-fdc-contribui-para-articulacao-tecnica/
 
 **Contratos, estatais e conflitos**
+- Portal da Transparência — ficha PJ e panorama federal da FDC: https://portaldatransparencia.gov.br/pessoa-juridica/19268267000192
+- Portal da Transparência — **Consulta de Contratos (fornecedor FDC)** [base do §7.4; consulta 01/09/2026]: https://portaldatransparencia.gov.br/contratos/consulta?fornecedor=11307715
+- Portal da Transparência — Consulta de Convênios (convenente FDC): https://portaldatransparencia.gov.br/convenios/consulta?convenente=6419808
 - Codemge — contratos e convênios (contrato FDC nº 11.487): https://codemge.com.br/contratos-e-convenios-codemge/
 - MPMG — contrato com FDC (gestão de fundos): https://www.mpmg.mp.br/portal/menu/comunicacao/noticias/mpmg-firma-contrato-com-fundacao-dom-cabral-para-modernizar-gestao-de-fundos-da-instituicao.shtml
 - Sodexo — projeto Pra>Frente (BNDES + FDC): https://br.sodexo.com/sala-de-imprensa/2024/capacitacao-profissional-para-empreendedorismo-gastronomico
