@@ -21,8 +21,8 @@
 | | Valor |
 |---|---|
 | **Alvo** | **R$1,2 – 1,4 bn** |
-| Faixa de acordo possível | R$772 mi – 1,56 bn |
-| Piso (custo de construir do zero, pela régua da Edge) | ~R$772 mi |
+| Faixa de acordo possível | R$861 mi – 1,56 bn |
+| Piso (custo de reposição fully-loaded, régua da própria GNLink incl. regás) | ~R$861 mi |
 | Referência de EBITDA | **2028: R$146,3 mi** × **10x** = R$1,17 bn (12x = R$1,4 bn no teto) |
 
 ### Os sete pilares, em ordem de força
@@ -30,16 +30,18 @@
 1. **Base contratada e alta utilização.** As plantas existentes da GNLink já têm **79% da capacidade sob contrato assinado**, com 15 clientes. Os projetos incrementais também já possuem term sheet e são capex zero. A Fase 1 da Edge opera com 38% de utilização e segue em ramp-up. Somando a base já contratada da GNLink à plataforma da Edge acelera sua curva de crescimento. O SS-LNG responderá por 50% do lucro bruto projetado da Edge em 2030, e a conversão de clientes é o fator que os investidores mais acompanham.
 2. **Crescimento sem balanço.** 406 mil m³/d e R$150 mi de EBITDA a **capital empregado zero**, na Argentina porque **o CapEx é do supridor da molécula**, e ainda com margem superior à brasileira. É o inverso do problema da Fase 2, que pede **R$1,5 bn** de capital próprio com rampa não comprovada.
 3. **A prova física da aceleração: a fábrica de regas.** Única produtora nacional, exclusividade em Contagem-MG, contra uma Edge que **importa**. A regas in-house é 3x mais barata que uma regas importada, e fica pronta mais rápido. GNLink possui frota de 8 unidades disponíveis. Isso vale **~R$160 mi de capex evitado** e R$100-200 mi de lucro bruto antecipado. **Upside não comprovado:** regas skidada de 500 m³/h, em desenvolvimento.
-4. ⭐ **Redes locais, a sinergia que cria valor fora da Edge.** A GNLink leva o gás até a cidade e a distribuidora só constrói a malha interna, sem puxar ramal da capital. Isso **expande a malha das 8 distribuidoras da Compass**, que valem ~65% do equity da companhia. **Todo o potencial de rede local do Sul (433 mil m³/d) está dentro de concessões da própria Compass** (Sulgás, SCGás, Compagás); com o NE, são **916 mil m³/d**. É o argumento que amplia a base de apoio ao negócio para além da Edge.
-5. **Capex evitado, medido pela régua da Edge.** Construir do zero 690 mil m³/d a R$1.125/m³/d custaria ≈ **R$772 mi**, e anos de prazo. A GNLink adiciona essa capacidade já pronta ao pipeline da Edge, que hoje está no papel: já investiu **R$349,9 mi** e constrói a **R$1.049/m³/d, 6,8% melhor que a Edge**.
+4. ⭐ **Redes locais, a sinergia que cria valor fora da Edge.** A GNLink leva o gás até a cidade e a distribuidora só constrói a malha interna, sem puxar ramal da capital. Isso **expande a malha das 7 distribuidoras da Compass** (Comgás, Necta, Sulgás, Compagás, MSGás, SCGás, CEG Rio), que valem ~65% do equity da companhia. **Todo o potencial de rede local do Sul (433 mil m³/d) está dentro de concessões da própria Compass** (Sulgás, SCGás, Compagás); com o NE, são **916 mil m³/d**. É o argumento que amplia a base de apoio ao negócio para além da Edge.
+5. **Capex evitado, a custo de reposição.** A GNLink adiciona 690 mil m³/d já prontos ao pipeline da Edge, que hoje está no papel. Reconstruir essa capacidade **standalone** (liquefação + regás, como a GNLink fez) custaria ≈ **R$861 mi** ao custo de reposição *fully-loaded* da própria GNLink (**R$1.248/m³/d**), e anos de prazo; a GNLink já investiu **R$349,9 mi** e tem 406 mil m³/d adicionais a capex zero. Ao contrário da Edge — que mesmo *fully-loaded* constrói mais barato (~R$771/m³/d) só porque **importa a molécula** e fica presa ao raio de Santos —, a plataforma da GNLink **liquefaz no Brasil, é autossuficiente e alcança o interior, o NE e o Sul**.
 6. **Sinergias que a Edge captura sem depender de nós:** refinanciamento e redução do custo da dívida ao rating da Compass.
 7. **Geografia que Santos não alcança.** Nordeste, Sul e Argentina/Cone sul, **~2/3 do footprint é inacessível à Edge hoje**.
 
-**Duas capacidades complementares às da Edge:** ⭐ **GNC**, com **capex 3x menor** que a cadeia de GNL, atendendo bem o cliente pequeno. E **serviço sem molécula**, receita de infraestrutura, sem exposição a commodity.
+**Duas capacidades complementares às da Edge:** ⭐ **GNC**, com **capex 3x menor** que a cadeia de GNL, atendendo bem o cliente pequeno. E **serviço sem molécula**, receita de infraestrutura, sem exposição a commodity. *Ambas são o **meio** pela qual a GNLink alcança o cliente pequeno e diversifica a receita — o valor econômico já está capturado em **A3 (tamanho de cliente)**, não é um bucket somado à parte (ver 4.1).*
 
 ### Contexto da abordagem
 
 A Edge sondou a GNLink.
+
+**Estado da conversa:** em **05/ago/2026** enviamos ao time de M&A da Edge o documento **"GNLink + Edge Sinergias"** (a matriz da seção 4.1) acompanhado do material de **cobertura geográfica** (seção 4.2). O **combinado foi tentar quantificar cada ponto** da lista de sinergias — quantificação em andamento na planilha `Quantificacao-Sinergias-GNLink-Edge.xlsx`.
 
 **Confirmação externa:** o IoC do **Bradesco BBI (p.11)** diz que não descartaria M&A entre as pequenas de GNL, **nomeando a GNLink** ao lado de VirtuGNL e Gas Local. O mercado já vê a consolidação do small-scale LNG como cenário, e a Edge como consolidadora natural.
 
@@ -49,13 +51,28 @@ A Edge sondou a GNLink.
 
 ## 2.1 A régua de eficiência de capital (números da própria Edge)
 
-| | CapEx | Capacidade | **R$ por m³/d** | Natureza |
-|---|---|---|---|---|
-| **Edge, Fase 1** | R$450 mi | 400 mil m³/d | **R$1.125** | **entregue e operando** (LD Celulose, 150 mil m³/d) |
-| **Edge, Fase 2** | **R$1.500 mi** | +3.400 mil m³/d | **R$441** | previsão **não comprovada** |
-| **GNLink, 3 plantas** | **R$294,3 mi** | **280.445 m³/d** | **R$1.049** | **entregue e operando** (ex-regas) |
+**Onde a Edge investiu (base factual), separando terminal de off-grid:**
 
-**O contraste real é com a Fase 2**, que pressupõe a intensidade de capex **cair 61%** (R$1.125 → R$441/m³/d), patamar que **nenhuma das duas jamais demonstrou**. É aí que mora a incerteza, e é por isso que volume entregue hoje vale mais do que volume prometido em 2029.
+| Bloco | CapEx | Fonte |
+|---|---|---|
+| **Terminal TRSP** (regás, 14 MMm³/d — serve on-grid *e* off-grid) | **~R$1,0 bn** | RI Compass jan/26; Bradesco BBI |
+| **Off-grid Fase 1** (B2B, 400 mil m³/d) | **~R$200–280 mi** | RI Compass ~R$200 mi; **Citi ~R$280 mi** (usamos o conservador) |
+| **Imobilizado bruto 2025** (DF Edge) | **R$1.335,7 mi** | reconcilia: ~R$1 bn terminal + ~R$280–336 mi off-grid F1 |
+| **Fase 2** (em estudo, +3,4 MMm³/d) | **~R$1,5 bn** | Compass/Itaú/Citi (BBI cita ~R$2 bn) |
+
+**A régua de intensidade de capital, em escopo comparável (ambos com regás):**
+
+Para comparar maçã com maçã, dois ajustes. Primeiro, a Fase 1 da Edge (R$280 mi) **já inclui a regás no cliente**, então o número correto da GNLink é o **R$349,9 mi com regás** — não o R$294,3 mi ex-regás. Segundo, o off-grid da Edge se apoia no terminal: rateando o terminal pro-rata por capacidade, **R$1 bn × (400/14.000) = R$28,6 mi** entram na conta da Fase 1.
+
+| | CapEx | Capacidade | **R$ por m³/d** | Escopo |
+|---|---|---|---|---|
+| **Edge, Fase 1 (fully-loaded)** | R$280 + R$28,6 = **R$308,6 mi** | 400 mil m³/d | **R$771** | off-grid (inclui regás no cliente) + rateio do terminal |
+| **Edge, Fase 2** | **R$1.500 mi** | +3.400 mil m³/d | **R$441** | previsão **não comprovada** (60–70% custo fixo, bases) |
+| **GNLink, 3 plantas** | **R$349,9 mi** | **280.445 m³/d** | **R$1.248** | liquefação própria + **fábrica de regás in-house** |
+
+⚠️ **Mesmo maçã-com-maçã, a GNLink é mais capital-intensiva (R$1.248 vs R$771/m³/d) — e há uma razão estrutural, não ineficiência:** a GNLink **liquefaz no Brasil**, enquanto a Edge **importa GNL** com a liquefação já embutida no preço da molécula. Esse capex a mais compra **molécula doméstica mais barata** e **alcance no interior, NE e Sul** — é a troca de pilhas de custo da §A2. A GNLink não é "uma Edge mais barata"; é uma plataforma com estrutura de custo diferente e geografia que Santos não alcança.
+
+**O ponto sobre a Fase 2:** os R$441/m³/d pressupõem um ganho de escala forte sobre a Fase 1 (R$771/m³/d fully-loaded), com 60–70% de custo fixo em bases. É uma intensidade **agressiva e não comprovada** — por isso volume entregue hoje vale mais do que volume prometido em 2029.
 
 **Cronograma de capex da Fase 2**: **40% em 2027 · 30% em 2028 · 30% em 2029** (soma 100%, corrigido).
 
@@ -104,17 +121,7 @@ O EBITDA é **líquido do G&A da holding** (R$25,5-26,3 mi/ano): os R$53,7 mi de
 
 → **Capex zero *e* margem acima da base.** É o oposto do trade-off normal.
 
-## 2.5 Como sustentar a ponte diante do comprador
-
-O salto de **R$89 mi** (−35 → +54) é a objeção central. Apresentar em componentes separados, com credibilidade declarada:
-
-| Componente | Natureza | Credibilidade |
-|---|---|---|
-| **Rampa em contratos já assinados** | 15 contratos (10 em operação, 5 em instalação); contratado final **222 mil m³/d** de 280 (79%) | **Alta**, a maior parte do salto já está contratada |
-| **Remoção de gargalos datados** | **Coelba** amplia energia na BA e **PetroRecôncavo** regulariza vazão/pressão/qualidade no RN, ambos **out/26**, equipamento **já instalado** | **Média-alta**, depende de terceiros, mas tem data |
-| **Confiabilidade e redução de perdas** | Execução interna | **Média**, componente a demonstrar com dados |
-
-## 2.6 Fábrica de regas in-house ⭐
+## 2.5 Fábrica de regas in-house ⭐
 
 > Valor incremental fora do capex de R$294,3 mi (ex-regas) e do EBITDA de R$204 mi, a destacar no preço.
 
@@ -249,18 +256,18 @@ Não estão no R$973 mi (que é só volume × régua do BTG):
 
 ## 3.4 Convergência 3, custo de construir do zero (o piso)
 
-Construir **690 mil m³/d** organicamente a **R$1.125/m³/d** (intensidade real da Fase 1 da Edge) custaria **~R$772 mi**, e levaria anos. A GNLink entrega com **R$349,9 mi já investidos** e 406 mil m³/d a capex zero.
+Reconstruir **690 mil m³/d** *standalone* ao custo de reposição **fully-loaded** da GNLink (liquefação + regás), **R$1.248/m³/d** — a mesma régua incl. regás da §2.1 —, custaria **~R$861 mi**, e levaria anos. A GNLink entrega com **R$349,9 mi já investidos** e 406 mil m³/d a capex zero. *(Este piso é conta de **valuation** — custo de reposição dos ativos da GNLink, a fábrica de regás inclusa. Não se confunde com a **sinergia** de regás da §2.5, que é o capex que a Edge evita na Fase 2 dela: contas diferentes, dólares diferentes.)* *(Mesmo fully-loaded a Edge constrói mais barato — ~R$771/m³/d, ver 2.1 — mas importando a molécula e presa ao raio de Santos; não replica a liquefação doméstica nem a geografia da GNLink.)*
 
 ## 3.5 Síntese: a zona de negociação
 
 | Referência | Valor | Papel |
 |---|---|---|
-| Custo de construir do zero | **~R$772 mi** | **Piso**, abaixo disso, melhor não vender |
+| Custo de reposição *fully-loaded* (régua GNLink incl. regás) | **~R$861 mi** | **Piso**, abaixo disso, melhor não vender |
 | Convergência 1 + camadas | **R$1,15 – 1,31 bn** | ordem de grandeza |
 | **Convergência 2 (EBITDA 2028 × 10x)** | **R$1,17 bn** | **a referência** |
 | Teto (12x sobre 2028, ou sobre a curva cheia) | **R$1,40 – 1,56 bn** | Âncora superior |
 
-**Faixa de acordo possível: R$772 mi – R$1,56 bn. Alvo: R$1,2 – 1,4 bn.**
+**Faixa de acordo possível: R$861 mi – R$1,56 bn. Alvo: R$1,2 – 1,4 bn.**
 
 ---
 
@@ -268,53 +275,98 @@ Construir **690 mil m³/d** organicamente a **R$1.125/m³/d** (intensidade real 
 
 ## 4.1 Matriz de sinergias
 
-> Estruturada conforme a **short list do cliente** (fonte da verdade, ago/26), nos dois blocos do documento: **A. Atributos** e **B. Potencial da fusão**. Os itens ⭐ da nossa análise que não constavam da short list foram acomodados no bloco mais aderente (A7 execução; B9-B12 regulatório, equity, Argentina, Eneva).
+> Espelha o documento **"GNLink + Edge Sinergias"** enviado ao time de M&A da Edge em **05/ago/2026**, nos dois blocos originais: **A. Potencial da transação** (9 pontos) e **B. Sinergias imediatas** (7 pontos). O combinado é **quantificar cada ponto**. A coluna **"Quantificação (planilha)"** traz o estado de cada ponto na `Quantificacao-Sinergias-GNLink-Edge.xlsx` (fonte viva dos números); a leitura consolidada — dimensão vs. preço e o waterfall — está em **4.3**.
 
-**A. Atributos da GNLink valiosos para a Edge**
+**A. Potencial da transação**
 
-| # | Categoria | Sinergia |
-|---|---|---|
-| **A1** | Mercado | **Extensão geográfica.** NE, Sul, **Paraguai** e Argentina: a GNLink alcança **31,1% do território brasileiro** com as 3 plantas em operação e chega a **40,7%** com os projetos já assinados (Edge concentrada no Sudeste); detalhe em 4.2 |
-| **A2** | Comercial | **Diversidade de produto.** Receita com **GNL, GNC e remuneração sobre infraestrutura** (a Edge é só GNL) |
-| **A3** | Comercial | **Diversidade de tamanho de cliente.** Contratos assinados com clientes de pequeno, médio e grande consumo |
-| **A4** | Comercial | **Diversidade de tipos de cliente.** Industriais, postos de combustível e chamadas públicas de fornecimento a redes locais de distribuidoras |
-| **A5** | Comercial | **Diversidade de segmentos industriais.** Projetos em vários setores, conhecendo o consumo e os desafios de cada demanda |
-| **A6** | Comercial | **Expertise comercial.** Time com vasta experiência em GLP e óleo combustível, os principais substitutos no cliente industrial (GLP+OC = 81% do pipeline) |
-| **A7** ⭐ | Comercial | **Aceleração comercial / execução comprovada.** O SS-LNG vira 50% do lucro bruto da Edge até 2030, saindo de 0,15 para 3,80 MMm³/d em 3 anos; a GNLink já entrega **0,28 MMm³/d faturando e 0,4 MMm³/d assinado**, endereçando o fator de execução que os bancos mais acompanham |
-| **A8** | Engenharia | **Expertise de engenharia.** Time desenhou instalações e equipamentos nacionais bem mais baratos que as soluções de mercado, reduzindo orçamento e prazo |
-| **A9** | Comercial | **Expertise com transporte.** Contratos com postos já capturam a demanda de gás no transporte rodoviário / corredores azuis, mercado potencial enorme |
-| **A10** | Operacional | **Backup.** Ativo único traz risco de não fornecimento; a GNLink tem 3 plantas operacionais (e o terminal da Edge dá backup cruzado às plantas) |
-
-**B. Potencial da fusão**
-
-| # | Categoria | Sinergia |
-|---|---|---|
-| **B1** | Operacional | **Crescimento das plantas atuais.** RN (licença e terreno já disponíveis) e Itabuna/BA (terreno ao lado), sem risco de falta de molécula |
-| **B2** | Estratégico | **Redução do risco de CapEx da Edge + diversificação geográfica.** O plano da Edge amplia muito a capacidade sem ampliar raio e mercado endereçável; a GNLink já tem ativo instalado e diversidade de mercado alcançável |
-| **B3** | Molécula | **Sinergia de molécula 1.** Molécula de mercado livre a partir do TRSP alimenta a planta de Itabuna/BA (conectada ao grid), e as fontes onshore da GNLink fortalecem o mix de molécula da Edge (bidirecional) |
-| **B4** | Molécula | **Sinergia de molécula 2** *(o cliente marcou "ver se vale a pena comentar")*. Compra do campo da Tradener → GNLink dona da molécula no Sul |
-| **B5** | Logística | **Sinergia logística.** Carretas já adquiridas pela Edge, se ociosas, servem as plantas da GNLink e reduzem o OpEx logístico |
-| **B6** | Financeiro | **Sinergia financeira.** Otimizar o perfil de estrutura de capital da GNLink com a robustez da Compass no mercado financeiro (GNLink capta 10,7-14,25% sobre ~R$400 mi; ~R$4 mi/ano por 100 bps) |
-| **B7** | CapEx | **Sinergia de CapEx.** Fábrica de regás in-house (~3x mais barata, única no país): capex reduzido e viabiliza **regás de pequeno porte**, dado o perfil de cliente e a capilaridade das plantas; detalhe em 2.6 |
-| **B8** ⭐⭐ | Cross-segmento | **Sinergia de redes locais.** A Compass é dona de **8 distribuidoras** estaduais e a GNLink já tem expertise nas chamadas públicas de redes locais. Todo o potencial de rede local do Sul (433 mil m³/d) está em concessões Compass; com o NE, 916 mil m³/d |
-| **B9** | Institucional | **Músculo regulatório da Compass** acelera o licenciamento das plantas GNLink (gargalos ANP/Coelba/PetroRecôncavo, out/26) |
-| **B10** | Capital | **Equity listado** da Compass como moeda de aquisição + **escudo fiscal** de prejuízos acumulados |
-| **B11** ⭐ | Novos projetos | **Argentina, capex do supridor.** O CapEx é do supridor da molécula (capital empregado zero) e a margem (~R$1,13/m³) supera a brasileira; 300k m³/d e R$100 mi de EBITDA sem balanço, início 1T28 |
-| **B12** | Novos projetos | **Eneva** (capex light, take assinado, 2027) |
-
-## 4.2 Vetor geográfico, quantificado
-
-| Praça | Posição Edge | Posição GNLink | Veredicto |
+| # | Atributo | Descrição | Quantificação (planilha) |
 |---|---|---|---|
-| **Sudeste (SP/MG/RJ)** | Raio 1.000-1.200 km do TRSP = 70-75% do PIB (cobertura de PIB, **não** de mercado off-grid, ver nota). Já atende a LD Celulose em MG (150k m³/d) | Leads MG (Mosaic, Votorantim, Mangels, PBio, Sanovo); negocia SP 60k, RJ 18k | ⚔️ **Sobreposição parcial** |
-| **Nordeste (BA/RN/CE/PE/PI)** | **>1.450 km de Brumado-BA** → inviável | **Itabuna a 374 km de Brumado**; 4 CDLs; 483k m³/d em RLs | ✅ **Complementar puro** |
-| **Sul (RS/SC/PR)** | Não atuante | **~800 km mais perto do mercado que os competidores**; 12 RLs (433k m³/d) | ✅ **Complementar puro** |
-| **Argentina / Conesul** | Ausente | Paso de los Libres, TS assinado, até 300k m³/d; hub Uruguaiana | ✅ **Exclusivo GNLink** |
-| **Norte** | Ausente | Ausente | ⬜ Fora do escopo de ambos |
+| **A1** | Extensão geográfica | No Brasil (Nordeste, Sul, parte do Sudeste e Centro-Oeste) e na América do Sul (Paraguai, Argentina, Uruguai). Alcança **31,1% do território brasileiro** com as 3 plantas em operação e pode chegar a **40,7%** com os novos projetos já assinados (detalhe em 4.2) | **Dimensão** · DCF do TAM fora do raio da Edge (aba *A1 Geografia*). **= B2**, conta uma vez. Não soma com o preço |
+| **A2** | Diversidade de produto | Receita com **GNL, GNC e remuneração sobre infraestrutura** | **Coberto por A3** · o cliente pequeno é servido via GNC/small-scale; sem bucket de valor separado para GNC/infra (seria duplicar A3) |
+| **A3** | Diversidade de tamanho de cliente | Contratos assinados com clientes de pequeno, médio e grande consumo | **Dimensão** · 2×2 raio×tamanho (dentro × pequeno), aba *A1 Geografia*. Não soma |
+| **A4** | Diversidade de tipos de cliente | Já lidou e assinou contratos com industriais e postos de combustível, e ganhou chamadas públicas para fornecimento a redes locais de **5 distribuidoras** | **Qualitativo** · união de A1/A3 (industriais) + A8 (postos) + B7 (redes locais) |
+| **A5** | Diversidade de segmentos industriais | Projetos com diversos setores da economia; conhece as particularidades de consumo e os desafios de cada setor demandante | **Qualitativo** · granularidade de setores dentro do industrial (A1/A3); *enabler* |
+| **A6** | Expertise comercial | Time comercial com vasta experiência na indústria de GLP e óleo combustível (os principais substitutos no cliente industrial) | **Modificador** · acelera a rampa de A1/A3 em ~1 ano; multiplica, não é aditivo |
+| **A7** | Expertise de engenharia | Instalações/equipamentos **in-house** e **início de fornecimento no cliente em 90 dias**; equipamentos skidados, unidades móveis e multimodais. *A Edge também tem equipe de engenharia — o diferencial de custo real é a **regás in-house** (→ B6), não a engenharia em geral* | **= B6** · o valor diferenciado é a regás; engenharia geral é paridade |
+| **A8** | Expertise com o segmento de transporte | Diversos contratos com postos já capturam a demanda de gás no transporte rodoviário / corredores azuis (mercado potencial enorme); há estudo detalhado dos corredores azuis no país para o Nordeste e o Sul/Sudeste | **Dimensão · ~R$1,36 bn** · DCF (100% do transporte fora do raio, base BofA), aba *A8 Transporte*. Não soma |
+| **A9** | Backup | Ativo único traz risco de não fornecimento; a GNLink tem **3 plantas operacionais** | **Quantificado** (o.g.) · perda esperada evitada (aba *Calc_B*) |
 
-**Síntese:** ~2/3 do footprint da GNLink (NE + Sul + Argentina) é **inacessível economicamente à Edge**. A sobreposição concentra-se no Sudeste, justamente onde a GNLink é mais fraca (sem planta própria).
+**B. Sinergias imediatas**
 
-⚠️ **Sobre o "70-75% do PIB" da Edge, uma leitura que o comitê deve ter:** é métrica de **cobertura de PIB, não de mercado off-grid endereçável**, e os dois não se confundem. O raio parte de Santos e tem **São Paulo no núcleo, o estado com a maior malha de gasodutos do país, majoritariamente da própria Comgás**. A premissa do off-grid é justamente atender onde o gasoduto **não** chega, então a maior parte desse PIB **já é servida por rede** e não é mercado off-grid. O off-grid de fato endereçável dentro do raio de Santos é uma **fração** dos 70-75%. Isso (i) relativiza o principal número geográfico da Edge e (ii) **reforça a complementaridade da GNLink**, que alcança o interior, o Nordeste e o Sul genuinamente sem rede, onde o mercado off-grid realmente está.
+| # | Potencial | Descrição | Quantificação (planilha) |
+|---|---|---|---|
+| **B1** | Crescimento das plantas atuais | A GNLink já mapeou aumento de capacidade no RN (licença e terreno já disponíveis) e em Itabuna/BA (terreno ao lado), sem risco de falta de molécula | **Eleva a base** · EBITDA das expansões RN + Itabuna (o.g., aba *Calc_B*) |
+| **B2** | Redução do risco de CapEx da Edge + diversificação geográfica | O plano da Edge amplia substancialmente a capacidade sem ampliar o raio de alcance e o mercado endereçável; a GNLink já tem ativo instalado e diversidade de mercado alcançável | **Dimensão = A1** · mesmo DCF do fora do raio (afunda CapEx sem ampliar o mercado endereçável). Conta uma vez |
+| **B3** | Sinergia de molécula | Molécula de mercado livre a partir do TRSP pode alimentar a planta de Itabuna/BA (conectada ao grid), e as fontes onshore da GNLink podem fortalecer o mix de molécula da Edge | **Quantificado** (o.g.) · economia por m³ × volume (aba *Calc_B*) |
+| **B4** | Sinergia logística | Carretas já adquiridas pela Edge, se ociosas, podem servir as plantas da GNLink e reduzir o OpEx logístico — ou evitar novo CapEx com integração logística | **Quantificado** (o.g.) · economia logística/m³ (aba *Calc_B*) |
+| **B5** | Sinergia financeira | Potencial para otimizar o perfil de estrutura de capital da GNLink com a robustez da Compass no mercado financeiro | **Cortada** · fica abaixo do EBITDA; não cabe na régua EV/EBITDA (tratada como camada de preço em 3.2) |
+| **B6** | Sinergia de CapEx | Fábrica de regás in-house (~3x mais barata que importadas, única no país): capex reduzido e viabiliza **regás de pequeno porte** com tecnologia móvel e multimodal, dado o perfil de cliente e a capilaridade das plantas (detalhe em 2.5) | **Quantificado** · capex de importação evitado, a VP (aba *Calc_B*); ver 2.5 |
+| **B7** | Sinergia de redes locais | A Compass é dona de **7 distribuidoras** estaduais e a GNLink já tem expertise em lidar com as distribuidoras nas chamadas públicas para implementar redes locais; potencial de expandir essa parceria é enorme, com diversas oportunidades mapeadas e em desenvolvimento | **Lente alternativa** (o.g.) · 916 mil m³/d × captura × margem (aba *Calc_B*) |
+
+> **Itens da nossa análise fora da short list enviada à Edge** (não fazem parte dos 16 pontos, mas seguem quantificados no restante do documento): **Argentina** e **Eneva** (projetos do BP da GNLink, já na curva da seção 2.2 e no valuation); **execução comprovada da rampa** (argumento nos pilares da seção 1); **músculo regulatório** e **equity/escudo fiscal** da Compass (mecânica do deal).
+
+## 4.2 Cobertura geográfica
+
+> Incorpora o material **"Cobertura geográfica"** enviado à Edge junto do documento de sinergias. **Método:** isodistância **rodoviária de 1.000 km** de cada ativo (32 direções, recortada ao litoral), união dos alcances, corte pela fronteira do Brasil e medição em projeção **Albers de área-igual** — validada (área do Brasil bateu 8,47 vs. 8,51 mi km² oficiais, 0,5% de erro).
+
+**As 3 plantas em operação alcançam ~31,1% do território brasileiro** (~2,63 mi km²).
+
+| Contribuição individual (com sobreposições) | Cobertura | Área |
+|---|---|---|
+| Barra Bonita/PR | 13,4% | ~1,14 mi km² |
+| Itabuna/BA | 12,1% | ~1,02 mi km² |
+| Carnaúba/RN | 9,0% | ~0,76 mi km² |
+| **União das 3** | **31,1%** | **~2,63 mi km²** |
+
+A soma individual dá 34,5%, mas a união é 31,1% — a diferença (~3,4 pontos) é a sobreposição entre Itabuna e Carnaúba no Nordeste (complementam-se com alguma redundância na BA/PE).
+
+⚠️ **Território ≠ mercado.** Esses 31% são de **área geográfica**. Como o alcance cobre justamente a faixa litorânea e o Centro-Sul (onde estão a população, a indústria e o PIB), o **percentual de mercado/população atendível é bem maior que 31%** — boa parte dos 69% não cobertos é a Amazônia e o interior de baixa densidade.
+
+**O cruzamento com a Edge (o ponto estratégico):**
+
+| Alcance 1.000 km rodoviário | % do território brasileiro |
+|---|---|
+| Plantas GNLink (3) | **31,1%** |
+| Edge (TRSP/Santos) | **13,4%** |
+
+- **Sobreposição Edge × GNLink: 10,3% do Brasil** — quase todo o alcance da Edge já é coberto pela GNLink.
+- **Edge exclusivo (fora do alcance GNLink): só 3,1% do território.**
+- Ou seja: a Edge, de um único ponto em Santos, alcança ~13% do país, mas **77% desse alcance (10,3 de 13,4 pontos) está dentro da área que a GNLink já cobre**. A vantagem geográfica exclusiva da Edge se resume a **~3% do território** (essencialmente o eixo SP/interior que fica além do alcance de Barra Bonita).
+
+**Com os projetos assinados, a cobertura sobe a 40,7%** (~3,44 mi km²):
+
+| Configuração | Cobertura do Brasil |
+|---|---|
+| Só as 3 plantas | 31,1% |
+| + Argentina + Santo Antônio dos Lopes | **40,7%** |
+| **Ganho dos 2 projetos** | **+9,6 pontos** |
+
+- **Santo Antônio dos Lopes/MA: +8,9 pontos** (~751 mil km²) — o grande destravamento; abre o interior do Norte/Nordeste (MA, PI, PA, TO) que as plantas atuais não alcançavam.
+- **Argentina (Paso de los Libres): +0,7 ponto** — pouco em território brasileiro, porque o alcance dela no Brasil (RS/SC) quase todo já é coberto por Barra Bonita. O valor da Argentina está no **custo da molécula e no reforço de sourcing do Sul**, não em nova área.
+
+**Leitura estratégica:** para expandir cobertura geográfica no Brasil, **Santo Antônio dos Lopes é o movimento mais poderoso** (+8,9 pts sozinho). A **Argentina é uma jogada de competitividade/custo, não de nova geografia** — coerente com o material (molécula argentina barata para o Sul, onde a GNLink já chega).
+
+## 4.3 Leitura quantitativa: dimensão ≠ preço
+
+A quantificação da planilha responde a uma pergunta **diferente** da do §3. São duas lentes que não se somam:
+
+| Lente | Pergunta | Onde | Ordem |
+|---|---|---|---|
+| **Preço** | Quanto cobrar pela GNLink? | §3 (3 convergências) | **R$1,2 – 1,4 bn** |
+| **Dimensão do prêmio** | Quanto de mercado a Edge *destrava* por não ter o raio/alcance da GNLink? | §4 + aba *Waterfall* | **ordem de R$ bilhões** (ler valor vivo) |
+
+> ⚠️ A dimensão **não é o preço**. Ela mede o tamanho da oportunidade que a Edge captura ao remover o gargalo geográfico — argumento de negociação para justificar o preço, não um valor a ser pago à GNLink.
+
+**Como a planilha soma (aba Waterfall, na ordem A → B):** cada ponto acumula sobre o anterior, com quatro salvaguardas para não contar em dobro:
+
+- **A1 = B2** — mesmo DCF (mercado fora do raio); entra **uma vez**.
+- **A6** é **modificador** (acelera a rampa de A1/A3 ~1 ano), não uma barra aditiva.
+- **A7 = B6** — o valor diferenciado é a regás; engenharia geral é paridade.
+- **A2** é **coberto por A3**; **B5** foi **cortada** (fica abaixo do EBITDA).
+
+**A âncora que fecha o número:** o **A8 (transporte) sozinho dimensiona ~R$1,36 bn** — DCF a 20 anos, WACC **13,75%**, sobre 100% do transporte rodoviário *fora do raio da Edge* (43% do TAM nacional do BofA), com mercado maduro de ~6,4 MMm³/d. É a prova de que a soma das dimensões supera com folga o preço pedido.
+
+**Método (todas as barras de "dimensão"):** DCF de 20 anos, **WACC 13,75%** (racional na aba *WACC*: Rf 10,75% + β·ERP, Kd após impostos, estrutura 60/40), inflação 4,5%, captura do TAM conforme aba *Premissas*. **A planilha é a fonte da verdade dos valores** — este documento traz a classificação e a ordem de grandeza; o total recalcula ao vivo na aba *Waterfall*.
 
 ---
 
@@ -324,7 +376,7 @@ Construir **690 mil m³/d** organicamente a **R$1.125/m³/d** (intensidade real 
 |---|---|---|
 | X1 | Combinar os dois maiores de GNL off-grid ("domínio Brasil ex-Norte") pode levantar **questão concorrencial (CADE)** | Antitruste |
 | X2 | Passivos herdados: **arbitragem Tradener**, dependência de energia (Coelba) e de gás (PetroRecôncavo), ambos out/26; confiabilidade abaixo do desejado | Due diligence |
-| X3 | Minoritários nas Commit: Copel na Compagás (63,5%), governo em Sulgás (76%), SCGás (20,9%), fricção para usar o canal de redes locais (B8) | Governança |
+| X3 | Minoritários nas Commit: Copel na Compagás (63,5%), governo em Sulgás (76%), SCGás (20,9%), fricção para usar o canal de redes locais (B7) | Governança |
 | X4 | Cláusulas de **change-of-control** em contratos GNLink (take Eneva, offtakes de 10-20 anos, ToP 70% em BA/RN) | Contratual |
 | **X5** | **O tempo não é neutro, por aritmética, não por sigilo.** (i) dívida curta a refinanciar; (ii) o PR é anuidade que **encurta a cada ano** até mar/2036. Não há o que proteger: há o que **compensar** | Timing |
 | **X6** | **Arbitragem Tradener (preço e ToP) em aberto**, distinta do fim de contrato. Injeta incerteza sobre o EBITDA do PR **dentro** da janela até 2036 | Due diligence |
@@ -348,23 +400,7 @@ Construir **690 mil m³/d** organicamente a **R$1.125/m³/d** (intensidade real 
 | Tecnologia | Compra regas **no exterior** | **Regas in-house**, única no BR; exclusividade Contagem-MG |
 | EBITDA | **R$653 mi (2025A)** → 2026E 799-953 → **2030E 2,2–2,8 bn** | **−35,8 (2026) → +71,7 (2027) → +146,3 (2028) → +203,7 maduro** |
 | Margem unitária | On-grid free market ~R$0,15-0,20/m³; **off-grid ~R$0,75-0,86/m³**; biometano R$1,30-1,76/m³ | **R$0,80/m³** (plantas) → **R$0,93/m³** (curva cheia) |
+| CapEx | Terminal TRSP **~R$1 bn** + off-grid Fase 1 **~R$280 mi** (Citi); imobilizado bruto **R$1.336 mi** (2025); Fase 2 **~R$1,5 bn** (em estudo) | 3 plantas **R$294,3 mi** (ex-regás) / **R$349,9 mi** investidos; 406 mil m³/d adicionais a **capex zero** |
 | Capital | ND/EBITDA **2,1x** (2025); >R$5,5 bn distribuídos desde 2023 | Dívida R$276 mi (PR 100 / BA 88 / RN 88) a **14,25% / 10,70% / 11,70%** |
 | Colaboradores | n/d (CEO Edge: **Demétrio Magalhães**) | **51** |
 | Liderança | Antonio Simões (CEO Compass) | Marcelo Rodrigues (CEO) |
-
-## A2. Economia unitária (base do despacho ótimo)
-
-| Contrato | Molécula (R$/m³) | Preço venda | **Spread bruto** | Liquefação | Dist. | Volume (m³/d) |
-|---|---|---|---|---|---|---|
-| **Compagás (PR)** | 1,9939 (−ICMS 5,81%) | 3,847 | **1,853** | 0,509 +5% perdas | 343 km | 7.000 → 20.000 |
-| **Bahiagás (BA)** | 2,0996 | 3,6793 | **1,580** | 0,90 | 240 km | 1.625 → 25.175 |
-| **Cegás (CE)** | 1,5550 | 3,3055 | **1,750** | 0,99 | 240 km | 18.740 → 27.500 |
-
-Logística: carreta 34 mil m³ (fixo R$71,6 mil/mês + R$4,79/m³) · ISO 24 mil m³ (fixo R$42,6 mil/mês + R$4,77/m³).
-
-**A leitura estratégica:** pilhas de custo estruturalmente diferentes chegando a bandas de margem parecidas. A GNLink paga molécula nacional **+ liquefação própria**; a Edge compra GNL já liquefeito (liquefação embutida no preço internacional) e paga regas. Logo:
-
-- gás doméstico barato vs. GNL importado → **a pilha da GNLink ganha**;
-- *glut* de GNL / arbitragem aberta → **a pilha da Edge ganha**.
-
-Uma entidade combinada escolhe a pilha mais barata **por cliente e por mês**. É a sinergia de molécula (B3) com números.

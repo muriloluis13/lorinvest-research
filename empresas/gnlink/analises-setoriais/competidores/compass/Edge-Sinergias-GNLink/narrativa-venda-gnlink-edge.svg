@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1462" viewBox="0 0 1240 1462" font-family="Segoe UI, Arial, sans-serif">
+<rect width="1240" height="1462" fill="#FFFFFF"/>
+<defs>
+  <marker id="arr" markerWidth="12" markerHeight="12" refX="6" refY="6" orient="auto">
+    <path d="M2,2 L10,6 L2,10 Z" fill="#15335B"/>
+  </marker>
+  <filter id="sh" x="-4%" y="-4%" width="108%" height="112%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#15335B" flood-opacity="0.12"/>
+  </filter>
+</defs>
+<rect x="0" y="0" width="1240" height="120" fill="#15335B"/>
+<rect x="0" y="120" width="1240" height="5" fill="#34BBAC"/>
+<text x="40" y="52" fill="#FFFFFF" font-size="30" font-weight="700">Construção da narrativa &#183; Tese de venda GNLink &#8594; Edge (Compass)</text>
+<text x="40" y="88" fill="#B8C6D2" font-size="19">Do problema do comprador ao nosso preço, em 6 movimentos — cada um ancorado num número que a Edge não pode contestar</text>
+<rect x="40" y="150" width="1160" height="150" rx="14" fill="#F7FAFB" stroke="#CFDAE1" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="40" y="150" width="7" height="150" rx="3.5" fill="#34BBAC"/>
+<circle cx="82" cy="190" r="22" fill="#15335B"/>
+<text x="82" y="198" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">1</text>
+<text x="132" y="180" fill="#F27C25" font-size="14" font-weight="700" letter-spacing="1.5">A TENSÃO</text>
+<text x="132" y="206" fill="#15335B" font-size="21" font-weight="700">Por que a Edge precisa disso — e agora</text>
+<circle cx="137" cy="227" r="3" fill="#34BBAC"/>
+<text x="150" y="232" fill="#222B38" font-size="16">SS-LNG salta 0,15 → 3,8 MMm³/d em 3 anos; vira 50% do lucro bruto até 2030</text>
+<circle cx="137" cy="252" r="3" fill="#34BBAC"/>
+<text x="150" y="257" fill="#222B38" font-size="16">Exige R$1,5 bn de capital próprio e intensidade de capex caindo 61% — nunca demonstrado</text>
+<circle cx="137" cy="277" r="3" fill="#34BBAC"/>
+<text x="150" y="282" fill="#222B38" font-size="16">Citi: só ~20% do valor justo da Edge está precificado; execução é o que os bancos cobram</text>
+<rect x="926" y="174" width="250" height="102" rx="10" fill="#15335B"/>
+<text x="1051.0" y="209.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">O mercado paga</text>
+<text x="1051.0" y="231.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">por execução,</text>
+<text x="1051.0" y="253.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">não por promessa</text>
+<line x1="620.0" y1="300" x2="620.0" y2="338" stroke="#15335B" stroke-width="2.4" marker-end="url(#arr)"/>
+<rect x="40" y="338" width="1160" height="150" rx="14" fill="#F7FAFB" stroke="#CFDAE1" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="40" y="338" width="7" height="150" rx="3.5" fill="#34BBAC"/>
+<circle cx="82" cy="378" r="22" fill="#15335B"/>
+<text x="82" y="386" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">2</text>
+<text x="132" y="368" fill="#F27C25" font-size="14" font-weight="700" letter-spacing="1.5">O ATIVO</text>
+<text x="132" y="394" fill="#15335B" font-size="21" font-weight="700">O que a GNLink entrega</text>
+<circle cx="137" cy="415" r="3" fill="#34BBAC"/>
+<text x="150" y="420" fill="#222B38" font-size="16">690 mil m³/d e R$204 mi de EBITDA; 79% já contratado</text>
+<circle cx="137" cy="440" r="3" fill="#34BBAC"/>
+<text x="150" y="445" fill="#222B38" font-size="16">Capex incremental zero nos projetos com term sheet (Eneva + Argentina)</text>
+<circle cx="137" cy="465" r="3" fill="#34BBAC"/>
+<text x="150" y="470" fill="#222B38" font-size="16">2/3 do footprint (NE + Sul + Argentina) é inacessível à Edge hoje</text>
+<rect x="926" y="362" width="250" height="102" rx="10" fill="#15335B"/>
+<text x="1051.0" y="397.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">Plataforma pronta</text>
+<text x="1051.0" y="419.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">+ geografia</text>
+<text x="1051.0" y="441.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">que Santos não alcança</text>
+<line x1="620.0" y1="488" x2="620.0" y2="526" stroke="#15335B" stroke-width="2.4" marker-end="url(#arr)"/>
+<rect x="40" y="526" width="1160" height="150" rx="14" fill="#F7FAFB" stroke="#CFDAE1" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="40" y="526" width="7" height="150" rx="3.5" fill="#34BBAC"/>
+<circle cx="82" cy="566" r="22" fill="#15335B"/>
+<text x="82" y="574" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">3</text>
+<text x="132" y="556" fill="#F27C25" font-size="14" font-weight="700" letter-spacing="1.5">A CREDIBILIDADE</text>
+<text x="132" y="582" fill="#15335B" font-size="21" font-weight="700">Não é papel — é entrega</text>
+<circle cx="137" cy="603" r="3" fill="#34BBAC"/>
+<text x="150" y="608" fill="#222B38" font-size="16">Já roda: 0,28 MMm³/d faturando, 0,4 MMm³/d assinado</text>
+<circle cx="137" cy="628" r="3" fill="#34BBAC"/>
+<text x="150" y="633" fill="#222B38" font-size="16">Constrói e opera standalone — liquefação própria, sem depender de terminal, alcança onde Santos não vai</text>
+<circle cx="137" cy="653" r="3" fill="#34BBAC"/>
+<text x="150" y="658" fill="#222B38" font-size="16">Margem R$0,78/m³ ≈ R$0,80/m³ da premissa da própria Edge</text>
+<rect x="926" y="550" width="250" height="102" rx="10" fill="#15335B"/>
+<text x="1051.0" y="585.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">A Edge não contesta</text>
+<text x="1051.0" y="607.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">nossa margem sem</text>
+<text x="1051.0" y="629.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">contestar a dela</text>
+<line x1="620.0" y1="676" x2="620.0" y2="714" stroke="#15335B" stroke-width="2.4" marker-end="url(#arr)"/>
+<rect x="40" y="714" width="1160" height="150" rx="14" fill="#F7FAFB" stroke="#CFDAE1" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="40" y="714" width="7" height="150" rx="3.5" fill="#34BBAC"/>
+<circle cx="82" cy="754" r="22" fill="#15335B"/>
+<text x="82" y="762" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">4</text>
+<text x="132" y="744" fill="#F27C25" font-size="14" font-weight="700" letter-spacing="1.5">A PROVA FÍSICA</text>
+<text x="132" y="770" fill="#15335B" font-size="21" font-weight="700">A fábrica de regás in-house</text>
+<circle cx="137" cy="791" r="3" fill="#34BBAC"/>
+<text x="150" y="796" fill="#222B38" font-size="16">Única no país, 3x mais barata que a importada (a Edge importa)</text>
+<circle cx="137" cy="816" r="3" fill="#34BBAC"/>
+<text x="150" y="821" fill="#222B38" font-size="16">Exclusividade em Contagem-MG</text>
+<circle cx="137" cy="841" r="3" fill="#34BBAC"/>
+<text x="150" y="846" fill="#222B38" font-size="16">Capex evitado + aceleração de rampa</text>
+<rect x="926" y="738" width="250" height="102" rx="10" fill="#15335B"/>
+<text x="1051.0" y="784.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">+R$225–360 mi</text>
+<text x="1051.0" y="806.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">aditivos</text>
+<line x1="620.0" y1="864" x2="620.0" y2="902" stroke="#15335B" stroke-width="2.4" marker-end="url(#arr)"/>
+<rect x="40" y="902" width="1160" height="150" rx="14" fill="#F7FAFB" stroke="#CFDAE1" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="40" y="902" width="7" height="150" rx="3.5" fill="#34BBAC"/>
+<circle cx="82" cy="942" r="22" fill="#15335B"/>
+<text x="82" y="950" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">5</text>
+<text x="132" y="932" fill="#F27C25" font-size="14" font-weight="700" letter-spacing="1.5">QUANTO VALE</text>
+<text x="132" y="958" fill="#15335B" font-size="21" font-weight="700">Três convergências que se encontram</text>
+<circle cx="137" cy="979" r="3" fill="#34BBAC"/>
+<text x="150" y="984" fill="#222B38" font-size="16">Deslocamento no valuation da própria Edge: ~R$973 mi (+R$1,35/ação Compass)</text>
+<circle cx="137" cy="1004" r="3" fill="#34BBAC"/>
+<text x="150" y="1009" fill="#222B38" font-size="16">Múltiplo descontado: EBITDA 2028 R$146,3 mi × 10x = R$1,17 bn</text>
+<circle cx="137" cy="1029" r="3" fill="#34BBAC"/>
+<text x="150" y="1034" fill="#222B38" font-size="16">Piso: custo de construir do zero ~R$772 mi</text>
+<rect x="926" y="926" width="250" height="102" rx="10" fill="#15335B"/>
+<text x="1051.0" y="961.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">Três réguas</text>
+<text x="1051.0" y="983.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">apontam para</text>
+<text x="1051.0" y="1005.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">~R$1,2 bn</text>
+<line x1="620.0" y1="1052" x2="620.0" y2="1090" stroke="#15335B" stroke-width="2.4" marker-end="url(#arr)"/>
+<rect x="40" y="1090" width="1160" height="150" rx="14" fill="#F7FAFB" stroke="#CFDAE1" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="40" y="1090" width="7" height="150" rx="3.5" fill="#34BBAC"/>
+<circle cx="82" cy="1130" r="22" fill="#15335B"/>
+<text x="82" y="1138" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">6</text>
+<text x="132" y="1120" fill="#F27C25" font-size="14" font-weight="700" letter-spacing="1.5">A ÂNCORA</text>
+<text x="132" y="1146" fill="#15335B" font-size="21" font-weight="700">O preço — e o que amplia a base além da Edge</text>
+<circle cx="137" cy="1167" r="3" fill="#34BBAC"/>
+<text x="150" y="1172" fill="#222B38" font-size="16">Redes locais expandem as 8 distribuidoras da Compass (~65% do equity)</text>
+<circle cx="137" cy="1192" r="3" fill="#34BBAC"/>
+<text x="150" y="1197" fill="#222B38" font-size="16">916 mil m³/d de potencial N/NE + Sul dentro de concessões Compass</text>
+<circle cx="137" cy="1217" r="3" fill="#34BBAC"/>
+<text x="150" y="1222" fill="#222B38" font-size="16">Traz o board todo para a mesa, não só a Edge</text>
+<rect x="926" y="1114" width="250" height="102" rx="10" fill="#15335B"/>
+<text x="1051.0" y="1149.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">Argumento que</text>
+<text x="1051.0" y="1171.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">amplia a base</text>
+<text x="1051.0" y="1193.0" fill="#34BBAC" font-size="17" font-weight="700" text-anchor="middle">de apoio</text>
+<rect x="40" y="1282" width="1160" height="130" rx="16" fill="#F27C25"/>
+<text x="620.0" y="1322" fill="#FFFFFF" font-size="16" font-weight="700" letter-spacing="2" text-anchor="middle">A ÂNCORA DE PREÇO</text>
+<text x="620.0" y="1364" fill="#FFFFFF" font-size="40" font-weight="800" text-anchor="middle">Alvo: R$1,2 – 1,4 bn</text>
+<text x="620.0" y="1394" fill="#FFE7D3" font-size="17" text-anchor="middle">Faixa de acordo possível: R$861 mi (piso) — R$1,56 bn (teto)   &#183;   referência central: EBITDA 2028 &#215; 10x</text>
+<text x="40" y="1448" fill="#6B7A8C" font-size="13">Lorinvest &#183; Documento para discussão interna &#183; 2026 &#183; números conforme documento vivo sinergias-edge-gnlink.md</text>
+</svg>
