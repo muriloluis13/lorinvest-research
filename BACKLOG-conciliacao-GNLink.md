@@ -1,17 +1,19 @@
 # Conciliação GNLink_Model × Modelo Referência — backlog
 
-Conciliação entre `GNLink_Model_2026.07.31.xlsx` (modelo por segmento) e
-`Modelo - Realizado Jun.26 (v ajust).xlsx` (modelo referência, por cliente).
+Conciliação entre `GNLink_Model_2026.09.04.xlsx` (modelo por segmento) e
+`Modelo - Realizado Jul.26 v2 - CENARIO custos a IPCA 2026.09.04.xlsx` (modelo referência,
+por cliente).
 
-Última atualização: 10/08/2026
+Última atualização: 04/09/2026
 
 **Estado do modelo em 10/08** — 0 células de erro · os 7 checks de balanço em **0,000000** ·
 dívida zerada no último mês nas 7 abas · nenhuma célula de `EoP Debt` não-nula após a quitação.
 
-> **Flags da linha 37 no estado atual: `PR=Y · BA=Y · RN=Y · AR=N · SAL=N · Corredor Azul=N ·
-> Holding=Y`.** Com AR e SAL desligados o EBITDA consolidado de 2030 é **R$47,65 mi** (volume
-> 94,6 mi m³); com os dois ligados, **R$152,77 mi** (180,8 mi m³). Confira os flags antes de
-> ler qualquer output — os números do trabalho de dívida foram medidos com AR e SAL em "N".
+> **Flags em 04/09 — agora na linha 36 (não 37): `PR=Y · BA=Y · RN=Y · AR=Y · SAL=Y ·
+> Corredor Azul=N · Holding=Y`.** Com tudo ligado e já com o item 42, o EBITDA consolidado de
+> 2030 é **R$164,55 mi** (contra R$165,86 mi da referência) e a receita **R$858,6 mi**
+> (ref. R$861,3 mi). Confira os flags antes de ler qualquer output — os números do trabalho
+> de dívida (ago/26) foram medidos com AR e SAL em "N".
 
 ---
 
@@ -74,6 +76,7 @@ Toda modificação daqui em diante:
 | 39 | **Comissão de emissão virou despesa.** Estava saindo do caixa (linha 175) e reduzindo o passivo, **sem passar pelo resultado** — desconto de emissão que nunca amortizava. Movida para a linha 141 (`Debt Guarantee Cost`), que já alimenta a 176 no fluxo; o passivo ficou pelo valor de face. Mesmo tratamento no `Consolidated!169`. | Check do PR: **4.548,50 → 0**; do Consolidated: **4.245,00 → 0** |
 | 40 | **Última parcela de amortização aparada pelo saldo.** A fórmula repetia parcela fixa enquanto `amort.acum < emissão.acum`, sem aparar a última — ultrapassava. Agora `-MIN(parcela, MAX(0, BoP+emissão+juros−pagos))`. | RN: resíduo de **−811,39 → 0**; corrige defeito latente da BA (amortizava R$740 a mais) |
 | 41 | **Resíduo de ponto flutuante no `EoP Debt` eliminado.** `BA!FB259` ficava em 1,6e-11 e propagava até 2050. `=IF(ABS(SUM(...))<0.001, 0, SUM(...))` nas 10 linhas de EoP. Checks uniformizados com `ROUND(...,2)`. | **Todos os 7 balanços em 0,000000**; zero células de dívida após a quitação |
+| 42 | **Preço da Argentina: molécula descontada em dobro.** A receita das abas de projeto é `volume × molécula + volume × spread` (linha 113); a linha 53 (*Industrial CIF*) é o **spread**, ancorado em ago/26 como `Dashboard!L124 − custo da molécula`. Na AR a molécula em ago/26 é **zero** (a linha 83 tem `IF(volume>0,…)` e a AR só opera em jul/28), então o spread nasceu igual ao preço cheio (2,9322) e a molécula entrou **duas vezes** na receita. Adotada a fórmula que o SAL já usava: `=IF(vol>0, Dashboard!$G$124*infl − molécula, 0)` em `AR!AI53:LP53` (294 células). | Receita da AR dentro de **±0,5%** da referência (2030-2035); EBITDA 2030 **271,3 → 69,0** (ref. 72,1); consolidado 2030 **366,9 → 164,6** (ref. 165,9); VPL da AR **606 → 150**, TIR nominal do grupo **31,9% → 17,7%** |
 
 ### ⚠️ Arredondar saldo acumulado piora o resíduo
 
@@ -97,13 +100,36 @@ Três erros de *verificação* — não de modelagem — custaram tempo nesta ro
 
 ### Projetos novos — o que não vem da referência
 
-**Argentina**: existe na referência e foi conciliado (ver itens 31-33). O switch `Dashboard!C32`
-controla três cenários — `Model` (130.000 m³/dia, replica a referência), `Phase 1` (150.000) e
-`Phase 1+2` (300.000, com CapEx dobrado em termos reais e desembolso deslocado para 2030).
-**Sempre confira em qual cenário o switch está antes de comparar com a referência.**
+**Argentina** — conciliada contra `Modelo - Realizado Jul.26 v2 - CENARIO custos a IPCA
+2026.09.04.xlsx` em **04/09/2026** (itens 31-33 e **42**). Na referência a "ARGENTINA" é o
+projeto do **Sul** (molécula importada da Argentina): Alcast, BO Paper, Klabin, Parati/SLO e as
+três praças da Sulgás (Rio Grande, Santa Maria, Santa Cruz do Sul), mais Compagás-Arapoti.
 
-**SAL**: **não existe na referência** — é especificação do usuário, então não há alvo de
-conciliação. Pontos que merecem revisão:
+- **Volume: bate mês a mês.** jul-dez/28 **71.000** m³/dia · 2029 **104.000** · jan/30 em diante
+  **266.000** · jan/38 cai para **226.000**. Capacidade (120.000 → 270.000) e ocupação
+  (59,2% / 86,7% / 98,5%) idênticas. O switch `Dashboard!C33` hoje só move a **capacidade**
+  (`G68 = IF(C33="Phase 1+2",150000,0)`); a demanda (G91/G93/G95) é hardcode e independe dele —
+  em `Phase 1` a ocupação passaria de 200%.
+- **Preço: corrigido no item 42.** `Dashboard!G124 = 2,9322` é o preço **cheio** (a referência
+  implica ~3,04 na base jun/26, ponderando industriais a 2,70-3,20 e distribuidoras a 3,35685).
+- **CapEx: mesmo total (R$19,17 mi) e mesmos meses** — abr/27, jul-set/28, set/29, jan-mar/30.
+
+**Diferenças residuais** (~R$3 mi/ano de EBITDA somadas), em aberto:
+
+| Item | Interno | Referência |
+|---|---|---|
+| **Horizonte** | 226.000 m³/dia até **jan/2048** (convenção de 20 anos, a mesma de BA/RN até 2045) | para em **dez/2038** |
+| Mix de segmento | 100% *Industrial CIF* | 47% distribuidoras (Sulgás + Parati) |
+| Molécula | +0,7% a +2,2% até 2036; **−1% a −3% de 2037** (a indexação achata) | segue subindo |
+| SG&A da planta | R$1,10 mi/ano fixo, a partir de **2029** | R$1,04 mi já em **2028**, indexado até 1,46 em 2038 |
+| Regás | ~3% abaixo | — |
+| CapEx (perfil) | **R$1,54 mi em ago/26** (9,47% do perfil cai no mês-âncora) e R$3,86 mi em jan-mar/30 | nada em 2026; R$5,43 mi em jan-mar/30 |
+| Depreciação | ~R$0,96 mi/ano | 10 anos p/ regás e logística → ~R$1,9 mi/ano |
+
+**SAL**: nasceu como especificação do usuário, sem alvo de conciliação — mas em 04/09/2026 a
+referência **já traz um `PROJETO SAL`** (`Painel de Controle!A58`, início abr/2027, colunas
+próprias em `Receita`, `OPEX`, `Capex` e `Clientes`). **Ainda não conciliado** — vale a mesma
+varredura feita na AR. Pontos que já mereciam revisão:
 
 - **Preço flat em contrato de 10 anos.** Receita fica em R$140,7 mi/ano, mas molécula (Brent),
   logística e regás sobem. O EBITDA cai de **R$60,6 mi (2028) para R$47,9 mi (2033)** — 21% de
