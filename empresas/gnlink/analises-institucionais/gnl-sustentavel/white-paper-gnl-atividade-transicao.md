@@ -15,8 +15,9 @@
 
 1. **Descarbonização por substituição do fóssil mais sujo.** Leva gás natural a quem hoje queima **óleo combustível ou diesel** — na **energia térmica industrial/agro** (calor de processo) e na **frota de caminhões** —, cortando emissões e, sobretudo, poluição local.
 2. **Rota tecnológica para zero fóssil, sem trocar o ativo.** A mesma infraestrutura de GNL/GNC é **"biometano-ready"** (o biometano é *drop-in*): a pegada fóssil cai progressivamente até zero, exatamente a trajetória que a Taxonomia Sustentável Brasileira (TSB) exige e que a Lei do Combustível do Futuro (14.993/2024) tornou mandatória.
-3. **Segurança energética e soberania.** Cerca de **25% do diesel** (US$ 8,3 bi/ano) e da ordem de **25% do GLP** consumidos no Brasil são **importados**, enquanto **mais da metade do gás do pré-sal é reinjetada ou queimada**. Substituir importados por gás doméstico e biometano nacional ataca o déficit externo de derivados e reforça a **"segurança energética nacional"** — diretriz explícita da Política Nacional de Transição Energética.
-4. **Competitividade.** É a ponte de menor custo entre o passivo fóssil atual (indústria off-grid e transporte pesado) e um futuro de baixo carbono, com TCO já competitivo frente ao diesel.
+3. **Viabilizador de um renovável sazonal (o gás não compete com o biometano — ele o habilita).** O biometano de cana é **sazonal** (safra do Centro-Sul de abril a novembro; fator de utilização ~55%). O gás natural **firma a entressafra**, dando a continuidade de suprimento que o biometano sozinho não entrega a um contrato contínuo (indústria/transporte, 365 dias); e, via **CGOB (book-and-claim)**, o **atributo verde circula desacoplado da molécula** — entregue o ano todo e onde o cliente estiver. É o argumento mais forte contra a crítica de *lock-in*: sem a base firme de gás, o biometano não escala.
+4. **Segurança energética e soberania.** Cerca de **25% do diesel** (US$ 8,3 bi/ano) e da ordem de **25% do GLP** consumidos no Brasil são **importados**, enquanto **mais da metade do gás do pré-sal é reinjetada ou queimada**. Substituir importados por gás doméstico e biometano nacional ataca o déficit externo de derivados e reforça a **"segurança energética nacional"** — diretriz explícita da Política Nacional de Transição Energética.
+5. **Competitividade.** É a ponte de menor custo entre o passivo fóssil atual (indústria off-grid e transporte pesado) e um futuro de baixo carbono, com TCO já competitivo frente ao diesel.
 
 **O pedido (a pauta).** Este documento **não** pleiteia que o gás natural seja rotulado "verde". Pleiteia que as instituições brasileiras **reconheçam a substituição de combustíveis fósseis líquidos (óleo combustível/diesel) por GNL de pequena escala e biometano como atividade de transição elegível** — com precedente **literal** na Taxonomia da UE (gás como transição quando "substitui uma instalação a combustível fóssil sólido ou líquido" mais poluente, com plano de conversão até 2035) — e que **preservem e ampliem** os caminhos que a TSB já concede (biometano por certificação; gás+CCS).
 
@@ -126,14 +127,26 @@ A objeção técnica séria não é o CO₂ de combustão — é o **metano** fu
 
 ---
 
-## 9. A rota para zero: biometano *drop-in*, RenovaBio e CCS
+## 9. Gás natural como viabilizador do biometano: rota para zero, firmeza sazonal e desacoplamento (CGOB)
 
-**9.1. Biometano *drop-in* (rota principal).** Biometano purificado é **quimicamente idêntico** ao gás natural e **intercambiável na mesma infraestrutura** (número de Wobbe/poder calorífico em faixa). Investir em GNL/GNC é construir infraestrutura **"biometano-ready"**: o blend cresce e a pegada fóssil tende a zero **sem trocar o ativo**. Isso também **derruba parte da objeção do metano** (biometano de aterros/dejetos **evita** metano que seria emitido).
-- **Demanda regulada:** Lei 14.993/2024 cria meta crescente de inserção de biometano no mercado de gás (**1% em 2026 → teto de 10%**), cumprida via **CGOB** da ANP (Decreto 12.614/2025).
-- **RenovaBio/CBIOs:** o biometano tem a **maior nota de eficiência energético-ambiental** do RenovaBio; cada CBIO = 1 t CO₂ evitada, negociável na B3 — receita adicional que melhora o retorno da conversão para biometano no transporte.
-- **Escala:** ABiogás projeta **R$ 216 bi** até 2035; ANP já autorizou **21 plantas** (~1,33 Mm³/dia), produção +75% (2024→2025).
+Este é o argumento central contra a crítica de *lock-in*: o gás natural **não compete** com o biometano — **ele o viabiliza**. A tese é sustentada, quase nesses termos, por fonte do próprio setor de gás (Almeida, Miura, Schmidt e Leonel, *Brasil Energia*/ABEGÁS, 2026): *"biometano e gás natural fóssil não devem ser compreendidos como concorrentes, mas como ativos complementares, dentro de uma mesma estratégia de transição energética"*, com o fóssil ocupando a entressafra e garantindo *"continuidade no suprimento, estabilidade operacional e previsibilidade econômica"*.
 
-**9.2. Captura de carbono (CCS).** Para cargas térmicas de alta intensidade, o gás com CCS é a segunda via — reconhecida pela própria TSB (§10).
+**9.1. Biometano *drop-in* (a rota principal).** Biometano purificado é **quimicamente idêntico** ao gás natural e **intercambiável na mesma infraestrutura** (número de Wobbe/poder calorífico em faixa). Investir em GNL/GNC é construir infraestrutura **"biometano-ready"**: o blend cresce e a pegada fóssil tende a zero **sem trocar o ativo**. Isso também **derruba parte da objeção do metano** (biometano de aterros/dejetos **evita** metano que seria emitido).
+- **Demanda regulada:** Lei 14.993/2024 cria meta crescente de inserção de biometano no mercado de gás (**1% de piso → teto de 10%**; o CNPE fixou **0,5% para 2026** em regime de transição), cumprida via **CGOB** da ANP.
+- **RenovaBio/CBIOs:** o biometano tem a **maior nota de eficiência energético-ambiental** do RenovaBio; cada CBIO = 1 t CO₂ evitada, negociável na B3 — receita adicional.
+- **Escala:** ABiogás projeta **R$ 216 bi** até 2035 e potencial de **102–120 Mm³/dia**; ANP já autorizou **21 plantas** (~1,33 Mm³/dia), produção +75% (2024→2025).
+
+**9.2. Firmeza sazonal — o gás cobre a entressafra do renovável.** O maior potencial de biometano do país é o **sucroenergético — ~48% (57,6 Mm³/dia)**, concentrado no **Centro-Sul** (SP/GO/MS/MT). Mas ele é **sazonal**: a produção acompanha a moagem de cana (safra do Centro-Sul de **abril a novembro**), com **fator de utilização ~55%** e forte queda na entressafra (dez–março). A demanda industrial e de transporte, ao contrário, é **contínua (365 dias)**. Esse descompasso é a barreira que impede o biometano sozinho de lastrear um contrato firme — e é exatamente o espaço do gás natural:
+- **O gás firma a molécula assim como firma a renovável intermitente na eletricidade.** Um fornecimento contínuo é lastreado majoritariamente em gás natural, com o biometano entrando na carteira à medida que a safra permite (as distribuidoras já operam assim: a Bahiagás estruturou 1,1 Mm³/dia de **base firme**; os contratos de biometano ainda somam <1% da demanda). Sem essa base firme, o consumidor não migra do diesel/óleo.
+- **Fontes agro contínuas vs. sazonais:** dejetos de **aves e suínos** geram fluxo o ano todo (base firme, mas potencial menor e disperso); **cana, fecularia (mandioca) e citricultura** são sazonais e de maior potencial. Ou seja, **escalar biometano a partir da cana exige um complemento firme** — papel natural do gás natural.
+- **Arbitragem sazonal inter-regional (contribuição original deste documento).** As safras são **contracíclicas**: Centro-Sul de **abril a novembro** e **Nordeste de setembro a março** (regime de chuvas invertido). Combinar as duas janelas reduz a janela de entressafra a suprir e suaviza a oferta agregada de biometano. *A complementaridade da cana é bem documentada; sua aplicação explícita ao biometano como fonte firme ainda não tem estudo formal — este documento a propõe como tese, não como fato pré-existente (ver §14).*
+
+**9.3. Desacoplamento do atributo verde via CGOB (book-and-claim) — o "verde" viaja sem a molécula.** O **Certificado de Garantia de Origem do Biometano (CGOB)** — Lei 14.993/2024, Decreto 12.614/2025 e Resoluções ANP de 2026 — permite comercializar o **atributo ambiental separado da molécula física** (1 CGOB = **100 m³** de biometano; validade de até **18 meses**; registro centralizado e baixa única para impedir dupla contagem). O ponto normativo decisivo: o mandato é cumprido *"por meio do descadastramento do registro do CGOB, **associado ou não à molécula física**"* (Decreto 12.614/2025) — a **institucionalização explícita do book-and-claim**, o mesmo modelo dos RECs/I-RECs na eletricidade, do RGGO britânico e do ERGaR europeu (onde, como no gasoduto, "moléculas de origem fóssil e renovável não podem mais ser diferenciadas"). Implicações que fecham a tese:
+- **(a) Sazonal → atributo o ano todo:** o biometano de safra tem seu atributo "estocado" no certificado e entregue de forma contínua, mesmo quando a planta está parada.
+- **(b) Cliente distante → reivindica o verde localmente:** exemplo oficial SP→RJ — *"o valor ambiental pode ser transferido independentemente do fluxo físico do gás"* (Exame, 2026). O cliente consome gás na sua região e adquire/aposenta o CGOB.
+- **(c) A malha de gás vira o "trilho", o CGOB o "atributo":** a infraestrutura de GNL/gás entrega a energia; o certificado carrega e comprova o valor ambiental. O produtor captura valor em três frentes (molécula, CGOB de cumprimento de meta, e atributo no mercado voluntário).
+
+**9.4. Captura de carbono (CCS).** Para cargas térmicas de alta intensidade, o gás com CCS é a via complementar — reconhecida pela própria TSB (§10).
 
 ---
 
@@ -170,6 +183,7 @@ Ambiente multilateral favorável: **Banco Mundial** (2024, "all of the above", r
 | *"No transporte, o gás fóssil quase não reduz CO₂."* | **Correto e assumido.** No transporte, o ganho de CO₂ fóssil é modesto; o valor imediato é **poluentes locais** (NOx −~20%, partículas ~11× menos) e o valor profundo é o **bio-GNL** (−80% a negativo). O gás é a **ponte de infraestrutura** para o biometano. |
 | *"Metano anula o benefício."* | Flanco real. Resposta: cadeia small-scale + **OGMP 2.0 Nível 4–5 medido** + **covenant de metano** + HPDI no transporte. Vantagem **auditável**, condicionada a prova. |
 | *"Gera lock-in fóssil."* | Ativo **biometano-ready** (*drop-in*), com mandato de biometano (Lei 14.993/2024) e plano de conversão — **rota de saída**, não aprisionamento. |
+| *"O gás compete com o biometano e atrasa o renovável."* | **O oposto.** O gás **firma** o biometano sazonal (cobre a entressafra da cana, fator de utilização ~55%) e, via **CGOB**, carrega seu atributo o ano todo. Sem a base firme de gás, o contrato contínuo não fecha e o biometano **não escala**. Fonte do próprio setor: *"ativos complementares, não concorrentes"* (ABEGÁS, 2026). |
 | *"É greenwashing."* | Não pedimos rótulo "verde"; pedimos reconhecimento como **transição**, com prazo, metas e trajetória — o tratamento condicional que UE, TSB e BNDES já dão. |
 
 ---
@@ -185,6 +199,7 @@ Ambiente multilateral favorável: **Banco Mundial** (2024, "all of the above", r
 
 **MME / EPE / ANP:**
 - Ancorar o GNL de pequena escala no **"Gás para Empregar"**, no **mandato de biometano** e na diretriz de **segurança energética** da PNTE; usar o **Decreto 12.153/2024** (redução de reinjeção) para conectar gás do pré-sal a mercados off-grid.
+- **Reconhecer explicitamente o gás natural como firmeza do biometano sazonal** e consolidar o **CGOB (book-and-claim)** com **metas plurianuais** (dando previsibilidade de preço/receita) e regras claras de **fungibilidade** — condição para o investimento em escala na cadeia de biometano que o GNL carreia.
 
 **FEBRABAN / bancos / investidores / rating ESG:**
 - Financiamento **rotulado como transição** com **covenant de metano (OGMP 2.0)** e **KPI de blend de biometano / CBIOs**.
@@ -203,7 +218,8 @@ Ambiente multilateral favorável: **Banco Mundial** (2024, "all of the above", r
 - **Metano:** a tese é **condicional à medição** (OGMP 2.0). Sem reporte, o benefício frente ao diesel não é garantido — sobretudo no transporte.
 - **Números do fabricante (HPDI):** tratar "−20% / slip quase nulo" como **teto**, não auditado — buscar medição peer-reviewed em campo.
 - **Não coberto:** geração termoelétrica pública / sistemas isolados (CCC).
-- **A confirmar antes de circular:** (a) valor exato de **GLP importado em 2024** (Nota Técnica GLP/EPE) — hoje usamos a **dependência estrutural de ~25%**; (b) critério do **Caderno de Transporte da TSB** para gás fóssil (limiar gCO₂e/t·km e elegibilidade); (c) critério de gás na **Taxonomia Verde da FEBRABAN**; (d) estudo de ciclo de vida **brasileiro** de GNL de pequena escala com vazamento medido.
+- **Contribuição original:** a **arbitragem sazonal inter-regional de biometano** (Centro-Sul × Nordeste, §9.2) é proposta original deste documento — a complementaridade das safras de cana é documentada, mas sua aplicação ao biometano como fonte firme ainda não tem estudo formal. Apresentar como tese, não como fato consolidado.
+- **A confirmar antes de circular:** (a) valor exato de **GLP importado em 2024** (Nota Técnica GLP/EPE) — hoje usamos a **dependência estrutural de ~25%**; (b) critério do **Caderno de Transporte da TSB** para gás fóssil (limiar gCO₂e/t·km e elegibilidade); (c) critério de gás na **Taxonomia Verde da FEBRABAN**; (d) estudo de ciclo de vida **brasileiro** de GNL de pequena escala com vazamento medido; (e) **numeração exata das Resoluções ANP do CGOB** (995/996 de 2026) e **dados de volume/preço de CGOB** (mercado em arranque em set/2026); (f) **dias de safra** e curva mensal de produção de biometano (UNICA/ANP) para o gráfico de descompasso oferta×demanda.
 
 ---
 
@@ -250,6 +266,20 @@ Ambiente multilateral favorável: **Banco Mundial** (2024, "all of the above", r
 - ANP — biometano (21 plantas, CGOB, +75%): https://eixos.com.br/combustiveis-e-bioenergia/biocombustiveis/biometano-tres-anos-que-transformaram-uma-tese-em-realidade/
 - Lei 14.993/2024 (Combustível do Futuro): https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14993.htm · Decreto 12.614/2025 (mandato/CGOB): https://lefosse.com/noticias/alerta/novo-decreto-regulamenta-mandato-do-biometano-no-brasil/
 - RenovaBio (UNICA): https://unica.com.br/iniciativas/renovabio/ · ICCT — transporte na TSB (fev/2026): https://theicct.org/publication/o-setor-de-transportes-na-taxonomia-sustentavel-feb26/
+
+**Biometano — firmeza sazonal e complementaridade gás × biometano (§9.2)**
+- Almeida, Miura, Schmidt & Leonel — *"Gás Natural e Biometano, oportunidades que o país não pode perder"* (Brasil Energia/ABEGÁS, 2026; "ativos complementares, não concorrentes"; gás firma a entressafra): https://www.abegas.org.br/arquivos/100622
+- Ensaio Energético — *"O mercado de biometano em construção – Parte III"* (2024; fator de utilização ~55%; potencial de vinhaça por estado; curva mensal): https://ensaioenergetico.com.br/o-mercado-de-biometano-em-construcao-parte-iii-a-ilusao-do-pre-sal-caipira-a-escassez-de-infraestrutura-de-transporte-como-barreira-ao-desenvolvimento-do-mercado-de-biometano-no-brasil/
+- Fenasucro — cana = ~48% do potencial nacional de biogás/biometano (57,6 Mm³/dia): https://www.fenasucro.com.br/pt-br/blog/bioenergia/metade-do-potencial-de-producao-de-biogas-do-brasil-esta-nas-usi.html
+- JornalCana — safra Centro-Sul (ciclo 1 abr–31 mar; ~90% da moagem): https://jornalcana.com.br/safra-2026-27/238-usinas-operam-a-safra-na-regiao-centro-sul-veja-como-estao-os-resultados/ · Fenasucro — safra Nordeste (set–mar, contracíclica): https://www.fenasucro.com.br/pt-br/blog/negocios/por-que-a-safra-de-cana-do-nordeste-devera-crescer--enquanto-a-d.html
+- eixos — Bahiagás mira contratos firmes e flexíveis (base firme de gás): https://eixos.com.br/politica/bahiagas-mira-contratos-de-gas-natural-firmes-e-flexiveis-para-2025/
+
+**CGOB — desacoplamento do atributo verde / book-and-claim (§9.3)**
+- ANP — aprova resoluções do CGOB (2026): https://www.gov.br/anp/pt-br/canais_atendimento/imprensa/noticias-comunicados/combustivel-do-futuro-anp-aprova-duas-resolucoes-para-regulamentacao-da-lei
+- Cescon Barrieu — regulamentação do CGOB ("atributo ambiental atesta a origem renovável"; 1 CGOB = 100 m³; validade 18 meses): https://cesconbarrieu.com.br/anp-conclui-regulamentacao-do-programa-nacional-de-descarbonizacao-do-produtor-e-importador-de-gas-natural-e-de-incentivo-ao-biometano/
+- Exame ESG — CGOB e o desacoplamento molécula×atributo (exemplo SP→RJ): https://exame.com/esg/cgob-o-que-e-o-certificado-de-garantia-de-origem-de-biometano-e-o-que-falta-para-operacionaliza-lo/
+- eixos — CGOB e o desafio da previsibilidade (metas plurianuais): https://eixos.com.br/gas-natural/biogas/o-cgob-e-o-desafio-da-previsibilidade-por-que-o-biometano-precisa-de-um-mandato-estavel/
+- Precedentes internacionais: ERGaR (European Renewable Gas Registry): https://www.ergar.org/renewable-gas-certification/ · Green Gas Certification Scheme / RGGO (UK): https://www.greengas.org.uk/certificates · RSB Book & Claim (SAF): https://rsb.org/2024/02/12/repsol-achieves-certification-to-trade-saf-within-rsbs-book-and-claim-system/
 
 **Taxonomias e precedente**
 - BNDES — Taxonomia de Sustentabilidade (gás como Transição): https://www.bndes.gov.br/wps/portal/site/home/desenvolvimento-sustentavel/resultados/taxonomia-sustentabilidade/taxonomia-sustentabilidade
