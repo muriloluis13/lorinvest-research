@@ -52,7 +52,7 @@ header::before{content:'';display:block;height:3px;background:linear-gradient(90
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
 .mapcard{padding:0;overflow:hidden;position:relative}
 #map{width:100%;height:660px;background:#DCEBEB}
-/* basemap 'Branco': tiles OSM (sem chave de API) filtrados p/ estilo claro, substitui o CARTO Positron */
+/* fallback do basemap claro: raster OSM filtrado, usado só se o MapLibre/OpenFreeMap não carregar */
 .basemap-light{filter:grayscale(1) brightness(1.12) contrast(.86);}
 
 .mapcard:fullscreen{width:100vw;height:100vh;border-radius:0;border:none}
@@ -319,6 +319,10 @@ footer b{color:var(--ink)}
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- MapLibre GL + plugin Leaflet: renderiza o basemap vetorial "Positron" do OpenFreeMap -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
 <script>
 const CATS = {
   planta: {label:'Plantas GNLink', color:'#12897C'},
@@ -1304,13 +1308,31 @@ const FsControl=L.Control.extend({options:{position:'bottomleft'},onAdd:function
 const fsCtrl=new FsControl(); if(fsSupported()) map.addControl(fsCtrl);
 document.addEventListener('fullscreenchange',()=>{ const a=fsCtrl.getContainer()&&fsCtrl.getContainer().__link; if(a){a.innerHTML=inFs()?'✕':'⛶'; a.title=inFs()?'Sair da tela inteira':'Tela inteira';} setTimeout(()=>map.invalidateSize(),120); });
 document.addEventListener('webkitfullscreenchange',()=>{ setTimeout(()=>map.invalidateSize(),120); });
-const baseLight=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19,className:'basemap-light'});
+// Basemap claro: OpenFreeMap "Positron" — vetorial, dados OSM, 100% open source, sem chave de API.
+// Fallback (se o MapLibre/OpenFreeMap não carregar): raster OSM com filtro CSS.
+const baseLightRaster=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19,className:'basemap-light'});
+const baseLight=(window.maplibregl&&L.maplibreGL)
+  ? L.maplibreGL({style:'https://tiles.openfreemap.org/styles/positron',attribution:'&copy; OpenStreetMap · OpenMapTiles · OpenFreeMap'})
+  : baseLightRaster;
 const baseOSM=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19});
 const baseSatLabels=L.layerGroup([
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'&copy; Esri, Maxar, Earthstar Geographics',maxZoom:19}),
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19})
 ]);
 L.control.layers({'Branco':baseLight,'Vegetação':baseOSM,'Satélite':baseSatLabels},null,{position:'bottomleft',collapsed:true}).addTo(map);
+// o canvas do MapLibre precisa de resize() quando o container muda de tamanho
+// (tela cheia, redimensionamento, container ainda sem altura na carga)
+if(baseLight!==baseLightRaster){
+  const syncGL=()=>{ const m=baseLight.getMaplibreMap&&baseLight.getMaplibreMap(); if(m) m.resize(); };
+  map.on('resize', syncGL);
+  // ao voltar para o basemap claro no seletor, o canvas precisa repintar
+  map.on('layeradd', e=>{ if(e.layer===baseLight) setTimeout(syncGL,120); });
+  document.addEventListener('fullscreenchange',()=>setTimeout(syncGL,200));
+  document.addEventListener('webkitfullscreenchange',()=>setTimeout(syncGL,200));
+  window.addEventListener('load',()=>setTimeout(()=>{ map.invalidateSize(); syncGL(); },300));
+  // container que ganha altura depois (aba oculta, iframe, lazy render)
+  if(window.ResizeObserver){ new ResizeObserver(()=>{ map.invalidateSize(); syncGL(); }).observe(document.getElementById('map')); }
+}
 // tela inteira acima do seletor de estilos no canto inferior esquerdo
 (function(){ const c=document.querySelector('.leaflet-bottom.leaflet-left'); const fs=document.querySelector('.fs-ctrl'); if(c&&fs) c.insertBefore(fs, c.firstChild); })();
 
