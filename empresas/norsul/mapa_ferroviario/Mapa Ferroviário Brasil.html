@@ -26,6 +26,9 @@ header::before{content:'';display:block;height:3px;background:linear-gradient(90
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
 .mapcard{padding:0;overflow:hidden;position:relative}
 #map{width:100%;height:calc(100vh - 150px);min-height:520px;background:#DCEBEB}
+/* basemap 'Branco': tiles OSM (sem chave de API) filtrados p/ estilo claro, substitui o CARTO Positron */
+.basemap-light{filter:grayscale(1) brightness(1.12) contrast(.86);}
+
 .maptitle{position:absolute;left:12px;top:12px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:9px;padding:6px 11px;box-shadow:var(--shadow);pointer-events:none}
 .maptitle h2{font-size:12px;font-weight:800;color:var(--navy)}
 .maptitle p{font-size:10px;color:var(--muted);font-weight:600;margin-top:1px}
@@ -136,8 +139,8 @@ function toggleFs(){ if(inFs()){(document.exitFullscreen||document.webkitExitFul
 const FsControl=L.Control.extend({options:{position:'bottomleft'},onAdd:function(){const c=L.DomUtil.create('div','leaflet-bar fs-ctrl');const a=L.DomUtil.create('a','',c);a.href='#';a.title='Tela inteira';a.innerHTML='⛶';L.DomEvent.on(a,'click',L.DomEvent.stop).on(a,'click',toggleFs);c.__link=a;return c;}});
 const fsCtrl=new FsControl(); if(mapCardEl.requestFullscreen||mapCardEl.webkitRequestFullscreen) map.addControl(fsCtrl);
 document.addEventListener('fullscreenchange',()=>{const a=fsCtrl.getContainer()&&fsCtrl.getContainer().__link; if(a){a.innerHTML=inFs()?'✕':'⛶';} setTimeout(()=>map.invalidateSize(),120);});
-const baseLight=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap · &copy; CARTO · traçados: ANTF',subdomains:'abcd',maxZoom:19});
-const baseOSM=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap · traçados: ANTF',subdomains:'abc',maxZoom:19});
+const baseLight=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap · traçados: ANTF',maxZoom:19,className:'basemap-light'});
+const baseOSM=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap · traçados: ANTF',maxZoom:19});
 const baseSat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'&copy; Esri, Maxar, Earthstar Geographics · traçados: ANTF',maxZoom:19});
 const baseSatLabels=L.layerGroup([
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'&copy; Esri, Maxar, Earthstar Geographics · traçados: ANTF',maxZoom:19}),
