@@ -108,6 +108,136 @@ def extract_macro(wb, months, cutoff):
     return rows
 
 
+# ============================================================================
+#  VOLUME (Fase B) — a Receita computa o volume de TODOS os 192 meses a partir
+#  do cronograma de rampa da aba Clientes (não há série histórica separada).
+#  Recipe (Receita!<mes><linhaCliente>):
+#    volRampa = estágio S6..S1 cujo [ini,fim] contém o mês (vol>0), senão 0
+#    override = Clientes!E184:N332 (jan..dez/26, keyed por id) — só se mes>corte
+#    vol = (useOverride ? override : volRampa) * fatorOperacao[planta][mes]
+#                                              * fatorSensib[planta][mes]
+#  Extraímos os INSUMOS BRUTOS (Clientes + overrides + fatores); o JS recalcula.
+# ============================================================================
+CLI_ROW0, CLI_ROW1 = 7, 174        # faixa de clientes na aba Clientes (A7:A174)
+OVR_ROW0, OVR_ROW1 = 184, 332      # bloco de override (A184:A332)
+FATOR_OPER = (767, 772)            # Receita: Início de Operação por planta (1..6)
+FATOR_SENS = (775, 780)            # Receita: Fator de Sensibilidade por planta
+
+
+def _ym(v):
+    if isinstance(v, (datetime.datetime, datetime.date)):
+        return "%04d-%02d" % (v.year, v.month)
+    return None
+
+
+def extract_clientes(wb):
+    """Cronograma por cliente: id, planta, produto, volmax, estágios S1..S6 (vol/ini/fim)."""
+    ws = wb["Clientes"]
+    rows = list(ws.iter_rows(min_row=1, max_row=OVR_ROW1, max_col=57, values_only=True))
+    def cell(r, idx):  # r = nº de linha 1-based; idx = 0-based na tupla
+        return rows[r - 1][idx] if r - 1 < len(rows) else None
+
+    clientes = []
+    # estágios: (vol_idx, ini_idx, fim_idx) 0-based
+    STG = [(33, 34, 36), (37, 38, 40), (41, 42, 44), (45, 46, 48), (49, 50, 52), (53, 54, 56)]
+    for r in range(CLI_ROW0, CLI_ROW1 + 1):
+        rec = rows[r - 1]
+        cid = rec[0]; num = rec[1]; planta = rec[3]; prod = rec[4]; volmax = rec[6]
+        if prod not in ("GNL", "GNC"):    # pula cabeçalhos de seção
+            continue
+        if not isinstance(num, (int, float)):
+            continue
+        stages = []
+        for (vi, ii, fi) in STG:
+            vol = rec[vi]; ini = _ym(rec[ii]); fim = _ym(rec[fi])
+            stages.append([vol if isinstance(vol, (int, float)) else None, ini, fim])
+        clientes.append({
+            "id": str(cid).strip(),
+            "planta": int(planta) if isinstance(planta, (int, float)) else None,
+            "produto": prod,
+            "volmax": volmax if isinstance(volmax, (int, float)) else None,
+            "stages": stages,
+        })
+    return clientes
+
+
+def extract_overrides(wb):
+    """Override de volume near-term (jan..dez/26): {id, produto, {ym: valor}}."""
+    ws = wb["Clientes"]
+    rows = list(ws.iter_rows(min_row=183, max_row=OVR_ROW1, max_col=14, values_only=True))
+    hdr = rows[0]                       # linha 183
+    months = [_ym(hdr[j]) for j in range(4, 14)]   # cols E..N
+    out = []
+    for rec in rows[1:]:
+        cid = rec[0]
+        if cid in (None, ""):
+            continue
+        prod = rec[3]
+        vals = {}
+        for j, ym in enumerate(months):
+            if ym is None:
+                continue
+            v = rec[4 + j]
+            if isinstance(v, (int, float)):
+                vals[ym] = v
+        if vals:
+            out.append({"id": str(cid).strip(), "produto": prod, "vals": vals})
+    return out, [m for m in months if m]
+
+
+def read_receita_rows(wb, rmax=785):
+    """UM passo de streaming pela aba Receita -> {rownum: tuple}. Evita O(n²) de
+       chamadas iter_rows por linha (fatal numa aba de 2438 linhas em read_only)."""
+    ws = wb["Receita"]
+    keep = {}
+    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=rmax, values_only=True), start=1):
+        if (27 <= i <= 340) or (764 <= i <= 782):
+            keep[i] = row
+    return keep
+
+
+def extract_fatores(rrows):
+    """Fatores por planta (1..6) x 192 meses: operacao (Y/N) e sensibilidade."""
+    def block(r0, r1):
+        res = {}
+        for r in range(r0, r1 + 1):
+            rec = rrows.get(r)
+            if not rec:
+                continue
+            pid = rec[0]
+            if not isinstance(pid, (int, float)):
+                continue
+            res[int(pid)] = [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+                             for k in range(N_MONTHS)]
+        return res
+    return block(*FATOR_OPER), block(*FATOR_SENS)
+
+
+def extract_golden_volume(rrows, id2planta):
+    """Golden de validação: soma dos volumes computados (cache do Excel) por planta/produto/mês.
+       GNL block = Receita 30..182 ; GNC block = 188..340."""
+    gold = {}   # (planta, produto) -> [192]
+    def add(r0, r1, produto):
+        for r in range(r0, r1 + 1):
+            rec = rrows.get(r)
+            if not rec:
+                continue
+            cid = rec[0]
+            if cid in (None, ""):
+                continue
+            p = id2planta.get(str(cid).strip())
+            if p is None:
+                continue
+            arr = gold.setdefault((p, produto), [0.0] * N_MONTHS)
+            for k in range(N_MONTHS):
+                v = rec[COL_FIRST - 1 + k]
+                if isinstance(v, (int, float)):
+                    arr[k] += v
+    add(30, 182, "GNL")
+    add(188, 340, "GNC")
+    return gold
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SRC
     if not os.path.exists(src):
@@ -124,6 +254,16 @@ def main():
         cutoff.strftime("%Y-%m"), n_real, N_MONTHS - n_real))
 
     macro = extract_macro(wb, months, cutoff)
+
+    # ---- Volume (Fase B) ----
+    clientes = extract_clientes(wb)
+    id2planta = {c["id"]: c["planta"] for c in clientes if c["planta"]}
+    overrides, ovr_months = extract_overrides(wb)
+    rrows = read_receita_rows(wb)
+    fator_oper, fator_sens = extract_fatores(rrows)
+    golden = extract_golden_volume(rrows, id2planta)
+    print("Clientes: %d | overrides: %d (%s..%s) | fatores plantas: %s" % (
+        len(clientes), len(overrides), ovr_months[0], ovr_months[-1], sorted(fator_oper)))
     wb.close()
 
     # ---- monta o xlsx de saída ----
@@ -145,8 +285,52 @@ def main():
     for row in macro:
         ws_ma.append(row)
 
+    # aba Clientes: cronograma de rampa (insumo do motor de volume)
+    ws_c = out.create_sheet("Clientes")
+    hdr = ["id", "planta", "produto", "volmax"]
+    for s in range(1, 7):
+        hdr += ["S%d_vol" % s, "S%d_ini" % s, "S%d_fim" % s]
+    ws_c.append(hdr)
+    for c in clientes:
+        row = [c["id"], c["planta"], c["produto"], c["volmax"]]
+        for st in c["stages"]:
+            row += [st[0], st[1], st[2]]
+        ws_c.append(row)
+
+    # aba Overrides: override near-term (jan..dez/26)
+    ws_o = out.create_sheet("Overrides")
+    ws_o.append(["id", "produto"] + ovr_months)
+    for o in overrides:
+        ws_o.append([o["id"], o["produto"]] + [o["vals"].get(m) for m in ovr_months])
+
+    # aba VolumeHist: volume REALIZADO (actuals hardcoded no Excel) por planta/produto.
+    # Meses realizados (<=corte) vêm daqui; projeção (>corte) o JS recalcula por rampa.
+    ws_vh = out.create_sheet("VolumeHist")
+    ws_vh.append(["planta", "produto"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for (p, prod) in sorted(golden):
+        arr = golden[(p, prod)]
+        ws_vh.append([p, prod] + [arr[k] if k < n_real else None for k in range(N_MONTHS)])
+
+    # aba Fatores: operacao / sensib por planta (1..6) x 192 meses
+    ws_f = out.create_sheet("Fatores")
+    ws_f.append(["tipo", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for tipo, blk in (("operacao", fator_oper), ("sensib", fator_sens)):
+        for pid in sorted(blk):
+            ws_f.append([tipo, pid] + blk[pid])
+
     out.save(OUT)
     print("OK ->", OUT)
+
+    # ---- golden de validação (fora do xlsx de runtime) ----
+    gdir = os.path.join(HERE, "golden")
+    os.makedirs(gdir, exist_ok=True)
+    gpath = os.path.join(gdir, "volume_por_planta.csv")
+    with open(gpath, "w", encoding="utf-8", newline="") as fh:
+        fh.write("planta;produto;" + ";".join("%04d-%02d" % (y, mo) for (y, mo) in ym) + "\n")
+        for (p, prod) in sorted(golden):
+            arr = golden[(p, prod)]
+            fh.write("%d;%s;" % (p, prod) + ";".join(repr(round(x, 6)) for x in arr) + "\n")
+    print("golden ->", gpath)
 
 
 if __name__ == "__main__":

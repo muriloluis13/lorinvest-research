@@ -160,7 +160,47 @@ function parseWorkbook(buf){
     const row = gm[i]; if(!row || row[0]==null) continue;
     macro[row[0]] = {id:row[0], label:row[1], unidade:row[2], vals:row.slice(3)};
   }
-  return {meses, regioes, macro};
+
+  // Clientes: cronograma de rampa (id, planta, produto, volmax, S1..S6 vol/ini/fim)
+  const ord = s => { if(!s) return null; const p=String(s).split("-"); return (+p[0])*12+(+p[1]-1); };
+  const gc = grid("Clientes");
+  const clientes = [];
+  for(let i=1;i<gc.length;i++){
+    const r=gc[i]; if(!r || r[0]==null) continue;
+    const stages=[];
+    for(let s=0;s<6;s++){ const b=4+s*3; stages.push({vol:r[b], ini:ord(r[b+1]), fim:ord(r[b+2])}); }
+    clientes.push({id:String(r[0]).trim(), planta:r[1], produto:r[2], volmax:r[3], stages});
+  }
+
+  // Overrides: {id: {ord: valor}}  (near-term jan..dez/26)
+  const go = grid("Overrides");
+  const ovMonths = (go[0]||[]).slice(2).map(ord);
+  const overrides = {};
+  for(let i=1;i<go.length;i++){
+    const r=go[i]; if(!r || r[0]==null) continue;
+    const m={}; for(let j=0;j<ovMonths.length;j++){ const v=r[2+j]; if(typeof v==="number") m[ovMonths[j]]=v; }
+    overrides[String(r[0]).trim()]=m;
+  }
+
+  // Fatores: operacao/sensib por planta -> array alinhado a `meses`
+  const gf = grid("Fatores");
+  const fatores = {operacao:{}, sensib:{}};
+  for(let i=1;i<gf.length;i++){
+    const r=gf[i]; if(!r || r[0]==null) continue;
+    fatores[r[0]][r[1]] = r.slice(2);
+  }
+
+  // VolumeHist: volume realizado (actuals) por planta/produto -> volHist[planta][produto]=[192]
+  const gv = grid("VolumeHist");
+  const volHist = {};
+  for(let i=1;i<gv.length;i++){
+    const r=gv[i]; if(!r || r[0]==null) continue;
+    (volHist[r[0]] = volHist[r[0]]||{})[r[1]] = r.slice(2);
+  }
+
+  const monthsOrd = meses.map(m=>ord(m.ym));
+  const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
+  return {meses, regioes, macro, clientes, overrides, fatores, volHist, monthsOrd, cutoffIdx};
 }
 
 async function tryFetch(){
@@ -222,6 +262,13 @@ function render(){
     html += renderMacro();
     m.innerHTML = html;
     drawMacro();
+    return;
+  }
+  if(aba.id==="receita"){
+    const r = renderReceita();
+    m.innerHTML = html + r.html;
+    wireSubtabs();
+    drawVol(r.gnl, r.gnc);
     return;
   }
   // demais abas: placeholder com sub-abas de região já operantes
@@ -303,6 +350,124 @@ function baseLineOpts(){
             y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"}}}};
 }
 
+/* ===================================================== motor de volume (B) ==
+   Réplica de Receita!<mes><cliente>: estágio S6..S1 ativo -> override near-term
+   -> * fatorOperacao[planta] * fatorSensib[planta]. Volume em m³/dia. ========= */
+function stageVol(cli, ordv){
+  for(let s=5;s>=1;s--){ const st=cli.stages[s];
+    if(st.vol>0 && st.ini!=null && ordv>=st.ini && ordv<=st.fim) return st.vol; }
+  const s1=cli.stages[0];
+  if(s1.ini!=null && ordv>=s1.ini && ordv<=s1.fim) return s1.vol||0;
+  return 0;
+}
+function volClienteSerie(cli){
+  const mo=DB.monthsOrd, cut=DB.cutoffIdx;
+  const oper=DB.fatores.operacao[cli.planta]||[], sens=DB.fatores.sensib[cli.planta]||[];
+  const ovr=DB.overrides[cli.id]||{}, out=new Array(mo.length);
+  for(let k=0;k<mo.length;k++){
+    let vf=stageVol(cli,mo[k]);
+    const ov=ovr[mo[k]];
+    if(k>cut && typeof ov==="number" && ov!==0) vf=ov;
+    const fo=(typeof oper[k]==="number")?oper[k]:0;
+    const fs=(typeof sens[k]==="number")?sens[k]:1;
+    out[k]=vf*fo*fs;
+  }
+  return out;
+}
+function volAggProj(regiao, produto){   // projeção por rampa (soma clientes)
+  const n=DB.meses.length, acc=new Array(n).fill(0);
+  for(const cli of DB.clientes){
+    if(produto && cli.produto!==produto) continue;
+    if(regiao!==0 && cli.planta!==regiao) continue;
+    const s=volClienteSerie(cli);
+    for(let k=0;k<n;k++) acc[k]+=s[k];
+  }
+  return acc;
+}
+function histAgg(regiao, produto){      // realizado (actuals extraídos) até o corte
+  const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
+  const add=p=>{ const a=(DB.volHist[p]||{})[produto]; if(a) for(let k=0;k<=cut;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } };
+  if(regiao===0) DB.regioes.forEach(r=>add(r.id)); else add(regiao);
+  return acc;
+}
+// série final: realizado (actuals) até o corte, projeção (rampa) depois
+function volAgg(regiao, produto){
+  const proj=volAggProj(regiao,produto), hist=histAgg(regiao,produto), cut=DB.cutoffIdx;
+  return proj.map((v,k)=> k<=cut ? hist[k] : v);
+}
+
+/* -------------------------------------------------------- aba Receita (B) -- */
+function renderReceita(){
+  const reg=state.regiao, cut=DB.cutoffIdx, n=DB.meses.length;
+  const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC");
+  const tot=gnl.map((v,i)=>v+gnc[i]);
+  const nCli = DB.clientes.filter(c=>reg===0||c.planta===reg).length;
+  let h = subtabsHTML();
+  h += `<div class="pglead"><b>Volumes</b> — m³/dia, motor de rampa por cliente. Receita (R$) entra na Fase C.<span class="tag">Fase B</span></div>`;
+  h += '<div class="mkpis">';
+  h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+DB.meses[cut].ym);
+  h += kpi("Vol. projetado (dez/38)", fmt(tot[n-1],0), "m³/dia");
+  h += kpi("Pico projetado", fmt(Math.max(...tot),0), "m³/dia");
+  h += kpi("Clientes na região", String(nCli), "GNL "+DB.clientes.filter(c=>(reg===0||c.planta===reg)&&c.produto==="GNL").length+" · GNC "+DB.clientes.filter(c=>(reg===0||c.planta===reg)&&c.produto==="GNC").length);
+  h += '</div>';
+  h += '<div class="card"><h4>Volume mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
+  h += volTable(gnl,gnc,tot);
+  return {html:h, gnl, gnc, tot};
+}
+function kpi(cap,val,sub,cls){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
+
+function volTable(gnl,gnc,tot){
+  // anual (soma dos m³/dia? não — mostramos média m³/dia por ano p/ leitura)
+  const yrs={}, cut=DB.cutoffIdx;
+  DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); (yrs[y]=yrs[y]||{gnl:0,gnc:0,cnt:0,proj:false}); yrs[y].gnl+=gnl[i]; yrs[y].gnc+=gnc[i]; yrs[y].cnt++; if(i>cut) yrs[y].proj=true; });
+  const ks=Object.keys(yrs).sort();
+  let h='<h3 class="msub">Volume médio (m³/dia) por ano</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Produto</th>';
+  for(const y of ks) h+=`<th class="${yrs[y].proj?'o':''}">${y}</th>`;
+  h+='</tr></thead><tbody>';
+  const line=(lbl,key)=>{ let s=`<tr><td class="l">${lbl}</td>`; for(const y of ks){ const o=yrs[y]; s+=`<td class="${o.proj?'o':''}">${fmt(o[key]/o.cnt,0)}</td>`; } return s+'</tr>'; };
+  h+=line("GNL","gnl"); h+=line("GNC","gnc");
+  let s='<tr class="tot"><td class="l">Total</td>'; for(const y of ks){ const o=yrs[y]; s+=`<td class="${o.proj?'o':''}">${fmt((o.gnl+o.gnc)/o.cnt,0)}</td>`; } h+=s+'</tr>';
+  h+='</tbody></table></div><div class="note">Colunas em cinza = anos com meses projetados (Orçado). Valores = média m³/dia no ano.</div>';
+  return h;
+}
+function drawVol(gnl,gnc){
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym);
+  const dash = ctx => ctx.p0DataIndex>=cut ? [5,4] : undefined;
+  charts.vol = new Chart($("#cVol"),{ type:"line",
+    data:{labels, datasets:[
+      {label:"GNL",data:gnl,borderColor:PAL[0],backgroundColor:PAL[0]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
+      {label:"GNC",data:gnc,borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
+    ]},
+    options:Object.assign(baseLineOpts(),{scales:{
+      x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+      y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"m³/dia"}}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y,0)+" m³/dia ("+(c.dataIndex>cut?"Orçado":"Realizado")+")"}}}}
+    )});
+}
+
+/* ------------------------------------------------- validação vs golden ---- */
+async function validateVolume(){
+  let txt;
+  try{ const r=await fetch("build/golden/volume_por_planta.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ console.warn("[valida] golden não encontrado (sirva a pasta por HTTP)"); return; }
+  const lines=txt.trim().split(/\r?\n/); const rows=lines.slice(1).map(l=>l.split(";"));
+  let worst=0, worstAt="", checked=0, mism=0;
+  for(const r of rows){
+    const p=+r[0], prod=r[1], gold=r.slice(2).map(Number);
+    const eng=volAgg(p,prod);
+    for(let k=0;k<gold.length;k++){
+      const g=gold[k], e=eng[k]; const den=Math.max(Math.abs(g),1e-9);
+      const rel=Math.abs(e-g)/den; checked++;
+      if(Math.abs(e-g)>0.5 && rel>1e-4){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${prod} ${DB.meses[k].ym} gold=${g.toFixed(2)} eng=${e.toFixed(2)}`;} }
+    }
+  }
+  const ok = mism===0;
+  console.log(`%c[valida volume] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora de tolerância; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(3)}%)`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, checked, mism, worst, worstAt};
+}
+
 /* --------------------------------------------------------------- boot ---- */
 function boot(){
   document.body.classList.remove("loading");
@@ -310,6 +475,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
+  if(new URLSearchParams(location.search).has("validate")) validateVolume();
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 
