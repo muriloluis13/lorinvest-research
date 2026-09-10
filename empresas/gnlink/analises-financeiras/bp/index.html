@@ -80,6 +80,26 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .err{color:var(--accent3);font-weight:600;margin-top:12px}
 .note{border-left:3px solid var(--accent2);background:#F7F9FC;border-radius:0 10px 10px 0;padding:11px 14px;font-size:12px;color:var(--muted);margin:14px 0}
 .tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+/* editor de clientes / contratos */
+.cform{max-width:760px}
+.cform .sec{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700;margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.frow{display:flex;align-items:center;gap:10px;margin:7px 0}
+.frow>label{flex:0 0 210px;font-size:12.5px;color:var(--muted);font-weight:600}
+.frow input,.frow select,.stagegrid input{font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);min-width:0}
+.frow input,.frow select{flex:1}
+.frow input:focus,.frow select:focus,.stagegrid input:focus{outline:none;border-color:var(--accent2)}
+.stagegrid{display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:6px;align-items:center;margin:4px 0}
+.stagegrid .sh{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.stagegrid .st{font-size:12px;font-weight:700;color:var(--accent)}
+.clitbl tbody tr{cursor:pointer}
+.clitbl tbody tr:hover td{background:#EEF2F7}
+.clitbl tbody tr.sel td{background:#EAF0F6}
+.clitbl td.l .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--orange);margin-right:6px;vertical-align:middle}
+.formbtns{display:flex;gap:10px;margin-top:18px;align-items:center}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:700;font-size:13px}
+.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 16px;font-weight:600;color:var(--muted)}
+.okmsg{color:var(--green);font-weight:700;font-size:12.5px}
 </style>
 </head>
 <body class="loading">
@@ -129,13 +149,14 @@ const ABAS = [
     {id:"opex",     nome:"OPEX",            regiao:true,  fase:"D"},
     {id:"holding",  nome:"Holding",         regiao:false, fase:"D"},
   ]},
-  {grp:"Premissas & Base", items:[
+  {grp:"Contratos & Premissas", items:[
+    {id:"clientes",  nome:"Clientes",  regiao:false, fase:null},
     {id:"macro",     nome:"Macro",     regiao:false, fase:null},
     {id:"premissas", nome:"Premissas", regiao:false, fase:"E"},
   ]},
 ];
 
-const state = {aba:"macro", regiao:0};
+const state = {aba:"macro", regiao:0, cliSel:null, cliQ:"", cliMsg:""};
 let DB = null;              // base histórica parseada
 const charts = {};          // registry de Chart.js p/ destruir no re-render
 
@@ -161,15 +182,22 @@ function parseWorkbook(buf){
     macro[row[0]] = {id:row[0], label:row[1], unidade:row[2], vals:row.slice(3)};
   }
 
-  // Clientes: cronograma de rampa (id, planta, produto, volmax, S1..S6 vol/ini/fim)
+  // Clientes: premissas por cliente (leitura por cabeçalho; robusta à ordem)
   const ord = s => { if(!s) return null; const p=String(s).split("-"); return (+p[0])*12+(+p[1]-1); };
-  const gc = grid("Clientes");
+  const gc = grid("Clientes"); const H=(gc[0]||[]), hi={}; H.forEach((h,i)=>hi[h]=i);
+  const CFLD=["id","nome","planta","produto","volmax","preco","aluguel","custo_mol",
+    "ini_contrato","ini_op","duracao","fim_contrato","distancia","tipo_transp",
+    "tipo_regas","venda_regas","entrega","top","margem","correcao_mol"];
   const clientes = [];
   for(let i=1;i<gc.length;i++){
-    const r=gc[i]; if(!r || r[0]==null) continue;
-    const stages=[];
-    for(let s=0;s<6;s++){ const b=4+s*3; stages.push({vol:r[b], ini:ord(r[b+1]), fim:ord(r[b+2])}); }
-    clientes.push({id:String(r[0]).trim(), planta:r[1], produto:r[2], volmax:r[3], stages});
+    const r=gc[i]; if(!r || r[hi.id]==null) continue;
+    const c={stages:[]};
+    CFLD.forEach(k=>c[k]=r[hi[k]]); c.id=String(c.id).trim();
+    for(let s=1;s<=6;s++){
+      const iniYm=r[hi["S"+s+"_ini"]], fimYm=r[hi["S"+s+"_fim"]];
+      c.stages.push({vol:r[hi["S"+s+"_vol"]], iniYm, fimYm, ini:ord(iniYm), fim:ord(fimYm)});
+    }
+    clientes.push(c);
   }
 
   // Overrides: {id: {ord: valor}}  (near-term jan..dez/26)
@@ -269,6 +297,10 @@ function render(){
     m.innerHTML = html + r.html;
     wireSubtabs();
     drawVol(r.gnl, r.gnc);
+    return;
+  }
+  if(aba.id==="clientes"){
+    m.innerHTML = html + renderClientes();
     return;
   }
   // demais abas: placeholder com sub-abas de região já operantes
@@ -446,6 +478,86 @@ function drawVol(gnl,gnc){
     )});
 }
 
+/* ====================================================== aba Clientes ======
+   Parametrização das premissas por cliente (curva de volume, datas, preço,
+   custos, etc). Editar a curva de volume re-projeta o motor ao vivo. ======== */
+const regShort = id => (DB.regioes.find(r=>r.id===id)||{}).codigo || "—";
+function isEdited(c){ const b=(DB.clientesBase||[]).find(x=>x.id===c.id); return b && JSON.stringify(b)!==JSON.stringify(c); }
+
+function renderClientes(){
+  let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Editar a <b>curva de volume</b> re-projeta o BP ao vivo.<span class="tag">Fase B</span></div>`;
+  h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome ou planta…" oninput="onCliSearch(this.value)"></div>`;
+  const q=(state.cliQ||"").toLowerCase();
+  h += '<div class="tblwrap" style="max-height:300px;overflow:auto"><table class="mtbl clitbl"><thead><tr><th class="l">Cliente</th><th>Planta</th><th>Produto</th><th>Vol máx</th><th>Início op.</th><th>Fim contrato</th><th>Preço</th></tr></thead><tbody>';
+  for(const c of DB.clientes){
+    if(q && !((c.nome||'').toLowerCase().includes(q) || (regShort(c.planta)||'').toLowerCase().includes(q))) continue;
+    h += `<tr class="${c.id===state.cliSel?'sel':''}" onclick="selCli('${c.id}')"><td class="l">${isEdited(c)?'<span class="dot"></span>':''}${c.nome||c.id}</td><td>${regShort(c.planta)}</td><td>${c.produto||''}</td><td>${c.volmax!=null?fmt(c.volmax,0):'—'}</td><td>${c.ini_op||'—'}</td><td>${c.fim_contrato||'—'}</td><td>${c.preco!=null?fmt(c.preco,2):'—'}</td></tr>`;
+  }
+  h += '</tbody></table></div>';
+  h += state.cliSel ? editorHTML(DB.clientes.find(c=>c.id===state.cliSel))
+                    : '<div class="note">Selecione um cliente acima para editar suas premissas.</div>';
+  return h;
+}
+const _fr = (id,lbl,val,type)=>`<div class="frow"><label>${lbl}</label><input id="${id}" ${type||''} value="${val==null?'':val}"></div>`;
+function editorHTML(c){
+  const opt=(cur,v,l)=>`<option value="${v}" ${String(cur)===String(v)?'selected':''}>${l}</option>`;
+  let h=`<div class="cform card"><h4>${c.nome||c.id} <span class="tag">id ${c.id}</span>${isEdited(c)?' <span class="okmsg" style="color:var(--orange)">• editado</span>':''}</h4>`;
+  h+='<div class="sec">Identificação</div>';
+  h+=_fr("e_nome","Nome",c.nome||"","type=text");
+  h+=`<div class="frow"><label>Planta</label><select id="e_planta">${DB.regioes.map(r=>opt(c.planta,r.id,r.nome)).join('')}</select></div>`;
+  h+=`<div class="frow"><label>Produto</label><select id="e_produto">${opt(c.produto,'GNL','GNL')}${opt(c.produto,'GNC','GNC')}</select></div>`;
+  h+='<div class="sec">Curva de volume (m³/dia) — re-projeta ao vivo</div>';
+  h+='<div class="stagegrid"><div class="sh">Estágio</div><div class="sh">Volume</div><div class="sh">Início (AAAA-MM)</div><div class="sh">Fim (AAAA-MM)</div></div>';
+  for(let s=1;s<=6;s++){ const st=c.stages[s-1];
+    h+=`<div class="stagegrid"><div class="st">S${s}</div><input id="e_s${s}v" type="number" step="any" value="${st.vol==null?'':st.vol}"><input id="e_s${s}i" value="${st.iniYm||''}" placeholder="AAAA-MM"><input id="e_s${s}f" value="${st.fimYm||''}" placeholder="AAAA-MM"></div>`; }
+  h+='<div class="sec">Comercial</div>';
+  h+=_fr("e_preco","Preço de venda (R$/m³)",c.preco,"type=number step=any");
+  h+=_fr("e_aluguel","Aluguel fixo (R$/mês)",c.aluguel,"type=number step=any");
+  h+=`<div class="frow"><label>Custo molécula</label><select id="e_customol">${opt(c.custo_mol,1,'Sim (1)')}${opt(c.custo_mol,0,'Não (0)')}</select></div>`;
+  h+=_fr("e_dist","Distância (km)",c.distancia,"type=number step=any");
+  h+=`<div class="frow"><label>Entrega</label><select id="e_entrega">${opt(c.entrega||'','CIF','CIF')}${opt(c.entrega||'','FOB','FOB')}</select></div>`;
+  h+=_fr("e_top","Take-or-Pay (ToP)",c.top,"type=number step=any");
+  h+=_fr("e_regas","Tipo regás",c.tipo_regas||"","type=text");
+  h+=_fr("e_correcao","Correção molécula",c.correcao_mol,"type=number step=any");
+  h+='<div class="sec">Datas do contrato</div>';
+  h+=_fr("e_iniop","Início operação (AAAA-MM-DD)",c.ini_op||"","type=text");
+  h+=_fr("e_fim","Fim do contrato (AAAA-MM-DD)",c.fim_contrato||"","type=text");
+  h+='<div class="sec">Indexação & CapEx de regás/descompressão</div><div class="note">Indexação de preço (Fase C) e CapEx de regás/descompressão por cliente (Fase Capex) entram nas próximas fases — os campos aparecerão aqui e alimentarão receita e investimento.</div>';
+  h+=`<div class="formbtns"><button class="btn-primary" onclick="aplicarCli('${c.id}')">Aplicar & re-projetar</button><button class="btn-ghost" onclick="reverterCli('${c.id}')">Reverter</button>${state.cliMsg?`<span class="okmsg">${state.cliMsg}</span>`:''}</div>`;
+  h+='</div>';
+  return h;
+}
+function onCliSearch(v){
+  state.cliQ=v;
+  // filtra sem re-render total (preserva foco): re-render só da tabela
+  render();
+  const el=$("#cliQ"); if(el){ el.focus(); const n=el.value.length; el.setSelectionRange(n,n); }
+}
+function selCli(id){ state.cliSel=id; state.cliMsg=""; render(); }
+const _v = id => { const e=$("#"+id); return e?e.value.trim():""; };
+const _n = id => { const s=_v(id); if(s==="") return null; const x=parseFloat(s.replace(",",".")); return isNaN(x)?null:x; };
+const ordOf = ym => { if(!ym) return null; const p=String(ym).split("-"); return p.length>=2?(+p[0])*12+(+p[1]-1):null; };
+function aplicarCli(id){
+  const c=DB.clientes.find(x=>x.id===id); if(!c) return;
+  c.nome=_v("e_nome"); c.planta=+_v("e_planta"); c.produto=_v("e_produto");
+  for(let s=1;s<=6;s++){ const st=c.stages[s-1];
+    st.vol=_n("e_s"+s+"v"); st.iniYm=_v("e_s"+s+"i")||null; st.fimYm=_v("e_s"+s+"f")||null;
+    st.ini=ordOf(st.iniYm); st.fim=ordOf(st.fimYm);
+  }
+  c.preco=_n("e_preco"); c.aluguel=_n("e_aluguel"); c.custo_mol=+_v("e_customol");
+  c.distancia=_n("e_dist"); c.entrega=_v("e_entrega"); c.top=_n("e_top");
+  c.tipo_regas=_v("e_regas")||null; c.correcao_mol=_n("e_correcao");
+  c.ini_op=_v("e_iniop")||null; c.fim_contrato=_v("e_fim")||null;
+  state.cliMsg="✓ aplicado — projeção atualizada (ver Receita)";
+  render();
+}
+function reverterCli(id){
+  const b=(DB.clientesBase||[]).find(x=>x.id===id); if(!b) return;
+  const i=DB.clientes.findIndex(x=>x.id===id);
+  DB.clientes[i]=JSON.parse(JSON.stringify(b));
+  state.cliMsg="revertido"; render();
+}
+
 /* ------------------------------------------------- validação vs golden ---- */
 async function validateVolume(){
   let txt;
@@ -472,6 +584,7 @@ async function validateVolume(){
 function boot(){
   document.body.classList.remove("loading");
   $("#loader").hidden=true; $("#app").hidden=false;
+  DB.clientesBase = JSON.parse(JSON.stringify(DB.clientes));   // baseline p/ reverter/marcar edições
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();

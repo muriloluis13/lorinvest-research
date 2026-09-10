@@ -130,6 +130,16 @@ def _ym(v):
     return None
 
 
+def _iso(v):
+    if isinstance(v, (datetime.datetime, datetime.date)):
+        return "%04d-%02d-%02d" % (v.year, v.month, v.day)
+    return None
+
+
+def _num(v):
+    return v if isinstance(v, (int, float)) else None
+
+
 def extract_clientes(wb):
     """Cronograma por cliente: id, planta, produto, volmax, estágios S1..S6 (vol/ini/fim)."""
     ws = wb["Clientes"]
@@ -149,13 +159,28 @@ def extract_clientes(wb):
             continue
         stages = []
         for (vi, ii, fi) in STG:
-            vol = rec[vi]; ini = _ym(rec[ii]); fim = _ym(rec[fi])
-            stages.append([vol if isinstance(vol, (int, float)) else None, ini, fim])
+            stages.append([_num(rec[vi]), _ym(rec[ii]), _ym(rec[fi])])
         clientes.append({
             "id": str(cid).strip(),
+            "nome": (str(rec[2]).strip() if rec[2] else ""),      # C
             "planta": int(planta) if isinstance(planta, (int, float)) else None,
-            "produto": prod,
-            "volmax": volmax if isinstance(volmax, (int, float)) else None,
+            "produto": prod,                                        # E
+            "volmax": _num(volmax),                                 # G
+            "preco": _num(rec[7]),                                  # H  Preço de venda
+            "aluguel": _num(rec[8]),                                # I  Aluguel fixo
+            "custo_mol": _num(rec[9]),                              # J  Custo molécula (0/1)
+            "ini_contrato": _iso(rec[10]),                          # K
+            "ini_op": _iso(rec[11]),                                # L
+            "duracao": _num(rec[12]),                               # M  meses
+            "fim_contrato": _iso(rec[13]),                          # N
+            "distancia": _num(rec[14]),                             # O  km
+            "tipo_transp": (str(rec[15]).strip() if rec[15] else None),   # P
+            "tipo_regas": (str(rec[16]).strip() if rec[16] else None),    # Q
+            "venda_regas": _num(rec[20]),                           # U
+            "entrega": (str(rec[21]).strip() if rec[21] else None), # V  CIF/FOB
+            "top": _num(rec[22]),                                   # W  Take-or-Pay
+            "margem": _num(rec[30]),                                # AE
+            "correcao_mol": _num(rec[31]),                          # AF
             "stages": stages,
         })
     return clientes
@@ -285,14 +310,18 @@ def main():
     for row in macro:
         ws_ma.append(row)
 
-    # aba Clientes: cronograma de rampa (insumo do motor de volume)
+    # aba Clientes: premissas por cliente (insumo do motor de volume + parametrização)
     ws_c = out.create_sheet("Clientes")
-    hdr = ["id", "planta", "produto", "volmax"]
+    CFIELDS = ["id", "nome", "planta", "produto", "volmax", "preco", "aluguel",
+               "custo_mol", "ini_contrato", "ini_op", "duracao", "fim_contrato",
+               "distancia", "tipo_transp", "tipo_regas", "venda_regas", "entrega",
+               "top", "margem", "correcao_mol"]
+    hdr = list(CFIELDS)
     for s in range(1, 7):
         hdr += ["S%d_vol" % s, "S%d_ini" % s, "S%d_fim" % s]
     ws_c.append(hdr)
     for c in clientes:
-        row = [c["id"], c["planta"], c["produto"], c["volmax"]]
+        row = [c.get(k) for k in CFIELDS]
         for st in c["stages"]:
             row += [st[0], st[1], st[2]]
         ws_c.append(row)
