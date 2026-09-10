@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNLink · Business Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+/* ---- Paleta Compass (herdada de analises-setoriais/competidores/compass) ---- */
+:root{
+  --bg:#F4F6F9; --card:#FFFFFF; --ink:#13202E; --muted:#5C6B7A;
+  --accent:#3D4A5C; --accent2:#55677C; --accent3:#E23A2E; --orange:#C55A17;
+  --green:#2E7D4F; --line:#E2E7EE; --neg:#B23A3A; --chip:#EDF1F6;
+  --slate:#3D4A5C; --red:#E23A2E; --mint:#7FC6A2; --hh:64px;
+  --shadow:0 1px 2px rgba(19,32,46,.05),0 4px 14px rgba(19,32,46,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.45;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1}
+button{font-family:inherit;cursor:pointer}
+/* header */
+header{position:sticky;top:0;z-index:50;background:#fff;color:var(--accent);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(35,39,42,.05)}
+header::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--slate),var(--accent2) 55%,var(--mint))}
+.hwrap{max-width:1680px;margin:0 auto;padding:11px 18px;display:flex;align-items:center;gap:13px;height:var(--hh)}
+#navToggle{background:#fff;border:1px solid var(--line);border-radius:8px;font-size:15px;font-weight:700;color:var(--accent);padding:3px 10px;line-height:1.2}
+#navToggle:hover{background:#F2F5F8;border-color:var(--accent2)}
+.htitle{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.hsub{font-size:10.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.hspace{flex:1}
+.conf{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--accent);border:1px solid rgba(61,74,92,.4);border-radius:6px;padding:4px 9px;background:var(--chip)}
+/* layout */
+.shell{max-width:1680px;margin:0 auto;display:flex;align-items:flex-start}
+#sidebar{width:224px;flex:none;position:sticky;top:var(--hh);align-self:flex-start;max-height:calc(100vh - var(--hh));overflow-y:auto;padding:10px 8px 26px;border-right:1px solid var(--line);transition:width .18s ease,padding .18s ease}
+body.snav-collapsed #sidebar{width:0;padding:0;overflow:hidden;border-right:none}
+#navlist .grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:14px 10px 5px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+#navlist .grp i{width:7px;height:7px;border-radius:2px;flex:none;background:var(--accent2)}
+#navlist button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;border-left:2.5px solid transparent;font-size:12.5px;font-weight:600;color:var(--muted);padding:8px 11px;border-radius:0 7px 7px 0;white-space:nowrap;transition:background .12s,color .12s}
+#navlist button:hover{color:var(--accent);background:#EEF2F7}
+#navlist button.on{color:var(--accent);border-left-color:var(--accent3);background:#EAF0F6}
+main{flex:1;min-width:0;padding:16px 22px 48px}
+/* sub-abas por região */
+.subtabs{display:inline-flex;gap:4px;background:#EEF2F7;border:1px solid var(--line);border-radius:10px;padding:4px;margin:0 0 16px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtabs button{border:none;background:none;font-size:13px;font-weight:700;color:var(--muted);padding:7px 16px;border-radius:7px;flex:0 0 auto;white-space:nowrap;transition:background .12s,color .12s}
+.subtabs button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
+/* títulos */
+.pgttl{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px}
+.pglead{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+h3.msub{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:18px 0 10px;font-weight:700;padding-bottom:5px;border-bottom:1px solid var(--line)}
+/* KPI tiles */
+.mkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:6px 0 10px}
+.mkpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+.mkpi .cap{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.mkpi .val{font-size:21px;font-weight:800;margin-top:4px;letter-spacing:-.4px}
+.mkpi .sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+.mkpi.k-red .val{color:var(--accent3)}
+/* cards / charts */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);margin:12px 0}
+.card h4{font-size:14px;font-weight:700;margin-bottom:10px}
+.chart-box{position:relative;height:340px;width:100%}
+/* tabelas */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:12px 0}
+table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+.mtbl th,.mtbl td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:right}
+.mtbl thead th{position:sticky;top:0;background:#EEF2F7;color:var(--accent);font-weight:700;font-size:10px;z-index:2}
+.mtbl td.l,.mtbl th.l{text-align:left;position:sticky;left:0;background:var(--card);font-weight:600}
+.mtbl thead th.l{z-index:3;background:#EEF2F7}
+.mtbl td.o{color:var(--muted)}   /* mês orçado/projeção */
+/* loader / dropzone */
+#loader{max-width:560px;margin:60px auto;text-align:center}
+.dropzone{border:2px dashed var(--accent2);border-radius:14px;padding:40px 24px;background:var(--card);color:var(--muted);transition:background .15s,border-color .15s}
+.dropzone.hover{border-color:var(--accent3);background:#FDF3F2}
+.dropzone b{color:var(--accent)}
+.dropzone input{display:none}
+.dropbtn{margin-top:14px;display:inline-block;border:1px solid var(--accent3);color:var(--accent3);background:#fff;font-weight:700;padding:8px 18px;border-radius:8px}
+.err{color:var(--accent3);font-weight:600;margin-top:12px}
+.note{border-left:3px solid var(--accent2);background:#F7F9FC;border-radius:0 10px 10px 0;padding:11px 14px;font-size:12px;color:var(--muted);margin:14px 0}
+.tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body class="loading">
+<header>
+  <div class="hwrap">
+    <button id="navToggle" title="Mostrar/ocultar seções">☰</button>
+    <div>
+      <div class="htitle">GNLink · Business Plan</div>
+      <div class="hsub">Modelo financeiro mensal — motor ao vivo</div>
+    </div>
+    <div class="hspace"></div>
+    <span id="cutoffBadge" class="conf">—</span>
+    <span class="conf">CONFIDENCIAL</span>
+  </div>
+</header>
+
+<div id="loader">
+  <div class="dropzone" id="dropzone">
+    <div style="font-size:15px;margin-bottom:6px"><b>Base histórica não carregada</b></div>
+    <div>Arraste o arquivo <b>gnlink-bp-historico.xlsx</b> aqui, ou clique para escolher.</div>
+    <label class="dropbtn">Escolher arquivo<input type="file" id="fileInput" accept=".xlsx,.xls"></label>
+    <div class="err" id="loadErr" hidden></div>
+  </div>
+  <div class="note" style="text-align:left">Servindo a pasta por HTTP (ex.: <code>python -m http.server</code>), o dashboard carrega o xlsx irmão automaticamente. Ao abrir via <code>file://</code>, o navegador bloqueia o fetch — use o seletor acima.</div>
+</div>
+
+<div class="shell" id="app" hidden>
+  <aside id="sidebar"><nav id="navlist"></nav></aside>
+  <main id="main"></main>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   GNLink Business Plan — motor ao vivo
+   Camadas: (1) base histórica lida do xlsx  (2) motor de projeção em JS
+            (3) apresentação (sidebar=abas, sub-abas=região)
+   Fase A: fundação — Macro operante ponta-a-ponta; demais abas placeholder.
+   ========================================================================== */
+
+/* ---- catálogo de abas (espelha a planilha). região=true => tem sub-abas ---- */
+const ABAS = [
+  {grp:"Modelagem", items:[
+    {id:"resumo",   nome:"Resumo (EBITDA)", regiao:true,  fase:"E"},
+    {id:"receita",  nome:"Receita",         regiao:true,  fase:"B/C"},
+    {id:"variavel", nome:"Variável",        regiao:true,  fase:"D"},
+    {id:"opex",     nome:"OPEX",            regiao:true,  fase:"D"},
+    {id:"holding",  nome:"Holding",         regiao:false, fase:"D"},
+  ]},
+  {grp:"Premissas & Base", items:[
+    {id:"macro",     nome:"Macro",     regiao:false, fase:null},
+    {id:"premissas", nome:"Premissas", regiao:false, fase:"E"},
+  ]},
+];
+
+const state = {aba:"macro", regiao:0};
+let DB = null;              // base histórica parseada
+const charts = {};          // registry de Chart.js p/ destruir no re-render
+
+/* ---------------------------------------------------------------- utils ---- */
+const $ = (s,r=document)=>r.querySelector(s);
+function destroyCharts(){ for(const k in charts){ charts[k].destroy(); delete charts[k]; } }
+const fmt = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const abaById = id => ABAS.flatMap(g=>g.items).find(a=>a.id===id);
+
+/* --------------------------------------------------- carregar base xlsx ---- */
+function parseWorkbook(buf){
+  const wb = XLSX.read(buf,{type:"array"});
+  const grid = name => XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null});
+
+  const meses = grid("meses").slice(1).map(r=>({idx:r[0], ym:r[1], flag:r[2]}));
+  const regioes = grid("regioes").slice(1).map(r=>({id:r[0], codigo:r[1], nome:r[2]}));
+
+  // Macro: linha = série; colunas 3.. = meses (mesma ordem de `meses`)
+  const gm = grid("Macro");
+  const macro = {};
+  for(let i=1;i<gm.length;i++){
+    const row = gm[i]; if(!row || row[0]==null) continue;
+    macro[row[0]] = {id:row[0], label:row[1], unidade:row[2], vals:row.slice(3)};
+  }
+  return {meses, regioes, macro};
+}
+
+async function tryFetch(){
+  try{
+    const r = await fetch("gnlink-bp-historico.xlsx",{cache:"no-store"});
+    if(!r.ok) return false;
+    const buf = await r.arrayBuffer();
+    DB = parseWorkbook(buf); return true;
+  }catch(e){ return false; }
+}
+function loadFromFile(file){
+  const rd = new FileReader();
+  rd.onload = e => { try{ DB = parseWorkbook(e.target.result); boot(); }
+                     catch(err){ showErr("Falha ao ler o xlsx: "+err.message); } };
+  rd.onerror = ()=> showErr("Não foi possível ler o arquivo.");
+  rd.readAsArrayBuffer(file);
+}
+function showErr(m){ const e=$("#loadErr"); e.textContent=m; e.hidden=false; }
+
+/* ------------------------------------------------------------- sidebar ---- */
+function buildSidebar(){
+  const nav = $("#navlist"); nav.innerHTML="";
+  for(const g of ABAS){
+    const h=document.createElement("div"); h.className="grp";
+    h.innerHTML='<i></i>'+g.grp; nav.appendChild(h);
+    for(const a of g.items){
+      const b=document.createElement("button");
+      b.textContent=a.nome; b.dataset.aba=a.id;
+      if(a.id===state.aba) b.classList.add("on");
+      b.onclick=()=>{ state.aba=a.id; if(!abaById(a.id).regiao) {} render(); syncSidebar(); };
+      nav.appendChild(b);
+    }
+  }
+}
+function syncSidebar(){ document.querySelectorAll("#navlist button").forEach(b=>b.classList.toggle("on",b.dataset.aba===state.aba)); }
+
+/* --------------------------------------------------------- sub-abas UI ---- */
+function subtabsHTML(){
+  const aba = abaById(state.aba);
+  if(!aba.regiao) return "";
+  const opts = [{id:0,codigo:"CONS",nome:"Consolidado"}].concat(DB.regioes.map(r=>({id:r.id,codigo:r.codigo,nome:r.nome})));
+  return '<div class="subtabs" id="subtabs">'+opts.map(o=>
+     `<button data-reg="${o.id}" class="${o.id===state.regiao?'on':''}" title="${o.nome}">${o.id===0?'Consolidado':o.codigo}</button>`
+   ).join("")+'</div>';
+}
+function wireSubtabs(){
+  const st=$("#subtabs"); if(!st) return;
+  st.querySelectorAll("button").forEach(b=> b.onclick=()=>{ state.regiao=+b.dataset.reg; render(); });
+}
+
+/* ------------------------------------------------------------- render ---- */
+function render(){
+  destroyCharts();
+  const aba = abaById(state.aba);
+  const m = $("#main");
+  let html = `<div class="pgttl">${aba.nome}${aba.fase?`<span class="tag">Fase ${aba.fase}</span>`:''}</div>`;
+  if(aba.id==="macro"){
+    html += `<div class="pglead">Indicadores macro — base histórica (Realizado). Projeção macro vira premissa editável na Fase E.</div>`;
+    html += renderMacro();
+    m.innerHTML = html;
+    drawMacro();
+    return;
+  }
+  // demais abas: placeholder com sub-abas de região já operantes
+  html += `<div class="pglead">Região selecionada: <b>${regName(state.regiao)}</b>.</div>`;
+  html += subtabsHTML();
+  html += `<div class="note">Aba em construção (Fase ${aba.fase}). A navegação (sidebar + sub-abas por região) e a base histórica já estão operantes; o motor de cálculo desta aba entra na fase indicada.</div>`;
+  m.innerHTML = html;
+  wireSubtabs();
+}
+const regName = id => id===0 ? "Consolidado" : (DB.regioes.find(r=>r.id===id)||{}).nome || "—";
+
+/* ----------------------------------------------------------- aba Macro ---- */
+const MACRO_PCT = new Set([6,8,10,24]); // ids-linha em % (selic/ipca/cdi/cpi) — aqui usamos serie_id textual
+function macroList(){ return Object.values(DB.macro); }
+function nRealizado(){ return DB.meses.filter(m=>m.flag==="R").length; }
+
+function renderMacro(){
+  const n = nRealizado();
+  let h = '<div class="mkpis">';
+  for(const s of macroList()){
+    const last = s.vals.slice(0,n).filter(v=>v!=null).pop();
+    const pct = /a\.m\./.test(s.unidade);
+    h += `<div class="mkpi"><div class="cap">${s.label}</div>
+          <div class="val">${last==null?'—':fmt(last, pct?2:2)}</div>
+          <div class="sub">${s.unidade} · último realizado</div></div>`;
+  }
+  h += '</div>';
+  h += '<div class="card"><h4>Séries macro (Realizado)</h4><div class="chart-box"><canvas id="cMacroRates"></canvas></div></div>';
+  h += '<div class="card"><h4>Commodities & câmbio (Realizado)</h4><div class="chart-box"><canvas id="cMacroComm"></canvas></div></div>';
+  h += macroTable();
+  return h;
+}
+function macroTable(){
+  const n = nRealizado(), ms = DB.meses.slice(0,n);
+  let h='<h3 class="msub">Tabela — Realizado ('+ms[0].ym+' a '+ms[n-1].ym+')</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Indicador</th>';
+  for(const mo of ms) h+=`<th>${mo.ym}</th>`;
+  h+='</tr></thead><tbody>';
+  for(const s of macroList()){
+    h+=`<tr><td class="l">${s.label}</td>`;
+    for(let i=0;i<n;i++){ const v=s.vals[i]; h+=`<td>${v==null?'':fmt(v,2)}</td>`; }
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>';
+  return h;
+}
+const PAL = ["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#55677C","#7FC6A2","#4880A8"];
+function drawMacro(){
+  const n = nRealizado(), labels = DB.meses.slice(0,n).map(m=>m.ym);
+  const by = id => (DB.macro[id]||{vals:[]}).vals.slice(0,n);
+  charts.rates = new Chart($("#cMacroRates"),{
+    type:"line",
+    data:{labels, datasets:[
+      {label:"SELIC (% a.m.)",data:by("selic"),borderColor:PAL[0],tension:.25,pointRadius:0},
+      {label:"IPCA (% a.m.)", data:by("ipca"), borderColor:PAL[1],tension:.25,pointRadius:0},
+      {label:"CDI (% a.m.)",  data:by("cdi"),  borderColor:PAL[2],tension:.25,pointRadius:0},
+      {label:"CPI EUA (% a.m.)",data:by("cpi"),borderColor:PAL[3],tension:.25,pointRadius:0},
+    ]},
+    options:baseLineOpts()
+  });
+  charts.comm = new Chart($("#cMacroComm"),{
+    type:"line",
+    data:{labels, datasets:[
+      {label:"Brent (US$/bbl)",     data:by("brent"),   borderColor:PAL[0],yAxisID:"y", tension:.25,pointRadius:0},
+      {label:"Henry Hub (US$/MMBtu)",data:by("henryhub"),borderColor:PAL[1],yAxisID:"y1",tension:.25,pointRadius:0},
+      {label:"Dólar (BRL/USD)",     data:by("dolar"),   borderColor:PAL[2],yAxisID:"y1",tension:.25,pointRadius:0},
+    ]},
+    options:Object.assign(baseLineOpts(),{scales:{
+      x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
+      y:{position:"left",title:{display:true,text:"Brent"}},
+      y1:{position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"HH / USD"}},
+    }})
+  });
+}
+function baseLineOpts(){
+  return {responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+    plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
+      tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y,2)}}},
+    scales:{x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
+            y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"}}}};
+}
+
+/* --------------------------------------------------------------- boot ---- */
+function boot(){
+  document.body.classList.remove("loading");
+  $("#loader").hidden=true; $("#app").hidden=false;
+  const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
+  $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
+  buildSidebar(); render();
+}
+$("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
+
+/* dropzone / file input */
+const dz=$("#dropzone"), fi=$("#fileInput");
+fi.onchange=e=>{ if(e.target.files[0]) loadFromFile(e.target.files[0]); };
+["dragenter","dragover"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("hover");}));
+["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("hover");}));
+dz.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) loadFromFile(f); });
+
+/* auto-load quando servido por HTTP */
+(async ()=>{ if(await tryFetch()) boot(); })();
+</script>
+</body>
+</html>

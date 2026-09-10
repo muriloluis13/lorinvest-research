@@ -1,0 +1,4 @@
+# A base histórica é um artefato de RUNTIME do dashboard (o index.html a lê via
+# SheetJS) — precisa ser versionada/deployada, ao contrário dos workbooks-fonte
+# (que o *.gitignore do repo ignora). Re-inclui só o arquivo gerado pelo extrator.
+!gnlink-bp-historico.xlsx
