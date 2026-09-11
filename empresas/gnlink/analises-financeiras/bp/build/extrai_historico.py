@@ -210,15 +210,95 @@ def extract_overrides(wb):
     return out, [m for m in months if m]
 
 
-def read_receita_rows(wb, rmax=785):
+def read_receita_rows(wb, rmax=1475):
     """UM passo de streaming pela aba Receita -> {rownum: tuple}. Evita O(n²) de
        chamadas iter_rows por linha (fatal numa aba de 2438 linhas em read_only)."""
     ws = wb["Receita"]
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=rmax, values_only=True), start=1):
-        if (27 <= i <= 340) or (764 <= i <= 782):
+        if (27 <= i <= 340) or (764 <= i <= 782) or (1158 <= i <= 1470):
             keep[i] = row
     return keep
+
+
+def read_variavel_rows(wb):
+    """UM passo pela aba Variável -> {rownum: tuple}. Captura macro (10..17),
+       fator de reajuste (430..584) e fator IPCA puro (1089..1241)."""
+    ws = wb["Variável"]
+    keep = {}
+    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=1245, values_only=True), start=1):
+        if (8 <= i <= 20) or (430 <= i <= 584) or (1088 <= i <= 1241):
+            keep[i] = row
+    return keep
+
+
+# ---- Fase C: Receita R$ = preço indexado × volume × dias ----------------------
+IDX_ROWS = {"ipca_m": 10, "ipca12": 11, "brent": 13, "hh": 15, "dolar": 17}  # Variável
+PRECO_BLOCK = (432, 584)   # Variável "Fator de Reajuste": D=precoBase E=dataBase F=indicador G=residual
+CORR_BLOCK = (1089, 1241)  # Variável "Fator IPCA puro": E=dataBase H=correcao(1=sem indexação)
+REV_BLOCKS = {"GNL": (1161, 1313), "GNC": (1318, 1470)}  # Receita R$ (líquida)
+
+
+def extract_idx_macro(vrows):
+    """Séries macro de indexação (Variável): ipca_m, ipca12, brent, hh, dolar (192 meses)."""
+    out = {}
+    for key, r in IDX_ROWS.items():
+        rec = vrows.get(r)
+        out[key] = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+                    for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+    return out
+
+
+def extract_preco(vrows):
+    """Config de preço por cliente: precoBase, dataBase, indicador, residual, correcao."""
+    out = {}
+    for r in range(PRECO_BLOCK[0], PRECO_BLOCK[1] + 1):
+        rec = vrows.get(r)
+        if not rec:
+            continue
+        cid = rec[0]
+        if cid in (None, ""):
+            continue
+        out[str(cid).strip()] = {
+            "precoBase": _num(rec[3]),     # D
+            "dataBase": _ym(rec[4]),       # E
+            "indicador": (str(rec[5]).strip() if rec[5] else None),  # F
+            "residual": _num(rec[6]),      # G
+        }
+    # correcao (H) do bloco IPCA puro
+    for r in range(CORR_BLOCK[0], CORR_BLOCK[1] + 1):
+        rec = vrows.get(r)
+        if not rec:
+            continue
+        cid = rec[0]
+        if cid in (None, ""):
+            continue
+        c = out.get(str(cid).strip())
+        if c is not None:
+            c["correcao"] = _num(rec[7])   # H (1 = sem indexação)
+    return out
+
+
+def extract_revenue_golden(rrows, id2planta):
+    """Golden de receita (cache do Excel) por planta/produto: GNL 1161-1313, GNC 1318-1470."""
+    gold = {}
+    for prod, (r0, r1) in REV_BLOCKS.items():
+        for r in range(r0, r1 + 1):
+            rec = rrows.get(r)
+            if not rec:
+                continue
+            cid = rec[0]
+            if cid in (None, ""):
+                continue
+            p = id2planta.get(str(cid).strip())
+            if p is None:
+                continue
+            arr = gold.setdefault((p, prod), [0.0] * N_MONTHS)
+            for k in range(N_MONTHS):
+                v = rec[COL_FIRST - 1 + k]
+                if isinstance(v, (int, float)):
+                    arr[k] += v
+    return gold
 
 
 def extract_fatores(rrows):
@@ -287,8 +367,14 @@ def main():
     rrows = read_receita_rows(wb)
     fator_oper, fator_sens = extract_fatores(rrows)
     golden = extract_golden_volume(rrows, id2planta)
-    print("Clientes: %d | overrides: %d (%s..%s) | fatores plantas: %s" % (
-        len(clientes), len(overrides), ovr_months[0], ovr_months[-1], sorted(fator_oper)))
+
+    # ---- Receita R$ (Fase C) ----
+    vrows = read_variavel_rows(wb)
+    idx_macro = extract_idx_macro(vrows)
+    preco = extract_preco(vrows)
+    rev_golden = extract_revenue_golden(rrows, id2planta)
+    print("Clientes: %d | overrides: %d (%s..%s) | fatores plantas: %s | preços: %d" % (
+        len(clientes), len(overrides), ovr_months[0], ovr_months[-1], sorted(fator_oper), len(preco)))
     wb.close()
 
     # ---- monta o xlsx de saída ----
@@ -347,6 +433,26 @@ def main():
         for pid in sorted(blk):
             ws_f.append([tipo, pid] + blk[pid])
 
+    # aba Preco: config de indexação de preço por cliente (Fase C)
+    ws_p = out.create_sheet("Preco")
+    ws_p.append(["id", "precoBase", "dataBase", "indicador", "residual", "correcao"])
+    for cid, p in sorted(preco.items()):
+        ws_p.append([cid, p.get("precoBase"), p.get("dataBase"), p.get("indicador"),
+                     p.get("residual"), p.get("correcao")])
+
+    # aba IdxMacro: séries de indexação (Variável): ipca_m, ipca12, brent, hh, dolar
+    ws_i = out.create_sheet("IdxMacro")
+    ws_i.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for key in ("ipca_m", "ipca12", "brent", "hh", "dolar"):
+        ws_i.append([key] + idx_macro[key])
+
+    # aba ReceitaHist: receita R$ REALIZADA (actuals) por planta/produto
+    ws_rh = out.create_sheet("ReceitaHist")
+    ws_rh.append(["planta", "produto"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for (p, prod) in sorted(rev_golden):
+        arr = rev_golden[(p, prod)]
+        ws_rh.append([p, prod] + [arr[k] if k < n_real else None for k in range(N_MONTHS)])
+
     out.save(OUT)
     print("OK ->", OUT)
 
@@ -360,6 +466,14 @@ def main():
             arr = golden[(p, prod)]
             fh.write("%d;%s;" % (p, prod) + ";".join(repr(round(x, 6)) for x in arr) + "\n")
     print("golden ->", gpath)
+
+    rpath = os.path.join(gdir, "receita_por_planta.csv")
+    with open(rpath, "w", encoding="utf-8", newline="") as fh:
+        fh.write("planta;produto;" + ";".join("%04d-%02d" % (y, mo) for (y, mo) in ym) + "\n")
+        for (p, prod) in sorted(rev_golden):
+            arr = rev_golden[(p, prod)]
+            fh.write("%d;%s;" % (p, prod) + ";".join(repr(round(x, 4)) for x in arr) + "\n")
+    print("golden receita ->", rpath)
 
 
 if __name__ == "__main__":

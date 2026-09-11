@@ -226,9 +226,23 @@ function parseWorkbook(buf){
     (volHist[r[0]] = volHist[r[0]]||{})[r[1]] = r.slice(2);
   }
 
+  // Preco (Fase C): config de indexação por cliente
+  const gp = grid("Preco"); const preco={};
+  for(let i=1;i<gp.length;i++){ const r=gp[i]; if(!r||r[0]==null) continue;
+    preco[String(r[0]).trim()]={precoBase:r[1], dataBase:ord(r[2]), indicador:r[3], residual:r[4], correcao:r[5]}; }
+  // IdxMacro: séries de indexação
+  const gi = grid("IdxMacro"); const idx={};
+  for(let i=1;i<gi.length;i++){ const r=gi[i]; if(!r||r[0]==null) continue; idx[r[0]]=r.slice(1); }
+  // ReceitaHist: receita realizada por planta/produto
+  const grh = grid("ReceitaHist"); const revHist={};
+  for(let i=1;i<grh.length;i++){ const r=grh[i]; if(!r||r[0]==null) continue;
+    (revHist[r[0]]=revHist[r[0]]||{})[r[1]]=r.slice(2); }
+
   const monthsOrd = meses.map(m=>ord(m.ym));
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
-  return {meses, regioes, macro, clientes, overrides, fatores, volHist, monthsOrd, cutoffIdx};
+  const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
+  return {meses, regioes, macro, clientes, overrides, fatores, volHist,
+          preco, idx, revHist, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -296,6 +310,7 @@ function render(){
     const r = renderReceita();
     m.innerHTML = html + r.html;
     wireSubtabs();
+    drawRev(r.rGnl, r.rGnc);
     drawVol(r.gnl, r.gnc);
     return;
   }
@@ -428,23 +443,127 @@ function volAgg(regiao, produto){
   return proj.map((v,k)=> k<=cut ? hist[k] : v);
 }
 
-/* -------------------------------------------------------- aba Receita (B) -- */
+/* ===================================================== motor de preço/receita (C)
+   Receita R$ = preço_indexado × volume × dias.  Preço indexado (Variável):
+   IPCA 100% -> precoBase × FATOR IPCA PURO (bump anual no aniversário por IPCA 12m).
+   Brent PR/RN/Sal -> residual×fatorIPCA + pct×Brent(ciclo)×Dólar(ciclo)/26,8081.  === */
+const BRENT_PCT = {"Brent PR":0.125, "Brent RN":0.103, "Brent Sal":0.06};
+function precoFactorArr(cid){
+  const p=DB.preco[cid], n=DB.meses.length;
+  if(!p || p.correcao===1 || p.dataBase==null) return new Array(n).fill(1);
+  const mo=DB.monthsOrd, dbOrd=p.dataBase, dbMonth=dbOrd%12, ipca12=DB.idx.ipca12||[];
+  const arr=new Array(n); let prev=1;
+  for(let k=0;k<n;k++){
+    let f;
+    if(mo[k] < dbOrd+12) f=1;
+    else if(mo[k]%12===dbMonth){ const g=ipca12[k]; f=prev*(1+(typeof g==="number"?g:0)); }
+    else f=prev;
+    arr[k]=f; prev=f;
+  }
+  return arr;
+}
+function cicloIdx(k){   // início do trimestre Brent (fev/mai/ago/nov) que contém o mês k
+  const ym=DB.meses[k].ym.split("-"); let m=+ym[1], cy=+ym[0];
+  let cm=2+3*Math.floor((m-2)/3);
+  while(cm<1){ cm+=12; cy-=1; }
+  const i=DB.monthsOrd.indexOf(cy*12+(cm-1));
+  return i>=0?i:k;
+}
+const isBrentInd = ind => !!ind && /^Brent/.test(ind);
+function precoSerie(cid){
+  // Preço projetado. IPCA 100% (e nulo) = EXATO. Indexação Brent (Bahia/RN/Sal)
+  // acopla o custo da molécula com piso/teto -> completada na Fase D; interim = IPCA.
+  const p=DB.preco[cid], n=DB.meses.length;
+  if(!p) return new Array(n).fill(0);
+  const fac=precoFactorArr(cid), base=p.precoBase||0, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]=base*fac[k];
+  return out;
+}
+function revClienteSerie(cli){
+  const n=DB.meses.length;
+  if(!cli.custo_mol) return new Array(n).fill(0);        // sem molécula: receita vai p/ serviço
+  const vol=volClienteSerie(cli), price=precoSerie(cli.id), dias=DB.diasMes, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]=price[k]*vol[k]*dias[k];
+  return out;
+}
+function revAggProj(regiao, produto){
+  const n=DB.meses.length, acc=new Array(n).fill(0);
+  for(const cli of DB.clientes){
+    if(cli.produto!==produto) continue;
+    if(regiao!==0 && cli.planta!==regiao) continue;
+    const s=revClienteSerie(cli);
+    for(let k=0;k<n;k++) acc[k]+=s[k];
+  }
+  return acc;
+}
+function revHistAgg(regiao, produto){
+  const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
+  const add=p=>{ const a=(DB.revHist[p]||{})[produto]; if(a) for(let k=0;k<=cut;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } };
+  if(regiao===0) DB.regioes.forEach(r=>add(r.id)); else add(regiao);
+  return acc;
+}
+function revAgg(regiao, produto){
+  const proj=revAggProj(regiao,produto), hist=revHistAgg(regiao,produto), cut=DB.cutoffIdx;
+  return proj.map((v,k)=> k<=cut ? hist[k] : v);
+}
+
+/* ---------------------------------------------------- aba Receita (B + C) -- */
+function anoSum(arr){ // R$/mês -> R$/ano por ano
+  const yrs={}, cut=DB.cutoffIdx;
+  DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); (yrs[y]=yrs[y]||{v:0,proj:false}); yrs[y].v+=arr[i]||0; if(i>cut) yrs[y].proj=true; });
+  return yrs;
+}
 function renderReceita(){
   const reg=state.regiao, cut=DB.cutoffIdx, n=DB.meses.length;
-  const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC");
-  const tot=gnl.map((v,i)=>v+gnc[i]);
-  const nCli = DB.clientes.filter(c=>reg===0||c.planta===reg).length;
+  const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC"), tot=gnl.map((v,i)=>v+gnc[i]);
+  const rGnl=revAgg(reg,"GNL"), rGnc=revAgg(reg,"GNC"), rTot=rGnl.map((v,i)=>v+rGnc[i]);
+  const inReg = c => reg===0||c.planta===reg;
+  const brentProj = DB.clientes.some(c=>inReg(c)&&c.custo_mol&&isBrentInd((DB.preco[c.id]||{}).indicador));
+  const MM = v => fmt(v/1e6,1);   // R$ MM
+  // receita anual (R$ MM)
+  const yGnl=anoSum(rGnl), yGnc=anoSum(rGnc), ks=Object.keys(anoSum(rTot)).sort();
+  const rev2027 = (yGnl["2027"]?.v||0)+(yGnc["2027"]?.v||0);
+  const revLast = (yGnl[ks[ks.length-1]]?.v||0)+(yGnc[ks[ks.length-1]]?.v||0);
+
   let h = subtabsHTML();
-  h += `<div class="pglead"><b>Volumes</b> — m³/dia, motor de rampa por cliente. Receita (R$) entra na Fase C.<span class="tag">Fase B</span></div>`;
+  h += `<div class="pglead"><b>Receita</b> — R$ = preço indexado × volume × dias · <b>Volumes</b> por rampa de cliente.<span class="tag">Fase B+C</span></div>`;
   h += '<div class="mkpis">';
+  h += kpi("Receita 2027 (R$ MM)", MM(rev2027), "GNL+GNC · projetado");
+  h += kpi("Receita "+ks[ks.length-1]+" (R$ MM)", MM(revLast), "GNL+GNC");
   h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+DB.meses[cut].ym);
-  h += kpi("Vol. projetado (dez/38)", fmt(tot[n-1],0), "m³/dia");
-  h += kpi("Pico projetado", fmt(Math.max(...tot),0), "m³/dia");
-  h += kpi("Clientes na região", String(nCli), "GNL "+DB.clientes.filter(c=>(reg===0||c.planta===reg)&&c.produto==="GNL").length+" · GNC "+DB.clientes.filter(c=>(reg===0||c.planta===reg)&&c.produto==="GNC").length);
+  h += kpi("Pico de volume projetado", fmt(Math.max(...tot),0), "m³/dia");
   h += '</div>';
+  h += '<div class="card"><h4>Receita mensal — '+regName(reg)+' (R$ MM)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
+  h += revTable(rGnl,rGnc);
+  if(brentProj) h += '<div class="note">A projeção de receita das plantas com <b>indexação Brent</b> (Bahia, RN, Projeto SAL) é preliminar — o reajuste Brent acopla o custo da molécula (piso/teto) e será fechado na <b>Fase D</b>. Realizado e plantas IPCA (PR, Terminal PE, Argentina) já batem 1:1 com o modelo.</div>';
   h += '<div class="card"><h4>Volume mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
   h += volTable(gnl,gnc,tot);
-  return {html:h, gnl, gnc, tot};
+  return {html:h, gnl, gnc, tot, rGnl, rGnc};
+}
+function revTable(rGnl,rGnc){
+  const yGnl=anoSum(rGnl), yGnc=anoSum(rGnc), ks=Object.keys(yGnl).sort();
+  let h='<h3 class="msub">Receita por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Linha</th>';
+  for(const y of ks) h+=`<th class="${yGnl[y].proj?'o':''}">${y}</th>`;
+  h+='</tr></thead><tbody>';
+  const line=(lbl,yr)=>{ let s=`<tr><td class="l">${lbl}</td>`; for(const y of ks){ s+=`<td class="${yr[y].proj?'o':''}">${fmt(yr[y].v/1e6,1)}</td>`; } return s+'</tr>'; };
+  h+=line("Receita GNL",yGnl)+line("Receita GNC",yGnc);
+  let s='<tr class="tot"><td class="l">Total</td>'; for(const y of ks){ s+=`<td class="${yGnl[y].proj?'o':''}">${fmt((yGnl[y].v+yGnc[y].v)/1e6,1)}</td>`; } h+=s+'</tr>';
+  h+='</tbody></table></div><div class="note">Colunas em cinza = anos com meses projetados. Valores em R$ milhões/ano.</div>';
+  return h;
+}
+function drawRev(rGnl,rGnc){
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym);
+  const dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
+  charts.rev=new Chart($("#cRev"),{type:"line",
+    data:{labels,datasets:[
+      {label:"GNL",data:rGnl.map(v=>v/1e6),borderColor:PAL[0],backgroundColor:PAL[0]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
+      {label:"GNC",data:rGnc.map(v=>v/1e6),borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
+    ]},
+    options:Object.assign(baseLineOpts(),{scales:{
+      x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+      y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM ("+(c.dataIndex>cut?"Orçado":"Realizado")+")"}}}})});
 }
 function kpi(cap,val,sub,cls){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
@@ -522,7 +641,13 @@ function editorHTML(c){
   h+='<div class="sec">Datas do contrato</div>';
   h+=_fr("e_iniop","Início operação (AAAA-MM-DD)",c.ini_op||"","type=text");
   h+=_fr("e_fim","Fim do contrato (AAAA-MM-DD)",c.fim_contrato||"","type=text");
-  h+='<div class="sec">Indexação & CapEx de regás/descompressão</div><div class="note">Indexação de preço (Fase C) e CapEx de regás/descompressão por cliente (Fase Capex) entram nas próximas fases — os campos aparecerão aqui e alimentarão receita e investimento.</div>';
+  const pz=DB.preco[c.id]||{};
+  h+='<div class="sec">Indexação de preço (re-projeta receita ao vivo)</div>';
+  h+=_fr("e_precoBase","Preço base (R$/m³)",pz.precoBase,"type=number step=any");
+  h+=`<div class="frow"><label>Data base (AAAA-MM)</label><input id="e_dataBase" value="${pz.dataBase!=null?ymFromOrd(pz.dataBase):''}" placeholder="AAAA-MM"></div>`;
+  h+=`<div class="frow"><label>Indicador</label><select id="e_indicador">${["IPCA 100%","Brent","Brent Bahia","Brent RN","Brent Sal"].map(o=>`<option ${pz.indicador===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  h+='<div class="note" style="border-left-color:var(--orange)">Reajuste <b>IPCA</b> = exato (bump anual no aniversário). Reajuste <b>Brent</b> (Bahia/RN/Sal) é preliminar até a Fase D (acopla o custo da molécula com piso/teto).</div>';
+  h+='<div class="sec">CapEx de regás/descompressão</div><div class="note">Por cliente — entra na Fase Capex.</div>';
   h+=`<div class="formbtns"><button class="btn-primary" onclick="aplicarCli('${c.id}')">Aplicar & re-projetar</button><button class="btn-ghost" onclick="reverterCli('${c.id}')">Reverter</button>${state.cliMsg?`<span class="okmsg">${state.cliMsg}</span>`:''}</div>`;
   h+='</div>';
   return h;
@@ -537,6 +662,7 @@ function selCli(id){ state.cliSel=id; state.cliMsg=""; render(); }
 const _v = id => { const e=$("#"+id); return e?e.value.trim():""; };
 const _n = id => { const s=_v(id); if(s==="") return null; const x=parseFloat(s.replace(",",".")); return isNaN(x)?null:x; };
 const ordOf = ym => { if(!ym) return null; const p=String(ym).split("-"); return p.length>=2?(+p[0])*12+(+p[1]-1):null; };
+const ymFromOrd = o => o==null?"":`${Math.floor(o/12)}-${String(o%12+1).padStart(2,"0")}`;
 function aplicarCli(id){
   const c=DB.clientes.find(x=>x.id===id); if(!c) return;
   c.nome=_v("e_nome"); c.planta=+_v("e_planta"); c.produto=_v("e_produto");
@@ -548,6 +674,9 @@ function aplicarCli(id){
   c.distancia=_n("e_dist"); c.entrega=_v("e_entrega"); c.top=_n("e_top");
   c.tipo_regas=_v("e_regas")||null; c.correcao_mol=_n("e_correcao");
   c.ini_op=_v("e_iniop")||null; c.fim_contrato=_v("e_fim")||null;
+  // indexação de preço
+  const pz=DB.preco[id]||(DB.preco[id]={});
+  pz.precoBase=_n("e_precoBase"); pz.dataBase=ordOf(_v("e_dataBase")); pz.indicador=_v("e_indicador");
   state.cliMsg="✓ aplicado — projeção atualizada (ver Receita)";
   render();
 }
@@ -579,6 +708,29 @@ async function validateVolume(){
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, checked, mism, worst, worstAt};
 }
+async function validateReceita(){
+  let txt;
+  try{ const r=await fetch("build/golden/receita_por_planta.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ console.warn("[valida] golden receita não encontrado"); return; }
+  const rows=txt.trim().split(/\r?\n/).slice(1).map(l=>l.split(";"));
+  // plantas com clientes de indexação Brent (projeção preliminar até Fase D)
+  const brentPlantas=new Set(DB.clientes.filter(c=>c.custo_mol&&isBrentInd((DB.preco[c.id]||{}).indicador)).map(c=>c.planta));
+  let worst=0, worstAt="", checkedIpca=0, mismIpca=0, mismBrent=0;
+  for(const r of rows){
+    const p=+r[0], prod=r[1], gold=r.slice(2).map(Number), eng=revAgg(p,prod), isBrent=brentPlantas.has(p);
+    for(let k=0;k<gold.length;k++){
+      const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+      const bad=Math.abs(e-g)>50 && rel>2e-3;
+      if(isBrent){ if(bad) mismBrent++; continue; }
+      checkedIpca++;
+      if(bad){ mismIpca++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${prod} ${DB.meses[k].ym}`;} }
+    }
+  }
+  const ok=mismIpca===0;
+  console.log(`%c[valida receita] IPCA/realizado ${ok?"OK":"DIVERGÊNCIAS"} — ${checkedIpca} pontos, ${mismIpca} fora de tol (pior ${worstAt||"—"}) · Brent (pendente Fase D): ${mismBrent} pontos preliminares`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, mismIpca, mismBrent, worst, worstAt};
+}
 
 /* --------------------------------------------------------------- boot ---- */
 function boot(){
@@ -588,7 +740,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")) validateVolume();
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 
