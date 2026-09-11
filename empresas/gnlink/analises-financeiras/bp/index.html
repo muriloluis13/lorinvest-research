@@ -280,6 +280,15 @@ function parseWorkbook(buf){
     logPlanta[r[0]]={cav_fix:+r[1]||0, cav_var:+r[2]||0, sin_red:+r[3]||0, sin_lim_ord:+r[4]||0}; }
   const glg = grid("OpexLogGlob"); const logGlob={};
   if(glg) for(let i=1;i<glg.length;i++){ const r=glg[i]; if(!r||r[0]==null) continue; logGlob[r[0]]=+r[1]; }
+  // Regás: config por cliente + globais Furui
+  const grc = grid("OpexRegasCli"); const regasCli=[];
+  if(grc){ const H=grc[0]; for(let i=1;i<grc.length;i++){ const r=grc[i]; if(!r||r[0]==null) continue;
+    const o={}; H.forEach((k,j)=>o[k]=r[j]); regasCli.push(o); } }
+  const grg = grid("OpexRegasGlob"); const regasGlob={};
+  if(grg) for(let i=1;i<grg.length;i++){ const r=grg[i]; if(!r||r[0]==null) continue; regasGlob[r[0]]=+r[1]; }
+  const grs = grid("OpexRegasSeed"); let regasNecess=null, regasDolar=null;
+  if(grs) for(let i=1;i<grs.length;i++){ const r=grs[i]; if(!r) continue;
+    if(r[0]==="necess") regasNecess=r.slice(1); else if(r[0]==="dolar_macro") regasDolar=r.slice(1); }
   // MolPisoTeto: séries mensais de piso/teto do Brent por planta (piso_N / teto_N)
   const gpt = grid("MolPisoTeto"); const molPiso={}, molTeto={};
   if(gpt) for(let i=1;i<gpt.length;i++){ const r=gpt[i]; if(!r||r[0]==null) continue;
@@ -300,7 +309,7 @@ function parseWorkbook(buf){
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
-          premLiquef, seriesOpex, logCli, logPlanta, logGlob, monthsOrd, cutoffIdx, diasMes};
+          premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -805,8 +814,75 @@ function logisticaCompAgg(regiao){   // {subkey:[192]} somado na região
     for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
   return out;
 }
+/* ===== port fiel: REGÁS (por cliente) =======================================
+   Componentes: Aluguel de equipamento + Furui (leasing 18 bar + preparação) +
+   Assistência técnica (+ Montagem e Insumos = 0 hoje). Nº de equipamentos(cliente) =
+   ROUNDUP(volume ÷ capacidade × dias de estoque) × op, zero se FOB. Furui leasing
+   recalculado ao vivo (43 US$/dia × dólar × 10 equip × dias) — reage ao câmbio.
+   Validado 1:1 vs golden (regas_ref.py). Ver MECANICAS.md.  ==================== */
+function roundupX(x){ if(!(x>0)) return 0; const r=Math.floor(x); return (r>=1 && (x-r)<1e-9)?r:r+1; }
+let _regCache={};
+function regasSerie(){
+  const key=G.volMult+"|"+G.precoMult+"|"+G.molMult;
+  if(_regCache.key===key) return _regCache.total;
+  const n=DB.meses.length, mo=DB.monthsOrd, dias=DB.diasMes, corr=DB.seriesOpex.corr556||[],
+        dolar=DB.regasDolar||DB.idx.dolar||[], RG=DB.regasGlob, P=[1,2,3,4,5,6],
+        z=()=>new Array(n).fill(0), obj=()=>({1:z(),2:z(),3:z(),4:z(),5:z(),6:z()});
+  const cliById={}; for(const c of DB.clientes) cliById[String(c.id)]=c;
+  // nº de equipamentos por cliente + agregados por planta/tipo
+  const qtd={}, qtdSum=obj(), qtdTotal=z(), gnlSum=obj(), gnlTotal=z();
+  for(const rc of DB.regasCli){ const cli=cliById[String(rc.id)], vol=cli?volClienteSerie(cli):z(),
+        op=DB.fatores.operacao[rc.planta]||[], q=z();
+    for(let k=0;k<n;k++){ let base = rc.fob ? 0 : (rc.cap?vol[k]/rc.cap*(rc.dias_est||0):0);
+      if(rc.planta===2 && k>=39) base=Math.min(5,base);          // quirk Bahia: MIN(5) a partir de k39
+      q[k]=roundupX(base)*(typeof op[k]==="number"?op[k]:0); }
+    qtd[rc.id]=q;
+    for(let k=0;k<n;k++){ qtdSum[rc.planta][k]+=q[k]; qtdTotal[k]+=q[k];
+      if(rc.modal==="GNL"){ gnlSum[rc.planta][k]+=q[k]; gnlTotal[k]+=q[k]; } }
+  }
+  // Furui: leasing (r1997) e preparação (r2000), recalculados ao vivo.
+  // necessidade (n2001) usa a semente REALIZADA no corte (frota baked) p/ a variação bater.
+  const cut=DB.cutoffIdx, nec=DB.regasNecess;
+  const n2001k = k => k<0 ? 0 : (k<=cut && nec && typeof nec[k]==="number") ? nec[k] : Math.max(0, gnlTotal[k]-(RG.equip_disp||0));
+  const r1997=z(), r2000=z();
+  for(let k=0;k<n;k++){
+    const r1993=(mo[k]<=RG.compra_ord)? (RG.usd_dia*(dolar[k]||0)*RG.equip*(dias[k]||0)) : 0;
+    const r1994=(mo[k]>=RG.inicio_ord)? r1993 : 0;
+    const r1996=k>0?gnlTotal[k-1]:0;   // SUMIF da frota GNL é do mês ANTERIOR (coluna deslocada)
+    if(mo[k]>RG.compra_ord) r1997[k]=RG.equip*(-RG.isos);
+    else if(r1994===0) r1997[k]=0;
+    else r1997[k]=(RG.equip>r1996) ? r1996*((RG.equip?r1993/RG.equip:0)-RG.isos)
+                                   : RG.equip*((RG.equip?r1993/RG.equip:0)-RG.isos);
+    const n2002=n2001k(k)-n2001k(k-1);
+    r2000[k]=Math.max(0, n2002*(RG.prep_iso||0));   // + custo_fixo(=0)
+  }
+  // componentes por planta
+  const prep=obj(), alu=obj(), fur=obj(), ass=obj();
+  for(const p of P) for(let k=0;k<n;k++){
+    if(qtdTotal[k]) prep[p][k]= r2000[k]*qtdSum[p][k]/qtdTotal[k];
+    if(gnlTotal[k]) fur[p][k]= gnlSum[p][k]/gnlTotal[k]*r1997[k];
+  }
+  for(const rc of DB.regasCli){ const q=qtd[rc.id], p=rc.planta;
+    for(let k=0;k<n;k++) alu[p][k]+= (typeof corr[k]==="number"?corr[k]:1)*q[k]*(rc.custo_dia||0); }
+  // assistência: ROUNDUP(volGNL_planta/5000)×1500×op×corr; zerada em 2028; Terminal PE = 0
+  for(const p of P){ if(p===4) continue; const vg=volAgg(p,"GNL"), op=DB.fatores.operacao[p]||[];
+    for(let k=0;k<n;k++){ if(Math.floor(mo[k]/12)===2028) continue;
+      ass[p][k]= roundupX(vg[k]/(RG.assist_por||5000))*(RG.assist_valor||0)*(typeof op[k]==="number"?op[k]:0)*(typeof corr[k]==="number"?corr[k]:1); } }
+  const comp={}, total={};
+  for(const p of P){ total[p]=z();
+    comp[p]={aluguel:alu[p], furui_prep:prep[p], furui_leasing:fur[p], assistencia:ass[p]};
+    for(let k=0;k<n;k++) total[p][k]=prep[p][k]+alu[p][k]+fur[p][k]+ass[p][k]; }
+  _regCache={key, comp, total}; return total;
+}
+const REG_SUB=["aluguel","furui_prep","furui_leasing","assistencia"];
+function regasCompAgg(regiao){
+  regasSerie(); const n=DB.meses.length, comp=_regCache.comp, plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
+  const out={}; for(const s of REG_SUB){ out[s]=new Array(n).fill(0);
+    for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
+  return out;
+}
 // categorias já portadas em fórmula (usa fórmula na projeção; realizado = extraído)
-function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : cat==="distribuicao" ? logisticaSerie() : null; }
+function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : cat==="distribuicao" ? logisticaSerie() : cat==="regas" ? regasSerie() : null; }
 function opexCatAgg(regiao, cat){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const blk=DB.opexCat[cat]||{}, ported=portedOpex(cat);
@@ -1210,10 +1286,11 @@ const OPEX_MECH = {
     {k:"cavalo",nome:"Cavalo mecânico (por planta)",mec:"(fixo + variável) R$/mês × op × IPCA (PR 39.000+11.600 · BA 37.143+18.900 · RN 39.000+18.900).",portado:true},
     {k:"ociosos",nome:"Ociosos + preparação de ISO",mec:"custo fixo de ISOs ociosos (22.000/ISO, até 23−frota GNL) + preparação de ISOs novos (30.000/ISO), até 2028; rateado por planta pela frota arredondada.",portado:true},
     {k:"sinergia",nome:"Sinergia",mec:"crédito = −redução%[planta] × frete fixo da planta, ativo só até dez/2027 (PR −35% · BA −15% · RN −10%).",portado:true}]},
-  regas:{label:"Regás", sub:[
-    {nome:"Aluguel de equipamento (por cliente)",mec:"nº de equipamentos × custo/dia (13.000 GNL / 22.000 GNC) × IPCA. Nº = ceil(volume ÷ capacidade × dias de estoque); zero se cliente FOB.",portado:false},
-    {nome:"Montagem de regás (por cliente)",mec:"custo único lançado só no mês de início × IPCA.",portado:false},
-    {nome:"Assistência técnica (por planta)",mec:"ceil(volume da planta ÷ 5.000) × R$ 1.500 × op × IPCA.",portado:false}]},
+  regas:{label:"Regás", compute:regasCompAgg, sub:[
+    {k:"aluguel",nome:"Aluguel de equipamento (por cliente)",mec:"nº de equipamentos × custo/dia (13.000 ISO/GNL · 22.000 Carreta/GNC) × IPCA. Nº = ceil(volume ÷ capacidade × dias de estoque); zero se cliente FOB. (Bahia limita a 5/cliente a partir de 2026.)",portado:true},
+    {k:"furui_leasing",nome:"Furui — leasing (18 bar)",mec:"crédito/custo do leasing de equipamento 18 bar (43 US$/dia × dólar × 10 equip × dias), rateado por planta pela frota GNL; vira compra em set/2029. Reage ao câmbio.",portado:true},
+    {k:"furui_prep",nome:"Furui — preparação de ISO",mec:"preparação de ISOs novos (30.000/ISO) conforme a frota GNL cresce, rateada por planta.",portado:true},
+    {k:"assistencia",nome:"Assistência técnica (por planta)",mec:"ceil(volume GNL da planta ÷ 5.000) × R$ 1.500 × op × IPCA. (Suprimida em 2028; Terminal PE não tem.)",portado:true}]},
 };
 const OCATS = ["gas","liquefacao","compressao","terminal","sga","distribuicao","regas"];
 
@@ -1480,6 +1557,22 @@ async function validateLogistica(){
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism, worstAt};
 }
+async function validateRegas(){
+  // port fiel da regás vs subtotal golden (opex_por_cat.csv regas), só projeção
+  let txt; try{ const r=await fetch("build/golden/opex_por_cat.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ return; }
+  const gold={}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";");
+    if(c[0]==="regas") gold[+c[1]]=c.slice(2).map(Number); });
+  const eng=regasSerie(), cut=DB.cutoffIdx; let worst=0, worstAt="", checked=0, mism=0;
+  for(let p=1;p<=6;p++){ const g=gold[p]; if(!g) continue; const e=eng[p];
+    for(let k=cut+1;k<g.length;k++){ const gv=g[k]; if(typeof gv!=="number") continue;
+      const rel=Math.abs(e[k]-gv)/Math.max(Math.abs(gv),1); checked++;
+      if(Math.abs(e[k]-gv)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${gv.toFixed(0)} eng=${e[k].toFixed(0)}`;} } } }
+  const ok=mism===0;
+  console.log(`%c[valida regás] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, mism, worstAt};
+}
 function validateReceitaLiquida(){
   // composição (GNL+GNC ported) vs Receita Líquida realizado do DFM. Projeção da composição
   // ainda não inclui extras portados (realizado só) — valida realizado.
@@ -1520,7 +1613,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 

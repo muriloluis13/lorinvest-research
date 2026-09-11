@@ -247,9 +247,9 @@ def read_opex_rows(wb):
     ws = wb["OPEX"]
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=2479, values_only=True), start=1):
-        if (190 <= i <= 556) or (560 <= i <= 574) \
+        if i == 39 or (190 <= i <= 556) or (560 <= i <= 574) \
            or (579 <= i <= 584) or (718 <= i <= 723) or (725 <= i <= 1673) \
-           or (1976 <= i <= 1981) or i == 2478:
+           or (1976 <= i <= 1981) or (1983 <= i <= 2473) or i == 2478:
             keep[i] = row
     return keep
 
@@ -338,6 +338,68 @@ def extract_logistica(orows):
         "fix_cost": _num(cell(1040, 4)),
     }
     return clientes, planta, globs
+
+
+# ---- Regás: config por cliente + globais Furui (port fiel) -------------------
+REGAS_QTD_WINDOW = {1: (2322, 2345), 2: (2347, 2378), 3: (2380, 2401),
+                    4: (2404, 2423), 5: (2425, 2444), 6: (2446, 2465)}
+REGAS_ALU_WINDOW = {1: (2009, 2032), 2: (2034, 2065), 3: (2067, 2089),
+                    4: (2091, 2110), 5: (2112, 2131), 6: (2133, 2152)}
+
+
+def extract_regas(orows, n_real):
+    """Config da regás (OPEX 1983-2465) p/ o motor por-cliente em JS. Validado 1:1
+    (regas_ref.py). Motor: prep_furui + aluguel + montagem(0) + furui_leasing + insumos(0)
+    + assistência. Furui recalculado ao vivo (43 USD × dólar × equip × dias). Volume vem
+    do motor JS (volClienteSerie / volAgg). Aqui só PREMISSAS."""
+    def cell(r, col):
+        rec = orows.get(r)
+        return rec[col - 1] if rec and col - 1 < len(rec) else None
+    # custo/dia por cliente (tabela Aluguel, col E)
+    custo_dia = {}
+    for p in range(1, 7):
+        a, b = REGAS_ALU_WINDOW[p]
+        for r in range(a, b + 1):
+            cid = _lid(cell(r, 1))
+            if cid is not None and cid >= 11:
+                custo_dia[cid] = _num(cell(r, 5)) or 0.0
+    clientes = []
+    for p in range(1, 7):
+        a, b = REGAS_QTD_WINDOW[p]
+        for r in range(a, b + 1):
+            cid = _lid(cell(r, 1))
+            if cid is None or cid < 11:
+                continue
+            cC = cell(r, 3)
+            modal = "GNL" if (isinstance(cC, str) and cC.strip().upper() == "GNL") else "GNC"
+            fC = cell(r, 6)
+            fob = 1 if (isinstance(fC, str) and fC.strip().upper() == "FOB") else 0
+            clientes.append({
+                "id": cid, "planta": p, "modal": modal,
+                "cap": _num(cell(r, 4)), "dias_est": _num(cell(r, 5)),
+                "fob": fob, "custo_dia": custo_dia.get(cid, 0.0),
+            })
+    # semente da variação de frota (row 2001 "Necessidade de Compra" = max(0, frotaGNL-6)):
+    # realizado é baked no modelo (o motor JS zera a frota no realizado), então a projeção
+    # da preparação (variação mês a mês) precisa do valor realizado no corte como semente.
+    necess_real = [_num(cell(2001, COL_FIRST + k)) if k < n_real else None
+                   for k in range(N_MONTHS)]
+    # dólar Macro (OPEX row 39) — premissa de câmbio que dirige o leasing Furui (≠ dólar
+    # da Variável usado na molécula). Série completa (premissa de projeção).
+    dolar_macro = [_num(cell(39, COL_FIRST + k)) for k in range(N_MONTHS)]
+    globs = {
+        "equip": _num(cell(1992, 4)),        # D1992 = 10 equipamentos comprados 18 bar
+        "usd_dia": _num(cell(1993, 4)),      # D1993 = 43 USD/dia
+        "inicio_ord": _ord(cell(1994, 4)),   # D1994 = 2026-09 início de custo
+        "compra_ord": _ord(cell(1995, 4)),   # D1995 = 2029-09 data de compra
+        "isos": _num(cell(1996, 4)),         # D1996 = 13000
+        "equip_disp": _num(cell(2001, 4)),   # D2001 = 6 disponíveis
+        "prep_iso": _num(cell(2003, 4)),     # D2003 = 30000
+        "custo_fixo": _num(cell(2005, 4)) or 0.0,   # D2005 = 0
+        "assist_valor": _num(cell(2468, 3)) or 1500.0,   # C2468 = 1500 R$
+        "assist_por": _num(cell(2468, 4)) or 5000.0,     # D2468 = a cada 5000 m³
+    }
+    return clientes, globs, necess_real, dolar_macro
 
 
 # ---- Fase "fiel": premissas de OpEx para portar as fórmulas em JS ------------
@@ -753,6 +815,7 @@ def main():
     gas_adj = extract_gas_adj(orows)
     opex_cat = extract_opex_cat(orows)
     log_cli, log_planta, log_glob = extract_logistica(orows)
+    regas_cli, regas_glob, regas_necess, regas_dolar = extract_regas(orows, n_real)
     custo_total = extract_custo_total(orows)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
@@ -901,6 +964,22 @@ def main():
     ws_lg.append(["key", "value"])
     for k in ("idle_target", "idle_yearmax", "adic_target", "prep_cost", "fix_cost"):
         ws_lg.append([k, log_glob[k]])
+
+    # abas da Regás: config por cliente + globais Furui (premissas do motor JS)
+    ws_rc = out.create_sheet("OpexRegasCli")
+    REGAS_FIELDS = ["id", "planta", "modal", "cap", "dias_est", "fob", "custo_dia"]
+    ws_rc.append(REGAS_FIELDS)
+    for c in regas_cli:
+        ws_rc.append([c[k] for k in REGAS_FIELDS])
+    ws_rg = out.create_sheet("OpexRegasGlob")
+    ws_rg.append(["key", "value"])
+    for k in ("equip", "usd_dia", "inicio_ord", "compra_ord", "isos", "equip_disp",
+              "prep_iso", "custo_fixo", "assist_valor", "assist_por"):
+        ws_rg.append([k, regas_glob[k]])
+    ws_rs = out.create_sheet("OpexRegasSeed")   # semente da variação + dólar Macro (Furui)
+    ws_rs.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    ws_rs.append(["necess"] + regas_necess)
+    ws_rs.append(["dolar_macro"] + regas_dolar)
 
     # aba PremLiquef: premissas de liquefação por planta (para portar em JS)
     ws_pl = out.create_sheet("PremLiquef")
