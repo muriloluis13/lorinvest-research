@@ -231,7 +231,7 @@ const MECH={
   outros:"Outros = receita pontual = valor ÷ (1 − margem), lançada só no mês da data-base (não recorre na projeção).",
   receita_liquida:"Receita Líquida = GNL + GNC + serviço + aluguel + outros. Validada 1:1 vs o modelo.",
   brent:"Preço Brent = residual × fator IPCA + molécula da PRÓPRIA planta (Bahia=2, RN=3, SAL=6, PR=1). A molécula-preço já traz Brent/Dólar/IPCA e piso/teto embutidos. Banda ago-dez/26 = semente de orçamento; fórmula assume em jan/27.",
-  molecula:"Custo da molécula (R$/m³) = componente-base × fator de reajuste. IPCA: fator×(1+IPCA 12m) no aniversário. Brent (BA/RN/PE): Brent(k)/Brent(ref) × Dólar(k)/Dólar(ref) desde a data-ref, com piso/teto. Argentina: CPI-agosto × Dólar/Dólar-base. Projeto Sal: parcela fixa (IPCA) + %Brent×Dólar.",
+  molecula:"Custo da molécula (R$/m³) = custo-base × (1+desconto) × fator de reajuste. Reajuste: IPCA fator×(1+IPCA 12m) no aniversário; Brent (BA/RN/PE) Brent(k)/Brent(ref)×Dólar(k)/Dólar(ref) desde a data-ref, com piso/teto; Argentina CPI-agosto×Dólar/Dólar-base; Projeto Sal parcela fixa (IPCA)+%Brent×Dólar. Ajuste adicional (fatorExtra) entra no fator só na banda de orçamento 2026. A molécula que indexa o PREÇO é essa mesma SEM o desconto acumulado de custo (RN=0,9), que só se aplica ao custo do gás.",
   gas:"Custo do gás = Σ [volume(clientes c/ molécula) × dias × custo da molécula por planta] + ajustes (reversão / venda no gasoduto).",
   custo_total:"Custo total = gás + as 6 categorias de OpEx (liquefação, compressão, terminal, SG&A planta, logística, regás). 100% por fórmula.",
   ebitda:"EBITDA = Receita Líquida − Custos operacionais. A projeção reabilita quando a DRE for portada (hoje só realizado).",
@@ -332,6 +332,9 @@ function parseWorkbook(buf){
   // MolCompBasePreco: componente-base da molécula que indexa o PREÇO Brent (sem o desconto de custo do gás)
   const gmbp = grid("MolCompBasePreco"); const molCompBasePreco={};
   if(gmbp) for(let i=1;i<gmbp.length;i++){ const r=gmbp[i]; if(!r||r[0]==null) continue; molCompBasePreco[r[0]]=r.slice(1); }
+  // MolAjuste: ajuste adicional do fator de reajuste (Variável 236-241) por planta — fatorExtra=1+ajuste
+  const gmaj = grid("MolAjuste"); const molAjuste={};
+  if(gmaj) for(let i=1;i<gmaj.length;i++){ const r=gmaj[i]; if(!r||r[0]==null) continue; molAjuste[r[0]]=r.slice(1); }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -402,7 +405,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
           sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
@@ -817,22 +820,24 @@ function molFatorSerie(p, macro){
   const brent=macro.brent, dol=macro.dolar, dolS=macro.dolarSpot, ip12=macro.ipca12, ipAn=macro.ipcaAnual;
   const refIdx = mo.indexOf(c.refOrd), dbMonth=((c.dbOrd%12)+12)%12, ind=c.indic;
   const pi=DB.molPiso[p], te=DB.molTeto[p];             // séries mensais de piso/teto do Brent
+  const ajP=DB.molAjuste?DB.molAjuste[p]:null;          // ajuste adicional (fatorExtra=1+ajuste)
   for(let k=0;k<n;k++){
     if(k<=cut){ f[k]=1; continue; }
     const om=mo[k], dmonth=((om%12)+12)%12;
     if(ind==="IPCA" || ind==="Brent"){
       if(om < c.dbOrd){ f[k]=1; continue; }
+      const aj=ajP?mnum(ajP[k]):null, fx=(aj==null||aj===0)?1:(1+aj);   // fatorExtra (Variável 236-241)
       const flag = (((dmonth - dbMonth + 12) % c.ocor) === 0);
-      if(!flag){ f[k]=f[k-1]; continue; }
-      if(ind==="IPCA"){ const g=ip12[k]; f[k]=f[k-1]*(1+(typeof g==="number"?g:0)); }
+      if(!flag){ f[k]=f[k-1]*fx; continue; }
+      if(ind==="IPCA"){ const g=ip12[k]; f[k]=f[k-1]*(1+(typeof g==="number"?g:0))*fx; }
       else {                                           // Brent: var cumulativa desde a data-ref
         const cAt=brent[k], cAnt=refIdx>=0?brent[refIdx]:null;
-        if(!cAt || !cAnt){ f[k]=f[k-1]; continue; }
+        if(!cAt || !cAnt){ f[k]=f[k-1]*fx; continue; }
         const piK=pi?mnum(pi[k]):null, teK=te?mnum(te[k]):null;        // piso/teto do MÊS k
         const piR=(pi&&refIdx>=0)?mnum(pi[refIdx]):null, teR=(te&&refIdx>=0)?mnum(te[refIdx]):null;
         const bl=molClamp(cAt,piK,teK), ba=molClamp(cAnt,piR,teR);      // clamp atual e anterior
         const dAt=dol[k], dAnt=refIdx>=0?dol[refIdx]:null;
-        f[k] = (bl/ba) * (dAnt? dAt/dAnt : 1);
+        f[k] = (bl/ba) * (dAnt? dAt/dAnt : 1) * fx;
       }
     } else if(ind==="Dólar"){                          // Argentina: CPI ago + dólar/dólar-base
       const inicioOrd = 2027*12 + 7; let fatorCPI=1;
@@ -1273,8 +1278,8 @@ function serieTableHTML(rows, corner){
     const lblTip=r.lbl+help(r.tip);
     if(state.regiao===0 && r.perPlanta){
       const gid="grp"+(_grpN++);
-      for(const rr of DB.regioes){ body+=`<tr class="grp-child ${gid}"><td class="l sub">↳ ${rr.nome}</td>${cells(r.perPlanta(rr.id),r)}</tr>`; }
       body+=`<tr class="${r.bold?'tot':''} grp-parent" onclick="toggleGrp('${gid}',this)"><td class="l"><span class="caret">▸</span>${lblTip}</td>${cells(r.serie,r)}</tr>`;
+      for(const rr of DB.regioes){ body+=`<tr class="grp-child ${gid}"><td class="l sub">↳ ${rr.nome}</td>${cells(r.perPlanta(rr.id),r)}</tr>`; }
     } else {
       body+=`<tr class="${r.bold?'tot':''}"><td class="l">${lblTip}</td>${cells(r.serie,r)}</tr>`;
     }

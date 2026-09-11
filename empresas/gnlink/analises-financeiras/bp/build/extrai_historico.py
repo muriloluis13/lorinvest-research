@@ -605,7 +605,8 @@ def extract_molecula_prem(vrows, wb):
     def row(r):
         return vrows.get(r)
     cfg = {"custoBase": [], "indicador": [], "dataBaseOrd": [], "ocorrencia": [],
-           "refDateOrd": [], "pisoSer": [], "tetoSer": [], "compBaseSer": [], "compBasePrecoSer": []}
+           "refDateOrd": [], "pisoSer": [], "tetoSer": [], "compBaseSer": [], "compBasePrecoSer": [],
+           "ajusteExtraSer": []}
 
     def mrow(r):   # série mensal (192) da linha r, cache do Excel
         rec = row(r)
@@ -626,6 +627,9 @@ def extract_molecula_prem(vrows, wb):
             compP.append(None if b is None else b * (1 + (dv or 0)))
         cfg["compBaseSer"].append(comp)
         cfg["compBasePrecoSer"].append(compP)
+        # ajuste adicional (Variável 236-241, por posição=planta): fatorExtra=(1+ajuste) DENTRO do
+        # fator de reajuste. ≠0 só na banda de orçamento ago-dez/26 (PR/BA); 0 no restante.
+        cfg["ajusteExtraSer"].append([_num(v) for v in mrow(236 + p)])
         c = row(184 + p)    # config: C custoBase, D indicador, E dataBase, G ocorrência
         cfg["custoBase"].append(_num(c[2]) if c else None)
         cfg["indicador"].append((str(c[3]).strip() if c and c[3] else None))
@@ -990,6 +994,14 @@ def main():
     ws_mbp.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for p in range(6):
         ws_mbp.append([p + 1] + mol_prem["compBasePrecoSer"][p])
+
+    # aba MolAjuste: ajuste adicional do fator de reajuste (Variável 236-241) por planta.
+    # fatorExtra = 1+ajuste, aplicado DENTRO do fator (composto, todo mês pós-data-base).
+    # ≠0 só na banda de orçamento ago-dez/26 (PR/BA); zero no restante da projeção.
+    ws_maj = out.create_sheet("MolAjuste")
+    ws_maj.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(6):
+        ws_maj.append([p + 1] + mol_prem["ajusteExtraSer"][p])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula
