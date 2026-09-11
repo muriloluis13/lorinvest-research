@@ -47,6 +47,15 @@ main{flex:1;min-width:0;padding:16px 22px 48px}
 .subtabs::-webkit-scrollbar{display:none}
 .subtabs button{border:none;background:none;font-size:13px;font-weight:700;color:var(--muted);padding:7px 16px;border-radius:7px;flex:0 0 auto;white-space:nowrap;transition:background .12s,color .12s}
 .subtabs button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
+/* seletor de periodicidade */
+.perbar{display:inline-flex;gap:3px;background:#EEF2F7;border:1px solid var(--line);border-radius:9px;padding:3px;margin:0 0 14px}
+.perbar button{border:none;background:none;font-size:12px;font-weight:700;color:var(--muted);padding:5px 12px;border-radius:6px;white-space:nowrap;transition:background .12s,color .12s}
+.perbar button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
+/* linha de tipo (Histórico/Orçamento/Forecast) no cabeçalho das tabelas periódicas */
+.perTbl .tipo{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-bottom:2px solid #fff}
+.perTbl .tipo-H{background:#EEF2F7;color:var(--accent)}
+.perTbl .tipo-O{background:#FDF3EC;color:var(--orange)}
+.perTbl .tipo-F{background:#F0F7F2;color:var(--green)}
 /* títulos */
 .pgttl{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px}
 .pglead{color:var(--muted);font-size:12.5px;margin-bottom:14px}
@@ -145,8 +154,11 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 
 /* ---- catálogo de abas (espelha a planilha). região=true => tem sub-abas ---- */
 const ABAS = [
+  {grp:"Outputs", items:[
+    {id:"dashboard", nome:"Dashboard",       regiao:false, fase:null},
+    {id:"resumo",    nome:"Resumo (EBITDA)", regiao:true,  fase:null},
+  ]},
   {grp:"Modelagem", items:[
-    {id:"resumo",   nome:"Resumo (EBITDA)", regiao:true,  fase:null},
     {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
     {id:"variavel", nome:"Variável",        regiao:true,  fase:null},
     {id:"opex",     nome:"OPEX",            regiao:true,  fase:null},
@@ -155,11 +167,11 @@ const ABAS = [
   {grp:"Contratos & Premissas", items:[
     {id:"clientes",  nome:"Clientes",  regiao:false, fase:null},
     {id:"macro",     nome:"Macro",     regiao:false, fase:null},
-    {id:"premissas", nome:"Premissas", regiao:false, fase:null},
   ]},
 ];
+const MODELAGEM_ABAS = new Set(["resumo","receita","variavel","opex","holding"]);  // têm seletor de periodicidade
 
-const state = {aba:"macro", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:""};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A"};
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
 let G = {volMult:1, precoMult:1, molMult:1};
 const gAtivo = () => G.volMult!==1 || G.precoMult!==1 || G.molMult!==1;
@@ -169,8 +181,25 @@ const charts = {};          // registry de Chart.js p/ destruir no re-render
 /* ---------------------------------------------------------------- utils ---- */
 const $ = (s,r=document)=>r.querySelector(s);
 function destroyCharts(){ for(const k in charts){ charts[k].destroy(); delete charts[k]; } }
-const fmt = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
-const fmtPct = (v,d=2)=> v==null||isNaN(v) ? "—" : (v*100).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})+"%";
+// formato contábil: negativo entre parênteses, zero vira hífen, vazio "—"
+function fmt(v,d=1){
+  if(v==null||isNaN(v)) return "—";
+  const f=Math.pow(10,d), r=Math.round(v*f)/f;
+  if(r===0) return "–";
+  const s=Math.abs(r).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+  return r<0 ? "("+s+")" : s;
+}
+function fmtPct(v,d=2){
+  if(v==null||isNaN(v)) return "—";
+  const f=Math.pow(10,d), r=Math.round(v*100*f)/f;
+  if(r===0) return "–";
+  const s=Math.abs(r).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})+"%";
+  return r<0 ? "("+s+")" : s;
+}
+const fmtNum = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});  // simples (eixos de gráfico)
+// datas: "Jan/23", "Fev/23" ...
+const MES_ABBR=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+function fmtMes(ym){ if(!ym) return ""; const p=String(ym).split("-"); return (MES_ABBR[(+p[1])-1]||"?")+"/"+String(p[0]).slice(2); }
 const abaById = id => ABAS.flatMap(g=>g.items).find(a=>a.id===id);
 
 /* --------------------------------------------------- carregar base xlsx ---- */
@@ -395,6 +424,7 @@ function render(){
   const aba = abaById(state.aba);
   const m = $("#main");
   let html = `<div class="pgttl">${aba.nome}${aba.fase?`<span class="tag">Fase ${aba.fase}</span>`:''}</div>`;
+  if(MODELAGEM_ABAS.has(aba.id)) html += `<div style="margin:2px 0 4px"><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:8px">Periodicidade</span>${perbarHTML()}</div>`;
   if(aba.id==="macro"){
     html += `<div class="pglead">Indicadores macro — base histórica (Realizado). Projeção macro vira premissa editável na Fase E.</div>`;
     html += renderMacro();
@@ -414,8 +444,8 @@ function render(){
     m.innerHTML = html + renderClientes();
     return;
   }
-  if(aba.id==="premissas"){
-    m.innerHTML = html + renderPremissas();
+  if(aba.id==="dashboard"){
+    m.innerHTML = html + renderDashboard();
     return;
   }
   if(aba.id==="resumo"){
@@ -459,8 +489,8 @@ function renderMacro(){
 }
 function macroTable(){
   const n = nRealizado(), ms = DB.meses.slice(0,n);
-  let h='<h3 class="msub">Tabela — Realizado ('+ms[0].ym+' a '+ms[n-1].ym+')</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Indicador</th>';
-  for(const mo of ms) h+=`<th>${mo.ym}</th>`;
+  let h='<h3 class="msub">Tabela — Realizado ('+fmtMes(ms[0].ym)+' a '+fmtMes(ms[n-1].ym)+')</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Indicador</th>';
+  for(const mo of ms) h+=`<th>${fmtMes(mo.ym)}</th>`;
   h+='</tr></thead><tbody>';
   for(const s of macroList()){
     const pct = /a\.m\./.test(s.unidade);
@@ -473,14 +503,14 @@ function macroTable(){
 }
 const PAL = ["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#55677C","#7FC6A2","#4880A8"];
 function drawMacro(){
-  const n = nRealizado(), labels = DB.meses.slice(0,n).map(m=>m.ym);
+  const n = nRealizado(), labels = DB.meses.slice(0,n).map(m=>fmtMes(m.ym));
   const by = id => (DB.macro[id]||{vals:[]}).vals.slice(0,n);
   const byPct = id => by(id).map(v=> v==null?null:v*100);   // frações -> % p/ o gráfico
   const ratesOpts = baseLineOpts();
   ratesOpts.scales = { x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
-                       y:{ticks:{callback:v=>fmt(v,2)+"%",color:"#5C6B7A"}} };
+                       y:{ticks:{callback:v=>fmtNum(v,2)+"%",color:"#5C6B7A"}} };
   ratesOpts.plugins = Object.assign({}, ratesOpts.plugins, {tooltip:{callbacks:{
-    label:(c)=>`${c.dataset.label}: ${fmt(c.parsed.y,2)}%`}}});
+    label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y,2)}%`}}});
   charts.rates = new Chart($("#cMacroRates"),{
     type:"line",
     data:{labels, datasets:[
@@ -1074,6 +1104,51 @@ function anoSum(arr){ // R$/mês -> R$/ano por ano
 }
 // valor R$ MM formatado; "—" quando o ano não tem dado (ex.: projeção ainda não portada)
 function yrMM(cell, d=1){ return (cell && cell.nData>0) ? fmt(cell.v/1e6, d) : "—"; }
+
+/* ---- periodicidade (Anual/Semestral/Trimestral/Mensal) + tipo Hist/Orç/Forecast ---- */
+const PERS=[["A","Anual"],["S","Semestral"],["Q","Trimestral"],["M","Mensal"]];
+function perbarHTML(){
+  return '<div class="perbar">'+PERS.map(p=>`<button onclick="setPer('${p[0]}')" class="${state.per===p[0]?'on':''}">${p[1]}</button>`).join('')+'</div>';
+}
+function setPer(p){ state.per=p; render(); }
+// tipo do mês: Histórico (realizado) · Orçamento (near-term até dez/26) · Forecast (2027+)
+function periodTipo(k){ if(k<=DB.cutoffIdx) return "H"; return DB.meses[k].ym<="2026-12" ? "O" : "F"; }
+const TIPO_LBL={H:"Histórico", O:"Orçamento", F:"Forecast"};
+function periodBuckets(){
+  const per=state.per, n=DB.meses.length, out=[]; let cur=null;
+  for(let k=0;k<n;k++){ const pr=DB.meses[k].ym.split("-"), y=+pr[0], mo=+pr[1], yy=String(y).slice(2);
+    let key,label;
+    if(per==="M"){ key="M"+k; label=fmtMes(DB.meses[k].ym); }
+    else if(per==="A"){ key="A"+y; label=String(y); }
+    else if(per==="S"){ const s=mo<=6?1:2; key="S"+y+s; label="S"+s+"/"+yy; }
+    else { const t=Math.ceil(mo/3); key="Q"+y+t; label="T"+t+"/"+yy; }
+    if(!cur||cur.key!==key){ cur={key,label,months:[]}; out.push(cur); }
+    cur.months.push(k);
+  }
+  for(const b of out){ const last=b.months[b.months.length-1]; b.tipo=periodTipo(last);
+    b.proj=b.months.some(k=>k>DB.cutoffIdx); }
+  return out;
+}
+function aggBucket(serie,b,how){ let s=0,c=0,last=null;
+  for(const k of b.months){ const v=serie[k]; if(typeof v==="number"){ s+=v; c++; last=v; } }
+  return how==="last"?last : how==="avg"?(c?s/c:null) : (c?s:null); }
+// tabela periódica com linha de tipo (Hist/Orç/Forecast) acima das datas.
+// rows: [{lbl, serie:[192], how?, d?, pct?, div?, bold?}]
+function serieTableHTML(rows, corner){
+  const B=periodBuckets();
+  let cat='<tr><th class="l"></th>', i=0;
+  while(i<B.length){ let j=i; while(j<B.length && B[j].tipo===B[i].tipo) j++;
+    cat+=`<th colspan="${j-i}" class="tipo tipo-${B[i].tipo}">${TIPO_LBL[B[i].tipo]}</th>`; i=j; }
+  cat+='</tr>';
+  const hdr=`<tr><th class="l">${corner||"R$ MM"}</th>`+B.map(b=>`<th class="${b.proj?'o':''}">${b.label}</th>`).join('')+'</tr>';
+  let body='';
+  for(const r of rows){ const div=r.div||1e6;
+    body+=`<tr class="${r.bold?'tot':''}"><td class="l">${r.lbl}</td>`;
+    for(const b of B){ const v=aggBucket(r.serie,b,r.how||"sum");
+      body+=`<td class="${b.proj?'o':''}">${r.pct?fmtPct(v):fmt(v==null?null:v/div, r.d!=null?r.d:0)}</td>`; }
+    body+='</tr>'; }
+  return '<div class="tblwrap"><table class="mtbl perTbl"><thead>'+cat+hdr+'</thead><tbody>'+body+'</tbody></table></div>';
+}
 const REVCOMP = [["gnl","GNL","#3D4A5C"],["gnc","GNC","#E23A2E"],["servico","Serviço s/ molécula","#2E7D4F"],
                  ["aluguel","Aluguel fixo","#C55A17"],["outros","Outros","#4880A8"]];
 function renderReceita(){
@@ -1087,7 +1162,7 @@ function renderReceita(){
   h += '<div class="mkpis">';
   h += kpi("Receita Líq. 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
   h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
-  h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+DB.meses[cut].ym);
+  h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym));
   h += kpi("Pico de volume projetado", fmt(Math.max(...tot),0), "m³/dia");
   h += '</div>';
   h += '<div class="card"><h4>Receita Líquida mensal — '+regName(reg)+' (R$ MM, por componente)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
@@ -1097,19 +1172,13 @@ function renderReceita(){
   return {html:h, gnl, gnc, tot, rc};
 }
 function revTable(rc){
-  const ys={}; REVCOMP.forEach(([k])=> ys[k]=anoSum(rc[k])); const yTot=anoSum(rc.total);
-  const ks=Object.keys(yTot).sort();
-  let h='<h3 class="msub">Receita líquida por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Componente</th>';
-  for(const y of ks) h+=`<th class="${yTot[y].proj?'o':''}">${y}</th>`;
-  h+='</tr></thead><tbody>';
-  for(const [k,lbl] of REVCOMP){ h+=`<tr><td class="l">${lbl}</td>`;
-    for(const y of ks) h+=`<td class="${yTot[y].proj?'o':''}">${fmt((ys[k][y]?.v||0)/1e6,1)}</td>`; h+='</tr>'; }
-  let s='<tr class="tot"><td class="l">Receita Líquida</td>'; for(const y of ks) s+=`<td class="${yTot[y].proj?'o':''}">${fmt(yTot[y].v/1e6,1)}</td>`; h+=s+'</tr>';
-  h+='</tbody></table></div><div class="note">Colunas em cinza = anos com meses projetados. Valores em R$ milhões/ano.</div>';
-  return h;
+  const rows=REVCOMP.map(([k,lbl])=>({lbl, serie:rc[k], d:1}))
+    .concat([{lbl:"Receita Líquida", serie:rc.total, d:1, bold:true}]);
+  return '<h3 class="msub">Receita líquida (R$ MM)</h3>'+serieTableHTML(rows,"R$ MM")+
+    '<div class="note">Linha superior: <b>Histórico</b> (realizado) · <b>Orçamento</b> (até dez/26) · <b>Forecast</b> (2027+). Cinza = período com meses projetados. Ajuste a periodicidade acima.</div>';
 }
 function drawRev(rc){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym);
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym));
   const ds=REVCOMP.map(([k,lbl,col])=>({label:lbl, data:rc[k].map(v=>v/1e6),
     backgroundColor:col, borderColor:col, borderWidth:0, stack:"r"}));
   charts.rev=new Chart($("#cRev"),{type:"bar", data:{labels,datasets:ds},
@@ -1122,21 +1191,14 @@ function drawRev(rc){
 function kpi(cap,val,sub,cls){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
 function volTable(gnl,gnc,tot){
-  // anual (soma dos m³/dia? não — mostramos média m³/dia por ano p/ leitura)
-  const yrs={}, cut=DB.cutoffIdx;
-  DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); (yrs[y]=yrs[y]||{gnl:0,gnc:0,cnt:0,proj:false}); yrs[y].gnl+=gnl[i]; yrs[y].gnc+=gnc[i]; yrs[y].cnt++; if(i>cut) yrs[y].proj=true; });
-  const ks=Object.keys(yrs).sort();
-  let h='<h3 class="msub">Volume médio (m³/dia) por ano</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Produto</th>';
-  for(const y of ks) h+=`<th class="${yrs[y].proj?'o':''}">${y}</th>`;
-  h+='</tr></thead><tbody>';
-  const line=(lbl,key)=>{ let s=`<tr><td class="l">${lbl}</td>`; for(const y of ks){ const o=yrs[y]; s+=`<td class="${o.proj?'o':''}">${fmt(o[key]/o.cnt,0)}</td>`; } return s+'</tr>'; };
-  h+=line("GNL","gnl"); h+=line("GNC","gnc");
-  let s='<tr class="tot"><td class="l">Total</td>'; for(const y of ks){ const o=yrs[y]; s+=`<td class="${o.proj?'o':''}">${fmt((o.gnl+o.gnc)/o.cnt,0)}</td>`; } h+=s+'</tr>';
-  h+='</tbody></table></div><div class="note">Colunas em cinza = anos com meses projetados (Orçado). Valores = média m³/dia no ano.</div>';
+  const rows=[{lbl:"GNL",serie:gnl,how:"avg",div:1,d:0},{lbl:"GNC",serie:gnc,how:"avg",div:1,d:0},
+              {lbl:"Total",serie:tot,how:"avg",div:1,d:0,bold:true}];
+  let h='<h3 class="msub">Volume médio (m³/dia)</h3>'+serieTableHTML(rows,"m³/dia")+
+    '<div class="note">Média de m³/dia no período. Cinza = período com meses projetados.</div>';
   return h;
 }
 function drawVol(gnl,gnc){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym);
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym));
   const dash = ctx => ctx.p0DataIndex>=cut ? [5,4] : undefined;
   charts.vol = new Chart($("#cVol"),{ type:"line",
     data:{labels, datasets:[
@@ -1284,7 +1346,7 @@ function renderResumo(){
   const mgTxt=y=> has(y)? fmt(mg(y)*100,1)+"%" : "—";
   const lastReal = ks.filter(has).slice(-1)[0];
   let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → Lucro Líquido (do modelo). EBITDA negativo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
-  h2+='<div class="note" style="border-left-color:var(--orange)">A base histórica traz a DRE <b>só até o realizado</b> ('+(DB.meses[cut]?.ym||'')+'). A <b>projeção da DRE/EBITDA</b> sai por fórmula quando a DRE for portada (item 4b — depende do OpEx e da receita-extra portados). Até lá, os anos projetados aparecem como “—”.</div>';
+  h2+='<div class="note" style="border-left-color:var(--orange)">A base histórica traz a DRE <b>só até o realizado</b> ('+fmtMes(DB.meses[cut]?.ym||'')+'). A <b>projeção da DRE/EBITDA</b> sai por fórmula quando a DRE for portada (item 4b — depende do OpEx e da receita-extra portados). Até lá, os anos projetados aparecem como “—”.</div>';
   h2+='<div class="mkpis">';
   h2+=kpi("Receita Líq. "+lastReal+" (R$ MM)", yrMM(rl[lastReal],0), "último ano c/ realizado");
   h2+=kpi("EBITDA "+lastReal+" (R$ MM)", yrMM(eb[lastReal],0), "margem "+mgTxt(lastReal));
@@ -1295,14 +1357,17 @@ function renderResumo(){
   // DRE anual
   const rows=[["Receita Bruta",rb],["Receita Líquida",rl],["Custos",cu],["Resultado Operacional",ro],
               ["EBITDA Recorrente",er],["EBITDA",eb],["Depreciação",dp],["EBIT",eG],["Lucro Líquido",ll]];
-  h2+='<h3 class="msub">DRE por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Linha</th>';
-  for(const y of ks) h2+=`<th class="${rl[y].proj?'o':''}">${y}</th>`; h2+='</tr></thead><tbody>';
-  for(const [lbl,yr] of rows){ const tot=/EBITDA$|Líquido$/.test(lbl);
-    h2+=`<tr class="${tot?'tot':''}"><td class="l">${lbl}</td>`;
-    for(const y of ks) h2+=`<td class="${yr[y]?.proj?'o':''}">${yrMM(yr[y],1)}</td>`; h2+='</tr>'; }
-  h2+='<tr><td class="l">Margem EBITDA</td>';
-  for(const y of ks) h2+=`<td class="${rl[y].proj?'o':''}">${mgTxt(y)}</td>`; h2+='</tr>';
-  h2+='</tbody></table></div>';
+  const dser=k=>DB.dre[k]||[];
+  const dreRows=[{lbl:"Receita Bruta",serie:dser("receita_bruta")},
+    {lbl:"Receita Líquida",serie:receitaLiquidaSerie()},
+    {lbl:"Custos",serie:dser("custos")},
+    {lbl:"Resultado Operacional",serie:dser("resultado_operacional")},
+    {lbl:"EBITDA Recorrente",serie:dser("ebitda_recorrente")},
+    {lbl:"EBITDA",serie:ebitdaSerie(),bold:true},
+    {lbl:"Depreciação",serie:dser("depreciacao")},
+    {lbl:"EBIT",serie:dser("ebit")},
+    {lbl:"Lucro Líquido",serie:dser("lucro_liquido"),bold:true}];
+  h2+='<h3 class="msub">DRE (R$ MM)</h3>'+serieTableHTML(dreRows,"R$ MM");
   return {html:h+h2, draw:()=>drawResumo(ks,rl,eb,mg)};
 }
 function drawResumo(ks,rl,eb,mg){
@@ -1409,12 +1474,8 @@ function renderOpexOverview(reg, h){
   const gas2027=anoSum(s.gas)["2027"]?.v||0; h+=kpi("Gás / custo total", fmt(100*gas2027/(yTot["2027"]?.v||1),0)+"%", "2027");
   h+='</div>';
   h+='<div class="card"><h4>Custos operacionais mensais — '+regName(reg)+' (R$ MM, empilhado)</h4><div class="chart-box"><canvas id="cOpex"></canvas></div></div>';
-  h+='<h3 class="msub">Custos por categoria e ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Categoria</th>';
-  for(const y of ks) h+=`<th class="${yTot[y].proj?'o':''}">${y}</th>`; h+='</tr></thead><tbody>';
-  for(const c of COST_ORDER){ const yc=anoSum(s[c]); h+=`<tr><td class="l">${COST_LABEL[c]}</td>`;
-    for(const y of ks) h+=`<td class="${yTot[y].proj?'o':''}">${fmt((yc[y]?.v||0)/1e6,1)}</td>`; h+='</tr>'; }
-  let tr='<tr class="tot"><td class="l">Custo total</td>'; for(const y of ks) tr+=`<td class="${yTot[y].proj?'o':''}">${fmt(yTot[y].v/1e6,1)}</td>`; h+=tr+'</tr>';
-  h+='</tbody></table></div>';
+  const opRows=COST_ORDER.map(c=>({lbl:COST_LABEL[c], serie:s[c]})).concat([{lbl:"Custo total",serie:tot,bold:true}]);
+  h+='<h3 class="msub">Custos por categoria (R$ MM)</h3>'+serieTableHTML(opRows,"R$ MM");
   return {html:h, draw:()=>drawOpexStack(s)};
 }
 function renderOpexCat(reg, cat, h){
@@ -1437,9 +1498,7 @@ function renderOpexCat(reg, cat, h){
     if(yc) h+=`<span class="hspace"></span><span style="font-size:12px;color:var(--muted)">2030: <b style="color:var(--ink)">R$ ${MM(yc["2030"]?.v||0)} MM</b></span>`;
     h+='</div>';
     h+=`<div style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:6px">${sl.mec}</div>`;
-    if(yc){ h+='<div class="tblwrap" style="margin-top:8px"><table class="mtbl"><thead><tr><th class="l">Ano</th>';
-      for(const y of ks) h+=`<th class="${yTot[y].proj?'o':''}">${y}</th>`; h+='</tr></thead><tbody><tr><td class="l">R$ MM</td>';
-      for(const y of ks) h+=`<td class="${yTot[y].proj?'o':''}">${fmt((yc[y]?.v||0)/1e6,2)}</td>`; h+='</tr></tbody></table></div>'; }
+    if(has){ h+='<div style="margin-top:8px">'+serieTableHTML([{lbl:sl.nome, serie:comps[sl.k], d:1}],"R$ MM")+'</div>'; }
     h+='</div>';
   }
   if(!comps) h+='<div class="note">Esta categoria ainda mostra o subtotal do modelo (realizado + projeção). O detalhe por sub-linha com valores entra quando a categoria for portada em fórmula (mecânicas acima já mapeadas).</div>';
@@ -1447,7 +1506,7 @@ function renderOpexCat(reg, cat, h){
   return {html:h, draw:()=> comps ? drawOcatStack(comps, M) : drawOcatLine(tot, M.label)};
 }
 function drawOpexStack(s){
-  const labels=DB.meses.map(m=>m.ym);
+  const labels=DB.meses.map(m=>fmtMes(m.ym));
   const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:s[c].map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
   charts.opex=new Chart($("#cOpex"),{type:"bar",data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
@@ -1458,7 +1517,7 @@ function drawOpexStack(s){
 }
 const SUBPAL=["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#4880A8","#7FC6A2","#55677C"];
 function drawOcatStack(comps, M){
-  const labels=DB.meses.map(m=>m.ym), keys=M.subkeys||Object.keys(comps);
+  const labels=DB.meses.map(m=>fmtMes(m.ym)), keys=M.subkeys||Object.keys(comps);
   const ds=keys.map((k,i)=>({label:(M.sub.find(s=>s.k===k)||{nome:k}).nome, data:comps[k].map(v=>v/1e6),
     backgroundColor:SUBPAL[i%SUBPAL.length],borderWidth:0,stack:"o"}));
   charts.ocat=new Chart($("#cOcat"),{type:"bar",data:{labels,datasets:ds},
@@ -1469,7 +1528,7 @@ function drawOcatStack(comps, M){
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
 }
 function drawOcatLine(tot, label){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym)), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
   charts.ocat=new Chart($("#cOcat"),{type:"line",data:{labels,datasets:[
     {label:label+" (R$ MM)",data:tot.map(v=>v/1e6),borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}}]},
     options:Object.assign(baseLineOpts(),{scales:{x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
@@ -1483,15 +1542,18 @@ function renderVariavel(){
   let h=subtabsHTML();
   h+=`<div class="pglead"><b>Custo da molécula</b> (R$/m³) — driver macro-indexado (IPCA/Brent/Dólar, com piso/teto).<span class="tag">Fase D</span></div>`;
   h+='<div class="mkpis">';
-  h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+DB.meses[cut].ym);
+  h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+fmtMes(DB.meses[cut].ym));
   h+=kpi("Molécula (dez/38)", mol[mol.length-1]!=null?fmt(mol[mol.length-1],3):"—", "R$/m³");
   h+='</div>';
   h+='<div class="card"><h4>Custo da molécula — '+regName(reg)+' (R$/m³)</h4><div class="chart-box"><canvas id="cMol"></canvas></div></div>';
-  h+='<div class="note">Receita de aluguel fixo e a visão por planta entram no próximo incremento.</div>';
+  const molRows=DB.regioes.map(r=>({lbl:r.nome, serie:moleculaLive(r.id)||[], how:"avg", div:1, d:3}))
+    .concat([{lbl:"Média ponderada ("+regName(reg)+")", serie:mol, how:"avg", div:1, d:3, bold:true}]);
+  h+='<h3 class="msub">Custo da molécula por planta (R$/m³)</h3>'+serieTableHTML(molRows,"R$/m³");
+  h+='<div class="note">Média de R$/m³ no período. Motor de reajuste IPCA/Brent/Dólar com piso/teto — reage à alavanca de molécula e ao câmbio.</div>';
   return {html:h, mol};
 }
 function drawMolecula(mol){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym)), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
   charts.mol=new Chart($("#cMol"),{type:"line",
     data:{labels,datasets:[{label:"Molécula (R$/m³)",data:mol,borderColor:PAL[0],backgroundColor:PAL[0]+"18",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}}]},
     options:Object.assign(baseLineOpts(),{scales:{
@@ -1504,37 +1566,58 @@ function gslider(key,gk,lbl,min,max,step){
   const v=G[gk];
   return `<div class="frow"><label>${lbl} <b style="color:var(--accent3)" id="${key}_v">${Math.round(v*100)}%</b></label>
     <input type="range" id="${key}" min="${min}" max="${max}" step="${step}" value="${v}"
-      oninput="onG('${gk}','${key}',this.value)" style="accent-color:var(--accent3)"></div>`;
+      oninput="document.getElementById('${key}_v').textContent=Math.round(this.value*100)+'%'"
+      onchange="applyG('${gk}',this.value)" style="accent-color:var(--accent3)"></div>`;
 }
-function renderPremissas(){
-  let h=`<div class="pglead"><b>Premissas globais (what-if)</b> — multiplicadores sobre a <b>projeção</b> (> jul/26). O realizado fica fixo. Cascateiam por volume → receita → gás → EBITDA.<span class="tag">Fase E</span></div>`;
-  h+='<div class="cform">';
-  h+='<div class="sec">Alavancas</div>';
+function applyG(gk,val){ G[gk]=+val; render(); }
+function resetG(){ G={volMult:1,precoMult:1,molMult:1}; render(); }
+let DASH={wacc:0.12};
+function onWacc(v){ DASH.wacc=+v; render(); }
+// prévia operacional (receita GNL+GNC portada − custo total portado); projeção
+function resultadoOperacionalSerie(){
+  const rec=receitaComp(0).total, ct=custoTotal(0), n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]=(rec[k]||0)-(ct[k]||0);
+  return out;
+}
+function vplOperacional(wacc){
+  const ro=resultadoOperacionalSerie(), cut=DB.cutoffIdx, mr=Math.pow(1+wacc,1/12)-1;
+  let npv=0; for(let k=cut+1;k<ro.length;k++){ if(typeof ro[k]==="number") npv+=ro[k]/Math.pow(1+mr,k-cut); }
+  return npv;
+}
+function renderDashboard(){
+  const cut=DB.cutoffIdx, MM=c=>fmt((c?c.v:0)/1e6,0);
+  const yRec=anoSum(receitaComp(0).total), yCT=anoSum(custoTotal(0)), yRO=anoSum(resultadoOperacionalSerie());
+  const vpl=vplOperacional(DASH.wacc);
+  let h=`<div class="pglead"><b>Dashboard</b> — visão executiva: retorno, resultado e premissas editáveis. VPL/TIR completos dependem do módulo de <b>DCF</b> (capex, impostos, capital de giro, valor terminal), ainda a construir — abaixo, a <b>prévia operacional</b> (Receita − Custo, ambos já por fórmula).${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}</div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("VPL operacional", "R$ "+fmt(vpl/1e6,0)+" MM", "resultado op. descontado @ "+Math.round(DASH.wacc*100)+"% a.a. · prévia (sem capex/impostos)");
+  h+=kpi("TIR", "—", "requer investimento inicial (DCF)");
+  h+=kpi("EBITDA 2030 (R$ MM)", "—", "requer DRE portada");
+  h+=kpi("Resultado op. 2030 (R$ MM)", MM(yRO["2030"]), "receita − custo total");
+  h+=kpi("Receita 2030 (R$ MM)", MM(yRec["2030"]), "GNL+GNC (fórmula)");
+  h+=kpi("Custo total 2030 (R$ MM)", MM(yCT["2030"]), "gás + OpEx (fórmula)");
+  h+='</div>';
+  h+='<div class="cform"><div class="sec">Taxa de desconto</div>';
+  h+=`<div class="frow"><label>WACC <b style="color:var(--accent3)" id="wacc_v">${Math.round(DASH.wacc*100)}%</b> a.a.</label>
+      <input type="range" id="wacc" min="0.06" max="0.25" step="0.005" value="${DASH.wacc}"
+        oninput="document.getElementById('wacc_v').textContent=Math.round(this.value*100)+'%'" onchange="onWacc(this.value)" style="accent-color:var(--accent3)"></div>`;
+  h+='<div class="sec">Premissas globais (what-if) — sobre a projeção (> jul/26)</div>';
   h+=gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01);
   h+=gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005);
   h+=gslider("g_mol","molMult","Custo da molécula (× base)",0.8,1.2,0.005);
-  h+=`<div class="formbtns"><button class="btn-ghost" onclick="resetG()">Resetar (100%)</button><span class="okmsg" id="g_msg"></span></div>`;
-  h+='<div class="sec">Impacto no EBITDA consolidado</div><div id="g_impacto">'+impactoHTML()+'</div>';
-  h+='<div class="note">O EBITDA ajustado = EBITDA do modelo + Δ(receita GNL+GNC) − Δ(gás) na projeção. As demais linhas da DRE (OpEx, depreciação, impostos) permanecem na base — refinamento futuro liga o OpEx volume-dependente às alavancas.</div>';
+  h+=`<div class="formbtns"><button class="btn-ghost" onclick="resetG()">Resetar (100%)</button><span class="okmsg">${gAtivo()?"premissas ativas — cascateiam por Receita/OPEX/Resumo e pelo VPL acima":""}</span></div>`;
   h+='</div>';
+  // resumo operacional por ano
+  const ks=Object.keys(yRO).sort();
+  let t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM/ano</th>';
+  for(const y of ks) t+=`<th class="${yRO[y].proj?'o':''}">${y}</th>`; t+='</tr></thead><tbody>';
+  const rowT=(lbl,yr,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`;
+    for(const y of ks) r+=`<td class="${yr[y]?.proj?'o':''}">${yrMM(yr[y],0)}</td>`; return r+'</tr>'; };
+  t+=rowT("Receita (GNL+GNC)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO,true)+'</tbody></table></div>';
+  h+='<div class="card"><h4>Prévia operacional por ano</h4>'+t+'</div>';
+  h+='<div class="note">Falta para o Dashboard completo: receita Brent + extras (serviço/aluguel/outros) e a <b>DRE</b> (impostos/depreciação) para EBITDA/Lucro; e o módulo de <b>DCF</b> (investimento, capital de giro, valor terminal) para VPL/TIR plenos. O lado de <b>custo já está 100% por fórmula</b>.</div>';
   return h;
 }
-function impactoHTML(){
-  const rlA=anoSum(receitaLiquidaSerie()), ebA=anoSum(ebitdaSerie());
-  const rlB=anoSum(DB.dre.receita_liquida||[]), ebB=anoSum(DB.dre.ebitda||[]);
-  const row=(y)=>{ const rb=(rlB[y]?.v||0)/1e6, ra=(rlA[y]?.v||0)/1e6, eb=(ebB[y]?.v||0)/1e6, ea=(ebA[y]?.v||0)/1e6;
-    const mB=rb? eb/rb*100:0, mA=ra? ea/ra*100:0;
-    return `<tr><td class="l">${y}</td><td>${fmt(rb,0)}</td><td>${fmt(ra,0)}</td><td>${fmt(eb,0)}</td><td><b>${fmt(ea,0)}</b></td><td>${fmt(mB,1)}%</td><td><b>${fmt(mA,1)}%</b></td></tr>`; };
-  return '<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Ano</th><th>Rec.Líq base</th><th>Rec.Líq ajust</th><th>EBITDA base</th><th>EBITDA ajust</th><th>Marg base</th><th>Marg ajust</th></tr></thead><tbody>'+
-    ["2027","2030","2033","2035","2038"].map(row).join("")+'</tbody></table></div><div class="sub" style="font-size:11px;color:var(--muted);margin-top:6px">Valores em R$ MM/ano.</div>';
-}
-function onG(gk,key,val){
-  G[gk]=+val;
-  const lab=document.getElementById(key+"_v"); if(lab) lab.textContent=Math.round(val*100)+"%";
-  const imp=document.getElementById("g_impacto"); if(imp) imp.innerHTML=impactoHTML();
-  const msg=document.getElementById("g_msg"); if(msg) msg.textContent=gAtivo()?"premissas ativas — veja Resumo/Receita/OPEX":"";
-}
-function resetG(){ G={volMult:1,precoMult:1,molMult:1}; render(); }
 
 /* ------------------------------------------------- validação vs golden ---- */
 async function validateVolume(){
@@ -1736,7 +1819,7 @@ function boot(){
   $("#loader").hidden=true; $("#app").hidden=false;
   DB.clientesBase = JSON.parse(JSON.stringify(DB.clientes));   // baseline p/ reverter/marcar edições
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
-  $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
+  $("#cutoffBadge").textContent = "Realizado até "+(cut?fmtMes(cut.ym):"—");
   buildSidebar(); render();
   if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
 }
