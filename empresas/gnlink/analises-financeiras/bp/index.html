@@ -65,6 +65,15 @@ main{flex:1;min-width:0;padding:16px 22px 48px}
 .perTbl .grp-child.shown{display:table-row}
 .perTbl .grp-child td{color:var(--muted);font-size:11.5px}
 .perTbl .grp-child .sub{padding-left:20px;font-weight:600}
+/* ícone de ajuda (?) + tooltip on-hover com a mecânica/fórmula */
+.hlp{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+  border:1px solid var(--line);color:var(--muted);font-size:9px;font-weight:800;cursor:help;margin-left:5px;
+  vertical-align:middle;background:#fff;user-select:none;flex:none}
+.hlp:hover{border-color:var(--accent2);color:var(--accent);background:#F1F5FA}
+#tip{position:fixed;z-index:99999;max-width:360px;background:#26313F;color:#F4F7FA;font-size:11.5px;line-height:1.55;
+  padding:9px 12px;border-radius:9px;box-shadow:0 8px 28px rgba(20,30,45,.28);pointer-events:none;opacity:0;
+  transition:opacity .1s ease;font-weight:500;white-space:normal}
+#tip.show{opacity:1}
 /* títulos */
 .pgttl{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px}
 .pglead{color:var(--muted);font-size:12.5px;margin-bottom:14px}
@@ -209,6 +218,36 @@ const fmtNum = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{m
 // datas: "Jan/23", "Fev/23" ...
 const MES_ABBR=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function fmtMes(ym){ if(!ym) return ""; const p=String(ym).split("-"); return (MES_ABBR[(+p[1])-1]||"?")+"/"+String(p[0]).slice(2); }
+// ícone de ajuda (?) que mostra a mecânica/fórmula ao passar o mouse
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function help(text){ return text ? `<span class="hlp" tabindex="0" data-tip="${esc(text)}">?</span>` : ""; }
+// registro didático das mecânicas (base p/ os tooltips) — espelha MECANICAS.md
+const MECH={
+  receita:"Receita R$ = preço indexado × volume × dias. Preço IPCA = base × fator IPCA (bump anual no aniversário da data-base); preço Brent = residual×fatorIPCA + termo molécula.",
+  gnl:"Receita GNL = preço indexado × volume GNL (m³/dia) × dias do mês.",
+  gnc:"Receita GNC = preço indexado × volume GNC (m³/dia) × dias do mês.",
+  servico:"Serviço sem molécula = volume × preço de serviço, para clientes que só contratam serviço (sem venda de molécula).",
+  aluguel:"Aluguel fixo = R$/mês base × fator IPCA, a partir da data-base do contrato.",
+  outros:"Outros = receita pontual = valor ÷ (1 − margem), lançada só no mês da data-base.",
+  receita_liquida:"Receita Líquida = GNL + GNC + serviço + aluguel + outros.",
+  brent:"Preço Brent = residual × fator IPCA + termo molécula. Bahia usa a molécula da própria planta; PR/RN/Sal = %×Brent×Dólar/26,8081 no trimestre (fev/mai/ago/nov). %: PR 12,5% · RN 10,3% · Sal 6%.",
+  molecula:"Custo da molécula (R$/m³) = componente-base × fator de reajuste. IPCA: fator×(1+IPCA 12m) no aniversário. Brent (BA/RN/PE): Brent(k)/Brent(ref) × Dólar(k)/Dólar(ref) desde a data-ref, com piso/teto. Argentina: CPI-agosto × Dólar/Dólar-base. Projeto Sal: parcela fixa (IPCA) + %Brent×Dólar.",
+  gas:"Custo do gás = Σ [volume(clientes c/ molécula) × dias × custo da molécula por planta] + ajustes (reversão / venda no gasoduto).",
+  custo_total:"Custo total = gás + as 6 categorias de OpEx (liquefação, compressão, terminal, SG&A planta, logística, regás). 100% por fórmula.",
+  ebitda:"EBITDA = Receita Líquida − Custos operacionais. A projeção reabilita quando a DRE for portada (hoje só realizado).",
+  vpl:"VPL operacional = fluxo (Receita GNL+GNC − Custo total) descontado mês a mês ao WACC, a partir do corte. Prévia — não inclui capex, impostos nem capital de giro.",
+  tir:"TIR = taxa que zera o VPL do fluxo de caixa do projeto. Requer o investimento inicial (capex) do módulo de DCF, ainda a construir.",
+  resultado_op:"Resultado operacional = Receita (GNL+GNC) − Custo total. Prévia enquanto a DRE não é portada.",
+  wacc:"WACC = custo médio ponderado de capital, a taxa usada para descontar os fluxos futuros a valor presente.",
+  volume:"Volume por cliente = estágio de rampa ativo (curva de contratação) → override near-term → × fator de operação × sensibilidade da planta.",
+  tipo:"Histórico = realizado (medido, até o corte jul/26). Orçamento = orçado near-term (até dez/26). Forecast = projeção de longo prazo (2027+).",
+  compressao:"Compressão = tarifa R$/mês × op × IPCA, ativa entre as datas de início e fim (só RN, 20 mil/mês de ago/27 a ago/30).",
+  terminal:"Terminal = tarifa × volume GNL da planta × dias (sem IPCA). Só Terminal PE (0,30 por m³·dia).",
+  liquefacao:"Liquefação (por planta) = Energia (eletricidade via degraus de Cryo → potência MW + gerador) + Insumos + O&M + Perdas (markup sobre o gás) + Recuperação de purga + Outros.",
+  sga:"SG&A de planta = 11 componentes (salários, seguros op+equip, assistência, serviços, viagens, projetos de engenharia, regulatório, segurança, contingência, frota, outros), cada um × op × IPCA.",
+  distribuicao:"Logística (por cliente) = Frete fixo + Frete variável + Aluguel de equipamento + Cavalo mecânico + Ociosos/preparação + Sinergia. Base: nº de carretas = f(volume, distância, tipo).",
+  regas:"Regás (por cliente) = Aluguel de equipamento (nº = ceil(volume/capacidade × dias de estoque), zero se FOB) + Furui (leasing 18 bar) + Assistência técnica.",
+};
 const abaById = id => ABAS.flatMap(g=>g.items).find(a=>a.id===id);
 
 /* --------------------------------------------------- carregar base xlsx ---- */
@@ -625,13 +664,33 @@ function cicloIdx(k){   // início do trimestre Brent (fev/mai/ago/nov) que cont
   return i>=0?i:k;
 }
 const isBrentInd = ind => !!ind && /^Brent/.test(ind);
+// fator IPCA puro (bump anual no aniversário da data-base) — p/ reajustar o residual Brent
+function fatorIpcaResid(dbOrd){
+  const n=DB.meses.length, mo=DB.monthsOrd, dbMonth=((dbOrd%12)+12)%12, ipca12=DB.idx.ipca12||[];
+  const arr=new Array(n); let prev=1;
+  for(let k=0;k<n;k++){ let f;
+    if(mo[k] < dbOrd+12) f=1;
+    else if((((mo[k]%12)+12)%12)===dbMonth){ const g=ipca12[k]; f=prev*(1+(typeof g==="number"?g:0)); }
+    else f=prev; arr[k]=f; prev=f; }
+  return arr;
+}
 function precoSerie(cid){
-  // Preço projetado. IPCA 100% = precoBase × FATOR IPCA PURO (exato, sensível ao
-  // precoBase editável). Brent = preço corrigido extraído (acopla molécula, exato).
+  // Preço projetado. IPCA 100% = precoBase × FATOR IPCA PURO. Brent = residual×fatorIPCA +
+  // termo molécula: Bahia usa a molécula da planta; PR/RN/Sal recompõem pct×Brent×Dólar/26,8081
+  // no trimestre (fev/mai/ago/nov). 100% por fórmula — reage a Brent/Dólar/IPCA. Ver MECANICAS.
   const p=DB.preco[cid], n=DB.meses.length, cut=DB.cutoffIdx, pm=k=>k>cut?G.precoMult:1;
   if(!p) return new Array(n).fill(0);
-  if(isBrentInd(p.indicador) && DB.precoBrent[cid]){
-    return DB.precoBrent[cid].map((v,k)=> (typeof v==="number"?v:0)*pm(k));
+  if(isBrentInd(p.indicador)){
+    const resid=p.residual||0, tipo=p.indicador, pct=BRENT_PCT[tipo]||0, dbOrd=p.dataBase, mo=DB.monthsOrd,
+          brent=DB.idx.brent||[], dolar=DB.idx.dolar||[], molBA=moleculaLive(2)||[],
+          fac=dbOrd!=null?fatorIpcaResid(dbOrd):new Array(n).fill(1), out=new Array(n);
+    for(let k=0;k<n;k++){
+      if(dbOrd!=null && mo[k]<dbOrd){ out[k]=0; continue; }
+      const ci=cicloIdx(k);
+      const bt = (tipo==="Brent Bahia") ? (molBA[k]||0) : pct*(brent[ci]||0)*(dolar[ci]||0)/26.8081;
+      out[k]=(resid*fac[k] + bt)*pm(k);
+    }
+    return out;
   }
   const fac=precoFactorArr(cid), base=p.precoBase||0, out=new Array(n);
   for(let k=0;k<n;k++) out[k]=base*fac[k]*pm(k);
@@ -1149,19 +1208,20 @@ function serieTableHTML(rows, corner){
   const B=periodBuckets();
   const cells=(serie,r)=>B.map(b=>{ const v=aggBucket(serie,b,r.how||"sum");
     return `<td class="${b.proj?'o':''}">${r.pct?fmtPct(v):fmt(v==null?null:v/(r.div||1e6), r.d!=null?r.d:0)}</td>`; }).join('');
-  let cat='<tr><th class="l"></th>', i=0;
+  let cat=`<tr><th class="l">${help(MECH.tipo)}</th>`, i=0;
   while(i<B.length){ let j=i; while(j<B.length && B[j].tipo===B[i].tipo) j++;
     cat+=`<th colspan="${j-i}" class="tipo tipo-${B[i].tipo}">${TIPO_LBL[B[i].tipo]}</th>`; i=j; }
   cat+='</tr>';
   const hdr=`<tr><th class="l">${corner||"R$ MM"}</th>`+B.map(b=>`<th class="${b.proj?'o':''}">${b.label}</th>`).join('')+'</tr>';
   let body='';
   for(const r of rows){
+    const lblTip=r.lbl+help(r.tip);
     if(state.regiao===0 && r.perPlanta){
       const gid="grp"+(_grpN++);
       for(const rr of DB.regioes){ body+=`<tr class="grp-child ${gid}"><td class="l sub">↳ ${rr.nome}</td>${cells(r.perPlanta(rr.id),r)}</tr>`; }
-      body+=`<tr class="${r.bold?'tot':''} grp-parent" onclick="toggleGrp('${gid}',this)"><td class="l"><span class="caret">▸</span>${r.lbl}</td>${cells(r.serie,r)}</tr>`;
+      body+=`<tr class="${r.bold?'tot':''} grp-parent" onclick="toggleGrp('${gid}',this)"><td class="l"><span class="caret">▸</span>${lblTip}</td>${cells(r.serie,r)}</tr>`;
     } else {
-      body+=`<tr class="${r.bold?'tot':''}"><td class="l">${r.lbl}</td>${cells(r.serie,r)}</tr>`;
+      body+=`<tr class="${r.bold?'tot':''}"><td class="l">${lblTip}</td>${cells(r.serie,r)}</tr>`;
     }
   }
   return '<div class="tblwrap"><table class="mtbl perTbl"><thead>'+cat+hdr+'</thead><tbody>'+body+'</tbody></table></div>';
@@ -1180,9 +1240,9 @@ function renderReceita(){
   let h = subtabsHTML();
   h += `<div class="pglead"><b>Receita Líquida</b> = GNL + GNC + serviço + aluguel + outros (composição do modelo). <b>Volumes</b> por rampa de cliente.<span class="tag">Fase B+C</span></div>`;
   h += '<div class="mkpis">';
-  h += kpi("Receita Líq. 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
-  h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
-  h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym));
+  h += kpi("Receita Líq. 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado",null,MECH.receita_liquida);
+  h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "",null,MECH.receita_liquida);
+  h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
   h += kpi("Pico de volume projetado", fmt(Math.max(...tot),0), "m³/dia");
   h += '</div>';
   h += '<div class="card"><h4>Receita Líquida mensal — '+regName(reg)+' (R$ MM, por componente)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
@@ -1205,8 +1265,8 @@ function _cliRevPer(pred){ return p=>{ const n=DB.meses.length, acc=new Array(n)
     for(let k=0;k<n;k++) acc[k]+=s[k]; } return acc; }; }
 function revDimRows(rc, reg){
   const dim=state.revdim;
-  if(dim==="produto") return REVCOMP.map(([k,lbl])=>({lbl, serie:rc[k], d:1, perPlanta:p=>receitaComp(p)[k]}))
-    .concat([{lbl:"Receita Líquida", serie:rc.total, d:1, bold:true, perPlanta:p=>receitaComp(p).total}]);
+  if(dim==="produto") return REVCOMP.map(([k,lbl])=>({lbl, serie:rc[k], d:1, tip:MECH[k]||MECH.receita, perPlanta:p=>receitaComp(p)[k]}))
+    .concat([{lbl:"Receita Líquida", serie:rc.total, d:1, bold:true, tip:MECH.receita_liquida, perPlanta:p=>receitaComp(p).total}]);
   if(dim==="planta") return DB.regioes.map(r=>({lbl:r.nome, serie:receitaComp(r.id).total, d:1}))
     .concat([{lbl:"Consolidado", serie:rc.total, d:1, bold:true}]);
   if(dim==="cliente"){ const cs=DB.clientes.filter(c=>c.custo_mol && (reg===0||c.planta===reg));
@@ -1239,7 +1299,7 @@ function drawRev(rc){
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
 }
-function kpi(cap,val,sub,cls){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
+function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
 function volTable(gnl,gnc,tot){
   const rows=[{lbl:"GNL",serie:gnl,how:"avg",div:1,d:0},{lbl:"GNC",serie:gnc,how:"avg",div:1,d:0},
@@ -1410,11 +1470,11 @@ function renderResumo(){
               ["EBITDA Recorrente",er],["EBITDA",eb],["Depreciação",dp],["EBIT",eG],["Lucro Líquido",ll]];
   const dser=k=>DB.dre[k]||[];
   const dreRows=[{lbl:"Receita Bruta",serie:dser("receita_bruta")},
-    {lbl:"Receita Líquida",serie:receitaLiquidaSerie()},
-    {lbl:"Custos",serie:dser("custos")},
+    {lbl:"Receita Líquida",serie:receitaLiquidaSerie(),tip:MECH.receita_liquida},
+    {lbl:"Custos",serie:dser("custos"),tip:MECH.custo_total},
     {lbl:"Resultado Operacional",serie:dser("resultado_operacional")},
     {lbl:"EBITDA Recorrente",serie:dser("ebitda_recorrente")},
-    {lbl:"EBITDA",serie:ebitdaSerie(),bold:true},
+    {lbl:"EBITDA",serie:ebitdaSerie(),bold:true,tip:MECH.ebitda},
     {lbl:"Depreciação",serie:dser("depreciacao")},
     {lbl:"EBIT",serie:dser("ebit")},
     {lbl:"Lucro Líquido",serie:dser("lucro_liquido"),bold:true}];
@@ -1520,13 +1580,13 @@ function renderOpexOverview(reg, h){
   const yTot=anoSum(tot), ks=Object.keys(yTot).sort();
   h+=`<div class="pglead"><b>Custos operacionais</b> — gás + liquefação, compressão, terminal, SG&A planta, logística e regás. Abra uma categoria para ver o detalhe por sub-linha e a mecânica.</div>`;
   h+='<div class="mkpis">';
-  h+=kpi("Custo total 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
-  h+=kpi("Custo total "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
+  h+=kpi("Custo total 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado",null,MECH.custo_total);
+  h+=kpi("Custo total "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "",null,MECH.custo_total);
   const gas2027=anoSum(s.gas)["2027"]?.v||0; h+=kpi("Gás / custo total", fmt(100*gas2027/(yTot["2027"]?.v||1),0)+"%", "2027");
   h+='</div>';
   h+='<div class="card"><h4>Custos operacionais mensais — '+regName(reg)+' (R$ MM, empilhado)</h4><div class="chart-box"><canvas id="cOpex"></canvas></div></div>';
-  const opRows=COST_ORDER.map(c=>({lbl:COST_LABEL[c], serie:s[c], perPlanta:p=>costSeries(p)[c]}))
-    .concat([{lbl:"Custo total",serie:tot,bold:true,perPlanta:p=>custoTotal(p)}]);
+  const opRows=COST_ORDER.map(c=>({lbl:COST_LABEL[c], serie:s[c], tip:MECH[c], perPlanta:p=>costSeries(p)[c]}))
+    .concat([{lbl:"Custo total",serie:tot,bold:true,tip:MECH.custo_total,perPlanta:p=>custoTotal(p)}]);
   h+='<h3 class="msub">Custos por categoria (R$ MM)</h3>'+serieTableHTML(opRows,"R$ MM");
   return {html:h, draw:()=>drawOpexStack(s)};
 }
@@ -1545,7 +1605,7 @@ function renderOpexCat(reg, cat, h){
     const has = comps && sl.k && comps[sl.k];
     const yc = has ? anoSum(comps[sl.k]) : null;
     h+='<div class="card" style="padding:13px 16px;margin:8px 0">';
-    h+=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">${sl.nome}</b>`;
+    h+=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">${sl.nome}</b>${help(sl.mec)}`;
     h+= sl.portado ? '<span class="badge-ok">fórmula portada</span>' : '<span class="badge-wip">detalhe ao portar</span>';
     if(yc) h+=`<span class="hspace"></span><span style="font-size:12px;color:var(--muted)">2030: <b style="color:var(--ink)">R$ ${MM(yc["2030"]?.v||0)} MM</b></span>`;
     h+='</div>';
@@ -1594,12 +1654,12 @@ function renderVariavel(){
   let h=subtabsHTML();
   h+=`<div class="pglead"><b>Custo da molécula</b> (R$/m³) — driver macro-indexado (IPCA/Brent/Dólar, com piso/teto).<span class="tag">Fase D</span></div>`;
   h+='<div class="mkpis">';
-  h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+fmtMes(DB.meses[cut].ym));
+  h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+fmtMes(DB.meses[cut].ym),null,MECH.molecula);
   h+=kpi("Molécula (dez/38)", mol[mol.length-1]!=null?fmt(mol[mol.length-1],3):"—", "R$/m³");
   h+='</div>';
   h+='<div class="card"><h4>Custo da molécula — '+regName(reg)+' (R$/m³)</h4><div class="chart-box"><canvas id="cMol"></canvas></div></div>';
-  const molRows=DB.regioes.map(r=>({lbl:r.nome, serie:moleculaLive(r.id)||[], how:"avg", div:1, d:3}))
-    .concat([{lbl:"Média ponderada ("+regName(reg)+")", serie:mol, how:"avg", div:1, d:3, bold:true}]);
+  const molRows=DB.regioes.map(r=>({lbl:r.nome, serie:moleculaLive(r.id)||[], how:"avg", div:1, d:3, tip:MECH.molecula}))
+    .concat([{lbl:"Média ponderada ("+regName(reg)+")", serie:mol, how:"avg", div:1, d:3, bold:true, tip:MECH.molecula}]);
   h+='<h3 class="msub">Custo da molécula por planta (R$/m³)</h3>'+serieTableHTML(molRows,"R$/m³");
   h+='<div class="note">Média de R$/m³ no período. Motor de reajuste IPCA/Brent/Dólar com piso/teto — reage à alavanca de molécula e ao câmbio.</div>';
   return {html:h, mol};
@@ -1642,14 +1702,14 @@ function renderDashboard(){
   const vpl=vplOperacional(DASH.wacc);
   let h=`<div class="pglead"><b>Dashboard</b> — visão executiva: retorno, resultado e premissas editáveis. VPL/TIR completos dependem do módulo de <b>DCF</b> (capex, impostos, capital de giro, valor terminal), ainda a construir — abaixo, a <b>prévia operacional</b> (Receita − Custo, ambos já por fórmula).${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}</div>`;
   h+='<div class="mkpis">';
-  h+=kpi("VPL operacional", "R$ "+fmt(vpl/1e6,0)+" MM", "resultado op. descontado @ "+Math.round(DASH.wacc*100)+"% a.a. · prévia (sem capex/impostos)");
-  h+=kpi("TIR", "—", "requer investimento inicial (DCF)");
-  h+=kpi("EBITDA 2030 (R$ MM)", "—", "requer DRE portada");
-  h+=kpi("Resultado op. 2030 (R$ MM)", MM(yRO["2030"]), "receita − custo total");
-  h+=kpi("Receita 2030 (R$ MM)", MM(yRec["2030"]), "GNL+GNC (fórmula)");
-  h+=kpi("Custo total 2030 (R$ MM)", MM(yCT["2030"]), "gás + OpEx (fórmula)");
+  h+=kpi("VPL operacional", "R$ "+fmt(vpl/1e6,0)+" MM", "resultado op. descontado @ "+Math.round(DASH.wacc*100)+"% a.a. · prévia (sem capex/impostos)",null,MECH.vpl);
+  h+=kpi("TIR", "—", "requer investimento inicial (DCF)",null,MECH.tir);
+  h+=kpi("EBITDA 2030 (R$ MM)", "—", "requer DRE portada",null,MECH.ebitda);
+  h+=kpi("Resultado op. 2030 (R$ MM)", MM(yRO["2030"]), "receita − custo total",null,MECH.resultado_op);
+  h+=kpi("Receita 2030 (R$ MM)", MM(yRec["2030"]), "GNL+GNC (fórmula)",null,MECH.receita);
+  h+=kpi("Custo total 2030 (R$ MM)", MM(yCT["2030"]), "gás + OpEx (fórmula)",null,MECH.custo_total);
   h+='</div>';
-  h+='<div class="cform"><div class="sec">Taxa de desconto</div>';
+  h+='<div class="cform"><div class="sec">Taxa de desconto'+help(MECH.wacc)+'</div>';
   h+=`<div class="frow"><label>WACC <b style="color:var(--accent3)" id="wacc_v">${Math.round(DASH.wacc*100)}%</b> a.a.</label>
       <input type="range" id="wacc" min="0.06" max="0.25" step="0.005" value="${DASH.wacc}"
         oninput="document.getElementById('wacc_v').textContent=Math.round(this.value*100)+'%'" onchange="onWacc(this.value)" style="accent-color:var(--accent3)"></div>`;
@@ -1876,6 +1936,23 @@ function boot(){
   if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
+
+/* tooltip global dos ícones de ajuda (?) — flutua no body p/ não ser cortado por tabelas */
+(function(){
+  const tip=document.createElement("div"); tip.id="tip"; document.body.appendChild(tip);
+  function show(el){ tip.textContent=el.getAttribute("data-tip")||""; tip.classList.add("show");
+    const r=el.getBoundingClientRect(), tw=tip.offsetWidth, th=tip.offsetHeight;
+    let x=r.left+r.width/2-tw/2, y=r.top-th-8;
+    if(y<6) y=r.bottom+8;
+    x=Math.max(6, Math.min(x, innerWidth-tw-6));
+    tip.style.left=x+"px"; tip.style.top=y+"px"; }
+  function hide(){ tip.classList.remove("show"); }
+  document.addEventListener("mouseover", e=>{ const h=e.target.closest&&e.target.closest(".hlp"); if(h) show(h); });
+  document.addEventListener("mouseout",  e=>{ if(e.target.closest&&e.target.closest(".hlp")) hide(); });
+  document.addEventListener("focusin",   e=>{ const h=e.target.closest&&e.target.closest(".hlp"); if(h) show(h); });
+  document.addEventListener("focusout",  e=>{ if(e.target.closest&&e.target.closest(".hlp")) hide(); });
+  window.addEventListener("scroll", hide, true);
+})();
 
 /* dropzone / file input */
 const dz=$("#dropzone"), fi=$("#fileInput");
