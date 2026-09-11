@@ -100,6 +100,9 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .btn-primary:hover{background:var(--accent2)}
 .btn-ghost{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 16px;font-weight:600;color:var(--muted)}
 .okmsg{color:var(--green);font-weight:700;font-size:12.5px}
+.badge-ok,.badge-wip{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:2px 7px}
+.badge-ok{color:var(--green);border:1px solid var(--green);background:#F0F7F2}
+.badge-wip{color:var(--orange);border:1px solid var(--orange);background:#FDF3EC}
 </style>
 </head>
 <body class="loading">
@@ -156,7 +159,7 @@ const ABAS = [
   ]},
 ];
 
-const state = {aba:"macro", regiao:0, cliSel:null, cliQ:"", cliMsg:""};
+const state = {aba:"macro", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:""};
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
 let G = {volMult:1, precoMult:1, molMult:1};
 const gAtivo = () => G.volMult!==1 || G.precoMult!==1 || G.molMult!==1;
@@ -363,7 +366,7 @@ function render(){
     const r=renderResumo(); m.innerHTML=html+r.html; wireSubtabs(); if(r.draw) r.draw(); return;
   }
   if(aba.id==="opex"){
-    const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); drawOpex(r.s); return;
+    const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); wireOcat(); if(r.draw) r.draw(); return;
   }
   if(aba.id==="variavel"){
     const r=renderVariavel(); m.innerHTML=html+r.html; wireSubtabs(); drawMolecula(r.mol); return;
@@ -637,42 +640,42 @@ function machineMW(vol){ if(!(vol>0)) return 0; const n=vol/CRYO_CAP;
   for(let i=0;i<CRYO_BP.length;i++) if(CRYO_BP[i]>=n) return CRYO_MW[i];
   return CRYO_MW[CRYO_MW.length-1]; }
 const ymIdx = ym => DB.meses.findIndex(m=>m.ym===ym);
-function liquefSerie(){
+const LIQUEF_SUB=["energia","gerador","insumos","oem","perdas","purga","outros"];
+function liquefComp(p){   // {sub:[192]} por planta (projeção-fórmula)
   const n=DB.meses.length, PL=DB.premLiquef, corr=DB.seriesOpex.corr556||[], vol192=DB.seriesOpex.vol192||[], dias=DB.diasMes;
-  const eStart=ymIdx("2030-01"), corr30=(eStart>=0?corr[eStart]:1)||1;
-  const g=(mo,g1,g2)=> (mo===g1||mo===g2)?1:0;
-  const out={};
-  for(let p=1;p<=6;p++){
-    const op=DB.fatores.operacao[p]||[], gas=gasAgg(p), mol=DB.molecula[p]||[], vGNL=volAgg(p,"GNL");
-    const i=p-1, arr=new Array(n).fill(0);
-    for(let k=0;k<n;k++){
-      const o=(typeof op[k]==="number")?op[k]:0, c=(typeof corr[k]==="number")?corr[k]:1, d=dias[k], mo=+DB.meses[k].ym.slice(5);
-      // energia
-      const mw=machineMW(vGNL[k]);
-      const ipcaElet=(eStart>=0 && k>=eStart)? c/corr30 : 1;
-      const elet=(PL.precoMWh[i]||0)*mw*o*ipcaElet*24*d;
-      const ger=(PL.gerador[i]||0)*o*c;
-      // insumos
-      let ins=0;
-      ins+=(PL.propano_rate[i]||0)*o*c*g(mo,PL.propano_g1[i],PL.propano_g2[i]);
-      ins+=(PL.agua_rate[i]||0)*o*c*((mo%2===1)?1:0);
-      ins+=(PL.oleo_rate[i]||0)*o*c;
-      ins+=(PL.glycol_rate[i]||0)*o*c;
-      ins+=(PL.residuos_rate[i]||0)*o*c;
-      ins+=(PL.mercaptano_rate[i]||0)*o*c*g(mo,PL.mercaptano_g1[i],PL.mercaptano_g2[i]);
-      // O&M
-      const oem=(PL.oem[i]||0)*o*c;
-      // perdas no processo = gás/(1-frac)*frac
-      const frac=PL.perdaFrac[i]||0, perda=frac>0? (gas[k]/(1-frac))*frac : 0;
-      // recuperação de purga (crédito) — só o mecanismo fração (PR: c×vol192×dias×molécula)
-      const pc=PL.purga_c[i]; let purga=0;
-      if(typeof pc==="number" && pc>0 && pc<1 && typeof mol[k]==="number") purga=-pc*(vol192[k]||0)*d*mol[k];
-      // outros
-      const outros=(PL.outros_rate[i]||0)*o*c;
-      arr[k]=elet+ger+ins+oem+perda+purga+outros;
-    }
-    out[p]=arr;
+  const eStart=ymIdx("2030-01"), corr30=(eStart>=0?corr[eStart]:1)||1, g=(mo,g1,g2)=>(mo===g1||mo===g2)?1:0;
+  const op=DB.fatores.operacao[p]||[], gas=gasAgg(p), mol=DB.molecula[p]||[], vGNL=volAgg(p,"GNL"), i=p-1;
+  const C={}; LIQUEF_SUB.forEach(s=>C[s]=new Array(n).fill(0));
+  for(let k=0;k<n;k++){
+    const o=(typeof op[k]==="number")?op[k]:0, c=(typeof corr[k]==="number")?corr[k]:1, d=dias[k], mo=+DB.meses[k].ym.slice(5);
+    const mw=machineMW(vGNL[k]), ipcaElet=(eStart>=0&&k>=eStart)?c/corr30:1;
+    C.energia[k]=(PL.precoMWh[i]||0)*mw*o*ipcaElet*24*d;
+    C.gerador[k]=(PL.gerador[i]||0)*o*c;
+    let ins=0;
+    ins+=(PL.propano_rate[i]||0)*o*c*g(mo,PL.propano_g1[i],PL.propano_g2[i]);
+    ins+=(PL.agua_rate[i]||0)*o*c*((mo%2===1)?1:0);
+    ins+=(PL.oleo_rate[i]||0)*o*c; ins+=(PL.glycol_rate[i]||0)*o*c; ins+=(PL.residuos_rate[i]||0)*o*c;
+    ins+=(PL.mercaptano_rate[i]||0)*o*c*g(mo,PL.mercaptano_g1[i],PL.mercaptano_g2[i]);
+    C.insumos[k]=ins;
+    C.oem[k]=(PL.oem[i]||0)*o*c;
+    const frac=PL.perdaFrac[i]||0; C.perdas[k]=frac>0?(gas[k]/(1-frac))*frac:0;
+    const pc=PL.purga_c[i]; C.purga[k]=(typeof pc==="number"&&pc>0&&pc<1&&typeof mol[k]==="number")?-pc*(vol192[k]||0)*d*mol[k]:0;
+    C.outros[k]=(PL.outros_rate[i]||0)*o*c;
   }
+  return C;
+}
+function liquefSerie(){   // {planta:[192]} total (soma das sub-linhas)
+  const n=DB.meses.length, out={};
+  for(let p=1;p<=6;p++){ const C=liquefComp(p), a=new Array(n).fill(0);
+    LIQUEF_SUB.forEach(s=>{ for(let k=0;k<n;k++) a[k]+=C[s][k]; }); out[p]=a; }
+  return out;
+}
+// componentes de liquefação agregados por região (soma das plantas)
+function liquefCompAgg(regiao){
+  const n=DB.meses.length, out={}; LIQUEF_SUB.forEach(s=>out[s]=new Array(n).fill(0));
+  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  for(const p of plantas){ if(p>6) continue; const C=liquefComp(p);
+    LIQUEF_SUB.forEach(s=>{ for(let k=0;k<n;k++) out[s][k]+=C[s][k]; }); }
   return out;
 }
 function custoTotal(regiao){ // gás + OpEx (ex-gás)
@@ -975,42 +978,136 @@ const COST_PAL = {gas:"#E23A2E", liquefacao:"#3D4A5C", compressao:"#55677C", ter
 function costSeries(reg){
   const s={gas:gasAgg(reg)}; for(const c of OPEX_CATS) s[c]=opexCatAgg(reg,c); return s;
 }
+/* Registro de mecânicas por categoria/sub-linha (também fonte dos tooltips). */
+const OPEX_MECH = {
+  gas:{label:"Custo do gás", sub:[
+    {nome:"Molécula × volume", mec:"Σ volume(clientes c/ molécula) × dias × custo da molécula[planta] + ajustes (reversão / venda no gasoduto).", portado:true}]},
+  liquefacao:{label:"Liquefação", compute:liquefCompAgg, subkeys:LIQUEF_SUB, sub:[
+    {k:"energia",nome:"Energia (eletricidade)",mec:"preço R$/MWh × potência(MW) × op × IPCA(a partir de 2030) × 24h × dias. Potência = tabela por nº de Cryos ligados (1→0,55 · 2→0,89 · 3→1,43 · 4→1,97 MW); nº de Cryos = arredonda-p/-cima(volume da planta ÷ 19.800). Preço fixo até jan/2030, depois IPCA.",portado:true},
+    {k:"gerador",nome:"Gerador",mec:"R$/mês fixo por planta × op × IPCA (PR 86.000).",portado:true},
+    {k:"insumos",nome:"Insumos",mec:"propano (mai+dez), água (meses ímpares), óleo, glycol, resíduos (todo mês), mercaptano (mai+dez; RN abr+nov) — cada um R$/mês × op × IPCA × sazonalidade.",portado:true},
+    {k:"oem",nome:"O&M",mec:"R$/mês fixo por planta × op × IPCA (PR 300k · BA 334k · RN 307k).",portado:true},
+    {k:"perdas",nome:"Perdas no processo",mec:"custo do gás ÷ (1 − perda%) × perda% (markup de 5% sobre o gás).",portado:true},
+    {k:"purga",nome:"Recuperação de purga",mec:"crédito (negativo) ∝ volume × molécula, a partir de uma data (mecânica por planta a fechar).",portado:false},
+    {k:"outros",nome:"Outros",mec:"R$/mês fixo × op × IPCA.",portado:true}]},
+  compressao:{label:"Compressão", sub:[
+    {nome:"Tarifa por planta",mec:"R$/mês fixo × op × IPCA, liberado a partir da data de início. Não é volume-dependente. Hoje só RN (20.000/mês a partir de ~ago/27).",portado:false}]},
+  terminal:{label:"Terminal", sub:[
+    {nome:"Tarifa de terminal",mec:"tarifa × volume GNL da planta × dias (volume-dependente, sem IPCA). Hoje só Terminal PE (0,30 por m³·dia).",portado:false}]},
+  sga:{label:"SG&A planta", sub:[
+    {nome:"Salários",mec:"R$/mês/pessoa × headcount × op × IPCA.",portado:false},
+    {nome:"Seguros (operacional + equipamentos)",mec:"prêmio anual = valor segurado × taxa, pago 1×/ano (a cada 12 meses; equip. BA/RN a cada 3), × op × IPCA.",portado:false},
+    {nome:"Assistência técnica",mec:"lump anual no mês 10 (outubro) × op × IPCA.",portado:false},
+    {nome:"Serviços gerais / Viagens",mec:"R$/mês fixo × op × IPCA.",portado:false},
+    {nome:"Projetos de engenharia",mec:"se ocupação GNL ≥ 95% usa R$ 1.000, senão R$ 5.000; × op × IPCA.",portado:false},
+    {nome:"Regulatório / Seg. do trabalho",mec:"R$ 5.000 a cada 3 (regulatório) / 6 (trabalho) meses × op × IPCA.",portado:false},
+    {nome:"Segurança (patrimonial/ocupacional)",mec:"R$/mês fixo × op × IPCA.",portado:false},
+    {nome:"Frota",mec:"R$/mês/veículo × nº de veículos × op × IPCA.",portado:false}]},
+  distribuicao:{label:"Logística", sub:[
+    {nome:"Frete fixo (por cliente)",mec:"custo fixo/viagem × nº de carretas ARREDONDADO × IPCA. Nº de carretas = (volume/dia ÷ capacidade) × (dist_ida×2/450 + descarga/24) × op.",portado:false},
+    {nome:"Frete variável (por cliente)",mec:"R$/km × km rodados no mês × IPCA. km_mês = (volume ÷ capacidade) × dist×2 × 30 (30 dias fixos).",portado:false},
+    {nome:"Aluguel de equipamento (por cliente)",mec:"aluguel ISO/mês (13.000) × nº de carretas RAW (fracionário) × IPCA.",portado:false},
+    {nome:"Cavalo mecânico (por planta)",mec:"(fixo + variável) R$/mês × op × IPCA.",portado:false},
+    {nome:"Ociosos + preparação de ISO",mec:"custo fixo de ISOs ociosos (22.000/ISO) + preparação de ISOs novos (30.000/ISO), até 2028; rateado por planta.",portado:false},
+    {nome:"Sinergia",mec:"crédito = −redução%[planta] × frete fixo da planta, ativo só até dez/2027 (PR −35% · BA −15% · RN −10%).",portado:false}]},
+  regas:{label:"Regás", sub:[
+    {nome:"Aluguel de equipamento (por cliente)",mec:"nº de equipamentos × custo/dia (13.000 GNL / 22.000 GNC) × IPCA. Nº = ceil(volume ÷ capacidade × dias de estoque); zero se cliente FOB.",portado:false},
+    {nome:"Montagem de regás (por cliente)",mec:"custo único lançado só no mês de início × IPCA.",portado:false},
+    {nome:"Assistência técnica (por planta)",mec:"ceil(volume da planta ÷ 5.000) × R$ 1.500 × op × IPCA.",portado:false}]},
+};
+const OCATS = ["gas","liquefacao","compressao","terminal","sga","distribuicao","regas"];
+
+/* ------------------------------------------------ aba OPEX (custos, D-2) --- */
+function costCatSerie(reg, cat){ return cat==="gas" ? gasAgg(reg) : opexCatAgg(reg, cat); }
 function renderOpex(){
-  const reg=state.regiao, cut=DB.cutoffIdx, n=DB.meses.length;
-  const s=costSeries(reg), tot=custoTotal(reg);
-  const MM=v=>fmt(v/1e6,1);
-  const yTot=anoSum(tot), ks=Object.keys(yTot).sort();
+  const reg=state.regiao, ocat=state.ocat;
   let h=subtabsHTML();
-  h+=`<div class="pglead"><b>Custos operacionais</b> — gás + liquefação, compressão, terminal, SG&A planta, logística e regás.<span class="tag">Fase D</span></div>`;
+  // barra de sub-abas por categoria
+  h+='<div class="subtabs" id="ocatbar" style="margin-top:-4px">';
+  h+=`<button data-oc="" class="${ocat===""?'on':''}">Visão geral</button>`;
+  for(const c of OCATS) h+=`<button data-oc="${c}" class="${ocat===c?'on':''}">${OPEX_MECH[c].label}</button>`;
+  h+='</div>';
+  return ocat ? renderOpexCat(reg, ocat, h) : renderOpexOverview(reg, h);
+}
+function wireOcat(){ const b=$("#ocatbar"); if(b) b.querySelectorAll("button").forEach(x=>x.onclick=()=>{state.ocat=x.dataset.oc; render();}); }
+
+function renderOpexOverview(reg, h){
+  const s=costSeries(reg), tot=custoTotal(reg), MM=v=>fmt(v/1e6,1);
+  const yTot=anoSum(tot), ks=Object.keys(yTot).sort();
+  h+=`<div class="pglead"><b>Custos operacionais</b> — gás + liquefação, compressão, terminal, SG&A planta, logística e regás. Abra uma categoria para ver o detalhe por sub-linha e a mecânica.</div>`;
   h+='<div class="mkpis">';
   h+=kpi("Custo total 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
   h+=kpi("Custo total "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
-  const gas2027=anoSum(s.gas)["2027"]?.v||0, tot2027=yTot["2027"]?.v||1;
-  h+=kpi("Gás / custo total", fmt(100*gas2027/tot2027,0)+"%", "2027");
+  const gas2027=anoSum(s.gas)["2027"]?.v||0; h+=kpi("Gás / custo total", fmt(100*gas2027/(yTot["2027"]?.v||1),0)+"%", "2027");
   h+='</div>';
   h+='<div class="card"><h4>Custos operacionais mensais — '+regName(reg)+' (R$ MM, empilhado)</h4><div class="chart-box"><canvas id="cOpex"></canvas></div></div>';
-  // tabela anual por categoria
   h+='<h3 class="msub">Custos por categoria e ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Categoria</th>';
   for(const y of ks) h+=`<th class="${yTot[y].proj?'o':''}">${y}</th>`; h+='</tr></thead><tbody>';
   for(const c of COST_ORDER){ const yc=anoSum(s[c]); h+=`<tr><td class="l">${COST_LABEL[c]}</td>`;
     for(const y of ks) h+=`<td class="${yTot[y].proj?'o':''}">${fmt((yc[y]?.v||0)/1e6,1)}</td>`; h+='</tr>'; }
   let tr='<tr class="tot"><td class="l">Custo total</td>'; for(const y of ks) tr+=`<td class="${yTot[y].proj?'o':''}">${fmt(yTot[y].v/1e6,1)}</td>`; h+=tr+'</tr>';
   h+='</tbody></table></div>';
-  h+='<div class="note">Custos por categoria = subtotais do modelo (realizado + projeção). A projeção segue o modelo; o re-escalonamento por volume editável das linhas volume-dependentes entra numa próxima iteração.</div>';
-  return {html:h, s};
+  return {html:h, draw:()=>drawOpexStack(s)};
 }
-function drawOpex(s){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym);
-  const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:s[c].map(v=>v/1e6),
-    backgroundColor:COST_PAL[c], borderColor:COST_PAL[c], borderWidth:0, stack:"c"}));
-  charts.opex=new Chart($("#cOpex"),{type:"bar", data:{labels,datasets:ds},
+function renderOpexCat(reg, cat, h){
+  const M=OPEX_MECH[cat], tot=costCatSerie(reg,cat), yTot=anoSum(tot), ks=Object.keys(yTot).sort(), MM=v=>fmt(v/1e6,1);
+  const comps = M.compute ? M.compute(reg) : null;   // sub-linhas portadas (ex.: liquefação)
+  h+=`<div class="pglead"><b>${M.label}</b> — ${regName(reg)}. Detalhe por sub-linha e a mecânica de cada uma.</div>`;
+  h+='<div class="mkpis">';
+  h+=kpi(M.label+" 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
+  h+=kpi(M.label+" "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
+  h+='</div>';
+  h+='<div class="card"><h4>'+M.label+' — mensal (R$ MM'+(comps?', por sub-linha empilhada':'')+')</h4><div class="chart-box"><canvas id="cOcat"></canvas></div></div>';
+  // detalhe por sub-linha: mecânica + (se portado) valores anuais
+  h+='<h3 class="msub">Sub-linhas & mecânicas</h3>';
+  for(const sl of M.sub){
+    const has = comps && sl.k && comps[sl.k];
+    const yc = has ? anoSum(comps[sl.k]) : null;
+    h+='<div class="card" style="padding:13px 16px;margin:8px 0">';
+    h+=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">${sl.nome}</b>`;
+    h+= sl.portado ? '<span class="badge-ok">fórmula portada</span>' : '<span class="badge-wip">detalhe ao portar</span>';
+    if(yc) h+=`<span class="hspace"></span><span style="font-size:12px;color:var(--muted)">2030: <b style="color:var(--ink)">R$ ${MM(yc["2030"]?.v||0)} MM</b></span>`;
+    h+='</div>';
+    h+=`<div style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:6px">${sl.mec}</div>`;
+    if(yc){ h+='<div class="tblwrap" style="margin-top:8px"><table class="mtbl"><thead><tr><th class="l">Ano</th>';
+      for(const y of ks) h+=`<th class="${yTot[y].proj?'o':''}">${y}</th>`; h+='</tr></thead><tbody><tr><td class="l">R$ MM</td>';
+      for(const y of ks) h+=`<td class="${yTot[y].proj?'o':''}">${fmt((yc[y]?.v||0)/1e6,2)}</td>`; h+='</tr></tbody></table></div>'; }
+    h+='</div>';
+  }
+  if(!comps) h+='<div class="note">Esta categoria ainda mostra o subtotal do modelo (realizado + projeção). O detalhe por sub-linha com valores entra quando a categoria for portada em fórmula (mecânicas acima já mapeadas).</div>';
+  else h+='<div class="note">Sub-linhas em <b>projeção-fórmula</b> (portadas). O realizado é mostrado no total pelo valor do modelo.</div>';
+  return {html:h, draw:()=> comps ? drawOcatStack(comps, M) : drawOcatLine(tot, M.label)};
+}
+function drawOpexStack(s){
+  const labels=DB.meses.map(m=>m.ym);
+  const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:s[c].map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
+  charts.opex=new Chart($("#cOpex"),{type:"bar",data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
 }
-const drawGas = drawOpex;  // compat
+const SUBPAL=["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#4880A8","#7FC6A2","#55677C"];
+function drawOcatStack(comps, M){
+  const labels=DB.meses.map(m=>m.ym), keys=M.subkeys||Object.keys(comps);
+  const ds=keys.map((k,i)=>({label:(M.sub.find(s=>s.k===k)||{nome:k}).nome, data:comps[k].map(v=>v/1e6),
+    backgroundColor:SUBPAL[i%SUBPAL.length],borderWidth:0,stack:"o"}));
+  charts.ocat=new Chart($("#cOcat"),{type:"bar",data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
+      scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
+}
+function drawOcatLine(tot, label){
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
+  charts.ocat=new Chart($("#cOcat"),{type:"line",data:{labels,datasets:[
+    {label:label+" (R$ MM)",data:tot.map(v=>v/1e6),borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}}]},
+    options:Object.assign(baseLineOpts(),{scales:{x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+      y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}})});
+}
+const drawGas = drawOpexStack;  // compat
 /* --------------------------------------------------- aba Variável (mol, D) -- */
 function renderVariavel(){
   const reg=state.regiao, cut=DB.cutoffIdx;
