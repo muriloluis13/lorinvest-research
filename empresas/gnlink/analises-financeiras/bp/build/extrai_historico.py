@@ -223,11 +223,24 @@ def read_receita_rows(wb, rmax=1475):
 
 def read_variavel_rows(wb):
     """UM passo pela aba Variável -> {rownum: tuple}. Captura macro (10..17),
-       fator de reajuste (430..584) e fator IPCA puro (1089..1241)."""
+       molécula (254..259), fator de reajuste (430..584), preço corrigido (586..743)
+       e fator IPCA puro (1089..1241)."""
     ws = wb["Variável"]
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=1245, values_only=True), start=1):
-        if (8 <= i <= 20) or (430 <= i <= 584) or (1088 <= i <= 1241):
+        if (8 <= i <= 20) or (254 <= i <= 259) or (430 <= i <= 584) \
+           or (586 <= i <= 743) or (1088 <= i <= 1241):
+            keep[i] = row
+    return keep
+
+
+def read_opex_rows(wb):
+    """UM passo pela aba OPEX -> {rownum: tuple}. Captura molécula (380..385),
+       custo do gás (388..394) e reversões (396..412)."""
+    ws = wb["OPEX"]
+    keep = {}
+    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=412, values_only=True), start=1):
+        if 380 <= i <= 412:
             keep[i] = row
     return keep
 
@@ -343,6 +356,71 @@ def extract_golden_volume(rrows, id2planta):
     return gold
 
 
+# ---- Fase D: custo da molécula / custo do gás --------------------------------
+MOLEC_ROWS = {380: 1, 381: 2, 382: 3, 383: 4, 384: 5, 385: 6}  # OPEX -> planta (o q o gás usa)
+PRECO_CORR = (589, 743)     # Variável "Preço Variável Corrigido"
+GAS_ROWS = {389: 1, 390: 2, 391: 3, 392: 4, 393: 5, 394: 6}    # OPEX -> planta
+
+
+def extract_molecula(orows):
+    """Custo atualizado da molécula por planta (R$/m³) — exatamente a série que o
+       custo do gás usa (OPEX 380-385), já com piso/teto e o toggle nominal/real."""
+    out = {}
+    for r, p in MOLEC_ROWS.items():
+        rec = orows.get(r)
+        out[p] = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+                  for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+    return out
+
+
+def extract_preco_brent(vrows, preco):
+    """Preço corrigido (indexado) por cliente Brent — projeção exata (acopla molécula)."""
+    brent_ids = {cid for cid, p in preco.items()
+                 if (p.get("indicador") or "").startswith("Brent")}
+    out = {}
+    for r in range(PRECO_CORR[0], PRECO_CORR[1] + 1):
+        rec = vrows.get(r)
+        if not rec:
+            continue
+        cid = rec[0]
+        if cid in (None, ""):
+            continue
+        cid = str(cid).strip()
+        if cid not in brent_ids:
+            continue
+        out[cid] = [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+                    for k in range(N_MONTHS)]
+    return out
+
+
+def extract_gas_golden(orows):
+    """Custo do gás por planta (R$/mês) — cache do Excel (OPEX 389-394)."""
+    gold = {}
+    for r, p in GAS_ROWS.items():
+        rec = orows.get(r)
+        if not rec:
+            continue
+        gold[p] = [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+                   for k in range(N_MONTHS)]
+    return gold
+
+
+# Ajustes que o custo do gás soma por planta: p1 += Reversão(400), p2 += Venda Gasoduto BA(402)
+GAS_ADJ_ROWS = {1: 400, 2: 402}
+
+
+def extract_gas_adj(orows):
+    """Ajustes do custo do gás por planta (reversão/venda no gasoduto) x 192 meses."""
+    out = {}
+    for p, r in GAS_ADJ_ROWS.items():
+        rec = orows.get(r)
+        if not rec:
+            continue
+        out[p] = [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+                  for k in range(N_MONTHS)]
+    return out
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SRC
     if not os.path.exists(src):
@@ -373,8 +451,15 @@ def main():
     idx_macro = extract_idx_macro(vrows)
     preco = extract_preco(vrows)
     rev_golden = extract_revenue_golden(rrows, id2planta)
-    print("Clientes: %d | overrides: %d (%s..%s) | fatores plantas: %s | preços: %d" % (
-        len(clientes), len(overrides), ovr_months[0], ovr_months[-1], sorted(fator_oper), len(preco)))
+
+    # ---- Custo da molécula / gás (Fase D) ----
+    orows = read_opex_rows(wb)
+    molecula = extract_molecula(orows)
+    preco_brent = extract_preco_brent(vrows, preco)
+    gas_golden = extract_gas_golden(orows)
+    gas_adj = extract_gas_adj(orows)
+    print("Clientes: %d | overrides: %d | preços: %d | molécula plantas: %s | preço Brent: %d | gás plantas: %s" % (
+        len(clientes), len(overrides), len(preco), sorted(molecula), len(preco_brent), sorted(gas_golden)))
     wb.close()
 
     # ---- monta o xlsx de saída ----
@@ -453,6 +538,31 @@ def main():
         arr = rev_golden[(p, prod)]
         ws_rh.append([p, prod] + [arr[k] if k < n_real else None for k in range(N_MONTHS)])
 
+    # aba Molecula: custo atualizado da molécula por planta (R$/m³) — driver (Fase D)
+    ws_mol = out.create_sheet("Molecula")
+    ws_mol.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in sorted(molecula):
+        ws_mol.append([p] + molecula[p])
+
+    # aba PrecoBrent: preço corrigido por cliente Brent (projeção exata)
+    ws_pb = out.create_sheet("PrecoBrent")
+    ws_pb.append(["id"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for cid in sorted(preco_brent):
+        ws_pb.append([cid] + preco_brent[cid])
+
+    # aba GasHist: custo do gás REALIZADO por planta (R$/mês)
+    ws_gh = out.create_sheet("GasHist")
+    ws_gh.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in sorted(gas_golden):
+        arr = gas_golden[p]
+        ws_gh.append([p] + [arr[k] if k < n_real else None for k in range(N_MONTHS)])
+
+    # aba GasAdj: ajustes do custo do gás por planta (reversão/venda gasoduto) — projeção
+    ws_ga = out.create_sheet("GasAdj")
+    ws_ga.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in sorted(gas_adj):
+        ws_ga.append([p] + gas_adj[p])
+
     out.save(OUT)
     print("OK ->", OUT)
 
@@ -474,6 +584,14 @@ def main():
             arr = rev_golden[(p, prod)]
             fh.write("%d;%s;" % (p, prod) + ";".join(repr(round(x, 4)) for x in arr) + "\n")
     print("golden receita ->", rpath)
+
+    gaspath = os.path.join(gdir, "gas_por_planta.csv")
+    with open(gaspath, "w", encoding="utf-8", newline="") as fh:
+        fh.write("planta;" + ";".join("%04d-%02d" % (y, mo) for (y, mo) in ym) + "\n")
+        for p in sorted(gas_golden):
+            arr = gas_golden[p]
+            fh.write("%d;" % p + ";".join(repr(round(x or 0, 4)) for x in arr) + "\n")
+    print("golden gás ->", gaspath)
 
 
 if __name__ == "__main__":

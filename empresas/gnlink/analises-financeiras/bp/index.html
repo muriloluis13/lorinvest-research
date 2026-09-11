@@ -144,9 +144,9 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 const ABAS = [
   {grp:"Modelagem", items:[
     {id:"resumo",   nome:"Resumo (EBITDA)", regiao:true,  fase:"E"},
-    {id:"receita",  nome:"Receita",         regiao:true,  fase:"B/C"},
-    {id:"variavel", nome:"Variável",        regiao:true,  fase:"D"},
-    {id:"opex",     nome:"OPEX",            regiao:true,  fase:"D"},
+    {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
+    {id:"variavel", nome:"Variável",        regiao:true,  fase:null},
+    {id:"opex",     nome:"OPEX",            regiao:true,  fase:null},
     {id:"holding",  nome:"Holding",         regiao:false, fase:"D"},
   ]},
   {grp:"Contratos & Premissas", items:[
@@ -237,12 +237,24 @@ function parseWorkbook(buf){
   const grh = grid("ReceitaHist"); const revHist={};
   for(let i=1;i<grh.length;i++){ const r=grh[i]; if(!r||r[0]==null) continue;
     (revHist[r[0]]=revHist[r[0]]||{})[r[1]]=r.slice(2); }
+  // Molecula (Fase D): custo atualizado molécula por planta [192]
+  const gm2 = grid("Molecula"); const molecula={};
+  for(let i=1;i<gm2.length;i++){ const r=gm2[i]; if(!r||r[0]==null) continue; molecula[r[0]]=r.slice(1); }
+  // PrecoBrent: preço corrigido por cliente Brent [192]
+  const gpb = grid("PrecoBrent"); const precoBrent={};
+  for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
+  // GasHist: custo do gás realizado por planta [192]
+  const ggh = grid("GasHist"); const gasHist={};
+  for(let i=1;i<ggh.length;i++){ const r=ggh[i]; if(!r||r[0]==null) continue; gasHist[r[0]]=r.slice(1); }
+  // GasAdj: ajustes do gás por planta (reversão/venda gasoduto) [192]
+  const gga = grid("GasAdj"); const gasAdj={};
+  for(let i=1;i<gga.length;i++){ const r=gga[i]; if(!r||r[0]==null) continue; gasAdj[r[0]]=r.slice(1); }
 
   const monthsOrd = meses.map(m=>ord(m.ym));
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, monthsOrd, cutoffIdx, diasMes};
+          preco, idx, revHist, molecula, precoBrent, gasHist, gasAdj, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -317,6 +329,12 @@ function render(){
   if(aba.id==="clientes"){
     m.innerHTML = html + renderClientes();
     return;
+  }
+  if(aba.id==="opex"){
+    const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); drawGas(r.gas, r.mol); return;
+  }
+  if(aba.id==="variavel"){
+    const r=renderVariavel(); m.innerHTML=html+r.html; wireSubtabs(); drawMolecula(r.mol); return;
   }
   // demais abas: placeholder com sub-abas de região já operantes
   html += `<div class="pglead">Região selecionada: <b>${regName(state.regiao)}</b>.</div>`;
@@ -471,10 +489,13 @@ function cicloIdx(k){   // início do trimestre Brent (fev/mai/ago/nov) que cont
 }
 const isBrentInd = ind => !!ind && /^Brent/.test(ind);
 function precoSerie(cid){
-  // Preço projetado. IPCA 100% (e nulo) = EXATO. Indexação Brent (Bahia/RN/Sal)
-  // acopla o custo da molécula com piso/teto -> completada na Fase D; interim = IPCA.
+  // Preço projetado. IPCA 100% = precoBase × FATOR IPCA PURO (exato, sensível ao
+  // precoBase editável). Brent = preço corrigido extraído (acopla molécula, exato).
   const p=DB.preco[cid], n=DB.meses.length;
   if(!p) return new Array(n).fill(0);
+  if(isBrentInd(p.indicador) && DB.precoBrent[cid]){
+    return DB.precoBrent[cid].map(v=> typeof v==="number"?v:0);
+  }
   const fac=precoFactorArr(cid), base=p.precoBase||0, out=new Array(n);
   for(let k=0;k<n;k++) out[k]=base*fac[k];
   return out;
@@ -505,6 +526,57 @@ function revHistAgg(regiao, produto){
 function revAgg(regiao, produto){
   const proj=revAggProj(regiao,produto), hist=revHistAgg(regiao,produto), cut=DB.cutoffIdx;
   return proj.map((v,k)=> k<=cut ? hist[k] : v);
+}
+
+/* ==================================================== motor de custo do gás (D)
+   Custo do gás (R$/mês) = Σ_planta [volume(com molécula) × dias × custo_molécula].
+   custo_molécula[planta] é driver macro extraído (Variável 254-259 com piso/teto). = */
+function volComMolecula(regiao){
+  const n=DB.meses.length, acc=new Array(n).fill(0);
+  for(const cli of DB.clientes){
+    if(!cli.custo_mol) continue;
+    if(regiao!==0 && cli.planta!==regiao) continue;
+    const s=volClienteSerie(cli);
+    for(let k=0;k<n;k++) acc[k]+=s[k];
+  }
+  return acc;
+}
+function gasProj(regiao){
+  const n=DB.meses.length, dias=DB.diasMes, acc=new Array(n).fill(0);
+  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  for(const p of plantas){
+    const mol=DB.molecula[p], vp=volComMolecula(p), adj=DB.gasAdj[p];
+    for(let k=0;k<n;k++){
+      if(mol && typeof mol[k]==="number") acc[k]+=vp[k]*dias[k]*mol[k];
+      if(adj && typeof adj[k]==="number") acc[k]+=adj[k];   // reversão / venda gasoduto
+    }
+  }
+  return acc;
+}
+function gasHistAgg(regiao){
+  const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
+  const add=p=>{ const a=DB.gasHist[p]; if(a) for(let k=0;k<=cut;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } };
+  if(regiao===0) DB.regioes.forEach(r=>add(r.id)); else add(regiao);
+  return acc;
+}
+function gasAgg(regiao){
+  const proj=gasProj(regiao), hist=gasHistAgg(regiao), cut=DB.cutoffIdx;
+  return proj.map((v,k)=> k<=cut ? hist[k] : v);
+}
+// custo médio da molécula ponderado por volume (R$/m³) p/ a região.
+// Pondera pelo volume total (hist no realizado, projeção depois) p/ não zerar no corte.
+function moleculaMedia(regiao){
+  const n=DB.meses.length, out=new Array(n).fill(null);
+  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const wvol = {};
+  for(const p of plantas){ const g=volAgg(p,"GNL"), c=volAgg(p,"GNC"); wvol[p]=g.map((v,i)=>v+c[i]); }
+  for(let k=0;k<n;k++){
+    let num=0,den=0,sum=0,cnt=0;
+    for(const p of plantas){ const mol=DB.molecula[p]; if(!mol||typeof mol[k]!=="number") continue;
+      const v=wvol[p][k]||0; num+=mol[k]*v; den+=v; sum+=mol[k]; cnt++; }
+    out[k]= den>0 ? num/den : (cnt>0 ? sum/cnt : null);   // fallback: média simples (sem gaps)
+  }
+  return out;
 }
 
 /* ---------------------------------------------------- aba Receita (B + C) -- */
@@ -687,6 +759,63 @@ function reverterCli(id){
   state.cliMsg="revertido"; render();
 }
 
+/* ----------------------------------------------------- aba OPEX (gás, D) --- */
+function renderOpex(){
+  const reg=state.regiao, cut=DB.cutoffIdx;
+  const gas=gasAgg(reg), mol=moleculaMedia(reg);
+  const yGas=anoSum(gas), ks=Object.keys(yGas).sort();
+  const MM=v=>fmt(v/1e6,1);
+  let h=subtabsHTML();
+  h+=`<div class="pglead"><b>Custo do gás</b> (molécula) = Σ volume(c/ molécula) × dias × custo da molécula.<span class="tag">Fase D</span></div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("Custo do gás 2027 (R$ MM)", MM(yGas["2027"]?.v||0), "projetado");
+  h+=kpi("Custo do gás "+ks[ks.length-1]+" (R$ MM)", MM(yGas[ks[ks.length-1]]?.v||0), "");
+  h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado");
+  h+='</div>';
+  h+='<div class="card"><h4>Custo do gás mensal — '+regName(reg)+' (R$ MM)</h4><div class="chart-box"><canvas id="cGas"></canvas></div></div>';
+  // tabela anual
+  h+='<h3 class="msub">Custo do gás por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Linha</th>';
+  for(const y of ks) h+=`<th class="${yGas[y].proj?'o':''}">${y}</th>`; h+='</tr></thead><tbody><tr><td class="l">Custo do gás</td>';
+  for(const y of ks) h+=`<td class="${yGas[y].proj?'o':''}">${fmt(yGas[y].v/1e6,1)}</td>`; h+='</tr></tbody></table></div>';
+  h+='<div class="note">Demais linhas de OpEx (liquefação, compressão, SG&A planta, logística, regás) entram no próximo incremento da Fase D.</div>';
+  return {html:h, gas, mol};
+}
+function drawGas(gas, mol){
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
+  charts.gas=new Chart($("#cGas"),{type:"line",
+    data:{labels,datasets:[
+      {label:"Custo do gás (R$ MM)",data:gas.map(v=>v/1e6),borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash},yAxisID:"y"},
+      {label:"Molécula (R$/m³)",data:mol,borderColor:PAL[0],tension:.2,pointRadius:0,segment:{borderDash:dash},yAxisID:"y1"},
+    ]},
+    options:Object.assign(baseLineOpts(),{scales:{
+      x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+      y:{position:"left",title:{display:true,text:"R$ MM/mês"},grid:{color:"#EEF1F5"}},
+      y1:{position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"R$/m³"}}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false}}})});
+}
+/* --------------------------------------------------- aba Variável (mol, D) -- */
+function renderVariavel(){
+  const reg=state.regiao, cut=DB.cutoffIdx;
+  const mol=moleculaMedia(reg);
+  let h=subtabsHTML();
+  h+=`<div class="pglead"><b>Custo da molécula</b> (R$/m³) — driver macro-indexado (IPCA/Brent/Dólar, com piso/teto).<span class="tag">Fase D</span></div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+DB.meses[cut].ym);
+  h+=kpi("Molécula (dez/38)", mol[mol.length-1]!=null?fmt(mol[mol.length-1],3):"—", "R$/m³");
+  h+='</div>';
+  h+='<div class="card"><h4>Custo da molécula — '+regName(reg)+' (R$/m³)</h4><div class="chart-box"><canvas id="cMol"></canvas></div></div>';
+  h+='<div class="note">Receita de aluguel fixo e a visão por planta entram no próximo incremento.</div>';
+  return {html:h, mol};
+}
+function drawMolecula(mol){
+  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym), dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
+  charts.mol=new Chart($("#cMol"),{type:"line",
+    data:{labels,datasets:[{label:"Molécula (R$/m³)",data:mol,borderColor:PAL[0],backgroundColor:PAL[0]+"18",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}}]},
+    options:Object.assign(baseLineOpts(),{scales:{
+      x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+      y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$/m³"}}}})});
+}
+
 /* ------------------------------------------------- validação vs golden ---- */
 async function validateVolume(){
   let txt;
@@ -726,10 +855,29 @@ async function validateReceita(){
       if(bad){ mismIpca++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${prod} ${DB.meses[k].ym}`;} }
     }
   }
-  const ok=mismIpca===0;
-  console.log(`%c[valida receita] IPCA/realizado ${ok?"OK":"DIVERGÊNCIAS"} — ${checkedIpca} pontos, ${mismIpca} fora de tol (pior ${worstAt||"—"}) · Brent (pendente Fase D): ${mismBrent} pontos preliminares`,
-              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  const ok=mismIpca===0 && mismBrent===0;
+  console.log(`%c[valida receita] ${ok?"OK":(mismIpca?"DIVERGÊNCIAS":"OK (Brent c/ ressalva)")} — IPCA ${mismIpca} fora / Brent ${mismBrent} fora (pior ${worstAt||"—"}, ${checkedIpca} pts IPCA)`,
+              `color:${ok?"#2E7D4F":(mismIpca?"#E23A2E":"#C55A17")};font-weight:700`);
   return {ok, mismIpca, mismBrent, worst, worstAt};
+}
+async function validateGas(){
+  let txt;
+  try{ const r=await fetch("build/golden/gas_por_planta.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ console.warn("[valida] golden gás não encontrado"); return; }
+  const rows=txt.trim().split(/\r?\n/).slice(1).map(l=>l.split(";"));
+  let worst=0, worstAt="", checked=0, mism=0;
+  for(const r of rows){
+    const p=+r[0], gold=r.slice(1).map(Number), eng=gasAgg(p);
+    for(let k=0;k<gold.length;k++){
+      const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+      checked++;
+      if(Math.abs(e-g)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} }
+    }
+  }
+  const ok=mism===0;
+  console.log(`%c[valida gás] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora de tol; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, checked, mism, worst, worstAt};
 }
 
 /* --------------------------------------------------------------- boot ---- */
@@ -740,7 +888,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 
