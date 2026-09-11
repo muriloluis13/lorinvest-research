@@ -237,6 +237,10 @@ function parseWorkbook(buf){
   const grh = grid("ReceitaHist"); const revHist={};
   for(let i=1;i<grh.length;i++){ const r=grh[i]; if(!r||r[0]==null) continue;
     (revHist[r[0]]=revHist[r[0]]||{})[r[1]]=r.slice(2); }
+  // RevExtra: componentes extras de receita por planta (outros/serviço/aluguel)
+  const gre = grid("RevExtra"); const revExtra={};
+  for(let i=1;i<gre.length;i++){ const r=gre[i]; if(!r||r[0]==null) continue;
+    (revExtra[r[0]]=revExtra[r[0]]||{})[r[1]]=r.slice(2); }
   // Molecula (Fase D): custo atualizado molécula por planta [192]
   const gm2 = grid("Molecula"); const molecula={};
   for(let i=1;i<gm2.length;i++){ const r=gm2[i]; if(!r||r[0]==null) continue; molecula[r[0]]=r.slice(1); }
@@ -264,7 +268,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, molecula, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molecula, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           monthsOrd, cutoffIdx, diasMes};
 }
 
@@ -333,7 +337,7 @@ function render(){
     const r = renderReceita();
     m.innerHTML = html + r.html;
     wireSubtabs();
-    drawRev(r.rGnl, r.rGnc);
+    drawRev(r.rc);
     drawVol(r.gnl, r.gnc);
     return;
   }
@@ -541,6 +545,22 @@ function revAgg(regiao, produto){
   const proj=revAggProj(regiao,produto), hist=revHistAgg(regiao,produto), cut=DB.cutoffIdx;
   return proj.map((v,k)=> k<=cut ? hist[k] : v);
 }
+// componentes extras de receita (outros/serviço/aluguel) — série driver por planta
+function revExtraAgg(regiao, comp){
+  const n=DB.meses.length, acc=new Array(n).fill(0), blk=DB.revExtra[comp]||{};
+  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  for(const p of plantas){ const a=blk[p]; if(!a) continue;
+    for(let k=0;k<n;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } }
+  return acc;
+}
+// composição completa da receita líquida por região {gnl,gnc,aluguel,outros,servico,total}
+function receitaComp(regiao){
+  const gnl=revAgg(regiao,"GNL"), gnc=revAgg(regiao,"GNC"),
+        outros=revExtraAgg(regiao,"outros"), servico=revExtraAgg(regiao,"servico"),
+        aluguel=revExtraAgg(regiao,"aluguel");
+  const total=gnl.map((v,i)=>v+gnc[i]+outros[i]+servico[i]+aluguel[i]);
+  return {gnl,gnc,aluguel,outros,servico,total};
+}
 
 /* ==================================================== motor de custo do gás (D)
    Custo do gás (R$/mês) = Σ_planta [volume(com molécula) × dias × custo_molécula].
@@ -625,57 +645,50 @@ function anoSum(arr){ // R$/mês -> R$/ano por ano
   DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); (yrs[y]=yrs[y]||{v:0,proj:false}); yrs[y].v+=arr[i]||0; if(i>cut) yrs[y].proj=true; });
   return yrs;
 }
+const REVCOMP = [["gnl","GNL","#3D4A5C"],["gnc","GNC","#E23A2E"],["servico","Serviço s/ molécula","#2E7D4F"],
+                 ["aluguel","Aluguel fixo","#C55A17"],["outros","Outros","#4880A8"]];
 function renderReceita(){
   const reg=state.regiao, cut=DB.cutoffIdx, n=DB.meses.length;
   const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC"), tot=gnl.map((v,i)=>v+gnc[i]);
-  const rGnl=revAgg(reg,"GNL"), rGnc=revAgg(reg,"GNC"), rTot=rGnl.map((v,i)=>v+rGnc[i]);
-  const inReg = c => reg===0||c.planta===reg;
-  const brentProj = DB.clientes.some(c=>inReg(c)&&c.custo_mol&&isBrentInd((DB.preco[c.id]||{}).indicador));
-  const MM = v => fmt(v/1e6,1);   // R$ MM
-  // receita anual (R$ MM)
-  const yGnl=anoSum(rGnl), yGnc=anoSum(rGnc), ks=Object.keys(anoSum(rTot)).sort();
-  const rev2027 = (yGnl["2027"]?.v||0)+(yGnc["2027"]?.v||0);
-  const revLast = (yGnl[ks[ks.length-1]]?.v||0)+(yGnc[ks[ks.length-1]]?.v||0);
-
+  const rc=receitaComp(reg);
+  const MM = v => fmt(v/1e6,1);
+  const yTot=anoSum(rc.total), ks=Object.keys(yTot).sort();
   let h = subtabsHTML();
-  h += `<div class="pglead"><b>Receita</b> — R$ = preço indexado × volume × dias · <b>Volumes</b> por rampa de cliente.<span class="tag">Fase B+C</span></div>`;
+  h += `<div class="pglead"><b>Receita Líquida</b> = GNL + GNC + serviço + aluguel + outros (composição do modelo). <b>Volumes</b> por rampa de cliente.<span class="tag">Fase B+C</span></div>`;
   h += '<div class="mkpis">';
-  h += kpi("Receita 2027 (R$ MM)", MM(rev2027), "GNL+GNC · projetado");
-  h += kpi("Receita "+ks[ks.length-1]+" (R$ MM)", MM(revLast), "GNL+GNC");
+  h += kpi("Receita Líq. 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
+  h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
   h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+DB.meses[cut].ym);
   h += kpi("Pico de volume projetado", fmt(Math.max(...tot),0), "m³/dia");
   h += '</div>';
-  h += '<div class="card"><h4>Receita mensal — '+regName(reg)+' (R$ MM)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
-  h += revTable(rGnl,rGnc);
-  if(brentProj) h += '<div class="note">A projeção de receita das plantas com <b>indexação Brent</b> (Bahia, RN, Projeto SAL) é preliminar — o reajuste Brent acopla o custo da molécula (piso/teto) e será fechado na <b>Fase D</b>. Realizado e plantas IPCA (PR, Terminal PE, Argentina) já batem 1:1 com o modelo.</div>';
+  h += '<div class="card"><h4>Receita Líquida mensal — '+regName(reg)+' (R$ MM, por componente)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
+  h += revTable(rc);
   h += '<div class="card"><h4>Volume mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
   h += volTable(gnl,gnc,tot);
-  return {html:h, gnl, gnc, tot, rGnl, rGnc};
+  return {html:h, gnl, gnc, tot, rc};
 }
-function revTable(rGnl,rGnc){
-  const yGnl=anoSum(rGnl), yGnc=anoSum(rGnc), ks=Object.keys(yGnl).sort();
-  let h='<h3 class="msub">Receita por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Linha</th>';
-  for(const y of ks) h+=`<th class="${yGnl[y].proj?'o':''}">${y}</th>`;
+function revTable(rc){
+  const ys={}; REVCOMP.forEach(([k])=> ys[k]=anoSum(rc[k])); const yTot=anoSum(rc.total);
+  const ks=Object.keys(yTot).sort();
+  let h='<h3 class="msub">Receita líquida por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Componente</th>';
+  for(const y of ks) h+=`<th class="${yTot[y].proj?'o':''}">${y}</th>`;
   h+='</tr></thead><tbody>';
-  const line=(lbl,yr)=>{ let s=`<tr><td class="l">${lbl}</td>`; for(const y of ks){ s+=`<td class="${yr[y].proj?'o':''}">${fmt(yr[y].v/1e6,1)}</td>`; } return s+'</tr>'; };
-  h+=line("Receita GNL",yGnl)+line("Receita GNC",yGnc);
-  let s='<tr class="tot"><td class="l">Total</td>'; for(const y of ks){ s+=`<td class="${yGnl[y].proj?'o':''}">${fmt((yGnl[y].v+yGnc[y].v)/1e6,1)}</td>`; } h+=s+'</tr>';
+  for(const [k,lbl] of REVCOMP){ h+=`<tr><td class="l">${lbl}</td>`;
+    for(const y of ks) h+=`<td class="${yTot[y].proj?'o':''}">${fmt((ys[k][y]?.v||0)/1e6,1)}</td>`; h+='</tr>'; }
+  let s='<tr class="tot"><td class="l">Receita Líquida</td>'; for(const y of ks) s+=`<td class="${yTot[y].proj?'o':''}">${fmt(yTot[y].v/1e6,1)}</td>`; h+=s+'</tr>';
   h+='</tbody></table></div><div class="note">Colunas em cinza = anos com meses projetados. Valores em R$ milhões/ano.</div>';
   return h;
 }
-function drawRev(rGnl,rGnc){
+function drawRev(rc){
   const cut=DB.cutoffIdx, labels=DB.meses.map(m=>m.ym);
-  const dash=ctx=>ctx.p0DataIndex>=cut?[5,4]:undefined;
-  charts.rev=new Chart($("#cRev"),{type:"line",
-    data:{labels,datasets:[
-      {label:"GNL",data:rGnl.map(v=>v/1e6),borderColor:PAL[0],backgroundColor:PAL[0]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
-      {label:"GNC",data:rGnc.map(v=>v/1e6),borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
-    ]},
-    options:Object.assign(baseLineOpts(),{scales:{
-      x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
-      y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}},
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
-        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM ("+(c.dataIndex>cut?"Orçado":"Realizado")+")"}}}})});
+  const ds=REVCOMP.map(([k,lbl,col])=>({label:lbl, data:rc[k].map(v=>v/1e6),
+    backgroundColor:col, borderColor:col, borderWidth:0, stack:"r"}));
+  charts.rev=new Chart($("#cRev"),{type:"bar", data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
+      scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
 }
 function kpi(cap,val,sub,cls){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
@@ -1019,6 +1032,20 @@ async function validateCustoTotal(){
   return {ok, mism};
 }
 
+function validateReceitaLiquida(){
+  // composição (GNL+GNC+outros+serviço+aluguel) vs Receita Líquida do DFM.
+  // Realizado tem pequena reconciliação (actual vs bottom-up); projeção deve bater.
+  const eng=receitaComp(0).total, gold=DB.dre.receita_liquida||[], cut=DB.cutoffIdx;
+  let worst=0, worstAt="", mismProj=0, mismReal=0;
+  for(let k=0;k<gold.length;k++){ const g=gold[k], e=eng[k]; if(typeof g!=="number") continue;
+    const rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+    if(Math.abs(e-g)>500 && rel>3e-3){ if(k>cut){ mismProj++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym}`;} } else mismReal++; } }
+  const ok=mismProj===0;
+  console.log(`%c[valida receita líquida] ${ok?"OK":"DIVERGÊNCIAS"} — composição vs DFM: projeção ${mismProj} fora${worstAt?" (pior "+worstAt+")":""} · realizado ${mismReal} c/ reconciliação ~1% (actual vs bottom-up)`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, mismProj, mismReal};
+}
+
 /* --------------------------------------------------------------- boot ---- */
 function boot(){
   document.body.classList.remove("loading");
@@ -1027,7 +1054,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 

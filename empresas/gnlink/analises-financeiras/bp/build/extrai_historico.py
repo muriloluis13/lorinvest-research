@@ -210,13 +210,13 @@ def extract_overrides(wb):
     return out, [m for m in months if m]
 
 
-def read_receita_rows(wb, rmax=1475):
+def read_receita_rows(wb, rmax=1935):
     """UM passo de streaming pela aba Receita -> {rownum: tuple}. Evita O(n²) de
        chamadas iter_rows por linha (fatal numa aba de 2438 linhas em read_only)."""
     ws = wb["Receita"]
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=rmax, values_only=True), start=1):
-        if (27 <= i <= 340) or (764 <= i <= 782) or (1158 <= i <= 1470):
+        if (27 <= i <= 340) or (764 <= i <= 782) or (1158 <= i <= 1470) or (1625 <= i <= 1931):
             keep[i] = row
     return keep
 
@@ -229,7 +229,7 @@ def read_variavel_rows(wb):
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=1245, values_only=True), start=1):
         if (8 <= i <= 20) or (254 <= i <= 259) or (430 <= i <= 584) \
-           or (586 <= i <= 743) or (1088 <= i <= 1241):
+           or (586 <= i <= 743) or (903 <= i <= 1057) or (1088 <= i <= 1241):
             keep[i] = row
     return keep
 
@@ -284,7 +284,8 @@ def extract_custo_total(orows):
 
 # ---- Fase E: DRE / EBITDA (Demonstrativo Financeiro Mensal, consolidado) ------
 DRE_ROWS = {
-    "receita_bruta": 33, "receita_liquida": 37, "receita_gnl": 40, "receita_gnc": 41,
+    "receita_bruta": 33, "deducoes": 35, "receita_liquida": 37,
+    "receita_gnl": 40, "receita_gnc": 41, "aluguel": 42, "outros": 43, "servico": 44,
     "custos": 51, "resultado_operacional": 85, "ebitda_recorrente": 91, "ebitda": 98,
     "depreciacao": 103, "ebit": 105, "resultado_financeiro": 108, "lucro_liquido": 118,
 }
@@ -421,6 +422,36 @@ def extract_golden_volume(rrows, id2planta):
     return gold
 
 
+def _sum_by_planta(rows, r0, r1, id2planta):
+    """Soma linhas de cliente (r0..r1) por planta a partir do cache -> {planta: [192]}."""
+    out = {}
+    for r in range(r0, r1 + 1):
+        rec = rows.get(r)
+        if not rec:
+            continue
+        cid = rec[0]
+        if cid in (None, ""):
+            continue
+        p = id2planta.get(str(cid).strip())
+        if p is None:
+            continue
+        arr = out.setdefault(p, [0.0] * N_MONTHS)
+        for k in range(N_MONTHS):
+            v = rec[COL_FIRST - 1 + k]
+            if isinstance(v, (int, float)):
+                arr[k] += v
+    return out
+
+
+def extract_rev_extra(rrows, vrows, id2planta):
+    """Componentes extras de receita por planta (R$/mês): outros, serviço, aluguel fixo."""
+    return {
+        "outros":  _sum_by_planta(rrows, 1627, 1774, id2planta),   # Receita OUTROS
+        "servico": _sum_by_planta(rrows, 1779, 1931, id2planta),   # Receita SERVIÇO s/ molécula
+        "aluguel": _sum_by_planta(vrows, 905, 1057, id2planta),    # Variável ALUGUEL FIXO
+    }
+
+
 # ---- Fase D: custo da molécula / custo do gás --------------------------------
 MOLEC_ROWS = {380: 1, 381: 2, 382: 3, 383: 4, 384: 5, 385: 6}  # OPEX -> planta (o q o gás usa)
 PRECO_CORR = (589, 743)     # Variável "Preço Variável Corrigido"
@@ -516,6 +547,7 @@ def main():
     idx_macro = extract_idx_macro(vrows)
     preco = extract_preco(vrows)
     rev_golden = extract_revenue_golden(rrows, id2planta)
+    rev_extra = extract_rev_extra(rrows, vrows, id2planta)
 
     # ---- Custo da molécula / gás (Fase D) ----
     orows = read_opex_rows(wb)
@@ -607,6 +639,13 @@ def main():
     for (p, prod) in sorted(rev_golden):
         arr = rev_golden[(p, prod)]
         ws_rh.append([p, prod] + [arr[k] if k < n_real else None for k in range(N_MONTHS)])
+
+    # aba RevExtra: componentes extras de receita por planta (outros/serviço/aluguel)
+    ws_re = out.create_sheet("RevExtra")
+    ws_re.append(["componente", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for comp in ("outros", "servico", "aluguel"):
+        for p in sorted(rev_extra.get(comp, {})):
+            ws_re.append([comp, p] + rev_extra[comp][p])
 
     # aba Molecula: custo atualizado da molécula por planta (R$/m³) — driver (Fase D)
     ws_mol = out.create_sheet("Molecula")
