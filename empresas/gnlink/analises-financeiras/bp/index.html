@@ -126,7 +126,7 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
     <label class="dropbtn">Escolher arquivo<input type="file" id="fileInput" accept=".xlsx,.xls"></label>
     <div class="err" id="loadErr" hidden></div>
   </div>
-  <div class="note" style="text-align:left">Servindo a pasta por HTTP (ex.: <code>python -m http.server</code>), o dashboard carrega o xlsx irmão automaticamente. Ao abrir via <code>file://</code>, o navegador bloqueia o fetch — use o seletor acima.</div>
+  <div class="note" style="text-align:left">O dashboard carrega a base automaticamente quando os arquivos <b>gnlink-bp-historico.xlsx</b> e <b>gnlink-bp-historico.js</b> estão na mesma pasta do HTML (o <code>.js</code> é o espelho que o navegador aceita ler via <code>file://</code>, no duplo-clique). Servindo por HTTP (ex.: <code>python -m http.server</code>) ele lê o próprio xlsx. Este seletor é só para carregar um arquivo de outra pasta.</div>
 </div>
 
 <div class="shell" id="app" hidden>
@@ -170,6 +170,7 @@ const charts = {};          // registry de Chart.js p/ destruir no re-render
 const $ = (s,r=document)=>r.querySelector(s);
 function destroyCharts(){ for(const k in charts){ charts[k].destroy(); delete charts[k]; } }
 const fmt = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtPct = (v,d=2)=> v==null||isNaN(v) ? "—" : (v*100).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})+"%";
 const abaById = id => ABAS.flatMap(g=>g.items).find(a=>a.id===id);
 
 /* --------------------------------------------------- carregar base xlsx ---- */
@@ -307,6 +308,20 @@ async function tryFetch(){
     DB = parseWorkbook(buf); return true;
   }catch(e){ return false; }
 }
+// fallback p/ file:// (duplo-clique): navegador bloqueia fetch do xlsx irmão, mas
+// permite carregar o espelho gnlink-bp-historico.js (base64) via <script>.
+function b64ToBuf(b64){ const bin=atob(b64), n=bin.length, u=new Uint8Array(n);
+  for(let i=0;i<n;i++) u[i]=bin.charCodeAt(i); return u.buffer; }
+function tryEmbedded(){
+  return new Promise(res=>{
+    const parse=()=>{ try{ DB=parseWorkbook(b64ToBuf(window.__BP_XLSX_B64)); return true; }catch(e){ return false; } };
+    if(window.__BP_XLSX_B64) return res(parse());
+    const s=document.createElement("script"); s.src="gnlink-bp-historico.js";
+    s.onload=()=>res(window.__BP_XLSX_B64?parse():false);
+    s.onerror=()=>res(false);
+    document.head.appendChild(s);
+  });
+}
 function loadFromFile(file){
   const rd = new FileReader();
   rd.onload = e => { try{ DB = parseWorkbook(e.target.result); boot(); }
@@ -406,7 +421,7 @@ function renderMacro(){
     const last = s.vals.slice(0,n).filter(v=>v!=null).pop();
     const pct = /a\.m\./.test(s.unidade);
     h += `<div class="mkpi"><div class="cap">${s.label}</div>
-          <div class="val">${last==null?'—':fmt(last, pct?2:2)}</div>
+          <div class="val">${last==null?'—':(pct?fmtPct(last):fmt(last,2))}</div>
           <div class="sub">${s.unidade} · último realizado</div></div>`;
   }
   h += '</div>';
@@ -421,8 +436,9 @@ function macroTable(){
   for(const mo of ms) h+=`<th>${mo.ym}</th>`;
   h+='</tr></thead><tbody>';
   for(const s of macroList()){
+    const pct = /a\.m\./.test(s.unidade);
     h+=`<tr><td class="l">${s.label}</td>`;
-    for(let i=0;i<n;i++){ const v=s.vals[i]; h+=`<td>${v==null?'':fmt(v,2)}</td>`; }
+    for(let i=0;i<n;i++){ const v=s.vals[i]; h+=`<td>${v==null?'':(pct?fmtPct(v):fmt(v,2))}</td>`; }
     h+='</tr>';
   }
   h+='</tbody></table></div>';
@@ -432,15 +448,21 @@ const PAL = ["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#55677C","#7FC6A2","#4880A
 function drawMacro(){
   const n = nRealizado(), labels = DB.meses.slice(0,n).map(m=>m.ym);
   const by = id => (DB.macro[id]||{vals:[]}).vals.slice(0,n);
+  const byPct = id => by(id).map(v=> v==null?null:v*100);   // frações -> % p/ o gráfico
+  const ratesOpts = baseLineOpts();
+  ratesOpts.scales = { x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
+                       y:{ticks:{callback:v=>fmt(v,2)+"%",color:"#5C6B7A"}} };
+  ratesOpts.plugins = Object.assign({}, ratesOpts.plugins, {tooltip:{callbacks:{
+    label:(c)=>`${c.dataset.label}: ${fmt(c.parsed.y,2)}%`}}});
   charts.rates = new Chart($("#cMacroRates"),{
     type:"line",
     data:{labels, datasets:[
-      {label:"SELIC (% a.m.)",data:by("selic"),borderColor:PAL[0],tension:.25,pointRadius:0},
-      {label:"IPCA (% a.m.)", data:by("ipca"), borderColor:PAL[1],tension:.25,pointRadius:0},
-      {label:"CDI (% a.m.)",  data:by("cdi"),  borderColor:PAL[2],tension:.25,pointRadius:0},
-      {label:"CPI EUA (% a.m.)",data:by("cpi"),borderColor:PAL[3],tension:.25,pointRadius:0},
+      {label:"SELIC (% a.m.)",data:byPct("selic"),borderColor:PAL[0],tension:.25,pointRadius:0},
+      {label:"IPCA (% a.m.)", data:byPct("ipca"), borderColor:PAL[1],tension:.25,pointRadius:0},
+      {label:"CDI (% a.m.)",  data:byPct("cdi"),  borderColor:PAL[2],tension:.25,pointRadius:0},
+      {label:"CPI EUA (% a.m.)",data:byPct("cpi"),borderColor:PAL[3],tension:.25,pointRadius:0},
     ]},
-    options:baseLineOpts()
+    options:ratesOpts
   });
   charts.comm = new Chart($("#cMacroComm"),{
     type:"line",
@@ -1424,8 +1446,9 @@ fi.onchange=e=>{ if(e.target.files[0]) loadFromFile(e.target.files[0]); };
 ["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("hover");}));
 dz.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) loadFromFile(f); });
 
-/* auto-load quando servido por HTTP */
-(async ()=>{ if(await tryFetch()) boot(); })();
+/* auto-load: 1) HTTP (fetch do xlsx) 2) file:// (espelho .js) 3) seletor manual */
+(async ()=>{ if(await tryFetch()){ boot(); return; }
+             if(await tryEmbedded()){ boot(); return; } })();
 </script>
 </body>
 </html>

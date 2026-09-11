@@ -19,7 +19,7 @@ Uso:
 
 Referência de estilo de extração: alavancagem/Modelos/extract_16.py (openpyxl, data_only=True).
 """
-import sys, os, datetime
+import sys, os, datetime, base64, json
 import openpyxl
 from openpyxl.utils import get_column_letter
 
@@ -859,6 +859,15 @@ def main():
 
     out.save(OUT)
     print("OK ->", OUT)
+
+    # espelho .js (base64) do xlsx: permite auto-load via file:// (duplo-clique no HTML),
+    # onde o navegador bloqueia fetch de arquivo irmão. Carregado por <script> como fallback.
+    with open(OUT, "rb") as fh:
+        b64 = base64.b64encode(fh.read()).decode("ascii")
+    jspath = os.path.splitext(OUT)[0] + ".js"
+    with open(jspath, "w", encoding="utf-8") as fh:
+        fh.write("window.__BP_XLSX_B64=" + json.dumps(b64) + ";\n")
+    print("mirror ->", jspath)
 
     # ---- golden de validação (fora do xlsx de runtime) ----
     gdir = os.path.join(HERE, "golden")
