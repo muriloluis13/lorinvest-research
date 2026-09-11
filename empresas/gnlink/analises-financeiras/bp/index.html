@@ -266,6 +266,10 @@ function parseWorkbook(buf){
   // PremLiquef: premissas de liquefação por planta {key:[p1..p6]}
   const gpl = grid("PremLiquef"); const premLiquef={};
   for(let i=1;i<gpl.length;i++){ const r=gpl[i]; if(!r||r[0]==null) continue; premLiquef[r[0]]=r.slice(1,7); }
+  // GoldenLiquef: sub-linhas de liquefação por planta (debug)
+  const ggl = grid("GoldenLiquef"); const goldenLiquef={};
+  if(ggl) for(let i=1;i<ggl.length;i++){ const r=ggl[i]; if(!r||r[0]==null) continue;
+    (goldenLiquef[r[0]]=goldenLiquef[r[0]]||{})[r[1]]=r.slice(2); }
   // SeriesOpex: séries de apoio (corr556, vol192)
   const gso = grid("SeriesOpex"); const seriesOpex={};
   for(let i=1;i<gso.length;i++){ const r=gso[i]; if(!r||r[0]==null) continue; seriesOpex[r[0]]=r.slice(1); }
@@ -282,7 +286,7 @@ function parseWorkbook(buf){
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molecula, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
-          premLiquef, seriesOpex, monthsOrd, cutoffIdx, diasMes};
+          premLiquef, seriesOpex, goldenLiquef, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -619,12 +623,17 @@ function gasAgg(regiao){
 const OPEX_CATS = ["liquefacao","compressao","terminal","sga","distribuicao","regas"];
 const OPEX_LABEL = {liquefacao:"Liquefação", compressao:"Compressão", terminal:"Terminal",
                     sga:"SG&A planta", distribuicao:"Logística", regas:"Regás"};
+// categorias já portadas em fórmula (usa fórmula na projeção; realizado = extraído)
+function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : null; }
 function opexCatAgg(regiao, cat){
-  const n=DB.meses.length, acc=new Array(n).fill(0);
-  const blk=DB.opexCat[cat]; if(!blk) return acc;
+  const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
+  const blk=DB.opexCat[cat]||{}, ported=portedOpex(cat);
   const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
-  for(const p of plantas){ const a=blk[p]; if(!a) continue;
-    for(let k=0;k<n;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } }
+  for(const p of plantas){ const a=blk[p];
+    for(let k=0;k<n;k++){
+      if(k>cut && ported && ported[p]) acc[k]+=ported[p][k];      // projeção = fórmula portada
+      else if(a && typeof a[k]==="number") acc[k]+=a[k];          // realizado / não portado = extraído
+    } }
   return acc;
 }
 function opexExGas(regiao){  // soma das categorias (sem gás)
@@ -643,23 +652,29 @@ const ymIdx = ym => DB.meses.findIndex(m=>m.ym===ym);
 const LIQUEF_SUB=["energia","gerador","insumos","oem","perdas","purga","outros"];
 function liquefComp(p){   // {sub:[192]} por planta (projeção-fórmula)
   const n=DB.meses.length, PL=DB.premLiquef, corr=DB.seriesOpex.corr556||[], vol192=DB.seriesOpex.vol192||[], dias=DB.diasMes;
-  const eStart=ymIdx("2030-01"), corr30=(eStart>=0?corr[eStart]:1)||1, g=(mo,g1,g2)=>(mo===g1||mo===g2)?1:0;
+  const eStart=ymIdx("2030-01"), g=(mo,g1,g2)=>(mo===g1||mo===g2)?1:0;
   const op=DB.fatores.operacao[p]||[], gas=gasAgg(p), mol=DB.molecula[p]||[], vGNL=volAgg(p,"GNL"), i=p-1;
+  const pStart=(PL.purga_start||[]).map(y=> y? DB.meses.findIndex(m=>m.ym===y) : -1);
   const C={}; LIQUEF_SUB.forEach(s=>C[s]=new Array(n).fill(0));
   for(let k=0;k<n;k++){
     const o=(typeof op[k]==="number")?op[k]:0, c=(typeof corr[k]==="number")?corr[k]:1, d=dias[k], mo=+DB.meses[k].ym.slice(5);
-    const mw=machineMW(vGNL[k]), ipcaElet=(eStart>=0&&k>=eStart)?c/corr30:1;
+    const mw=machineMW(vGNL[k]), ipcaElet=(eStart>=0&&k>=eStart)?c:1;   // preço fixo até 2030, depois × IPCA acumulado
     C.energia[k]=(PL.precoMWh[i]||0)*mw*o*ipcaElet*24*d;
     C.gerador[k]=(PL.gerador[i]||0)*o*c;
+    // propano: a fórmula shared do modelo ancora no op da PLANTA 1 ($32) p/ todas as plantas
+    const o1=(typeof (DB.fatores.operacao[1]||[])[k]==="number")?DB.fatores.operacao[1][k]:0;
     let ins=0;
-    ins+=(PL.propano_rate[i]||0)*o*c*g(mo,PL.propano_g1[i],PL.propano_g2[i]);
+    ins+=(PL.propano_rate[i]||0)*o1*c*g(mo,PL.propano_g1[i],PL.propano_g2[i]);
     ins+=(PL.agua_rate[i]||0)*o*c*((mo%2===1)?1:0);
     ins+=(PL.oleo_rate[i]||0)*o*c; ins+=(PL.glycol_rate[i]||0)*o*c; ins+=(PL.residuos_rate[i]||0)*o*c;
     ins+=(PL.mercaptano_rate[i]||0)*o*c*g(mo,PL.mercaptano_g1[i],PL.mercaptano_g2[i]);
     C.insumos[k]=ins;
     C.oem[k]=(PL.oem[i]||0)*o*c;
     const frac=PL.perdaFrac[i]||0; C.perdas[k]=frac>0?(gas[k]/(1-frac))*frac:0;
-    const pc=PL.purga_c[i]; C.purga[k]=(typeof pc==="number"&&pc>0&&pc<1&&typeof mol[k]==="number")?-pc*(vol192[k]||0)*d*mol[k]:0;
+    // recuperação de purga (crédito): C<1 → fração de vol192 (PR); C≥1 → flat (BA); a partir da data
+    const pc=PL.purga_c[i], stIdx=pStart[i];
+    if(typeof pc==="number" && pc!==0 && typeof mol[k]==="number" && (stIdx<0 || k>=stIdx))
+      C.purga[k] = pc<1 ? -pc*(vol192[k]||0)*d*mol[k] : -pc*d*mol[k];
     C.outros[k]=(PL.outros_rate[i]||0)*o*c;
   }
   return C;
@@ -988,7 +1003,7 @@ const OPEX_MECH = {
     {k:"insumos",nome:"Insumos",mec:"propano (mai+dez), água (meses ímpares), óleo, glycol, resíduos (todo mês), mercaptano (mai+dez; RN abr+nov) — cada um R$/mês × op × IPCA × sazonalidade.",portado:true},
     {k:"oem",nome:"O&M",mec:"R$/mês fixo por planta × op × IPCA (PR 300k · BA 334k · RN 307k).",portado:true},
     {k:"perdas",nome:"Perdas no processo",mec:"custo do gás ÷ (1 − perda%) × perda% (markup de 5% sobre o gás).",portado:true},
-    {k:"purga",nome:"Recuperação de purga",mec:"crédito (negativo) ∝ volume × molécula, a partir de uma data (mecânica por planta a fechar).",portado:false},
+    {k:"purga",nome:"Recuperação de purga",mec:"crédito (negativo): PR = fração × volume(GNC) × dias × molécula; BA = flat × dias × molécula; a partir de uma data.",portado:true},
     {k:"outros",nome:"Outros",mec:"R$/mês fixo × op × IPCA.",portado:true}]},
   compressao:{label:"Compressão", sub:[
     {nome:"Tarifa por planta",mec:"R$/mês fixo × op × IPCA, liberado a partir da data de início. Não é volume-dependente. Hoje só RN (20.000/mês a partir de ~ago/27).",portado:false}]},

@@ -313,7 +313,8 @@ def extract_liquef_prem(orows):
     P["oem"]      = _pp(orows, [513, 514, 515, 516, 517, 518], 3)
     P["perdaFrac"] = _pp(orows, [529, 530, 531, 532, 533, 534], 3)
     P["purga_c"]  = _pp(orows, [537, 538, 539, 540, 541, 542], 2)   # C
-    P["purga_gate"] = _pp_month(orows, [537, 538, 539, 540, 541, 542], 4)  # E (data início)
+    P["purga_start"] = [_ym(orows.get(r)[4]) if orows.get(r) else None
+                        for r in [537, 538, 539, 540, 541, 542]]     # E (data início) -> ym
     # insumos: rate (D) por planta + gates (F,G) onde houver
     INS = {"propano": 470, "agua": 477, "oleo": 484, "glycol": 491,
            "residuos": 498, "mercaptano": 505, "outros": 546}
@@ -325,6 +326,24 @@ def extract_liquef_prem(orows):
         P[name + "_g1"] = _pp_month(orows, rows, 5)   # F
         P[name + "_g2"] = _pp_month(orows, rows, 6)   # G
     return P
+
+
+LIQUEF_SUB_ROWS = {"energia": 415, "insumos": 455, "oem": 513, "perdas": 521, "outros": 546}
+
+
+def extract_liquef_golden(orows):
+    """Golden das sub-linhas de liquefação por planta (para depurar o port)."""
+    out = {}
+    for sub, r0 in LIQUEF_SUB_ROWS.items():
+        d = {}
+        for p in range(1, 7):
+            rec = orows.get(r0 + (p - 1))
+            if not rec:
+                continue
+            d[p] = [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+                    for k in range(N_MONTHS)]
+        out[sub] = d
+    return out
 
 
 def extract_custo_total(orows):
@@ -612,6 +631,7 @@ def main():
     opex_cat = extract_opex_cat(orows)
     custo_total = extract_custo_total(orows)
     liquef_prem = extract_liquef_prem(orows)
+    liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
     vol192 = _opex_series(orows, 192)
 
@@ -741,6 +761,13 @@ def main():
     ws_pl.append(["key", "p1", "p2", "p3", "p4", "p5", "p6"])
     for k in sorted(liquef_prem):
         ws_pl.append([k] + list(liquef_prem[k]))
+
+    # aba GoldenLiquef: sub-linhas de liquefação por planta (debug do port)
+    ws_gl = out.create_sheet("GoldenLiquef")
+    ws_gl.append(["sub", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for sub in LIQUEF_SUB_ROWS:
+        for p in sorted(liquef_gold.get(sub, {})):
+            ws_gl.append([sub, p] + liquef_gold[sub][p])
 
     # aba SeriesOpex: séries mensais de apoio (fator correção IPCA, vol GNC row192)
     ws_so = out.create_sheet("SeriesOpex")
