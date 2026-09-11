@@ -184,6 +184,7 @@ def extract_clientes(wb):
             "tipo_regas": (str(rec[16]).strip() if rec[16] else None),    # Q
             "venda_regas": _num(rec[20]),                           # U
             "entrega": (str(rec[21]).strip() if rec[21] else None), # V  CIF/FOB
+            "segmento": (str(rec[28]).strip() if rec[28] else None), # AC segmento (Industrial/Distribuidora/Posto)
             "top": _num(rec[22]),                                   # W  Take-or-Pay
             "margem": _num(rec[30]),                                # AE
             "correcao_mol": _num(rec[31]),                          # AF
@@ -910,7 +911,7 @@ def main():
     CFIELDS = ["id", "nome", "planta", "produto", "volmax", "preco", "aluguel",
                "custo_mol", "ini_contrato", "ini_op", "duracao", "fim_contrato",
                "distancia", "tipo_transp", "tipo_regas", "venda_regas", "entrega",
-               "top", "margem", "correcao_mol"]
+               "segmento", "top", "margem", "correcao_mol"]
     hdr = list(CFIELDS)
     for s in range(1, 7):
         hdr += ["S%d_vol" % s, "S%d_ini" % s, "S%d_fim" % s]
