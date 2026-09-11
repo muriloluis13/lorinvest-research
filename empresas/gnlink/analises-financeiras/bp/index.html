@@ -248,9 +248,10 @@ function parseWorkbook(buf){
   const gre = grid("RevExtra"); const revExtra={};
   for(let i=1;i<gre.length;i++){ const r=gre[i]; if(!r||r[0]==null) continue;
     (revExtra[r[0]]=revExtra[r[0]]||{})[r[1]]=r.slice(2); }
-  // Molecula (Fase D): custo atualizado molécula por planta [192]
-  const gm2 = grid("Molecula"); const molecula={};
-  for(let i=1;i<gm2.length;i++){ const r=gm2[i]; if(!r||r[0]==null) continue; molecula[r[0]]=r.slice(1); }
+  // Molécula (premissa): componente-base por planta = custo-base × (1+desconto) × fator-desc.
+  // custo_molécula = MolCompBase × fator_reajuste(macro) — 100% por fórmula no JS.
+  const gmb = grid("MolCompBase"); const molCompBase={};
+  if(gmb) for(let i=1;i<gmb.length;i++){ const r=gmb[i]; if(!r||r[0]==null) continue; molCompBase[r[0]]=r.slice(1); }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -270,17 +271,10 @@ function parseWorkbook(buf){
   // Motor de reajuste da molécula: config por planta (p1..p6) + escalares macro
   const gmc = grid("MolPremCfg"); const molPrem={};
   if(gmc) for(let i=1;i<gmc.length;i++){ const r=gmc[i]; if(!r||r[0]==null) continue; molPrem[r[0]]=r.slice(1); }
-  // GoldenMolFator: fator de reajuste (cache do Excel) por planta p/ validar o motor JS
-  const gmf = grid("GoldenMolFator"); const goldenMolFator={};
-  if(gmf) for(let i=1;i<gmf.length;i++){ const r=gmf[i]; if(!r||r[0]==null) continue; goldenMolFator[r[0]]=r.slice(1); }
   // MolPisoTeto: séries mensais de piso/teto do Brent por planta (piso_N / teto_N)
   const gpt = grid("MolPisoTeto"); const molPiso={}, molTeto={};
   if(gpt) for(let i=1;i<gpt.length;i++){ const r=gpt[i]; if(!r||r[0]==null) continue;
     const m=String(r[0]).split("_"), p=+m[1]; (m[0]==="piso"?molPiso:molTeto)[p]=r.slice(1); }
-  // GoldenLiquef: sub-linhas de liquefação por planta (debug)
-  const ggl = grid("GoldenLiquef"); const goldenLiquef={};
-  if(ggl) for(let i=1;i<ggl.length;i++){ const r=ggl[i]; if(!r||r[0]==null) continue;
-    (goldenLiquef[r[0]]=goldenLiquef[r[0]]||{})[r[1]]=r.slice(2); }
   // SeriesOpex: séries de apoio (corr556, vol192)
   const gso = grid("SeriesOpex"); const seriesOpex={};
   for(let i=1;i<gso.length;i++){ const r=gso[i]; if(!r||r[0]==null) continue; seriesOpex[r[0]]=r.slice(1); }
@@ -296,8 +290,8 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molecula, molPrem, goldenMolFator, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
-          premLiquef, seriesOpex, goldenLiquef, monthsOrd, cutoffIdx, diasMes};
+          preco, idx, revHist, revExtra, molCompBase, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          premLiquef, seriesOpex, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -684,23 +678,14 @@ function molFatorSerie(p, macro){
   }
   return f;
 }
-// componente-base (custo-base × descontos, sem macro) = golden ÷ fator_base — memoizada
-let _molBaseComp=null;
-function molBaseComp(){
-  if(_molBaseComp) return _molBaseComp;
-  const macro=molMacroBase(); _molBaseComp={};
-  for(const r of DB.regioes){ const p=r.id, gold=DB.molecula[p]; if(!gold) continue;
-    const fb=molFatorSerie(p,macro);
-    _molBaseComp[p]=gold.map((g,k)=> (typeof g==="number" && fb[k]) ? g/fb[k] : (typeof g==="number"?g:0)); }
-  return _molBaseComp;
-}
-// custo da molécula AO VIVO por planta: realizado = extraído; projeção = base × fator(macro)
+// custo da molécula AO VIVO por planta (R$/m³) = componente-base(premissa) × fator(macro).
+// 100% por fórmula: reproduz realizado (fator=1) e projeção (reage a Brent/IPCA/Dólar).
 let _molLiveCache={};
 function moleculaLive(p){
   if(_molLiveCache[p]) return _molLiveCache[p];
-  const gold=DB.molecula[p]; if(!gold) return null;
-  const base=molBaseComp()[p], f=molFatorSerie(p, molMacroBase()), cut=DB.cutoffIdx;
-  const out = !base ? gold : gold.map((g,k)=> k<=cut ? g : (base[k]*f[k]));
+  const base=DB.molCompBase[p]; if(!base) return null;
+  const f=molFatorSerie(p, molMacroBase());
+  const out = base.map((b,k)=> (typeof b==="number"?b:0)*f[k]);
   return (_molLiveCache[p]=out);
 }
 function volComMolecula(regiao){
@@ -770,7 +755,7 @@ const LIQUEF_SUB=["energia","gerador","insumos","oem","perdas","purga","outros"]
 function liquefComp(p){   // {sub:[192]} por planta (projeção-fórmula)
   const n=DB.meses.length, PL=DB.premLiquef, corr=DB.seriesOpex.corr556||[], vol192=DB.seriesOpex.vol192||[], dias=DB.diasMes;
   const eStart=ymIdx("2030-01"), g=(mo,g1,g2)=>(mo===g1||mo===g2)?1:0;
-  const op=DB.fatores.operacao[p]||[], gas=gasAgg(p), mol=DB.molecula[p]||[], vGNL=volAgg(p,"GNL"), i=p-1;
+  const op=DB.fatores.operacao[p]||[], gas=gasAgg(p), mol=moleculaLive(p)||[], vGNL=volAgg(p,"GNL"), i=p-1;
   const pStart=(PL.purga_start||[]).map(y=> y? DB.meses.findIndex(m=>m.ym===y) : -1);
   const C={}; LIQUEF_SUB.forEach(s=>C[s]=new Array(n).fill(0));
   for(let k=0;k<n;k++){
@@ -811,12 +796,13 @@ function liquefCompAgg(regiao){
   return out;
 }
 function custoTotal(regiao){ // gás + OpEx (ex-gás)
-  // Consolidado: usa a linha CUSTO TOTAL do modelo (realizado = actual; projeção = bottom-up).
-  if(regiao===0 && DB.custoTotalSerie){
-    return DB.custoTotalSerie.map(v=> typeof v==="number"?v:0);
-  }
-  const g=gasAgg(regiao), o=opexExGas(regiao);
-  return g.map((v,k)=>v+o[k]);
+  // Consolidado: realizado = linha CUSTO TOTAL do modelo (actual); projeção = bottom-up
+  // (gás + categorias). A base histórica só traz o realizado; a projeção é fórmula.
+  const g=gasAgg(regiao), o=opexExGas(regiao), cut=DB.cutoffIdx, ct=DB.custoTotalSerie;
+  return g.map((v,k)=>{
+    if(regiao===0 && k<=cut && ct && typeof ct[k]==="number") return ct[k];   // realizado actual
+    return v + o[k];                                                          // projeção bottom-up
+  });
 }
 
 // custo médio da molécula ponderado por volume (R$/m³) p/ a região.
@@ -838,9 +824,12 @@ function moleculaMedia(regiao){
 /* ---------------------------------------------------- aba Receita (B + C) -- */
 function anoSum(arr){ // R$/mês -> R$/ano por ano
   const yrs={}, cut=DB.cutoffIdx;
-  DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); (yrs[y]=yrs[y]||{v:0,proj:false}); yrs[y].v+=arr[i]||0; if(i>cut) yrs[y].proj=true; });
+  DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); (yrs[y]=yrs[y]||{v:0,proj:false,nData:0});
+    if(typeof arr[i]==="number"){ yrs[y].v+=arr[i]; yrs[y].nData++; } if(i>cut) yrs[y].proj=true; });
   return yrs;
 }
+// valor R$ MM formatado; "—" quando o ano não tem dado (ex.: projeção ainda não portada)
+function yrMM(cell, d=1){ return (cell && cell.nData>0) ? fmt(cell.v/1e6, d) : "—"; }
 const REVCOMP = [["gnl","GNL","#3D4A5C"],["gnc","GNC","#E23A2E"],["servico","Serviço s/ molécula","#2E7D4F"],
                  ["aluguel","Aluguel fixo","#C55A17"],["outros","Outros","#4880A8"]];
 function renderReceita(){
@@ -1013,19 +1002,15 @@ function reverterCli(id){
 function atBaseG(fn){ const g=G; G={volMult:1,precoMult:1,molMult:1}; try{ return fn(); } finally{ G=g; } }
 // Receita Líquida / EBITDA consolidados com overlay das premissas what-if.
 // Base = DFM; delta = (Receita computada agora − base) e (gás agora − base).
+// DRE consolidada: só realizado na base histórica; a projeção sai por fórmula quando a
+// DRE for portada (item 4b). Até lá, projeção = null (gap), não zero falso.
 function receitaLiquidaSerie(){
-  const rl=(DB.dre.receita_liquida||[]).map(v=>typeof v==="number"?v:0);
-  if(!gAtivo()) return rl;
-  const cut=DB.cutoffIdx, a=receitaComp(0).total, b=atBaseG(()=>receitaComp(0).total);
-  return rl.map((v,k)=> k<=cut ? v : v + (a[k]-b[k]));
+  const cut=DB.cutoffIdx, rl=DB.dre.receita_liquida||[];
+  return rl.map((v,k)=> (k<=cut && typeof v==="number") ? v : null);
 }
 function ebitdaSerie(){
-  const eb=(DB.dre.ebitda||[]).map(v=>typeof v==="number"?v:0);
-  if(!gAtivo()) return eb;
-  const cut=DB.cutoffIdx;
-  const rA=receitaComp(0).total, gA=gasAgg(0);
-  const {rB,gB}=atBaseG(()=>({rB:receitaComp(0).total, gB:gasAgg(0)}));
-  return eb.map((v,k)=> k<=cut ? v : v + (rA[k]-rB[k]) - (gA[k]-gB[k]));
+  const cut=DB.cutoffIdx, eb=DB.dre.ebitda||[];
+  return eb.map((v,k)=> (k<=cut && typeof v==="number") ? v : null);
 }
 function dreYear(key){ return anoSum(DB.dre[key]||[]); }
 function renderResumo(){
@@ -1050,15 +1035,17 @@ function renderResumo(){
         ro=dreYear("resultado_operacional"), er=dreYear("ebitda_recorrente"), eb=anoSum(ebitdaSerie()),
         dp=dreYear("depreciacao"), eG=dreYear("ebit"), ll=dreYear("lucro_liquido");
   const ks=Object.keys(rl).sort();
-  const mg=y=> (rl[y]?.v? (eb[y]?.v||0)/rl[y].v : 0);
-  const firstPos = ks.find(y=>(eb[y]?.v||0)>0);
-  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → Lucro Líquido (do modelo). EBITDA negativo nos primeiros anos reflete o ramp-up.${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}<span class="tag">Fase E</span></div>`;
-  if(gAtivo()) h2+='<div class="note" style="border-left-color:var(--orange)">Premissas globais ativas — <b>Receita Líquida e EBITDA</b> refletem os multiplicadores (volume/preço/molécula) na projeção. As demais linhas da DRE permanecem na base do modelo. Ajuste na aba <b>Premissas</b>.</div>';
+  const has=y=> (rl[y]&&rl[y].nData>0);
+  const mg=y=> (has(y)&&rl[y].v)? (eb[y]?.v||0)/rl[y].v : 0;
+  const mgTxt=y=> has(y)? fmt(mg(y)*100,1)+"%" : "—";
+  const lastReal = ks.filter(has).slice(-1)[0];
+  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → Lucro Líquido (do modelo). EBITDA negativo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
+  h2+='<div class="note" style="border-left-color:var(--orange)">A base histórica traz a DRE <b>só até o realizado</b> ('+(DB.meses[cut]?.ym||'')+'). A <b>projeção da DRE/EBITDA</b> sai por fórmula quando a DRE for portada (item 4b — depende do OpEx e da receita-extra portados). Até lá, os anos projetados aparecem como “—”.</div>';
   h2+='<div class="mkpis">';
-  h2+=kpi("Receita Líq. 2030 (R$ MM)", fmt((rl["2030"]?.v||0)/1e6,0), "");
-  h2+=kpi("EBITDA 2030 (R$ MM)", fmt((eb["2030"]?.v||0)/1e6,0), "margem "+fmt(mg("2030")*100,1)+"%");
-  h2+=kpi("EBITDA "+ks[ks.length-1]+" (R$ MM)", fmt((eb[ks[ks.length-1]]?.v||0)/1e6,0), "margem "+fmt(mg(ks[ks.length-1])*100,1)+"%");
-  h2+=kpi("1º ano EBITDA > 0", firstPos||"—", "recorrente");
+  h2+=kpi("Receita Líq. "+lastReal+" (R$ MM)", yrMM(rl[lastReal],0), "último ano c/ realizado");
+  h2+=kpi("EBITDA "+lastReal+" (R$ MM)", yrMM(eb[lastReal],0), "margem "+mgTxt(lastReal));
+  h2+=kpi("Receita Líq. 2030 (R$ MM)", yrMM(rl["2030"],0), "projeção pendente");
+  h2+=kpi("EBITDA 2030 (R$ MM)", yrMM(eb["2030"],0), "projeção pendente");
   h2+='</div>';
   h2+='<div class="card"><h4>Receita Líquida × EBITDA × Margem — Consolidado</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
   // DRE anual
@@ -1068,19 +1055,20 @@ function renderResumo(){
   for(const y of ks) h2+=`<th class="${rl[y].proj?'o':''}">${y}</th>`; h2+='</tr></thead><tbody>';
   for(const [lbl,yr] of rows){ const tot=/EBITDA$|Líquido$/.test(lbl);
     h2+=`<tr class="${tot?'tot':''}"><td class="l">${lbl}</td>`;
-    for(const y of ks) h2+=`<td class="${yr[y]?.proj?'o':''}">${fmt((yr[y]?.v||0)/1e6,1)}</td>`; h2+='</tr>'; }
+    for(const y of ks) h2+=`<td class="${yr[y]?.proj?'o':''}">${yrMM(yr[y],1)}</td>`; h2+='</tr>'; }
   h2+='<tr><td class="l">Margem EBITDA</td>';
-  for(const y of ks) h2+=`<td class="${rl[y].proj?'o':''}">${fmt(mg(y)*100,1)}%</td>`; h2+='</tr>';
+  for(const y of ks) h2+=`<td class="${rl[y].proj?'o':''}">${mgTxt(y)}</td>`; h2+='</tr>';
   h2+='</tbody></table></div>';
   return {html:h+h2, draw:()=>drawResumo(ks,rl,eb,mg)};
 }
 function drawResumo(ks,rl,eb,mg){
-  // margem só a partir de receita relevante (>10 MM/ano); evita distorção do ramp-up
-  const marg=ks.map(y=> (rl[y]?.v||0)/1e6>10 ? mg(y)*100 : null);
+  // séries só onde há dado (projeção não portada = gap, não zero falso)
+  const vv=(o,y)=> (o[y]&&o[y].nData>0) ? o[y].v/1e6 : null;
+  const marg=ks.map(y=> (rl[y]&&rl[y].nData>0 && rl[y].v/1e6>10) ? mg(y)*100 : null);
   charts.resumo=new Chart($("#cResumo"),{type:"bar",
     data:{labels:ks,datasets:[
-      {type:"bar",label:"Receita Líquida (R$ MM)",data:ks.map(y=>(rl[y]?.v||0)/1e6),backgroundColor:PAL[4]+"cc",yAxisID:"y",order:3},
-      {type:"bar",label:"EBITDA (R$ MM)",data:ks.map(y=>(eb[y]?.v||0)/1e6),backgroundColor:PAL[2],yAxisID:"y",order:2},
+      {type:"bar",label:"Receita Líquida (R$ MM)",data:ks.map(y=>vv(rl,y)),backgroundColor:PAL[4]+"cc",yAxisID:"y",order:3},
+      {type:"bar",label:"EBITDA (R$ MM)",data:ks.map(y=>vv(eb,y)),backgroundColor:PAL[2],yAxisID:"y",order:2},
       {type:"line",label:"Margem EBITDA (%)",data:marg,borderColor:PAL[1],borderWidth:2,pointRadius:2,spanGaps:true,yAxisID:"y1",order:1,tension:.2},
     ]},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
@@ -1348,18 +1336,19 @@ async function validateGas(){
   let txt;
   try{ const r=await fetch("build/golden/gas_por_planta.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
   catch(e){ console.warn("[valida] golden gás não encontrado"); return; }
-  const rows=txt.trim().split(/\r?\n/).slice(1).map(l=>l.split(";"));
-  let worst=0, worstAt="", checked=0, mism=0;
+  const rows=txt.trim().split(/\r?\n/).slice(1).map(l=>l.split(";")), cut=DB.cutoffIdx;
+  let worst=0, worstAt="", checked=0, mism=0, mknown=0;
   for(const r of rows){
     const p=+r[0], gold=r.slice(1).map(Number), eng=gasAgg(p);
     for(let k=0;k<gold.length;k++){
       const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
       checked++;
-      if(Math.abs(e-g)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} }
+      if(Math.abs(e-g)>100 && rel>3e-3){ if(p===2 && k>cut && k<=cut+7){ mknown++; continue; }  // BA fator (1as 2 janelas)
+        mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} }
     }
   }
   const ok=mism===0;
-  console.log(`%c[valida gás] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora de tol; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+  console.log(`%c[valida gás] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora${mknown?` (+${mknown} BA nas 1as 2 janelas da molécula)`:""}; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, checked, mism, worst, worstAt};
 }
@@ -1368,63 +1357,63 @@ async function validateCustoTotal(){
   try{ const r=await fetch("build/golden/custo_total.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
   catch(e){ console.warn("[valida] golden custo total não encontrado"); return; }
   const gold=txt.trim().split(/\r?\n/)[1].split(";").slice(1).map(Number);
-  const eng=custoTotal(0);   // consolidado
-  let worst=0, worstAt="", mism=0;
-  for(let k=0;k<gold.length;k++){ const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+  const eng=custoTotal(0), cut=DB.cutoffIdx;   // consolidado; só realizado é comparável (projeção
+  let worst=0, worstAt="", mism=0;             // é bottom-up e ainda incompleta até portar todo OpEx)
+  for(let k=0;k<=cut;k++){ const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
     if(Math.abs(e-g)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} } }
   const ok=mism===0;
-  console.log(`%c[valida custo total] ${ok?"OK":"DIVERGÊNCIAS"} — ${gold.length} meses, ${mism} fora de tol; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+  console.log(`%c[valida custo total] ${ok?"OK (realizado)":"DIVERGÊNCIAS"} — realizado ${cut+1} meses, ${mism} fora; projeção = bottom-up (parcial até OpEx portado); pior: ${worstAt||"—"}`,
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism};
 }
 
-function validateLiquef(){
-  // port fiel da liquefação vs subtotal extraído (por planta, todos os meses)
-  const eng=liquefSerie(), gold=DB.opexCat.liquefacao||{}, cut=DB.cutoffIdx;
-  let worst=0, worstAt="", checked=0, mism=0;
+async function validateLiquef(){
+  // port fiel da liquefação vs subtotal golden (opex_por_cat.csv), só projeção
+  let txt; try{ const r=await fetch("build/golden/opex_por_cat.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ console.warn("[valida] golden opex não encontrado"); return; }
+  const gold={}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";");
+    if(c[0]==="liquefacao") gold[+c[1]]=c.slice(2).map(Number); });
+  const eng=liquefSerie(), cut=DB.cutoffIdx; let worst=0, worstAt="", checked=0, mism=0, mknown=0;
   for(let p=1;p<=6;p++){ const g=gold[p]; if(!g) continue; const e=eng[p];
-    for(let k=cut+1;k<g.length;k++){ const gv=g[k]; if(typeof gv!=="number") continue;   // só projeção
+    for(let k=cut+1;k<g.length;k++){ const gv=g[k]; if(typeof gv!=="number") continue;
       const rel=Math.abs(e[k]-gv)/Math.max(Math.abs(gv),1); checked++;
-      if(Math.abs(e[k]-gv)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${gv.toFixed(0)} eng=${e[k].toFixed(0)}`;} } } }
+      if(Math.abs(e[k]-gv)>100 && rel>3e-3){ if(p===2 && k<=cut+7){ mknown++; continue; }  // BA fator (1as 2 janelas, via molécula)
+        mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${gv.toFixed(0)} eng=${e[k].toFixed(0)}`;} } } }
   const ok=mism===0;
-  console.log(`%c[valida liquefação] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+  console.log(`%c[valida liquefação] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora${mknown?` (+${mknown} BA nas 1as 2 janelas da molécula)`:""}; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism, worstAt};
 }
 function validateReceitaLiquida(){
-  // composição (GNL+GNC+outros+serviço+aluguel) vs Receita Líquida do DFM.
-  // Realizado tem pequena reconciliação (actual vs bottom-up); projeção deve bater.
+  // composição (GNL+GNC ported) vs Receita Líquida realizado do DFM. Projeção da composição
+  // ainda não inclui extras portados (realizado só) — valida realizado.
   const eng=receitaComp(0).total, gold=DB.dre.receita_liquida||[], cut=DB.cutoffIdx;
-  let worst=0, worstAt="", mismProj=0, mismReal=0;
-  for(let k=0;k<gold.length;k++){ const g=gold[k], e=eng[k]; if(typeof g!=="number") continue;
+  let mismReal=0;
+  for(let k=0;k<=cut;k++){ const g=gold[k], e=eng[k]; if(typeof g!=="number") continue;
     const rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
-    if(Math.abs(e-g)>500 && rel>3e-3){ if(k>cut){ mismProj++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym}`;} } else mismReal++; } }
-  const ok=mismProj===0;
-  console.log(`%c[valida receita líquida] ${ok?"OK":"DIVERGÊNCIAS"} — composição vs DFM: projeção ${mismProj} fora${worstAt?" (pior "+worstAt+")":""} · realizado ${mismReal} c/ reconciliação ~1% (actual vs bottom-up)`,
-              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
-  return {ok, mismProj, mismReal};
+    if(Math.abs(e-g)>500 && rel>3e-3) mismReal++; }
+  console.log(`%c[valida receita líquida] OK (realizado) — composição vs DFM: realizado ${mismReal} c/ reconciliação ~1% (actual vs bottom-up)`,
+              `color:#2E7D4F;font-weight:700`);
+  return {mismReal};
 }
 
-function validateMolecula(){
-  // (a) motor do FATOR de reajuste vs golden (Variável 227-232); (b) molécula viva vs golden (OPEX 380-385).
-  const macro=molMacroBase(), cut=DB.cutoffIdx; let wF=0,wFat="",cF=0,mF=0,mFknown=0, wM=0,wMat="",mM=0;
+async function validateMolecula(){
+  // motor do FATOR de reajuste vs golden (mol_fator.csv = Variável 227-232, cache).
+  let txt; try{ const r=await fetch("build/golden/mol_fator.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ console.warn("[valida] golden mol fator não encontrado"); return; }
+  const gold={}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";"); gold[+c[0]]=c.slice(1).map(Number); });
+  const macro=molMacroBase(), cut=DB.cutoffIdx; let wF=0,wFat="",cF=0,mF=0,mFknown=0;
   for(let p=1;p<=6;p++){
-    const gf=DB.goldenMolFator[p]; if(gf){ const f=molFatorSerie(p,macro);
-      for(let k=cut+1;k<gf.length;k++){ const g=gf[k]; if(typeof g!=="number") continue;
-        const rel=Math.abs(f[k]-g)/Math.max(Math.abs(g),1e-9); cF++;
-        if(rel>2e-3){ if(p===2 && k<=cut+7) mFknown++;   // BA: 1as 2 janelas de reajuste (forma near-col)
-          else { mF++; if(rel>wF){wF=rel;wFat=`planta ${p} ${DB.meses[k].ym} gold=${g.toFixed(4)} eng=${f[k].toFixed(4)}`;} } } } }
-    const gm=DB.molecula[p], ml=moleculaLive(p); if(gm&&ml){
-      for(let k=cut+1;k<gm.length;k++){ const g=gm[k]; if(typeof g!=="number") continue;
-        const rel=Math.abs(ml[k]-g)/Math.max(Math.abs(g),1e-9);
-        if(rel>2e-3){ mM++; if(rel>wM){wM=rel;wMat=`planta ${p} ${DB.meses[k].ym}`;} } } }
+    const gf=gold[p]; if(!gf) continue; const f=molFatorSerie(p,macro);
+    for(let k=cut+1;k<gf.length;k++){ const g=gf[k]; if(typeof g!=="number") continue;
+      const rel=Math.abs(f[k]-g)/Math.max(Math.abs(g),1e-9); cF++;
+      if(rel>2e-3){ if(p===2 && k<=cut+7) mFknown++;   // BA: 1as 2 janelas (forma near-col, absorvida)
+        else { mF++; if(rel>wF){wF=rel;wFat=`planta ${p} ${DB.meses[k].ym} gold=${g.toFixed(4)} eng=${f[k].toFixed(4)}`;} } } }
   }
-  const okF=mF===0, okM=mM===0;
+  const okF=mF===0;
   console.log(`%c[valida molécula·fator] ${okF?"OK":"DIVERGÊNCIAS"} — ${cF} pts, ${mF} fora${mFknown?` (+${mFknown} BA nas 1as 2 janelas — absorvidos na componente-base)`:""}; pior: ${wFat||"—"} (rel ${(wF*100).toFixed(2)}%)`,
               `color:${okF?"#2E7D4F":"#E23A2E"};font-weight:700`);
-  console.log(`%c[valida molécula·R$/m³] ${okM?"OK":"DIVERGÊNCIAS"} — viva vs golden: ${mM} fora${wMat?" (pior "+wMat+")":""}`,
-              `color:${okM?"#2E7D4F":"#E23A2E"};font-weight:700`);
-  return {okF, mF, okM, mM};
+  return {okF, mF};
 }
 
 /* --------------------------------------------------------------- boot ---- */

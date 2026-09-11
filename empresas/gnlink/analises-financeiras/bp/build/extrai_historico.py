@@ -140,6 +140,12 @@ def _num(v):
     return v if isinstance(v, (int, float)) else None
 
 
+def real_only(series, n_real):
+    """Mantém só os meses realizados (< n_real); zera a PROJEÇÃO (o JS a recalcula
+    por fórmula). Base histórica = só o passado medido."""
+    return [series[k] if k < n_real else None for k in range(len(series))]
+
+
 def extract_clientes(wb):
     """Cronograma por cliente: id, planta, produto, volmax, estágios S1..S6 (vol/ini/fim)."""
     ws = wb["Clientes"]
@@ -229,7 +235,7 @@ def read_variavel_rows(wb):
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=1245, values_only=True), start=1):
         if (8 <= i <= 20) or (184 <= i <= 268) or (254 <= i <= 259) or (430 <= i <= 584) \
-           or (586 <= i <= 743) or (903 <= i <= 1057) or (1088 <= i <= 1241):
+           or (586 <= i <= 743) or (903 <= i <= 1057) or (1071 <= i <= 1076) or (1088 <= i <= 1241):
             keep[i] = row
     return keep
 
@@ -419,13 +425,24 @@ def extract_molecula_prem(vrows, wb):
     def row(r):
         return vrows.get(r)
     cfg = {"custoBase": [], "indicador": [], "dataBaseOrd": [], "ocorrencia": [],
-           "refDateOrd": [], "pisoSer": [], "tetoSer": []}
+           "refDateOrd": [], "pisoSer": [], "tetoSer": [], "compBaseSer": []}
 
     def mrow(r):   # série mensal (192) da linha r, cache do Excel
         rec = row(r)
         return [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
                 for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
     for p in range(6):
+        # COMPONENTE-BASE da molécula (PREMISSA, sem macro): custo-base(209) × (1+desconto,245)
+        # × fator-de-desconto-acumulado(1071). É a parte não-macro de
+        # custo_molécula = compBase × fator_reajuste(Brent/IPCA/Dólar). Verificado 1:1 c/ o modelo.
+        base = mrow(209 + p)     # 209-214: custo-base com resets
+        desc = mrow(245 + p)     # 245-250: desconto série (SUMPRODUCT do cronograma)
+        dfac = mrow(1071 + p)    # 1071-1076: fator de desconto acumulado (RN=0,9)
+        comp = []
+        for k in range(N_MONTHS):
+            b = _num(base[k]); dv = _num(desc[k]); df = _num(dfac[k])
+            comp.append(None if b is None else b * (1 + (dv or 0)) * (df if df is not None else 1))
+        cfg["compBaseSer"].append(comp)
         c = row(184 + p)    # config: C custoBase, D indicador, E dataBase, G ocorrência
         cfg["custoBase"].append(_num(c[2]) if c else None)
         cfg["indicador"].append((str(c[3]).strip() if c and c[3] else None))
@@ -764,23 +781,26 @@ def main():
         ws_rh.append([p, prod] + [arr[k] if k < n_real else None for k in range(N_MONTHS)])
 
     # aba RevExtra: componentes extras de receita por planta (outros/serviço/aluguel)
+    # — SÓ REALIZADO (a projeção sai por fórmula quando esta categoria for portada)
     ws_re = out.create_sheet("RevExtra")
     ws_re.append(["componente", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for comp in ("outros", "servico", "aluguel"):
         for p in sorted(rev_extra.get(comp, {})):
-            ws_re.append([comp, p] + rev_extra[comp][p])
+            ws_re.append([comp, p] + real_only(rev_extra[comp][p], n_real))
 
-    # aba Molecula: custo atualizado da molécula por planta (R$/m³) — driver (Fase D)
-    ws_mol = out.create_sheet("Molecula")
-    ws_mol.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for p in sorted(molecula):
-        ws_mol.append([p] + molecula[p])
+    # aba MolCompBase: PREMISSA (componente-base) do custo da molécula por planta.
+    # custo_molécula = MolCompBase × fator_reajuste(macro) — a molécula é 100% dirigida por
+    # fórmula no JS; não há mais série de molécula PROJETADA no xlsx (só a premissa-base).
+    ws_mb = out.create_sheet("MolCompBase")
+    ws_mb.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(6):
+        ws_mb.append([p + 1] + mol_prem["compBaseSer"][p])
 
-    # aba PrecoBrent: preço corrigido por cliente Brent (projeção exata)
+    # aba PrecoBrent: preço corrigido por cliente Brent — SÓ REALIZADO (projeção portada depois)
     ws_pb = out.create_sheet("PrecoBrent")
     ws_pb.append(["id"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for cid in sorted(preco_brent):
-        ws_pb.append([cid] + preco_brent[cid])
+        ws_pb.append([cid] + real_only(preco_brent[cid], n_real))
 
     # aba GasHist: custo do gás REALIZADO por planta (R$/mês)
     ws_gh = out.create_sheet("GasHist")
@@ -795,12 +815,13 @@ def main():
     for p in sorted(gas_adj):
         ws_ga.append([p] + gas_adj[p])
 
-    # aba Opex: subtotais de OpEx (ex-gás) por categoria/planta — realizado + projeção
+    # aba Opex: subtotais de OpEx (ex-gás) por categoria/planta — SÓ REALIZADO
+    # (a projeção de cada categoria vem por fórmula à medida que é portada; liquefação já)
     ws_ox = out.create_sheet("Opex")
     ws_ox.append(["categoria", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for cat in OPEX_CAT:
         for p in sorted(opex_cat.get(cat, {})):
-            ws_ox.append([cat, p] + opex_cat[cat][p])
+            ws_ox.append([cat, p] + real_only(opex_cat[cat][p], n_real))
 
     # aba PremLiquef: premissas de liquefação por planta (para portar em JS)
     ws_pl = out.create_sheet("PremLiquef")
@@ -808,12 +829,8 @@ def main():
     for k in sorted(liquef_prem):
         ws_pl.append([k] + list(liquef_prem[k]))
 
-    # aba GoldenLiquef: sub-linhas de liquefação por planta (debug do port)
-    ws_gl = out.create_sheet("GoldenLiquef")
-    ws_gl.append(["sub", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for sub in LIQUEF_SUB_ROWS:
-        for p in sorted(liquef_gold.get(sub, {})):
-            ws_gl.append([sub, p] + liquef_gold[sub][p])
+    # (golden de validação — GoldenLiquef, fator da molécula — vive em build/golden/*.csv,
+    #  fora do xlsx de runtime, que carrega SÓ histórico + premissas)
 
     # aba do motor de reajuste da molécula: config por planta (fator IPCA/Brent/Dólar/composto)
     ws_mc = out.create_sheet("MolPremCfg")
@@ -830,14 +847,6 @@ def main():
         ws_pt.append(["piso_%d" % (p + 1)] + mol_prem["pisoSer"][p])
     for p in range(6):
         ws_pt.append(["teto_%d" % (p + 1)] + mol_prem["tetoSer"][p])
-    # golden do FATOR de reajuste (Variável 227-232, cache) p/ validar o motor JS 1:1
-    ws_mf = out.create_sheet("GoldenMolFator")
-    ws_mf.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for p in range(6):
-        rec = vrows.get(227 + p)
-        ser = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
-               for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
-        ws_mf.append([p + 1] + [(_num(v) if _num(v) is not None else None) for v in ser])
 
     # aba SeriesOpex: séries mensais de apoio (fator correção IPCA, vol GNC row192)
     ws_so = out.create_sheet("SeriesOpex")
@@ -845,17 +854,17 @@ def main():
     ws_so.append(["corr556"] + corr556)
     ws_so.append(["vol192"] + vol192)
 
-    # aba CustoTotal: CUSTO TOTAL consolidado do modelo (realizado actual + projeção)
+    # aba CustoTotal: CUSTO TOTAL consolidado — SÓ REALIZADO (projeção = fórmula no JS)
     if custo_total:
         ws_ct = out.create_sheet("CustoTotal")
         ws_ct.append(["linha"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-        ws_ct.append(["custo_total"] + custo_total)
+        ws_ct.append(["custo_total"] + real_only(custo_total, n_real))
 
-    # aba DRE: linhas-chave da demonstração de resultado consolidada (Fase E)
+    # aba DRE: linhas-chave da DRE consolidada — SÓ REALIZADO (projeção = fórmula no JS)
     ws_dre = out.create_sheet("DRE")
     ws_dre.append(["linha"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for key in DRE_ROWS:
-        ws_dre.append([key] + dre[key])
+        ws_dre.append([key] + real_only(dre[key], n_real))
 
     out.save(OUT)
     print("OK ->", OUT)
@@ -902,6 +911,34 @@ def main():
             fh.write("linha;" + ";".join("%04d-%02d" % (y, mo) for (y, mo) in ym) + "\n")
             fh.write("custo_total;" + ";".join(repr(round(x or 0, 4)) for x in custo_total) + "\n")
         print("golden custo total ->", ctpath)
+
+    # golden (full, projeção incluída) das séries que saíram do xlsx: OpEx por categoria,
+    # fator da molécula e DRE. Usados só pelo ?validate (build/golden/*.csv).
+    hdr = ";".join("%04d-%02d" % (y, mo) for (y, mo) in ym)
+    oxpath = os.path.join(gdir, "opex_por_cat.csv")
+    with open(oxpath, "w", encoding="utf-8", newline="") as fh:
+        fh.write("categoria;planta;" + hdr + "\n")
+        for cat in OPEX_CAT:
+            for p in sorted(opex_cat.get(cat, {})):
+                fh.write("%s;%d;" % (cat, p) + ";".join(repr(round(x or 0, 4)) for x in opex_cat[cat][p]) + "\n")
+    print("golden opex ->", oxpath)
+
+    mfpath = os.path.join(gdir, "mol_fator.csv")
+    with open(mfpath, "w", encoding="utf-8", newline="") as fh:
+        fh.write("planta;" + hdr + "\n")
+        for p in range(6):
+            rec = vrows.get(227 + p)
+            ser = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+                   for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+            fh.write("%d;" % (p + 1) + ";".join(repr(round(_num(v) or 0, 6)) for v in ser) + "\n")
+    print("golden mol fator ->", mfpath)
+
+    drepath = os.path.join(gdir, "dre.csv")
+    with open(drepath, "w", encoding="utf-8", newline="") as fh:
+        fh.write("linha;" + hdr + "\n")
+        for key in DRE_ROWS:
+            fh.write("%s;" % key + ";".join(repr(round(x or 0, 4)) for x in dre[key]) + "\n")
+    print("golden dre ->", drepath)
 
 
 if __name__ == "__main__":
