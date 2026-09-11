@@ -143,7 +143,7 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 /* ---- catálogo de abas (espelha a planilha). região=true => tem sub-abas ---- */
 const ABAS = [
   {grp:"Modelagem", items:[
-    {id:"resumo",   nome:"Resumo (EBITDA)", regiao:true,  fase:"E"},
+    {id:"resumo",   nome:"Resumo (EBITDA)", regiao:true,  fase:null},
     {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
     {id:"variavel", nome:"Variável",        regiao:true,  fase:null},
     {id:"opex",     nome:"OPEX",            regiao:true,  fase:null},
@@ -256,12 +256,15 @@ function parseWorkbook(buf){
   // CustoTotal: CUSTO TOTAL consolidado (realizado actual + projeção)
   const gct = grid("CustoTotal"); let custoTotalSerie=null;
   if(gct && gct.length>1) custoTotalSerie = gct[1].slice(1);
+  // DRE: linhas-chave da demonstração de resultado consolidada
+  const gdr = grid("DRE"); const dre={};
+  for(let i=1;i<gdr.length;i++){ const r=gdr[i]; if(!r||r[0]==null) continue; dre[r[0]]=r.slice(1); }
 
   const monthsOrd = meses.map(m=>ord(m.ym));
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, molecula, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie,
+          preco, idx, revHist, molecula, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           monthsOrd, cutoffIdx, diasMes};
 }
 
@@ -337,6 +340,9 @@ function render(){
   if(aba.id==="clientes"){
     m.innerHTML = html + renderClientes();
     return;
+  }
+  if(aba.id==="resumo"){
+    const r=renderResumo(); m.innerHTML=html+r.html; wireSubtabs(); if(r.draw) r.draw(); return;
   }
   if(aba.id==="opex"){
     const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); drawOpex(r.s); return;
@@ -416,7 +422,7 @@ function drawMacro(){
   });
 }
 function baseLineOpts(){
-  return {responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+  return {responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
     plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
       tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y,2)}}},
     scales:{x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
@@ -793,6 +799,81 @@ function reverterCli(id){
   state.cliMsg="revertido"; render();
 }
 
+/* --------------------------------------------------- aba Resumo / EBITDA (E) */
+function dreYear(key){ return anoSum(DB.dre[key]||[]); }
+function renderResumo(){
+  const reg=state.regiao, cut=DB.cutoffIdx;
+  let h=subtabsHTML();
+  if(reg!==0){
+    // DRE consolidada só existe consolidada; por região mostramos contribuição operacional (proxy)
+    const rev=revAgg(reg,"GNL").map((v,i)=>v+revAgg(reg,"GNC")[i]), ct=custoTotal(reg);
+    const contrib=rev.map((v,i)=>v-ct[i]);
+    const yr=anoSum(rev), yc=anoSum(ct), yk=anoSum(contrib), ks=Object.keys(yr).sort();
+    h+=`<div class="pglead"><b>Contribuição operacional (proxy)</b> de ${regName(reg)} = Receita GNL+GNC − custo total. A DRE/EBITDA completa é consolidada (aba Consolidado).<span class="tag">Fase E</span></div>`;
+    h+='<div class="mkpis">';
+    h+=kpi("Receita 2030 (R$ MM)", fmt((yr["2030"]?.v||0)/1e6,1), "GNL+GNC");
+    h+=kpi("Custo total 2030 (R$ MM)", fmt((yc["2030"]?.v||0)/1e6,1), "");
+    h+=kpi("Contribuição 2030 (R$ MM)", fmt((yk["2030"]?.v||0)/1e6,1), "receita − custo");
+    h+='</div>';
+    h+='<div class="card"><h4>Contribuição operacional — '+regName(reg)+' (R$ MM/ano)</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
+    return {html:h, draw:()=>drawContrib(ks,yr,yc,yk)};
+  }
+  // Consolidado: DRE do modelo
+  const rl=dreYear("receita_liquida"), rb=dreYear("receita_bruta"), cu=dreYear("custos"),
+        ro=dreYear("resultado_operacional"), er=dreYear("ebitda_recorrente"), eb=dreYear("ebitda"),
+        dp=dreYear("depreciacao"), eG=dreYear("ebit"), ll=dreYear("lucro_liquido");
+  const ks=Object.keys(rl).sort();
+  const mg=y=> (rl[y]?.v? (eb[y]?.v||0)/rl[y].v : 0);
+  const firstPos = ks.find(y=>(eb[y]?.v||0)>0);
+  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → Lucro Líquido (do modelo). EBITDA negativo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
+  h2+='<div class="mkpis">';
+  h2+=kpi("Receita Líq. 2030 (R$ MM)", fmt((rl["2030"]?.v||0)/1e6,0), "");
+  h2+=kpi("EBITDA 2030 (R$ MM)", fmt((eb["2030"]?.v||0)/1e6,0), "margem "+fmt(mg("2030")*100,1)+"%");
+  h2+=kpi("EBITDA "+ks[ks.length-1]+" (R$ MM)", fmt((eb[ks[ks.length-1]]?.v||0)/1e6,0), "margem "+fmt(mg(ks[ks.length-1])*100,1)+"%");
+  h2+=kpi("1º ano EBITDA > 0", firstPos||"—", "recorrente");
+  h2+='</div>';
+  h2+='<div class="card"><h4>Receita Líquida × EBITDA × Margem — Consolidado</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
+  // DRE anual
+  const rows=[["Receita Bruta",rb],["Receita Líquida",rl],["Custos",cu],["Resultado Operacional",ro],
+              ["EBITDA Recorrente",er],["EBITDA",eb],["Depreciação",dp],["EBIT",eG],["Lucro Líquido",ll]];
+  h2+='<h3 class="msub">DRE por ano (R$ MM)</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Linha</th>';
+  for(const y of ks) h2+=`<th class="${rl[y].proj?'o':''}">${y}</th>`; h2+='</tr></thead><tbody>';
+  for(const [lbl,yr] of rows){ const tot=/EBITDA$|Líquido$/.test(lbl);
+    h2+=`<tr class="${tot?'tot':''}"><td class="l">${lbl}</td>`;
+    for(const y of ks) h2+=`<td class="${yr[y]?.proj?'o':''}">${fmt((yr[y]?.v||0)/1e6,1)}</td>`; h2+='</tr>'; }
+  h2+='<tr><td class="l">Margem EBITDA</td>';
+  for(const y of ks) h2+=`<td class="${rl[y].proj?'o':''}">${fmt(mg(y)*100,1)}%</td>`; h2+='</tr>';
+  h2+='</tbody></table></div>';
+  return {html:h+h2, draw:()=>drawResumo(ks,rl,eb,mg)};
+}
+function drawResumo(ks,rl,eb,mg){
+  // margem só a partir de receita relevante (>10 MM/ano); evita distorção do ramp-up
+  const marg=ks.map(y=> (rl[y]?.v||0)/1e6>10 ? mg(y)*100 : null);
+  charts.resumo=new Chart($("#cResumo"),{type:"bar",
+    data:{labels:ks,datasets:[
+      {type:"bar",label:"Receita Líquida (R$ MM)",data:ks.map(y=>(rl[y]?.v||0)/1e6),backgroundColor:PAL[4]+"cc",yAxisID:"y",order:3},
+      {type:"bar",label:"EBITDA (R$ MM)",data:ks.map(y=>(eb[y]?.v||0)/1e6),backgroundColor:PAL[2],yAxisID:"y",order:2},
+      {type:"line",label:"Margem EBITDA (%)",data:marg,borderColor:PAL[1],borderWidth:2,pointRadius:2,spanGaps:true,yAxisID:"y1",order:1,tension:.2},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": "+(c.dataset.yAxisID==="y1"?(c.parsed.y==null?"—":fmt(c.parsed.y,1)+"%"):"R$ "+fmt(c.parsed.y,0)+" MM")}}},
+      scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},
+              y:{position:"left",title:{display:true,text:"R$ MM/ano"},grid:{color:"#EEF1F5"}},
+              y1:{position:"right",min:-20,max:40,grid:{drawOnChartArea:false},title:{display:true,text:"Margem %"}}}}});
+}
+function drawContrib(ks,yr,yc,yk){
+  charts.resumo=new Chart($("#cResumo"),{type:"bar",
+    data:{labels:ks,datasets:[
+      {label:"Receita GNL+GNC (R$ MM)",data:ks.map(y=>(yr[y]?.v||0)/1e6),backgroundColor:PAL[4]+"cc"},
+      {label:"Custo total (R$ MM)",data:ks.map(y=>-(yc[y]?.v||0)/1e6),backgroundColor:PAL[1]+"cc"},
+      {type:"line",label:"Contribuição (R$ MM)",data:ks.map(y=>(yk[y]?.v||0)/1e6),borderColor:PAL[2],borderWidth:2,pointRadius:2,tension:.2},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},y:{title:{display:true,text:"R$ MM/ano"},grid:{color:"#EEF1F5"}}}}});
+}
+
 /* ------------------------------------------------ aba OPEX (custos, D-2) --- */
 const COST_ORDER = ["gas","liquefacao","compressao","terminal","sga","distribuicao","regas"];
 const COST_LABEL = Object.assign({gas:"Custo do gás"}, OPEX_LABEL);
@@ -830,7 +911,7 @@ function drawOpex(s){
   const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:s[c].map(v=>v/1e6),
     backgroundColor:COST_PAL[c], borderColor:COST_PAL[c], borderWidth:0, stack:"c"}));
   charts.opex=new Chart($("#cOpex"),{type:"bar", data:{labels,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},

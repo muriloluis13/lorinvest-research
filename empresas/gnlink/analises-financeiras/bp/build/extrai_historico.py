@@ -282,6 +282,34 @@ def extract_custo_total(orows):
             for k in range(N_MONTHS)]
 
 
+# ---- Fase E: DRE / EBITDA (Demonstrativo Financeiro Mensal, consolidado) ------
+DRE_ROWS = {
+    "receita_bruta": 33, "receita_liquida": 37, "receita_gnl": 40, "receita_gnc": 41,
+    "custos": 51, "resultado_operacional": 85, "ebitda_recorrente": 91, "ebitda": 98,
+    "depreciacao": 103, "ebit": 105, "resultado_financeiro": 108, "lucro_liquido": 118,
+}
+
+
+def read_dfm_rows(wb):
+    """UM passo pela aba Demonstrativo Financeiro Mensal -> {rownum: tuple} (DRE)."""
+    ws = wb["Demonstrativo Financeiro Mensal"]
+    keep = {}
+    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=125, values_only=True), start=1):
+        if 30 <= i <= 120:
+            keep[i] = row
+    return keep
+
+
+def extract_dre(drows):
+    """Linhas-chave da DRE consolidada (R$/mês) x 192 meses."""
+    out = {}
+    for key, r in DRE_ROWS.items():
+        rec = drows.get(r)
+        out[key] = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+                    for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+    return out
+
+
 # ---- Fase C: Receita R$ = preço indexado × volume × dias ----------------------
 IDX_ROWS = {"ipca_m": 10, "ipca12": 11, "brent": 13, "hh": 15, "dolar": 17}  # Variável
 PRECO_BLOCK = (432, 584)   # Variável "Fator de Reajuste": D=precoBase E=dataBase F=indicador G=residual
@@ -497,6 +525,9 @@ def main():
     gas_adj = extract_gas_adj(orows)
     opex_cat = extract_opex_cat(orows)
     custo_total = extract_custo_total(orows)
+
+    # ---- DRE / EBITDA (Fase E) ----
+    dre = extract_dre(read_dfm_rows(wb))
     print("Clientes: %d | overrides: %d | preços: %d | molécula plantas: %s | preço Brent: %d | gás plantas: %s" % (
         len(clientes), len(overrides), len(preco), sorted(molecula), len(preco_brent), sorted(gas_golden)))
     wb.close()
@@ -614,6 +645,12 @@ def main():
         ws_ct = out.create_sheet("CustoTotal")
         ws_ct.append(["linha"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
         ws_ct.append(["custo_total"] + custo_total)
+
+    # aba DRE: linhas-chave da demonstração de resultado consolidada (Fase E)
+    ws_dre = out.create_sheet("DRE")
+    ws_dre.append(["linha"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for key in DRE_ROWS:
+        ws_dre.append([key] + dre[key])
 
     out.save(OUT)
     print("OK ->", OUT)
