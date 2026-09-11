@@ -235,14 +235,51 @@ def read_variavel_rows(wb):
 
 
 def read_opex_rows(wb):
-    """UM passo pela aba OPEX -> {rownum: tuple}. Captura molécula (380..385),
-       custo do gás (388..394) e reversões (396..412)."""
+    """UM passo pela aba OPEX -> {rownum: tuple}. Captura molécula/gás/ajustes e os
+       subtotais por categoria/planta (liquefação, compressão, terminal, SG&A,
+       distribuição, regás) + CUSTO TOTAL."""
     ws = wb["OPEX"]
     keep = {}
-    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=412, values_only=True), start=1):
-        if 380 <= i <= 412:
+    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=2479, values_only=True), start=1):
+        if (380 <= i <= 412) or (407 <= i <= 412) or (560 <= i <= 574) \
+           or (579 <= i <= 584) or (718 <= i <= 723) or (1976 <= i <= 1981) or i == 2478:
             keep[i] = row
     return keep
+
+
+# Subtotais de OpEx por categoria -> {planta: linha OPEX}
+OPEX_CAT = {
+    "liquefacao":   {1: 407, 2: 408, 3: 409, 4: 410, 5: 411, 6: 412},
+    "compressao":   {1: 560, 2: 561, 3: 562, 4: 563, 5: 564, 6: 565},
+    "terminal":     {1: 569, 2: 570, 3: 571, 4: 572, 5: 573, 6: 574},
+    "sga":          {1: 579, 2: 580, 3: 581, 4: 582, 5: 583, 6: 584},
+    "distribuicao": {1: 718, 2: 719, 3: 720, 4: 721, 5: 722, 6: 723},
+    "regas":        {1: 1976, 2: 1977, 3: 1978, 4: 1979, 5: 1980, 6: 1981},
+}
+
+
+def extract_opex_cat(orows):
+    """{categoria: {planta: [192]}} — subtotais de OpEx (ex-gás) por planta."""
+    out = {}
+    for cat, m in OPEX_CAT.items():
+        d = {}
+        for p, r in m.items():
+            rec = orows.get(r)
+            if not rec:
+                continue
+            d[p] = [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+                    for k in range(N_MONTHS)]
+        out[cat] = d
+    return out
+
+
+def extract_custo_total(orows):
+    """CUSTO TOTAL (OPEX 2478) — gás + todas as categorias — para validação."""
+    rec = orows.get(2478)
+    if not rec:
+        return None
+    return [rec[COL_FIRST - 1 + k] if COL_FIRST - 1 + k < len(rec) else None
+            for k in range(N_MONTHS)]
 
 
 # ---- Fase C: Receita R$ = preço indexado × volume × dias ----------------------
@@ -458,6 +495,8 @@ def main():
     preco_brent = extract_preco_brent(vrows, preco)
     gas_golden = extract_gas_golden(orows)
     gas_adj = extract_gas_adj(orows)
+    opex_cat = extract_opex_cat(orows)
+    custo_total = extract_custo_total(orows)
     print("Clientes: %d | overrides: %d | preços: %d | molécula plantas: %s | preço Brent: %d | gás plantas: %s" % (
         len(clientes), len(overrides), len(preco), sorted(molecula), len(preco_brent), sorted(gas_golden)))
     wb.close()
@@ -563,6 +602,19 @@ def main():
     for p in sorted(gas_adj):
         ws_ga.append([p] + gas_adj[p])
 
+    # aba Opex: subtotais de OpEx (ex-gás) por categoria/planta — realizado + projeção
+    ws_ox = out.create_sheet("Opex")
+    ws_ox.append(["categoria", "planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for cat in OPEX_CAT:
+        for p in sorted(opex_cat.get(cat, {})):
+            ws_ox.append([cat, p] + opex_cat[cat][p])
+
+    # aba CustoTotal: CUSTO TOTAL consolidado do modelo (realizado actual + projeção)
+    if custo_total:
+        ws_ct = out.create_sheet("CustoTotal")
+        ws_ct.append(["linha"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+        ws_ct.append(["custo_total"] + custo_total)
+
     out.save(OUT)
     print("OK ->", OUT)
 
@@ -592,6 +644,13 @@ def main():
             arr = gas_golden[p]
             fh.write("%d;" % p + ";".join(repr(round(x or 0, 4)) for x in arr) + "\n")
     print("golden gás ->", gaspath)
+
+    if custo_total:
+        ctpath = os.path.join(gdir, "custo_total.csv")
+        with open(ctpath, "w", encoding="utf-8", newline="") as fh:
+            fh.write("linha;" + ";".join("%04d-%02d" % (y, mo) for (y, mo) in ym) + "\n")
+            fh.write("custo_total;" + ";".join(repr(round(x or 0, 4)) for x in custo_total) + "\n")
+        print("golden custo total ->", ctpath)
 
 
 if __name__ == "__main__":
