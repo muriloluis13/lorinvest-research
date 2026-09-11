@@ -83,8 +83,36 @@ Por planta = **Aluguel de equipamento + Montagem + Assistência técnica** (Insu
 
 ## Logística / Distribuição (OPEX 716–1370) — por cliente
 
-_(mapa em consolidação — frete fixo/variável por cliente × distância(km) × volume; aluguel de
-equipamento e cavalo mecânico. Será detalhado ao portar.)_
+Por planta = **Frete fixo + Frete variável + Aluguel de equipamento + Cavalo mecânico +
+Ociosos/preparação + Sinergia**. Base de tudo: o **nº de carretas** que o cliente exige,
+função de volume, distância e tipo.
+
+- **Nº de carretas (cliente)** = `(volume/dia ÷ capacidade) × (distância_ida×2/450 + descarga/24) × op`.
+  Capacidade 24.000 (ISO GNL) / 6.500 (GNC) / 34.000 (Carreta GNL); 450 km/dia; descarga 9h (GNL)/3h (GNC).
+  Duas versões: **RAW** (fracionário) e **arredondada** (frota da planta/tipo arredondada p/ cima e re-rateada).
+- **Frete fixo (cliente)** = `custo_fixo_por_viagem × nº carretas ARREDONDADO × IPCA`
+  (42.582 ISO GNL / 60.839 GNC / 71.572 Carreta GNL).
+- **Frete variável (cliente)** = `R$/km × km_rodados_no_mês × IPCA`; `km_mês = (volume/capacidade) × dist×2 × 30`
+  (**30 dias fixos**, não os dias do mês). R$/km = 4,90 / 5,78 / 4,55.
+- **Aluguel de equipamento (cliente)** = `aluguel_ISO(13.000/mês) × nº carretas RAW × IPCA` (GNL; GNC = 0).
+- **Cavalo mecânico (planta)** = `(fixo + variável)[planta] × op × IPCA` (ambos R$/mês fixos; PR 39.000+11.600).
+- **Ociosos/preparação** (global, rateado por planta pela frota): custo fixo de ISOs ociosos (22.000/ISO)
+  + preparação de ISOs novos (30.000/ISO), até 2028.
+- **Sinergia** (planta) = **crédito** = `−redução%[planta] × frete_fixo_da_planta`, **ativo só até dez/2027**
+  (PR −35% / BA −15% / RN −10%).
+
+## Custo da molécula — motor recursivo (Variável 184–268)
+
+`custo_molécula[planta][k] = custo-base × fator_de_reajuste[k] × (1 + desconto)`, onde o **fator é recursivo**
+(carrega o mês anterior) e só muda no **mês de reajuste** (`MOD(mês − mês-base, ocorrência)=0`; ocorrência =
+12 anual / 3 trimestral / 1 mensal):
+- **IPCA**: no reajuste, `fator = fator_anterior × (1 + IPCA 12m)` (PR).
+- **Brent** (BA/RN/PE): no reajuste, `fator = fator_anterior × (Brent_atual/Brent_da-data-base) × (Dólar_atual/Dólar_base)`,
+  com **piso/teto** sobre o Brent (RN: piso 70 / teto 120 US$/bbl).
+- **Dólar** (Argentina): motor próprio (dólar corrente/base × CPI de agosto).
+- **IPCA+Brent composto** (Projeto Sal): parcela fixa reajustada por IPCA + parcela Brent×Dólar.
+Divisor de conversão Brent→R$/m³ = 26,8081. O preço de venda **Brent** dos clientes acopla este motor
+(Bahia usa a molécula da planta; PR/RN/SAL recomputam o termo Brent do trimestre).
 
 ## DRE / EBITDA
 
