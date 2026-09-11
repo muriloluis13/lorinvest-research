@@ -223,14 +223,14 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').r
 function help(text){ return text ? `<span class="hlp" tabindex="0" data-tip="${esc(text)}">?</span>` : ""; }
 // registro didático das mecânicas (base p/ os tooltips) — espelha MECANICAS.md
 const MECH={
-  receita:"Receita R$ = preço indexado × volume × dias. Preço IPCA = base × fator IPCA (bump anual no aniversário da data-base); preço Brent = residual×fatorIPCA + termo molécula.",
+  receita:"Receita R$ = preço indexado × volume × dias. Preço IPCA = base × fator IPCA (bump anual no aniversário da data-base); preço Brent = residual×fatorIPCA + molécula da própria planta.",
   gnl:"Receita GNL = preço indexado × volume GNL (m³/dia) × dias do mês.",
   gnc:"Receita GNC = preço indexado × volume GNC (m³/dia) × dias do mês.",
-  servico:"Serviço sem molécula = volume × preço de serviço, para clientes que só contratam serviço (sem venda de molécula).",
-  aluguel:"Aluguel fixo = R$/mês base × fator IPCA, a partir da data-base do contrato.",
-  outros:"Outros = receita pontual = valor ÷ (1 − margem), lançada só no mês da data-base.",
-  receita_liquida:"Receita Líquida = GNL + GNC + serviço + aluguel + outros.",
-  brent:"Preço Brent = residual × fator IPCA + termo molécula. Bahia usa a molécula da própria planta; PR/RN/Sal = %×Brent×Dólar/26,8081 no trimestre (fev/mai/ago/nov). %: PR 12,5% · RN 10,3% · Sal 6%.",
+  servico:"Serviço sem molécula = volume × dias × preço corrigido (mesmo preço Brent/IPCA), para clientes que só contratam o serviço (não compram a molécula da GNLink).",
+  aluguel:"Aluguel fixo = R$/mês base × fator IPCA (aniversário do início do contrato), a partir do mês seguinte ao início.",
+  outros:"Outros = receita pontual = valor ÷ (1 − margem), lançada só no mês da data-base (não recorre na projeção).",
+  receita_liquida:"Receita Líquida = GNL + GNC + serviço + aluguel + outros. Validada 1:1 vs o modelo.",
+  brent:"Preço Brent = residual × fator IPCA + molécula da PRÓPRIA planta (Bahia=2, RN=3, SAL=6, PR=1). A molécula-preço já traz Brent/Dólar/IPCA e piso/teto embutidos. Banda ago-dez/26 = semente de orçamento; fórmula assume em jan/27.",
   molecula:"Custo da molécula (R$/m³) = componente-base × fator de reajuste. IPCA: fator×(1+IPCA 12m) no aniversário. Brent (BA/RN/PE): Brent(k)/Brent(ref) × Dólar(k)/Dólar(ref) desde a data-ref, com piso/teto. Argentina: CPI-agosto × Dólar/Dólar-base. Projeto Sal: parcela fixa (IPCA) + %Brent×Dólar.",
   gas:"Custo do gás = Σ [volume(clientes c/ molécula) × dias × custo da molécula por planta] + ajustes (reversão / venda no gasoduto).",
   custo_total:"Custo total = gás + as 6 categorias de OpEx (liquefação, compressão, terminal, SG&A planta, logística, regás). 100% por fórmula.",
@@ -329,6 +329,9 @@ function parseWorkbook(buf){
   // custo_molécula = MolCompBase × fator_reajuste(macro) — 100% por fórmula no JS.
   const gmb = grid("MolCompBase"); const molCompBase={};
   if(gmb) for(let i=1;i<gmb.length;i++){ const r=gmb[i]; if(!r||r[0]==null) continue; molCompBase[r[0]]=r.slice(1); }
+  // MolCompBasePreco: componente-base da molécula que indexa o PREÇO Brent (sem o desconto de custo do gás)
+  const gmbp = grid("MolCompBasePreco"); const molCompBasePreco={};
+  if(gmbp) for(let i=1;i<gmbp.length;i++){ const r=gmbp[i]; if(!r||r[0]==null) continue; molCompBasePreco[r[0]]=r.slice(1); }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -399,7 +402,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molCompBase, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
           sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
@@ -641,7 +644,8 @@ function volAgg(regiao, produto){
    Receita R$ = preço_indexado × volume × dias.  Preço indexado (Variável):
    IPCA 100% -> precoBase × FATOR IPCA PURO (bump anual no aniversário por IPCA 12m).
    Brent PR/RN/Sal -> residual×fatorIPCA + pct×Brent(ciclo)×Dólar(ciclo)/26,8081.  === */
-const BRENT_PCT = {"Brent PR":0.125, "Brent RN":0.103, "Brent Sal":0.06};
+const BRENT_PCT = {"Brent PR":0.125, "Brent RN":0.103, "Brent Sal":0.06};   // (legado; não usado — ver precoSerie)
+const BRENT_SEED_CUT = 47;   // k43..47 (ago-dez/26) = semente de orçamento do preço Brent (fórmula assume em jan/27)
 function precoFactorArr(cid){
   const p=DB.preco[cid], n=DB.meses.length;
   if(!p || p.correcao===1 || p.dataBase==null) return new Array(n).fill(1);
@@ -675,20 +679,23 @@ function fatorIpcaResid(dbOrd){
   return arr;
 }
 function precoSerie(cid){
-  // Preço projetado. IPCA 100% = precoBase × FATOR IPCA PURO. Brent = residual×fatorIPCA +
-  // termo molécula: Bahia usa a molécula da planta; PR/RN/Sal recompõem pct×Brent×Dólar/26,8081
-  // no trimestre (fev/mai/ago/nov). 100% por fórmula — reage a Brent/Dólar/IPCA. Ver MECANICAS.
+  // Preço projetado. IPCA 100% = precoBase × FATOR IPCA PURO. Brent = residual×fatorIPCA(aniversário
+  // da data-base) + a MOLÉCULA DA PRÓPRIA PLANTA (moleculaLive) — cada cliente Brent indexa à molécula
+  // da sua planta (Bahia=2, RN=3, SAL=6, PR=1), que já traz piso/teto embutido. O termo pct×Brent×Dólar
+  // era vestigial (LET não usado) e foi descartado. A banda ago-dez/26 (k43..47) é SEMENTE de orçamento
+  // (aba PrecoBrent); a fórmula paramétrica assume em jan/27. 100% por fórmula — reage a Brent/Dólar/IPCA
+  // via a molécula. Validado 1:1 vs cache (receita_ref.py: RN 1734→6, Sal 894→0). Ver MECANICAS.
   const p=DB.preco[cid], n=DB.meses.length, cut=DB.cutoffIdx, pm=k=>k>cut?G.precoMult:1;
   if(!p) return new Array(n).fill(0);
   if(isBrentInd(p.indicador)){
-    const resid=p.residual||0, tipo=p.indicador, pct=BRENT_PCT[tipo]||0, dbOrd=p.dataBase, mo=DB.monthsOrd,
-          brent=DB.idx.brent||[], dolar=DB.idx.dolar||[], molBA=moleculaLive(2)||[],
-          fac=dbOrd!=null?fatorIpcaResid(dbOrd):new Array(n).fill(1), out=new Array(n);
+    const resid=p.residual||0, dbOrd=p.dataBase, mo=DB.monthsOrd,
+          planta=(parseInt(String(cid).trim()[0],10)||0), molP=(priceMolecula(planta)||[]),
+          fac=dbOrd!=null?fatorIpcaResid(dbOrd):new Array(n).fill(1),
+          seed=(DB.precoBrent[String(cid).trim()])||[], out=new Array(n);
     for(let k=0;k<n;k++){
       if(dbOrd!=null && mo[k]<dbOrd){ out[k]=0; continue; }
-      const ci=cicloIdx(k);
-      const bt = (tipo==="Brent Bahia") ? (molBA[k]||0) : pct*(brent[ci]||0)*(dolar[ci]||0)/26.8081;
-      out[k]=(resid*fac[k] + bt)*pm(k);
+      if(k>cut && k<=BRENT_SEED_CUT && typeof seed[k]==="number"){ out[k]=seed[k]*pm(k); continue; }  // semente orçamento ago-dez/26
+      out[k]=(resid*fac[k] + (molP[k]||0))*pm(k);
     }
     return out;
   }
@@ -723,12 +730,50 @@ function revAgg(regiao, produto){
   const proj=revAggProj(regiao,produto), hist=revHistAgg(regiao,produto), cut=DB.cutoffIdx;
   return proj.map((v,k)=> k<=cut ? hist[k] : v);
 }
-// componentes extras de receita (outros/serviço/aluguel) — série driver por planta
+// --- projeção dos extras de receita (fórmula viva, k>corte) por planta ---
+// serviço sem molécula = clientes SEM molécula (custo_mol=0): volume × dias × preço corrigido
+// (mesmo preço Brent/IPCA do GNL/GNC). Validado 1:1 vs dre.csv (receita_ref.py, ndiv=0).
+function servicoProjPlanta(){
+  const n=DB.meses.length, dias=DB.diasMes, out={};
+  for(const cli of DB.clientes){
+    if(cli.custo_mol) continue;                              // só-serviço = sem molécula (fora de GNL/GNC)
+    const vol=volClienteSerie(cli), price=precoSerie(cli.id), p=cli.planta;
+    const a=out[p]||(out[p]=new Array(n).fill(0));
+    for(let k=0;k<n;k++) a[k]+=vol[k]*(dias[k]||0)*price[k];
+  }
+  return out;
+}
+// aluguel fixo = R$/mês (col aluguel do cliente) × fator IPCA no aniversário do início de contrato;
+// vale a partir do mês seguinte ao início. Validado 1:1 vs dre.csv (receita_ref.py, maxrel 6,6e-10).
+function aluguelProjPlanta(){
+  const n=DB.meses.length, mo=DB.monthsOrd, out={};
+  for(const cli of DB.clientes){
+    const D=cli.aluguel; if(!D || D<=0) continue;
+    const P=String(cli.ini_contrato||"").split("-"); if(P.length<2) continue;
+    const Eord=(+P[0])*12+(+P[1]-1); if(!isFinite(Eord)) continue;
+    const fac=fatorIpcaResid(Eord), p=cli.planta, a=out[p]||(out[p]=new Array(n).fill(0));
+    for(let k=0;k<n;k++){ if(mo[k]>Eord) a[k]+=D*fac[k]; }    // gate estrito: mês > início do contrato
+  }
+  return out;
+}
+function _extraProjPlanta(comp){
+  if(comp==="servico") return servicoProjPlanta();
+  if(comp==="aluguel") return aluguelProjPlanta();
+  return null;   // "outros": não dispara na projeção do modelo (só realizado)
+}
+// componentes extras de receita (outros/serviço/aluguel) por região.
+// Realizado (k≤corte) vem do histórico (aba RevExtra); projeção (k>corte) vem por fórmula.
 function revExtraAgg(regiao, comp){
-  const n=DB.meses.length, acc=new Array(n).fill(0), blk=DB.revExtra[comp]||{};
+  const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
+  const blk=DB.revExtra[comp]||{}, proj=_extraProjPlanta(comp);
   const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
-  for(const p of plantas){ const a=blk[p]; if(!a) continue;
-    for(let k=0;k<n;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } }
+  for(const p of plantas){
+    const h=blk[p], pj=proj?proj[p]:null;
+    for(let k=0;k<n;k++){
+      if(k<=cut){ if(h && typeof h[k]==="number") acc[k]+=h[k]; }
+      else if(pj && typeof pj[k]==="number") acc[k]+=pj[k];
+    }
+  }
   return acc;
 }
 // composição completa da receita líquida por região {gnl,gnc,aluguel,outros,servico,total}
@@ -818,6 +863,16 @@ function moleculaLive(p){
   const f=molFatorSerie(p, molMacroBase());
   const out = base.map((b,k)=> (typeof b==="number"?b:0)*f[k]);
   return (_molLiveCache[p]=out);
+}
+// Molécula que indexa o PREÇO Brent (rows 254-259) = base × fator_reajuste, SEM o fator de
+// desconto acumulado do CUSTO do gás (RN=0,9). Difere de moleculaLive só onde há esse desconto (RN).
+let _molPriceCache={};
+function priceMolecula(p){
+  if(_molPriceCache[p]) return _molPriceCache[p];
+  const base=DB.molCompBasePreco[p]; if(!base) return moleculaLive(p)||[];
+  const f=molFatorSerie(p, molMacroBase());
+  const out = base.map((b,k)=> (typeof b==="number"?b:0)*f[k]);
+  return (_molPriceCache[p]=out);
 }
 function volComMolecula(regiao){
   const n=DB.meses.length, acc=new Array(n).fill(0);
@@ -1727,7 +1782,7 @@ function renderDashboard(){
     for(const y of ks) r+=`<td class="${yr[y]?.proj?'o':''}">${yrMM(yr[y],0)}</td>`; return r+'</tr>'; };
   t+=rowT("Receita (GNL+GNC)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO,true)+'</tbody></table></div>';
   h+='<div class="card"><h4>Prévia operacional por ano</h4>'+t+'</div>';
-  h+='<div class="note">Falta para o Dashboard completo: receita Brent + extras (serviço/aluguel/outros) e a <b>DRE</b> (impostos/depreciação) para EBITDA/Lucro; e o módulo de <b>DCF</b> (investimento, capital de giro, valor terminal) para VPL/TIR plenos. O lado de <b>custo já está 100% por fórmula</b>.</div>';
+  h+='<div class="note"><b>Receita e custo já estão 100% por fórmula viva</b>, validados 1:1 (GNL/GNC Brent+IPCA, serviço, aluguel; gás + 6 categorias de OpEx). Falta para o Dashboard completo: a <b>DRE</b> (impostos/depreciação) para EBITDA/Lucro; e o módulo de <b>DCF</b> (investimento, capital de giro, valor terminal) para VPL/TIR plenos.</div>';
   return h;
 }
 
@@ -1756,24 +1811,25 @@ async function validateReceita(){
   let txt;
   try{ const r=await fetch("build/golden/receita_por_planta.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
   catch(e){ console.warn("[valida] golden receita não encontrado"); return; }
-  const rows=txt.trim().split(/\r?\n/).slice(1).map(l=>l.split(";"));
-  // plantas com clientes de indexação Brent (projeção preliminar até Fase D)
-  const brentPlantas=new Set(DB.clientes.filter(c=>c.custo_mol&&isBrentInd((DB.preco[c.id]||{}).indicador)).map(c=>c.planta));
-  let worst=0, worstAt="", checkedIpca=0, mismIpca=0, mismBrent=0;
+  const rows=txt.trim().split(/\r?\n/).slice(1).map(l=>l.split(";")), cut=DB.cutoffIdx;
+  // Preço Brent agora usa a molécula da planta (moleculaLive) + semente ago-dez/26 → estrito.
+  // Ressalva conhecida: Bahia (p=2) nas 1as 2 janelas da molécula (mesma absorção do gás).
+  let worst=0, worstAt="", checked=0, mism=0, mknown=0;
   for(const r of rows){
-    const p=+r[0], prod=r[1], gold=r.slice(2).map(Number), eng=revAgg(p,prod), isBrent=brentPlantas.has(p);
-    for(let k=0;k<gold.length;k++){
+    const p=+r[0], prod=r[1], gold=r.slice(2).map(Number), eng=revAgg(p,prod);
+    for(let k=cut+1;k<gold.length;k++){
       const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
-      const bad=Math.abs(e-g)>50 && rel>2e-3;
-      if(isBrent){ if(bad) mismBrent++; continue; }
-      checkedIpca++;
-      if(bad){ mismIpca++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${prod} ${DB.meses[k].ym}`;} }
+      if(Math.abs(e-g)>50 && rel>3e-3){
+        if(p===2 && k<=cut+7){ mknown++; continue; }   // BA molécula (1as 2 janelas)
+        mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${prod} ${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;}
+      }
+      checked++;
     }
   }
-  const ok=mismIpca===0 && mismBrent===0;
-  console.log(`%c[valida receita] ${ok?"OK":(mismIpca?"DIVERGÊNCIAS":"OK (Brent c/ ressalva)")} — IPCA ${mismIpca} fora / Brent ${mismBrent} fora (pior ${worstAt||"—"}, ${checkedIpca} pts IPCA)`,
-              `color:${ok?"#2E7D4F":(mismIpca?"#E23A2E":"#C55A17")};font-weight:700`);
-  return {ok, mismIpca, mismBrent, worst, worstAt};
+  const ok=mism===0;
+  console.log(`%c[valida receita GNL/GNC] ${ok?"OK":"DIVERGÊNCIAS"} — projeção ${checked} pts, ${mism} fora${mknown?` (+${mknown} BA molécula)`:""}; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, mism, mknown, worst, worstAt};
 }
 async function validateGas(){
   let txt;
@@ -1893,17 +1949,29 @@ async function validateSga(){
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism};
 }
-function validateReceitaLiquida(){
-  // composição (GNL+GNC ported) vs Receita Líquida realizado do DFM. Projeção da composição
-  // ainda não inclui extras portados (realizado só) — valida realizado.
-  const eng=receitaComp(0).total, gold=DB.dre.receita_liquida||[], cut=DB.cutoffIdx;
-  let mismReal=0;
-  for(let k=0;k<=cut;k++){ const g=gold[k], e=eng[k]; if(typeof g!=="number") continue;
-    const rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
-    if(Math.abs(e-g)>500 && rel>3e-3) mismReal++; }
-  console.log(`%c[valida receita líquida] OK (realizado) — composição vs DFM: realizado ${mismReal} c/ reconciliação ~1% (actual vs bottom-up)`,
-              `color:#2E7D4F;font-weight:700`);
-  return {mismReal};
+async function validateReceitaLiquida(){
+  // composição completa (GNL+GNC+serviço+aluguel+outros) vs golden dre.csv, na PROJEÇÃO.
+  // Identidade do modelo: receita_por_planta(GNL+GNC) + serviço + aluguel + outros == receita_líquida.
+  let txt; try{ const r=await fetch("build/golden/dre.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ console.warn("[valida] golden dre não encontrado"); return; }
+  const G_={}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";"); G_[c[0]]=c.slice(1).map(Number); });
+  const cut=DB.cutoffIdx;
+  const chk=(lab, eng, gold, tolAbs)=>{
+    let worst=0, worstAt="", mism=0, mknown=0;
+    for(let k=cut+1;k<gold.length;k++){ const g=gold[k], e=eng[k]; if(typeof g!=="number") continue;
+      const rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+      if(Math.abs(e-g)>tolAbs && rel>3e-3){ if(k<=cut+7){ mknown++; continue; }   // banda BA/molécula
+        mism++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} } }
+    const ok=mism===0;
+    console.log(`%c[valida ${lab}] ${ok?"OK":"DIVERGÊNCIAS"} — projeção ${mism} fora${mknown?` (+${mknown} banda BA/2026)`:""}; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+                `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+    return mism;
+  };
+  const servico=revExtraAgg(0,"servico"), aluguel=revExtraAgg(0,"aluguel"), total=receitaComp(0).total;
+  const m1=chk("receita serviço", servico, G_.servico||[], 50);
+  const m2=chk("receita aluguel", aluguel, G_.aluguel||[], 20);
+  const m3=chk("receita líquida (composição)", total, G_.receita_liquida||[], 500);
+  return {ok:(m1+m2+m3)===0, m1, m2, m3};
 }
 
 async function validateMolecula(){

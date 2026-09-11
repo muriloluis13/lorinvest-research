@@ -605,7 +605,7 @@ def extract_molecula_prem(vrows, wb):
     def row(r):
         return vrows.get(r)
     cfg = {"custoBase": [], "indicador": [], "dataBaseOrd": [], "ocorrencia": [],
-           "refDateOrd": [], "pisoSer": [], "tetoSer": [], "compBaseSer": []}
+           "refDateOrd": [], "pisoSer": [], "tetoSer": [], "compBaseSer": [], "compBasePrecoSer": []}
 
     def mrow(r):   # série mensal (192) da linha r, cache do Excel
         rec = row(r)
@@ -618,11 +618,14 @@ def extract_molecula_prem(vrows, wb):
         base = mrow(209 + p)     # 209-214: custo-base com resets
         desc = mrow(245 + p)     # 245-250: desconto série (SUMPRODUCT do cronograma)
         dfac = mrow(1071 + p)    # 1071-1076: fator de desconto acumulado (RN=0,9)
-        comp = []
+        comp = []       # base do CUSTO (gás): inclui o fator de desconto acumulado (RN=0,9)
+        compP = []      # base do PREÇO (molécula que indexa o preço Brent): SEM o dfac1071
         for k in range(N_MONTHS):
             b = _num(base[k]); dv = _num(desc[k]); df = _num(dfac[k])
             comp.append(None if b is None else b * (1 + (dv or 0)) * (df if df is not None else 1))
+            compP.append(None if b is None else b * (1 + (dv or 0)))
         cfg["compBaseSer"].append(comp)
+        cfg["compBasePrecoSer"].append(compP)
         c = row(184 + p)    # config: C custoBase, D indicador, E dataBase, G ocorrência
         cfg["custoBase"].append(_num(c[2]) if c else None)
         cfg["indicador"].append((str(c[3]).strip() if c and c[3] else None))
@@ -980,11 +983,24 @@ def main():
     for p in range(6):
         ws_mb.append([p + 1] + mol_prem["compBaseSer"][p])
 
-    # aba PrecoBrent: preço corrigido por cliente Brent — SÓ REALIZADO (projeção portada depois)
+    # aba MolCompBasePreco: componente-base da molécula que indexa o PREÇO Brent (rows 254-259).
+    # = custo-base(209) × (1+desconto,245), SEM o fator de desconto acumulado (dfac 1071) que só
+    # existe no CUSTO do gás (RN=0,9). preço_molécula[p] = MolCompBasePreco[p] × fator_reajuste(macro).
+    ws_mbp = out.create_sheet("MolCompBasePreco")
+    ws_mbp.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(6):
+        ws_mbp.append([p + 1] + mol_prem["compBasePrecoSer"][p])
+
+    # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
+    # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula
+    # legada) no Excel e não é reproduzível pela regra paramétrica; a fórmula viva (molécula da
+    # planta) assume em jan/27 (k48). Mesma lógica das sementes de SG&A/Regás.
+    BRENT_SEED_CUT = 48   # mantém k0..47 (realizado + 5 meses de orçamento); projeção k>=48 é fórmula
     ws_pb = out.create_sheet("PrecoBrent")
     ws_pb.append(["id"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for cid in sorted(preco_brent):
-        ws_pb.append([cid] + real_only(preco_brent[cid], n_real))
+        ser = preco_brent[cid]
+        ws_pb.append([cid] + [ser[k] if k < BRENT_SEED_CUT else None for k in range(N_MONTHS)])
 
     # aba GasHist: custo do gás REALIZADO por planta (R$/mês)
     ws_gh = out.create_sheet("GasHist")
