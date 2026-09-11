@@ -248,7 +248,8 @@ def read_opex_rows(wb):
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=2479, values_only=True), start=1):
         if (190 <= i <= 556) or (560 <= i <= 574) \
-           or (579 <= i <= 584) or (718 <= i <= 723) or (1976 <= i <= 1981) or i == 2478:
+           or (579 <= i <= 584) or (718 <= i <= 723) or (725 <= i <= 1673) \
+           or (1976 <= i <= 1981) or i == 2478:
             keep[i] = row
     return keep
 
@@ -277,6 +278,66 @@ def extract_opex_cat(orows):
                     for k in range(N_MONTHS)]
         out[cat] = d
     return out
+
+
+# ---- Logística/Distribuição: config por cliente + planta + globais (port fiel) ----
+LOG_ARR_WINDOW = {1: (1526, 1549), 2: (1552, 1574), 3: (1586, 1607),
+                  4: (1609, 1629), 5: (1632, 1650), 6: (1653, 1673)}
+
+
+def _lid(v):
+    try:
+        return int(round(float(v)))
+    except (TypeError, ValueError):
+        return None
+
+
+def extract_logistica(orows):
+    """Config da logística (OPEX 725-1673) p/ o motor por-cliente em JS. Validado 1:1
+    (logistica_ref.py). Motor: frete_fixo + frete_var + aluguel + cavalo + ociosos + sinergia.
+    Volume vem do motor JS (volClienteSerie); aqui só as PREMISSAS por cliente/planta."""
+    def cell(r, col):   # col 1-based
+        rec = orows.get(r)
+        return rec[col - 1] if rec and col - 1 < len(rec) else None
+
+    def scan(r0, r1):   # {id: row} das linhas cujo A é id de cliente (>=11)
+        out = {}
+        for r in range(r0, r1 + 1):
+            cid = _lid(cell(r, 1))
+            if cid is not None and cid >= 11:
+                out[cid] = r
+        return out
+    FF = scan(727, 874); FV = scan(878, 1025); AL = scan(1044, 1187); RAWc = scan(1526, 1673)
+    clientes = []
+    for cid, r in sorted(RAWc.items()):
+        planta = int(str(cid)[0])
+        tipoC = cell(r, 3)
+        tipo = "GNL" if (isinstance(tipoC, str) and tipoC.strip().upper() == "GNL") else "GNC"
+        a, b = LOG_ARR_WINDOW.get(planta, (0, -1))
+        clientes.append({
+            "id": cid, "planta": planta, "tipo": tipo,
+            "cap": _num(cell(r, 4)), "descarga": _num(cell(r, 6)),
+            "g": _num(cell(r, 7)), "hmax": _num(cell(r, 8)),
+            "custo_viagem": (_num(cell(FF[cid], 5)) or 0.0) if cid in FF else 0.0,
+            "fob": 1 if (cid in FF and not _num(cell(FF[cid], 8))) else 0,   # H(dist)==0 => guard FOB
+            "custo_km": (_num(cell(FV[cid], 5)) or 0.0) if cid in FV else 0.0,
+            "aluguel": (_num(cell(AL[cid], 5)) or 0.0) if cid in AL else 0.0,
+            "arr_win": 1 if a <= r <= b else 0,
+        })
+    planta = {}
+    for p in range(1, 7):
+        planta[p] = {
+            "cav_fix": _num(cell(1345 + p, 4)) or 0.0,
+            "cav_var": _num(cell(1352 + p, 4)) or 0.0,
+            "sin_red": _num(cell(1360 + p, 3)) or 0.0,
+            "sin_lim_ord": _ord(cell(1360 + p, 4)),
+        }
+    globs = {
+        "idle_target": _num(cell(1035, 4)), "idle_yearmax": _num(cell(1035, 5)),
+        "adic_target": _num(cell(1036, 4)), "prep_cost": _num(cell(1038, 4)),
+        "fix_cost": _num(cell(1040, 4)),
+    }
+    return clientes, planta, globs
 
 
 # ---- Fase "fiel": premissas de OpEx para portar as fórmulas em JS ------------
@@ -691,6 +752,7 @@ def main():
     gas_golden = extract_gas_golden(orows)
     gas_adj = extract_gas_adj(orows)
     opex_cat = extract_opex_cat(orows)
+    log_cli, log_planta, log_glob = extract_logistica(orows)
     custo_total = extract_custo_total(orows)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
@@ -822,6 +884,23 @@ def main():
     for cat in OPEX_CAT:
         for p in sorted(opex_cat.get(cat, {})):
             ws_ox.append([cat, p] + real_only(opex_cat[cat][p], n_real))
+
+    # abas da Logística: config por cliente + por planta + globais (premissas do motor JS)
+    ws_lc = out.create_sheet("OpexLogCli")
+    LOG_FIELDS = ["id", "planta", "tipo", "cap", "descarga", "g", "hmax",
+                  "custo_viagem", "fob", "custo_km", "aluguel", "arr_win"]
+    ws_lc.append(LOG_FIELDS)
+    for c in log_cli:
+        ws_lc.append([c[k] for k in LOG_FIELDS])
+    ws_lp = out.create_sheet("OpexLogPlanta")
+    ws_lp.append(["planta", "cav_fix", "cav_var", "sin_red", "sin_lim_ord"])
+    for p in range(1, 7):
+        lp = log_planta[p]
+        ws_lp.append([p, lp["cav_fix"], lp["cav_var"], lp["sin_red"], lp["sin_lim_ord"]])
+    ws_lg = out.create_sheet("OpexLogGlob")
+    ws_lg.append(["key", "value"])
+    for k in ("idle_target", "idle_yearmax", "adic_target", "prep_cost", "fix_cost"):
+        ws_lg.append([k, log_glob[k]])
 
     # aba PremLiquef: premissas de liquefação por planta (para portar em JS)
     ws_pl = out.create_sheet("PremLiquef")
