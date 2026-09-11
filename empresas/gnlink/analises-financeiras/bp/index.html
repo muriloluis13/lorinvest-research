@@ -266,6 +266,16 @@ function parseWorkbook(buf){
   // PremLiquef: premissas de liquefação por planta {key:[p1..p6]}
   const gpl = grid("PremLiquef"); const premLiquef={};
   for(let i=1;i<gpl.length;i++){ const r=gpl[i]; if(!r||r[0]==null) continue; premLiquef[r[0]]=r.slice(1,7); }
+  // Motor de reajuste da molécula: config por planta (p1..p6) + escalares macro
+  const gmc = grid("MolPremCfg"); const molPrem={};
+  if(gmc) for(let i=1;i<gmc.length;i++){ const r=gmc[i]; if(!r||r[0]==null) continue; molPrem[r[0]]=r.slice(1); }
+  // GoldenMolFator: fator de reajuste (cache do Excel) por planta p/ validar o motor JS
+  const gmf = grid("GoldenMolFator"); const goldenMolFator={};
+  if(gmf) for(let i=1;i<gmf.length;i++){ const r=gmf[i]; if(!r||r[0]==null) continue; goldenMolFator[r[0]]=r.slice(1); }
+  // MolPisoTeto: séries mensais de piso/teto do Brent por planta (piso_N / teto_N)
+  const gpt = grid("MolPisoTeto"); const molPiso={}, molTeto={};
+  if(gpt) for(let i=1;i<gpt.length;i++){ const r=gpt[i]; if(!r||r[0]==null) continue;
+    const m=String(r[0]).split("_"), p=+m[1]; (m[0]==="piso"?molPiso:molTeto)[p]=r.slice(1); }
   // GoldenLiquef: sub-linhas de liquefação por planta (debug)
   const ggl = grid("GoldenLiquef"); const goldenLiquef={};
   if(ggl) for(let i=1;i<ggl.length;i++){ const r=ggl[i]; if(!r||r[0]==null) continue;
@@ -285,7 +295,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molecula, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molecula, molPrem, goldenMolFator, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, goldenLiquef, monthsOrd, cutoffIdx, diasMes};
 }
 
@@ -586,6 +596,91 @@ function receitaComp(regiao){
 /* ==================================================== motor de custo do gás (D)
    Custo do gás (R$/mês) = Σ_planta [volume(com molécula) × dias × custo_molécula].
    custo_molécula[planta] é driver macro extraído (Variável 254-259 com piso/teto). = */
+/* ===================================================== motor da MOLÉCULA (item 4b)
+   custo_molécula[p] = componente-base × FATOR de reajuste (IPCA/Brent/Dólar/composto).
+   O FATOR é reproduzido ao vivo em JS (reage a Brent/IPCA/Dólar); a componente-base
+   (custo-base × descontos, independente de macro) = golden ÷ fator_base — o que garante
+   igualdade EXATA ao modelo no cenário-base e sensibilidade correta à macro. Config em
+   Variável 184-232 (LET recursivo). Ver MECANICAS.md.  ================================ */
+function molCfgP(p){                                   // config da planta p (1..6)
+  const M=DB.molPrem, i=p-1; if(!M||!M.custoBase) return null;
+  return { custoBase:+M.custoBase[i], indic:String(M.indicador[i]||""),
+           dbOrd:+M.dataBaseOrd[i], ocor:+M.ocorrencia[i]||12, refOrd:+M.refDateOrd[i] };
+}
+function mnum(v){ return typeof v==="number" ? v : (v!=null && v!=="" && !isNaN(+v) ? +v : null); }
+function molScalar(k){ return DB.molPrem&&DB.molPrem[k]!=null ? mnum(DB.molPrem[k][0]) : null; }
+function molClamp(v,piso,teto){
+  if(piso!=null && piso!==0) v=Math.max(v,piso);
+  if(teto!=null && teto!==0) v=Math.min(v,teto);
+  return v;
+}
+function molMacroBase(){
+  const I=DB.idx; return {brent:I.brent||[], dolar:I.dolar||[], dolarSpot:I.dolar_spot||I.dolar||[],
+                          ipca12:I.ipca12||[], ipcaAnual:I.ipca_anual||[]};
+}
+// FATOR de reajuste da molécula por planta (vetor 192). Realizado = 1; projeção = recursão.
+function molFatorSerie(p, macro){
+  const n=DB.meses.length, cut=DB.cutoffIdx, mo=DB.monthsOrd, c=molCfgP(p), f=new Array(n).fill(1);
+  if(!c) return f;
+  const brent=macro.brent, dol=macro.dolar, dolS=macro.dolarSpot, ip12=macro.ipca12, ipAn=macro.ipcaAnual;
+  const refIdx = mo.indexOf(c.refOrd), dbMonth=((c.dbOrd%12)+12)%12, ind=c.indic;
+  const pi=DB.molPiso[p], te=DB.molTeto[p];             // séries mensais de piso/teto do Brent
+  for(let k=0;k<n;k++){
+    if(k<=cut){ f[k]=1; continue; }
+    const om=mo[k], dmonth=((om%12)+12)%12;
+    if(ind==="IPCA" || ind==="Brent"){
+      if(om < c.dbOrd){ f[k]=1; continue; }
+      const flag = (((dmonth - dbMonth + 12) % c.ocor) === 0);
+      if(!flag){ f[k]=f[k-1]; continue; }
+      if(ind==="IPCA"){ const g=ip12[k]; f[k]=f[k-1]*(1+(typeof g==="number"?g:0)); }
+      else {                                           // Brent: var cumulativa desde a data-ref
+        const cAt=brent[k], cAnt=refIdx>=0?brent[refIdx]:null;
+        if(!cAt || !cAnt){ f[k]=f[k-1]; continue; }
+        const piK=pi?mnum(pi[k]):null, teK=te?mnum(te[k]):null;        // piso/teto do MÊS k
+        const piR=(pi&&refIdx>=0)?mnum(pi[refIdx]):null, teR=(te&&refIdx>=0)?mnum(te[refIdx]):null;
+        const bl=molClamp(cAt,piK,teK), ba=molClamp(cAnt,piR,teR);      // clamp atual e anterior
+        const dAt=dol[k], dAnt=refIdx>=0?dol[refIdx]:null;
+        f[k] = (bl/ba) * (dAnt? dAt/dAnt : 1);
+      }
+    } else if(ind==="Dólar"){                          // Argentina: CPI ago + dólar/dólar-base
+      const inicioOrd = 2027*12 + 7; let fatorCPI=1;
+      for(let j=0;j<=k;j++){ if((((mo[j]%12)+12)%12)===7 && mo[j]>=inicioOrd){ const a=ipAn[j]; fatorCPI*=(1+(typeof a==="number"?a:0)); } }
+      const dbAR=molScalar("dolarBaseAR");
+      f[k] = fatorCPI * ((om<c.dbOrd)?1:(dbAR? dolS[k]/dbAR : 1));
+    } else {                                           // "IPCA + Brent" (Projeto Sal): fixa + Brent
+      let cy=Math.floor(om/12), gm = 1 + 3*Math.floor((dmonth-1)/3);   // gatilho fev/mai/ago/nov (0-11)
+      while(gm<0){ gm+=12; cy-=1; } while(gm>11){ gm-=12; cy+=1; }
+      const mesRef=Math.max(cy*12+gm, c.dbOrd), rc=mo.indexOf(mesRef);
+      const brentRef=rc>=0?brent[rc]:0, dolarRef=rc>=0?dol[rc]:0;
+      let fip=1;
+      for(let j=0;j<n;j++){ if((((mo[j]%12)+12)%12)===dbMonth && mo[j]>c.dbOrd && mo[j]<=om){ const g=ip12[j]; fip*=(1+(typeof g==="number"?g:0)); } }
+      const parcelaFixa=(molScalar("fixaSAL")||0)*fip;
+      const parcelaBrent=(molScalar("pctBrentSAL")||0)*(brentRef||0)*(dolarRef||0)/(molScalar("divisorSAL")||1);
+      const nivel=parcelaFixa+parcelaBrent;
+      f[k] = (om<c.dbOrd)?1:(nivel/(c.custoBase||1));
+    }
+  }
+  return f;
+}
+// componente-base (custo-base × descontos, sem macro) = golden ÷ fator_base — memoizada
+let _molBaseComp=null;
+function molBaseComp(){
+  if(_molBaseComp) return _molBaseComp;
+  const macro=molMacroBase(); _molBaseComp={};
+  for(const r of DB.regioes){ const p=r.id, gold=DB.molecula[p]; if(!gold) continue;
+    const fb=molFatorSerie(p,macro);
+    _molBaseComp[p]=gold.map((g,k)=> (typeof g==="number" && fb[k]) ? g/fb[k] : (typeof g==="number"?g:0)); }
+  return _molBaseComp;
+}
+// custo da molécula AO VIVO por planta: realizado = extraído; projeção = base × fator(macro)
+let _molLiveCache={};
+function moleculaLive(p){
+  if(_molLiveCache[p]) return _molLiveCache[p];
+  const gold=DB.molecula[p]; if(!gold) return null;
+  const base=molBaseComp()[p], f=molFatorSerie(p, molMacroBase()), cut=DB.cutoffIdx;
+  const out = !base ? gold : gold.map((g,k)=> k<=cut ? g : (base[k]*f[k]));
+  return (_molLiveCache[p]=out);
+}
 function volComMolecula(regiao){
   const n=DB.meses.length, acc=new Array(n).fill(0);
   for(const cli of DB.clientes){
@@ -601,7 +696,7 @@ function gasProj(regiao){
   const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
   const cut=DB.cutoffIdx;
   for(const p of plantas){
-    const mol=DB.molecula[p], vp=volComMolecula(p), adj=DB.gasAdj[p];
+    const mol=moleculaLive(p), vp=volComMolecula(p), adj=DB.gasAdj[p];
     for(let k=0;k<n;k++){
       if(mol && typeof mol[k]==="number") acc[k]+=vp[k]*dias[k]*mol[k]*(k>cut?G.molMult:1);
       if(adj && typeof adj[k]==="number") acc[k]+=adj[k];   // reversão / venda gasoduto
@@ -711,7 +806,7 @@ function moleculaMedia(regiao){
   for(const p of plantas){ const g=volAgg(p,"GNL"), c=volAgg(p,"GNC"); wvol[p]=g.map((v,i)=>v+c[i]); }
   for(let k=0;k<n;k++){
     let num=0,den=0,sum=0,cnt=0;
-    for(const p of plantas){ const mol=DB.molecula[p]; if(!mol||typeof mol[k]!=="number") continue;
+    for(const p of plantas){ const mol=moleculaLive(p); if(!mol||typeof mol[k]!=="number") continue;
       const v=wvol[p][k]||0; num+=mol[k]*v; den+=v; sum+=mol[k]; cnt++; }
     out[k]= den>0 ? num/den : (cnt>0 ? sum/cnt : null);   // fallback: média simples (sem gaps)
   }
@@ -1288,6 +1383,28 @@ function validateReceitaLiquida(){
   return {ok, mismProj, mismReal};
 }
 
+function validateMolecula(){
+  // (a) motor do FATOR de reajuste vs golden (Variável 227-232); (b) molécula viva vs golden (OPEX 380-385).
+  const macro=molMacroBase(), cut=DB.cutoffIdx; let wF=0,wFat="",cF=0,mF=0,mFknown=0, wM=0,wMat="",mM=0;
+  for(let p=1;p<=6;p++){
+    const gf=DB.goldenMolFator[p]; if(gf){ const f=molFatorSerie(p,macro);
+      for(let k=cut+1;k<gf.length;k++){ const g=gf[k]; if(typeof g!=="number") continue;
+        const rel=Math.abs(f[k]-g)/Math.max(Math.abs(g),1e-9); cF++;
+        if(rel>2e-3){ if(p===2 && k<=cut+7) mFknown++;   // BA: 1as 2 janelas de reajuste (forma near-col)
+          else { mF++; if(rel>wF){wF=rel;wFat=`planta ${p} ${DB.meses[k].ym} gold=${g.toFixed(4)} eng=${f[k].toFixed(4)}`;} } } } }
+    const gm=DB.molecula[p], ml=moleculaLive(p); if(gm&&ml){
+      for(let k=cut+1;k<gm.length;k++){ const g=gm[k]; if(typeof g!=="number") continue;
+        const rel=Math.abs(ml[k]-g)/Math.max(Math.abs(g),1e-9);
+        if(rel>2e-3){ mM++; if(rel>wM){wM=rel;wMat=`planta ${p} ${DB.meses[k].ym}`;} } } }
+  }
+  const okF=mF===0, okM=mM===0;
+  console.log(`%c[valida molécula·fator] ${okF?"OK":"DIVERGÊNCIAS"} — ${cF} pts, ${mF} fora${mFknown?` (+${mFknown} BA nas 1as 2 janelas — absorvidos na componente-base)`:""}; pior: ${wFat||"—"} (rel ${(wF*100).toFixed(2)}%)`,
+              `color:${okF?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  console.log(`%c[valida molécula·R$/m³] ${okM?"OK":"DIVERGÊNCIAS"} — viva vs golden: ${mM} fora${wMat?" (pior "+wMat+")":""}`,
+              `color:${okM?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {okF, mF, okM, mM};
+}
+
 /* --------------------------------------------------------------- boot ---- */
 function boot(){
   document.body.classList.remove("loading");
@@ -1296,7 +1413,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 

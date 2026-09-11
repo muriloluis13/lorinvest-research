@@ -228,7 +228,7 @@ def read_variavel_rows(wb):
     ws = wb["Variável"]
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=1245, values_only=True), start=1):
-        if (8 <= i <= 20) or (254 <= i <= 259) or (430 <= i <= 584) \
+        if (8 <= i <= 20) or (184 <= i <= 268) or (254 <= i <= 259) or (430 <= i <= 584) \
            or (586 <= i <= 743) or (903 <= i <= 1057) or (1088 <= i <= 1241):
             keep[i] = row
     return keep
@@ -385,7 +385,8 @@ def extract_dre(drows):
 
 
 # ---- Fase C: Receita R$ = preço indexado × volume × dias ----------------------
-IDX_ROWS = {"ipca_m": 10, "ipca12": 11, "brent": 13, "hh": 15, "dolar": 17}  # Variável
+IDX_ROWS = {"ipca_m": 10, "ipca12": 11, "brent": 13, "hh": 15, "dolar": 17,
+            "ipca_anual": 19, "dolar_spot": 16}  # Variável
 PRECO_BLOCK = (432, 584)   # Variável "Fator de Reajuste": D=precoBase E=dataBase F=indicador G=residual
 CORR_BLOCK = (1089, 1241)  # Variável "Fator IPCA puro": E=dataBase H=correcao(1=sem indexação)
 REV_BLOCKS = {"GNL": (1161, 1313), "GNC": (1318, 1470)}  # Receita R$ (líquida)
@@ -399,6 +400,49 @@ def extract_idx_macro(vrows):
         out[key] = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
                     for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
     return out
+
+
+def _ord(v):
+    """Ordinal ano*12+(mês-1), compatível com monthsOrd do JS (ord(ym)=y*12+m-1)."""
+    if isinstance(v, (datetime.datetime, datetime.date)):
+        return v.year * 12 + (v.month - 1)
+    return None
+
+
+def extract_molecula_prem(vrows, wb):
+    """Premissas do motor de reajuste da molécula (fator IPCA/Brent/Dólar/composto) por planta.
+
+    O modelo compõe custo_molécula[p] = base(209) × fator_reajuste(227) × descontos.
+    Só o FATOR depende de macro (Brent/IPCA/Dólar) — é ele que reproduzimos ao vivo no JS.
+    O restante (base + descontos) entra como componente-base = golden/fator_base no HTML.
+    Aqui exportamos a config por planta (ordinais year*12+mês-1) + escalares macro."""
+    def row(r):
+        return vrows.get(r)
+    cfg = {"custoBase": [], "indicador": [], "dataBaseOrd": [], "ocorrencia": [],
+           "refDateOrd": [], "pisoSer": [], "tetoSer": []}
+
+    def mrow(r):   # série mensal (192) da linha r, cache do Excel
+        rec = row(r)
+        return [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+                for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+    for p in range(6):
+        c = row(184 + p)    # config: C custoBase, D indicador, E dataBase, G ocorrência
+        cfg["custoBase"].append(_num(c[2]) if c else None)
+        cfg["indicador"].append((str(c[3]).strip() if c and c[3] else None))
+        cfg["dataBaseOrd"].append(_ord(c[4]) if c else None)
+        cfg["ocorrencia"].append(int(_num(c[6])) if c and _num(c[6]) else None)
+        e2 = row(209 + p)   # E209..214 = data de referência Brent (aniversário rolado até E6)
+        cfg["refDateOrd"].append(_ord(e2[4]) if e2 else None)
+        # piso/teto são SÉRIES mensais (192-197 / 200-205): valor onde ativo, "-"/None onde inativo
+        cfg["pisoSer"].append([_num(v) for v in mrow(192 + p)])
+        cfg["tetoSer"].append([_num(v) for v in mrow(200 + p)])
+    # escalares macro da aba Base Premissas (motores Argentina/Projeto Sal)
+    bp = wb["Base Premissas"]
+    cfg["dolarBaseAR"] = _num(bp["Q34"].value)      # dólar-base Argentina
+    cfg["fixaSAL"] = _num(bp["R35"].value)          # parcela fixa Projeto Sal
+    cfg["pctBrentSAL"] = _num(bp["S35"].value)      # % Brent Projeto Sal
+    cfg["divisorSAL"] = _num(bp["Q42"].value)       # divisor Brent→R$/m³
+    return cfg
 
 
 def extract_preco(vrows):
@@ -618,6 +662,7 @@ def main():
     # ---- Receita R$ (Fase C) ----
     vrows = read_variavel_rows(wb)
     idx_macro = extract_idx_macro(vrows)
+    mol_prem = extract_molecula_prem(vrows, wb)
     preco = extract_preco(vrows)
     rev_golden = extract_revenue_golden(rrows, id2planta)
     rev_extra = extract_rev_extra(rrows, vrows, id2planta)
@@ -704,10 +749,11 @@ def main():
         ws_p.append([cid, p.get("precoBase"), p.get("dataBase"), p.get("indicador"),
                      p.get("residual"), p.get("correcao")])
 
-    # aba IdxMacro: séries de indexação (Variável): ipca_m, ipca12, brent, hh, dolar
+    # aba IdxMacro: séries de indexação (Variável): ipca_m, ipca12, brent, hh, dolar,
+    # ipca_anual, dolar_spot (estes 2 alimentam o motor da molécula Argentina/piso-teto)
     ws_i = out.create_sheet("IdxMacro")
     ws_i.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("ipca_m", "ipca12", "brent", "hh", "dolar"):
+    for key in ("ipca_m", "ipca12", "brent", "hh", "dolar", "ipca_anual", "dolar_spot"):
         ws_i.append([key] + idx_macro[key])
 
     # aba ReceitaHist: receita R$ REALIZADA (actuals) por planta/produto
@@ -768,6 +814,30 @@ def main():
     for sub in LIQUEF_SUB_ROWS:
         for p in sorted(liquef_gold.get(sub, {})):
             ws_gl.append([sub, p] + liquef_gold[sub][p])
+
+    # aba do motor de reajuste da molécula: config por planta (fator IPCA/Brent/Dólar/composto)
+    ws_mc = out.create_sheet("MolPremCfg")
+    ws_mc.append(["key", "p1", "p2", "p3", "p4", "p5", "p6"])
+    for k in ("custoBase", "indicador", "dataBaseOrd", "ocorrencia", "refDateOrd"):
+        ws_mc.append([k] + list(mol_prem[k]))
+    # escalares macro (mesmos p/ todas as plantas) no rótulo, cols p1..
+    for k in ("dolarBaseAR", "fixaSAL", "pctBrentSAL", "divisorSAL"):
+        ws_mc.append([k, mol_prem[k]])
+    # aba MolPisoTeto: séries mensais de piso/teto do Brent por planta (clamp do reajuste)
+    ws_pt = out.create_sheet("MolPisoTeto")
+    ws_pt.append(["kind_planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(6):
+        ws_pt.append(["piso_%d" % (p + 1)] + mol_prem["pisoSer"][p])
+    for p in range(6):
+        ws_pt.append(["teto_%d" % (p + 1)] + mol_prem["tetoSer"][p])
+    # golden do FATOR de reajuste (Variável 227-232, cache) p/ validar o motor JS 1:1
+    ws_mf = out.create_sheet("GoldenMolFator")
+    ws_mf.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(6):
+        rec = vrows.get(227 + p)
+        ser = [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+               for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+        ws_mf.append([p + 1] + [(_num(v) if _num(v) is not None else None) for v in ser])
 
     # aba SeriesOpex: séries mensais de apoio (fator correção IPCA, vol GNC row192)
     ws_so = out.create_sheet("SeriesOpex")
