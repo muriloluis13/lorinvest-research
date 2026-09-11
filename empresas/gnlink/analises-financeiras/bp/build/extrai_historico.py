@@ -402,6 +402,23 @@ def extract_regas(orows, n_real):
     return clientes, globs, necess_real, dolar_macro
 
 
+def extract_comp_term(orows):
+    """Compressão (560-565) e Terminal (569-574) por planta — motores simples (port fiel).
+    Compressão = (data>=início)?tarifa:0 × op × IPCA. Terminal = tarifa × volume GNL × dias."""
+    def cell(r, col):
+        rec = orows.get(r)
+        return rec[col - 1] if rec and col - 1 < len(rec) else None
+    out = {}
+    for p in range(1, 7):
+        out[p] = {
+            "comp_tarifa": _num(cell(559 + p, 4)) or 0.0,       # D560..565
+            "comp_ini_ord": _ord(cell(559 + p, 5)),             # E560..565 data de início
+            "comp_fim_ord": _ord(cell(559 + p, 6)),             # F560..565 data de fim
+            "term_tarifa": _num(cell(568 + p, 4)) or 0.0,       # D569..574
+        }
+    return out
+
+
 # ---- Fase "fiel": premissas de OpEx para portar as fórmulas em JS ------------
 def _opex_series(orows, row):
     rec = orows.get(row)
@@ -816,6 +833,7 @@ def main():
     opex_cat = extract_opex_cat(orows)
     log_cli, log_planta, log_glob = extract_logistica(orows)
     regas_cli, regas_glob, regas_necess, regas_dolar = extract_regas(orows, n_real)
+    comp_term = extract_comp_term(orows)
     custo_total = extract_custo_total(orows)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
@@ -980,6 +998,13 @@ def main():
     ws_rs.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     ws_rs.append(["necess"] + regas_necess)
     ws_rs.append(["dolar_macro"] + regas_dolar)
+
+    # aba OpexCompTerm: compressão + terminal por planta (motores simples)
+    ws_ct2 = out.create_sheet("OpexCompTerm")
+    ws_ct2.append(["planta", "comp_tarifa", "comp_ini_ord", "comp_fim_ord", "term_tarifa"])
+    for p in range(1, 7):
+        ct = comp_term[p]
+        ws_ct2.append([p, ct["comp_tarifa"], ct["comp_ini_ord"], ct["comp_fim_ord"], ct["term_tarifa"]])
 
     # aba PremLiquef: premissas de liquefação por planta (para portar em JS)
     ws_pl = out.create_sheet("PremLiquef")

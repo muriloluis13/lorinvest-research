@@ -286,6 +286,10 @@ function parseWorkbook(buf){
     const o={}; H.forEach((k,j)=>o[k]=r[j]); regasCli.push(o); } }
   const grg = grid("OpexRegasGlob"); const regasGlob={};
   if(grg) for(let i=1;i<grg.length;i++){ const r=grg[i]; if(!r||r[0]==null) continue; regasGlob[r[0]]=+r[1]; }
+  // Compressão + Terminal por planta
+  const gct2 = grid("OpexCompTerm"); const compTerm={};
+  if(gct2) for(let i=1;i<gct2.length;i++){ const r=gct2[i]; if(!r||r[0]==null) continue;
+    compTerm[r[0]]={comp_tarifa:+r[1]||0, comp_ini_ord:r[2]==null?null:+r[2], comp_fim_ord:r[3]==null?null:+r[3], term_tarifa:+r[4]||0}; }
   const grs = grid("OpexRegasSeed"); let regasNecess=null, regasDolar=null;
   if(grs) for(let i=1;i<grs.length;i++){ const r=grs[i]; if(!r) continue;
     if(r[0]==="necess") regasNecess=r.slice(1); else if(r[0]==="dolar_macro") regasDolar=r.slice(1); }
@@ -309,7 +313,7 @@ function parseWorkbook(buf){
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
-          premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, monthsOrd, cutoffIdx, diasMes};
+          premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -881,8 +885,32 @@ function regasCompAgg(regiao){
     for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
   return out;
 }
+/* ===== port fiel: COMPRESSÃO e TERMINAL (por planta, simples) ================
+   Compressão = (data ≥ início) ? tarifa/mês : 0 × op × IPCA (só RN, 20k a partir de
+   ago/27). Terminal = tarifa × volume GNL da planta × dias (só PE, 0,30/m³·dia, sem
+   IPCA). Validados vs golden (opex_por_cat.csv). ============================= */
+function compressaoSerie(){
+  const n=DB.meses.length, mo=DB.monthsOrd, corr=DB.seriesOpex.corr556||[], out={};
+  for(let p=1;p<=6;p++){ const c=DB.compTerm[p]||{}, op=DB.fatores.operacao[p]||[], s=new Array(n).fill(0);
+    for(let k=0;k<n;k++){ const ativo = c.comp_ini_ord!=null && mo[k]>=c.comp_ini_ord && (c.comp_fim_ord==null || mo[k]<=c.comp_fim_ord) && c.comp_tarifa;
+      s[k]= ativo ? c.comp_tarifa*(typeof op[k]==="number"?op[k]:0)*(typeof corr[k]==="number"?corr[k]:1) : 0; }
+    out[p]=s; }
+  return out;
+}
+function terminalSerie(){
+  const n=DB.meses.length, dias=DB.diasMes, out={};
+  for(let p=1;p<=6;p++){ const c=DB.compTerm[p]||{}, vg=volAgg(p,"GNL"), s=new Array(n).fill(0);
+    if(c.term_tarifa) for(let k=0;k<n;k++) s[k]=c.term_tarifa*(vg[k]||0)*(dias[k]||0);
+    out[p]=s; }
+  return out;
+}
+function aggByRegiao(byPlanta, regiao){   // {planta:[192]} -> [192] somado na região
+  const n=DB.meses.length, out=new Array(n).fill(0), plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
+  for(const p of plantas){ const a=byPlanta[p]||[]; for(let k=0;k<n;k++) out[k]+=a[k]||0; } return out;
+}
 // categorias já portadas em fórmula (usa fórmula na projeção; realizado = extraído)
-function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : cat==="distribuicao" ? logisticaSerie() : cat==="regas" ? regasSerie() : null; }
+function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : cat==="distribuicao" ? logisticaSerie()
+  : cat==="regas" ? regasSerie() : cat==="compressao" ? compressaoSerie() : cat==="terminal" ? terminalSerie() : null; }
 function opexCatAgg(regiao, cat){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const blk=DB.opexCat[cat]||{}, ported=portedOpex(cat);
@@ -1266,10 +1294,10 @@ const OPEX_MECH = {
     {k:"perdas",nome:"Perdas no processo",mec:"custo do gás ÷ (1 − perda%) × perda% (markup de 5% sobre o gás).",portado:true},
     {k:"purga",nome:"Recuperação de purga",mec:"crédito (negativo): PR = fração × volume(GNC) × dias × molécula; BA = flat × dias × molécula; a partir de uma data.",portado:true},
     {k:"outros",nome:"Outros",mec:"R$/mês fixo × op × IPCA.",portado:true}]},
-  compressao:{label:"Compressão", sub:[
-    {nome:"Tarifa por planta",mec:"R$/mês fixo × op × IPCA, liberado a partir da data de início. Não é volume-dependente. Hoje só RN (20.000/mês a partir de ~ago/27).",portado:false}]},
-  terminal:{label:"Terminal", sub:[
-    {nome:"Tarifa de terminal",mec:"tarifa × volume GNL da planta × dias (volume-dependente, sem IPCA). Hoje só Terminal PE (0,30 por m³·dia).",portado:false}]},
+  compressao:{label:"Compressão", compute:reg=>({tarifa:aggByRegiao(compressaoSerie(),reg)}), sub:[
+    {k:"tarifa",nome:"Tarifa por planta",mec:"R$/mês fixo × op × IPCA, liberado a partir da data de início. Não é volume-dependente. Hoje só RN (20.000/mês a partir de ago/27).",portado:true}]},
+  terminal:{label:"Terminal", compute:reg=>({tarifa:aggByRegiao(terminalSerie(),reg)}), sub:[
+    {k:"tarifa",nome:"Tarifa de terminal",mec:"tarifa × volume GNL da planta × dias (volume-dependente, sem IPCA). Hoje só Terminal PE (0,30 por m³·dia).",portado:true}]},
   sga:{label:"SG&A planta", sub:[
     {nome:"Salários",mec:"R$/mês/pessoa × headcount × op × IPCA.",portado:false},
     {nome:"Seguros (operacional + equipamentos)",mec:"prêmio anual = valor segurado × taxa, pago 1×/ano (a cada 12 meses; equip. BA/RN a cada 3), × op × IPCA.",portado:false},
@@ -1573,6 +1601,22 @@ async function validateRegas(){
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism, worstAt};
 }
+async function validateCompTerm(){
+  let txt; try{ const r=await fetch("build/golden/opex_por_cat.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ return; }
+  const gold={compressao:{},terminal:{}}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";");
+    if(c[0]==="compressao") gold.compressao[+c[1]]=c.slice(2).map(Number);
+    else if(c[0]==="terminal") gold.terminal[+c[1]]=c.slice(2).map(Number); });
+  const eng={compressao:compressaoSerie(), terminal:terminalSerie()}, cut=DB.cutoffIdx;
+  for(const cat of ["compressao","terminal"]){ let worst=0,worstAt="",checked=0,mism=0;
+    for(let p=1;p<=6;p++){ const g=gold[cat][p]; if(!g) continue; const e=eng[cat][p];
+      for(let k=cut+1;k<g.length;k++){ const gv=g[k]; if(typeof gv!=="number") continue;
+        const rel=Math.abs(e[k]-gv)/Math.max(Math.abs(gv),1); checked++;
+        if(Math.abs(e[k]-gv)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${gv.toFixed(0)} eng=${e[k].toFixed(0)}`;} } } }
+    const ok=mism===0;
+    console.log(`%c[valida ${cat==="compressao"?"compressão":"terminal"}] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+                `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`); }
+}
 function validateReceitaLiquida(){
   // composição (GNL+GNC ported) vs Receita Líquida realizado do DFM. Projeção da composição
   // ainda não inclui extras portados (realizado só) — valida realizado.
@@ -1613,7 +1657,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 
