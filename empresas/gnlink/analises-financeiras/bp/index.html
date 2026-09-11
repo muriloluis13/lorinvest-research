@@ -152,11 +152,14 @@ const ABAS = [
   {grp:"Contratos & Premissas", items:[
     {id:"clientes",  nome:"Clientes",  regiao:false, fase:null},
     {id:"macro",     nome:"Macro",     regiao:false, fase:null},
-    {id:"premissas", nome:"Premissas", regiao:false, fase:"E"},
+    {id:"premissas", nome:"Premissas", regiao:false, fase:null},
   ]},
 ];
 
 const state = {aba:"macro", regiao:0, cliSel:null, cliQ:"", cliMsg:""};
+// premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
+let G = {volMult:1, precoMult:1, molMult:1};
+const gAtivo = () => G.volMult!==1 || G.precoMult!==1 || G.molMult!==1;
 let DB = null;              // base histórica parseada
 const charts = {};          // registry de Chart.js p/ destruir no re-render
 
@@ -345,6 +348,10 @@ function render(){
     m.innerHTML = html + renderClientes();
     return;
   }
+  if(aba.id==="premissas"){
+    m.innerHTML = html + renderPremissas();
+    return;
+  }
   if(aba.id==="resumo"){
     const r=renderResumo(); m.innerHTML=html+r.html; wireSubtabs(); if(r.draw) r.draw(); return;
   }
@@ -453,7 +460,7 @@ function volClienteSerie(cli){
     if(k>cut && typeof ov==="number" && ov!==0) vf=ov;
     const fo=(typeof oper[k]==="number")?oper[k]:0;
     const fs=(typeof sens[k]==="number")?sens[k]:1;
-    out[k]=vf*fo*fs;
+    out[k]=vf*fo*fs*(k>cut?G.volMult:1);   // premissa global de volume (projeção)
   }
   return out;
 }
@@ -509,13 +516,13 @@ const isBrentInd = ind => !!ind && /^Brent/.test(ind);
 function precoSerie(cid){
   // Preço projetado. IPCA 100% = precoBase × FATOR IPCA PURO (exato, sensível ao
   // precoBase editável). Brent = preço corrigido extraído (acopla molécula, exato).
-  const p=DB.preco[cid], n=DB.meses.length;
+  const p=DB.preco[cid], n=DB.meses.length, cut=DB.cutoffIdx, pm=k=>k>cut?G.precoMult:1;
   if(!p) return new Array(n).fill(0);
   if(isBrentInd(p.indicador) && DB.precoBrent[cid]){
-    return DB.precoBrent[cid].map(v=> typeof v==="number"?v:0);
+    return DB.precoBrent[cid].map((v,k)=> (typeof v==="number"?v:0)*pm(k));
   }
   const fac=precoFactorArr(cid), base=p.precoBase||0, out=new Array(n);
-  for(let k=0;k<n;k++) out[k]=base*fac[k];
+  for(let k=0;k<n;k++) out[k]=base*fac[k]*pm(k);
   return out;
 }
 function revClienteSerie(cli){
@@ -578,10 +585,11 @@ function volComMolecula(regiao){
 function gasProj(regiao){
   const n=DB.meses.length, dias=DB.diasMes, acc=new Array(n).fill(0);
   const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const cut=DB.cutoffIdx;
   for(const p of plantas){
     const mol=DB.molecula[p], vp=volComMolecula(p), adj=DB.gasAdj[p];
     for(let k=0;k<n;k++){
-      if(mol && typeof mol[k]==="number") acc[k]+=vp[k]*dias[k]*mol[k];
+      if(mol && typeof mol[k]==="number") acc[k]+=vp[k]*dias[k]*mol[k]*(k>cut?G.molMult:1);
       if(adj && typeof adj[k]==="number") acc[k]+=adj[k];   // reversão / venda gasoduto
     }
   }
@@ -813,6 +821,24 @@ function reverterCli(id){
 }
 
 /* --------------------------------------------------- aba Resumo / EBITDA (E) */
+// avalia fn com as premissas globais zeradas (base do modelo)
+function atBaseG(fn){ const g=G; G={volMult:1,precoMult:1,molMult:1}; try{ return fn(); } finally{ G=g; } }
+// Receita Líquida / EBITDA consolidados com overlay das premissas what-if.
+// Base = DFM; delta = (Receita computada agora − base) e (gás agora − base).
+function receitaLiquidaSerie(){
+  const rl=(DB.dre.receita_liquida||[]).map(v=>typeof v==="number"?v:0);
+  if(!gAtivo()) return rl;
+  const cut=DB.cutoffIdx, a=receitaComp(0).total, b=atBaseG(()=>receitaComp(0).total);
+  return rl.map((v,k)=> k<=cut ? v : v + (a[k]-b[k]));
+}
+function ebitdaSerie(){
+  const eb=(DB.dre.ebitda||[]).map(v=>typeof v==="number"?v:0);
+  if(!gAtivo()) return eb;
+  const cut=DB.cutoffIdx;
+  const rA=receitaComp(0).total, gA=gasAgg(0);
+  const {rB,gB}=atBaseG(()=>({rB:receitaComp(0).total, gB:gasAgg(0)}));
+  return eb.map((v,k)=> k<=cut ? v : v + (rA[k]-rB[k]) - (gA[k]-gB[k]));
+}
 function dreYear(key){ return anoSum(DB.dre[key]||[]); }
 function renderResumo(){
   const reg=state.regiao, cut=DB.cutoffIdx;
@@ -831,14 +857,15 @@ function renderResumo(){
     h+='<div class="card"><h4>Contribuição operacional — '+regName(reg)+' (R$ MM/ano)</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
     return {html:h, draw:()=>drawContrib(ks,yr,yc,yk)};
   }
-  // Consolidado: DRE do modelo
-  const rl=dreYear("receita_liquida"), rb=dreYear("receita_bruta"), cu=dreYear("custos"),
-        ro=dreYear("resultado_operacional"), er=dreYear("ebitda_recorrente"), eb=dreYear("ebitda"),
+  // Consolidado: DRE do modelo (+ overlay das premissas what-if em Receita Líq. e EBITDA)
+  const rl=anoSum(receitaLiquidaSerie()), rb=dreYear("receita_bruta"), cu=dreYear("custos"),
+        ro=dreYear("resultado_operacional"), er=dreYear("ebitda_recorrente"), eb=anoSum(ebitdaSerie()),
         dp=dreYear("depreciacao"), eG=dreYear("ebit"), ll=dreYear("lucro_liquido");
   const ks=Object.keys(rl).sort();
   const mg=y=> (rl[y]?.v? (eb[y]?.v||0)/rl[y].v : 0);
   const firstPos = ks.find(y=>(eb[y]?.v||0)>0);
-  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → Lucro Líquido (do modelo). EBITDA negativo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
+  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → Lucro Líquido (do modelo). EBITDA negativo nos primeiros anos reflete o ramp-up.${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}<span class="tag">Fase E</span></div>`;
+  if(gAtivo()) h2+='<div class="note" style="border-left-color:var(--orange)">Premissas globais ativas — <b>Receita Líquida e EBITDA</b> refletem os multiplicadores (volume/preço/molécula) na projeção. As demais linhas da DRE permanecem na base do modelo. Ajuste na aba <b>Premissas</b>.</div>';
   h2+='<div class="mkpis">';
   h2+=kpi("Receita Líq. 2030 (R$ MM)", fmt((rl["2030"]?.v||0)/1e6,0), "");
   h2+=kpi("EBITDA 2030 (R$ MM)", fmt((eb["2030"]?.v||0)/1e6,0), "margem "+fmt(mg("2030")*100,1)+"%");
@@ -953,6 +980,43 @@ function drawMolecula(mol){
       x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
       y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$/m³"}}}})});
 }
+
+/* -------------------------------------------- aba Premissas globais (E) ---- */
+function gslider(key,gk,lbl,min,max,step){
+  const v=G[gk];
+  return `<div class="frow"><label>${lbl} <b style="color:var(--accent3)" id="${key}_v">${Math.round(v*100)}%</b></label>
+    <input type="range" id="${key}" min="${min}" max="${max}" step="${step}" value="${v}"
+      oninput="onG('${gk}','${key}',this.value)" style="accent-color:var(--accent3)"></div>`;
+}
+function renderPremissas(){
+  let h=`<div class="pglead"><b>Premissas globais (what-if)</b> — multiplicadores sobre a <b>projeção</b> (> jul/26). O realizado fica fixo. Cascateiam por volume → receita → gás → EBITDA.<span class="tag">Fase E</span></div>`;
+  h+='<div class="cform">';
+  h+='<div class="sec">Alavancas</div>';
+  h+=gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01);
+  h+=gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005);
+  h+=gslider("g_mol","molMult","Custo da molécula (× base)",0.8,1.2,0.005);
+  h+=`<div class="formbtns"><button class="btn-ghost" onclick="resetG()">Resetar (100%)</button><span class="okmsg" id="g_msg"></span></div>`;
+  h+='<div class="sec">Impacto no EBITDA consolidado</div><div id="g_impacto">'+impactoHTML()+'</div>';
+  h+='<div class="note">O EBITDA ajustado = EBITDA do modelo + Δ(receita GNL+GNC) − Δ(gás) na projeção. As demais linhas da DRE (OpEx, depreciação, impostos) permanecem na base — refinamento futuro liga o OpEx volume-dependente às alavancas.</div>';
+  h+='</div>';
+  return h;
+}
+function impactoHTML(){
+  const rlA=anoSum(receitaLiquidaSerie()), ebA=anoSum(ebitdaSerie());
+  const rlB=anoSum(DB.dre.receita_liquida||[]), ebB=anoSum(DB.dre.ebitda||[]);
+  const row=(y)=>{ const rb=(rlB[y]?.v||0)/1e6, ra=(rlA[y]?.v||0)/1e6, eb=(ebB[y]?.v||0)/1e6, ea=(ebA[y]?.v||0)/1e6;
+    const mB=rb? eb/rb*100:0, mA=ra? ea/ra*100:0;
+    return `<tr><td class="l">${y}</td><td>${fmt(rb,0)}</td><td>${fmt(ra,0)}</td><td>${fmt(eb,0)}</td><td><b>${fmt(ea,0)}</b></td><td>${fmt(mB,1)}%</td><td><b>${fmt(mA,1)}%</b></td></tr>`; };
+  return '<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Ano</th><th>Rec.Líq base</th><th>Rec.Líq ajust</th><th>EBITDA base</th><th>EBITDA ajust</th><th>Marg base</th><th>Marg ajust</th></tr></thead><tbody>'+
+    ["2027","2030","2033","2035","2038"].map(row).join("")+'</tbody></table></div><div class="sub" style="font-size:11px;color:var(--muted);margin-top:6px">Valores em R$ MM/ano.</div>';
+}
+function onG(gk,key,val){
+  G[gk]=+val;
+  const lab=document.getElementById(key+"_v"); if(lab) lab.textContent=Math.round(val*100)+"%";
+  const imp=document.getElementById("g_impacto"); if(imp) imp.innerHTML=impactoHTML();
+  const msg=document.getElementById("g_msg"); if(msg) msg.textContent=gAtivo()?"premissas ativas — veja Resumo/Receita/OPEX":"";
+}
+function resetG(){ G={volMult:1,precoMult:1,molMult:1}; render(); }
 
 /* ------------------------------------------------- validação vs golden ---- */
 async function validateVolume(){
