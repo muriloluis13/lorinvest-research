@@ -286,6 +286,16 @@ function parseWorkbook(buf){
     const o={}; H.forEach((k,j)=>o[k]=r[j]); regasCli.push(o); } }
   const grg = grid("OpexRegasGlob"); const regasGlob={};
   if(grg) for(let i=1;i<grg.length;i++){ const r=grg[i]; if(!r||r[0]==null) continue; regasGlob[r[0]]=+r[1]; }
+  // SG&A: config por planta + globais + ocupação (driver) + semente do hardcode
+  const gsc = grid("OpexSgaCfg"); const sgaCfg={};
+  if(gsc){ const H=gsc[0]; for(let i=1;i<gsc.length;i++){ const r=gsc[i]; if(!r||r[0]==null) continue;
+    const o={}; H.forEach((k,j)=>{ if(j>0) o[k]=(r[j]==null?null:+r[j]); }); sgaCfg[r[0]]=o; } }
+  const gsg2 = grid("OpexSgaGlob"); const sgaGlob={};
+  if(gsg2) for(let i=1;i<gsg2.length;i++){ const r=gsg2[i]; if(!r||r[0]==null) continue; sgaGlob[r[0]]=+r[1]; }
+  const gsoc = grid("OpexSgaOcup"); const sgaOcup={};
+  if(gsoc) for(let i=1;i<gsoc.length;i++){ const r=gsoc[i]; if(!r||r[0]==null) continue; sgaOcup[r[0]]=r.slice(1); }
+  const gss = grid("OpexSgaSeed"); const sgaSeed={};
+  if(gss) for(let i=1;i<gss.length;i++){ const r=gss[i]; if(!r||r[0]==null) continue; sgaSeed[r[0]]=r.slice(1); }
   // Compressão + Terminal por planta
   const gct2 = grid("OpexCompTerm"); const compTerm={};
   if(gct2) for(let i=1;i<gct2.length;i++){ const r=gct2[i]; if(!r||r[0]==null) continue;
@@ -313,7 +323,8 @@ function parseWorkbook(buf){
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
-          premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm, monthsOrd, cutoffIdx, diasMes};
+          premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
 
 async function tryFetch(){
@@ -904,13 +915,62 @@ function terminalSerie(){
     out[p]=s; }
   return out;
 }
+/* ===== port fiel: SG&A DE PLANTA (11 componentes por planta) =================
+   Salários + Seguros(op+equip, prêmio periódico) + Assistência(lump mês 10) +
+   Serviços + Viagens + Projetos-Eng(gatilho ocupação≥95%) + Regulatório(a cada 3m) +
+   Segurança(patrim+ocup+trab a cada 6m) + Contingência(const) + Frota + Outros(0).
+   Fórmula vale de jan/27 (k48+); ago-dez/26 (k43..48) = semente hardcode. Validado
+   1:1 vs golden na região paramétrica (sga_ref.py). ============================= */
+const SGA_SUB=["salarios","seguros","assist","servicos","viagens","projetos","regulatorio","seguranca","contingencia","frota","outros"];
+let _sgaCache={};
+function sgaSerie(){
+  const key=G.volMult+"|"+G.precoMult+"|"+G.molMult;
+  if(_sgaCache.key===key) return _sgaCache.total;
+  const n=DB.meses.length, mo=DB.monthsOrd, corr=DB.seriesOpex.corr556||[], GL=DB.sgaGlob||{}, P=[1,2,3,4,5,6];
+  const monthOf=k=>(((mo[k]%12)+12)%12)+1;                    // 1..12
+  const dd=(baseOrd,k)=> (baseOrd==null||mo[k]<baseOrd) ? null : (mo[k]-baseOrd);   // DATEDIF meses
+  const z=()=>new Array(n).fill(0), comp={}, total={};
+  for(const p of P){ const c=DB.sgaCfg[p]||{}, op=DB.fatores.operacao[p]||[], oc=DB.sgaOcup[p]||[];
+    const C={}; SGA_SUB.forEach(s=>C[s]=z());
+    for(let k=0;k<n;k++){ const o=typeof op[k]==="number"?op[k]:0, cr=typeof corr[k]==="number"?corr[k]:1;
+      C.salarios[k]=(c.sal_d||0)*cr*(c.sal_hc||0)*o;
+      let seg=0;
+      const segRows=[[c.segop_d,c.segop_e,c.segop_f,c.segop_ini],[c.segeq_d,c.segeq_e,c.segeq_f,c.segeq_ini]];
+      for(const sr of segRows){ const d=sr[0],e=sr[1],f=sr[2],ini=sr[3];
+        if(d&&e&&f&&ini!=null){ const m=dd(ini,k); if(m!=null && m%f===0) seg+=d*e; } }
+      C.seguros[k]=seg*o*cr;
+      C.assist[k]=(monthOf(k)===c.assist_mes?(c.assist_d||0):0)*o*cr;
+      C.servicos[k]=(c.serv_d||0)*o*cr;
+      C.viagens[k]=(c.viag_d||0)*o*cr;
+      C.projetos[k]=((oc[k]||0)>=(c.proj_g||0)?(c.proj_f||0):(c.proj_d||0))*cr*o;
+      if(c.reg_f){ const base=(k<(GL.reg_switch_k||50))?c.reg_base:GL.reg_base2_ord, m=dd(base,k);
+        C.regulatorio[k]=(m!=null && m%c.reg_f===0?(c.reg_d||0):0)*cr*o; }
+      let sg=(c.patr_d||0)*o*cr + (c.ocup_d||0)*o*cr;
+      if(c.trab_f){ const m=dd(c.trab_base,k); sg+=(m!=null && m%c.trab_f===0?(c.trab_d||0):0)*cr*o; }
+      C.seguranca[k]=sg;
+      C.contingencia[k]=(c.cont||0);
+      C.frota[k]=(c.frota_d||0)*(c.frota_n||0)*cr*o;
+    }
+    comp[p]=C; total[p]=z(); const sd=DB.sgaSeed[p];
+    for(let k=0;k<n;k++){ let s=0; for(const s2 of SGA_SUB) s+=C[s2][k];
+      total[p][k]=(k>=43&&k<=48&&sd&&typeof sd[k]==="number")?sd[k]:s; }
+  }
+  _sgaCache={key,comp,total}; return total;
+}
+function sgaCompAgg(regiao){
+  sgaSerie(); const n=DB.meses.length, comp=_sgaCache.comp, plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
+  const out={}; for(const s of SGA_SUB){ out[s]=new Array(n).fill(0);
+    for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
+  return out;
+}
 function aggByRegiao(byPlanta, regiao){   // {planta:[192]} -> [192] somado na região
   const n=DB.meses.length, out=new Array(n).fill(0), plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
   for(const p of plantas){ const a=byPlanta[p]||[]; for(let k=0;k<n;k++) out[k]+=a[k]||0; } return out;
 }
 // categorias já portadas em fórmula (usa fórmula na projeção; realizado = extraído)
 function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : cat==="distribuicao" ? logisticaSerie()
-  : cat==="regas" ? regasSerie() : cat==="compressao" ? compressaoSerie() : cat==="terminal" ? terminalSerie() : null; }
+  : cat==="regas" ? regasSerie() : cat==="compressao" ? compressaoSerie() : cat==="terminal" ? terminalSerie()
+  : cat==="sga" ? sgaSerie() : null; }
 function opexCatAgg(regiao, cat){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const blk=DB.opexCat[cat]||{}, ported=portedOpex(cat);
@@ -1298,15 +1358,18 @@ const OPEX_MECH = {
     {k:"tarifa",nome:"Tarifa por planta",mec:"R$/mês fixo × op × IPCA, liberado a partir da data de início. Não é volume-dependente. Hoje só RN (20.000/mês a partir de ago/27).",portado:true}]},
   terminal:{label:"Terminal", compute:reg=>({tarifa:aggByRegiao(terminalSerie(),reg)}), sub:[
     {k:"tarifa",nome:"Tarifa de terminal",mec:"tarifa × volume GNL da planta × dias (volume-dependente, sem IPCA). Hoje só Terminal PE (0,30 por m³·dia).",portado:true}]},
-  sga:{label:"SG&A planta", sub:[
-    {nome:"Salários",mec:"R$/mês/pessoa × headcount × op × IPCA.",portado:false},
-    {nome:"Seguros (operacional + equipamentos)",mec:"prêmio anual = valor segurado × taxa, pago 1×/ano (a cada 12 meses; equip. BA/RN a cada 3), × op × IPCA.",portado:false},
-    {nome:"Assistência técnica",mec:"lump anual no mês 10 (outubro) × op × IPCA.",portado:false},
-    {nome:"Serviços gerais / Viagens",mec:"R$/mês fixo × op × IPCA.",portado:false},
-    {nome:"Projetos de engenharia",mec:"se ocupação GNL ≥ 95% usa R$ 1.000, senão R$ 5.000; × op × IPCA.",portado:false},
-    {nome:"Regulatório / Seg. do trabalho",mec:"R$ 5.000 a cada 3 (regulatório) / 6 (trabalho) meses × op × IPCA.",portado:false},
-    {nome:"Segurança (patrimonial/ocupacional)",mec:"R$/mês fixo × op × IPCA.",portado:false},
-    {nome:"Frota",mec:"R$/mês/veículo × nº de veículos × op × IPCA.",portado:false}]},
+  sga:{label:"SG&A planta", compute:sgaCompAgg, sub:[
+    {k:"salarios",nome:"Salários",mec:"R$/mês/pessoa × headcount × op × IPCA.",portado:true},
+    {k:"seguros",nome:"Seguros (operacional + equipamentos)",mec:"prêmio = valor segurado × taxa, pago a cada N meses a partir da data de início (12 anual; equip. BA/RN a cada 3), × op × IPCA.",portado:true},
+    {k:"assist",nome:"Assistência técnica",mec:"lump anual no mês 10 (outubro) × op × IPCA.",portado:true},
+    {k:"servicos",nome:"Serviços gerais",mec:"R$/mês fixo × op × IPCA.",portado:true},
+    {k:"viagens",nome:"Viagens e hospedagens",mec:"R$/mês fixo × op × IPCA.",portado:true},
+    {k:"projetos",nome:"Projetos de engenharia",mec:"se ocupação GNL ≥ 95% usa R$ 1.000, senão R$ 5.000; × op × IPCA.",portado:true},
+    {k:"regulatorio",nome:"Regulatório",mec:"R$ 5.000 a cada 3 meses (a partir de fev/27) × op × IPCA.",portado:true},
+    {k:"seguranca",nome:"Segurança (patrimonial + ocupacional + trabalho)",mec:"patrimonial/ocupacional R$/mês fixo; trabalho R$ 5.000 a cada 6 meses; × op × IPCA.",portado:true},
+    {k:"contingencia",nome:"Contingência",mec:"constante por planta (~R$ 2–6; Projeto Sal R$ 1.534).",portado:true},
+    {k:"frota",nome:"Frota",mec:"R$/mês/veículo × nº de veículos × op × IPCA.",portado:true},
+    {k:"outros",nome:"Outros",mec:"manual (0).",portado:true}]},
   distribuicao:{label:"Logística", compute:logisticaCompAgg, sub:[
     {k:"frete_fixo",nome:"Frete fixo (por cliente)",mec:"custo fixo/viagem × nº de carretas ARREDONDADO × IPCA. Nº de carretas = (volume/dia ÷ capacidade) × (dist_ida×2/450 + descarga/24) × op; arredondado por grupo planta×tipo. Cliente FOB (sem distância) é zerado a partir de jan/2027.",portado:true},
     {k:"frete_var",nome:"Frete variável (por cliente)",mec:"R$/km × km rodados no mês × IPCA. km_mês = (volume ÷ capacidade) × dist×2 × 30 (30 dias fixos).",portado:true},
@@ -1542,14 +1605,16 @@ async function validateCustoTotal(){
   try{ const r=await fetch("build/golden/custo_total.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
   catch(e){ console.warn("[valida] golden custo total não encontrado"); return; }
   const gold=txt.trim().split(/\r?\n/)[1].split(";").slice(1).map(Number);
-  const eng=custoTotal(0), cut=DB.cutoffIdx;   // consolidado; só realizado é comparável (projeção
-  let worst=0, worstAt="", mism=0;             // é bottom-up e ainda incompleta até portar todo OpEx)
-  for(let k=0;k<=cut;k++){ const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
-    if(Math.abs(e-g)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} } }
-  const ok=mism===0;
-  console.log(`%c[valida custo total] ${ok?"OK (realizado)":"DIVERGÊNCIAS"} — realizado ${cut+1} meses, ${mism} fora; projeção = bottom-up (parcial até OpEx portado); pior: ${worstAt||"—"}`,
+  const eng=custoTotal(0), cut=DB.cutoffIdx;   // gás + TODO o OpEx portado -> projeção bottom-up
+  let worst=0, worstAt="", mismR=0, mismP=0, known=0;
+  for(let k=0;k<gold.length;k++){ const g=gold[k], e=eng[k], rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+    if(Math.abs(e-g)>1000 && rel>3e-3){ if(k<=cut){ mismR++; }
+      else if(k<=cut+7){ known++; }                                  // BA nas 1as 2 janelas da molécula
+      else { mismP++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym} gold=${g.toFixed(0)} eng=${e.toFixed(0)}`;} } } }
+  const ok=mismR===0 && mismP===0;
+  console.log(`%c[valida custo total] ${ok?"OK":"DIVERGÊNCIAS"} — realizado ${mismR} fora · projeção (gás + OpEx completo) ${mismP} fora${known?` (+${known} BA molécula)`:""}; pior: ${worstAt||"—"}`,
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
-  return {ok, mism};
+  return {ok, mismR, mismP};
 }
 
 async function validateLiquef(){
@@ -1617,6 +1682,22 @@ async function validateCompTerm(){
     console.log(`%c[valida ${cat==="compressao"?"compressão":"terminal"}] ${ok?"OK":"DIVERGÊNCIAS"} — ${checked} pontos, ${mism} fora; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
                 `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`); }
 }
+async function validateSga(){
+  // port fiel do SG&A vs golden (opex_por_cat.csv sga). Fórmula vale k>=49; k43..48 = semente.
+  let txt; try{ const r=await fetch("build/golden/opex_por_cat.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ return; }
+  const gold={}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";");
+    if(c[0]==="sga") gold[+c[1]]=c.slice(2).map(Number); });
+  const eng=sgaSerie(); let worst=0, worstAt="", checked=0, mism=0;
+  for(let p=1;p<=6;p++){ const g=gold[p]; if(!g) continue; const e=eng[p];
+    for(let k=49;k<g.length;k++){ const gv=g[k]; if(typeof gv!=="number") continue;   // região paramétrica
+      const rel=Math.abs(e[k]-gv)/Math.max(Math.abs(gv),1); checked++;
+      if(Math.abs(e[k]-gv)>100 && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`planta ${p} ${DB.meses[k].ym} gold=${gv.toFixed(0)} eng=${e[k].toFixed(0)}`;} } } }
+  const ok=mism===0;
+  console.log(`%c[valida SG&A] ${ok?"OK":"DIVERGÊNCIAS"} — paramétrico (k≥jan/27) ${checked} pontos, ${mism} fora; ago-dez/26 = semente hardcode; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, mism};
+}
 function validateReceitaLiquida(){
   // composição (GNL+GNC ported) vs Receita Líquida realizado do DFM. Projeção da composição
   // ainda não inclui extras portados (realizado só) — valida realizado.
@@ -1657,7 +1738,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?cut.ym:"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 

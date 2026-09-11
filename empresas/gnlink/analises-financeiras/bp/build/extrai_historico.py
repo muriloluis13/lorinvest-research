@@ -248,7 +248,7 @@ def read_opex_rows(wb):
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=2479, values_only=True), start=1):
         if i == 39 or (190 <= i <= 556) or (560 <= i <= 574) \
-           or (579 <= i <= 584) or (718 <= i <= 723) or (725 <= i <= 1673) \
+           or (579 <= i <= 709) or (718 <= i <= 723) or (725 <= i <= 1673) \
            or (1976 <= i <= 1981) or (1983 <= i <= 2473) or i == 2478:
             keep[i] = row
     return keep
@@ -400,6 +400,45 @@ def extract_regas(orows, n_real):
         "assist_por": _num(cell(2468, 4)) or 5000.0,     # D2468 = a cada 5000 m³
     }
     return clientes, globs, necess_real, dolar_macro
+
+
+def extract_sga(orows, n_real):
+    """SG&A de planta (OPEX 579-709), 11 componentes por planta — port fiel (sga_ref.py).
+    Fórmula paramétrica vale de jan/27 (k48); ago-dez/26 (k43..48) é hardcode (semente).
+    Só PREMISSAS + ocupação (driver) + semente do hardcode."""
+    def cell(r, col):
+        rec = orows.get(r)
+        return rec[col - 1] if rec and col - 1 < len(rec) else None
+    cfg = {}
+    for p in range(1, 7):
+        r_sal, r_op, r_eq = 586 + p, 600 + p, 607 + p
+        r_as, r_sv, r_vi, r_pj = 614 + p, 621 + p, 628 + p, 635 + p
+        r_rg, r_pt, r_oc, r_tr, r_fr = 651 + p, 667 + p, 674 + p, 681 + p, 695 + p
+        cfg[p] = {
+            "sal_d": _num(cell(r_sal, 4)) or 0.0, "sal_hc": _num(cell(r_sal, 6)) or 0.0,
+            "segop_d": _num(cell(r_op, 4)) or 0.0, "segop_e": _num(cell(r_op, 5)) or 0.0,
+            "segop_f": _num(cell(r_op, 6)) or 0.0, "segop_ini": _ord(cell(r_op, 7)),
+            "segeq_d": _num(cell(r_eq, 4)) or 0.0, "segeq_e": _num(cell(r_eq, 5)) or 0.0,
+            "segeq_f": _num(cell(r_eq, 6)) or 0.0, "segeq_ini": _ord(cell(r_eq, 7)),
+            "assist_d": _num(cell(r_as, 4)) or 0.0, "assist_mes": _num(cell(r_as, 6)) or 0.0,
+            "serv_d": _num(cell(r_sv, 4)) or 0.0, "viag_d": _num(cell(r_vi, 4)) or 0.0,
+            "proj_d": _num(cell(r_pj, 4)) or 0.0, "proj_f": _num(cell(r_pj, 6)) or 0.0,
+            "proj_g": _num(cell(r_pj, 7)) or 0.0,
+            "reg_d": _num(cell(r_rg, 4)) or 0.0, "reg_f": _num(cell(r_rg, 6)) or 0.0,
+            "reg_base": _ord(cell(r_rg, 3)),
+            "patr_d": _num(cell(r_pt, 4)) or 0.0, "ocup_d": _num(cell(r_oc, 4)) or 0.0,
+            "trab_d": _num(cell(r_tr, 4)) or 0.0, "trab_f": _num(cell(r_tr, 6)) or 0.0,
+            "trab_base": _ord(cell(r_tr, 3)),
+            "cont": _num(cell(688 + p, COL_FIRST + 60)) or 0.0,   # constante (col paramétrica k60)
+            "frota_d": _num(cell(r_fr, 4)) or 0.0, "frota_n": _num(cell(r_fr, 6)) or 0.0,
+        }
+    # ocupação GNL % (rows 644-649) — driver do gatilho de Projetos de Engenharia
+    ocup = {p: [_num(cell(643 + p, COL_FIRST + k)) for k in range(N_MONTHS)] for p in range(1, 7)}
+    # semente do hardcode: subtotal SG&A (579-584) em k43..48 (ago/26..jan/27); resto None
+    seed = {p: [_num(cell(578 + p, COL_FIRST + k)) if (43 <= k <= 48) else None
+                for k in range(N_MONTHS)] for p in range(1, 7)}
+    reg_base2_ord = 2027 * 12 + 1   # $BF$2 = 2027-02-01 (âncora do regulatório p/ k>=50)
+    return cfg, ocup, seed, reg_base2_ord
 
 
 def extract_comp_term(orows):
@@ -834,6 +873,7 @@ def main():
     log_cli, log_planta, log_glob = extract_logistica(orows)
     regas_cli, regas_glob, regas_necess, regas_dolar = extract_regas(orows, n_real)
     comp_term = extract_comp_term(orows)
+    sga_cfg, sga_ocup, sga_seed, sga_regbase2 = extract_sga(orows, n_real)
     custo_total = extract_custo_total(orows)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
@@ -998,6 +1038,28 @@ def main():
     ws_rs.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     ws_rs.append(["necess"] + regas_necess)
     ws_rs.append(["dolar_macro"] + regas_dolar)
+
+    # abas do SG&A: config por planta + ocupação (driver) + semente do hardcode ago-dez/26
+    SGA_KEYS = ["sal_d", "sal_hc", "segop_d", "segop_e", "segop_f", "segop_ini",
+                "segeq_d", "segeq_e", "segeq_f", "segeq_ini", "assist_d", "assist_mes",
+                "serv_d", "viag_d", "proj_d", "proj_f", "proj_g", "reg_d", "reg_f", "reg_base",
+                "patr_d", "ocup_d", "trab_d", "trab_f", "trab_base", "cont", "frota_d", "frota_n"]
+    ws_sc = out.create_sheet("OpexSgaCfg")
+    ws_sc.append(["planta"] + SGA_KEYS)
+    for p in range(1, 7):
+        ws_sc.append([p] + [sga_cfg[p][k] for k in SGA_KEYS])
+    ws_sg = out.create_sheet("OpexSgaGlob")
+    ws_sg.append(["key", "value"])
+    ws_sg.append(["reg_base2_ord", sga_regbase2])
+    ws_sg.append(["reg_switch_k", 50])
+    ws_so2 = out.create_sheet("OpexSgaOcup")   # ocupação GNL % por planta (driver de Projetos Eng.)
+    ws_so2.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(1, 7):
+        ws_so2.append([p] + sga_ocup[p])
+    ws_ss = out.create_sheet("OpexSgaSeed")    # semente do hardcode (subtotal SG&A k43..48)
+    ws_ss.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for p in range(1, 7):
+        ws_ss.append([p] + sga_seed[p])
 
     # aba OpexCompTerm: compressão + terminal por planta (motores simples)
     ws_ct2 = out.create_sheet("OpexCompTerm")
