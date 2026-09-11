@@ -838,6 +838,49 @@ def extract_gas_adj(orows):
     return out
 
 
+def extract_holding_sga(wb):
+    """SG&A da holding/matriz (aba Holding, linha 23 = SUM(13:18)). EBITDA = Resultado
+    Operacional + Holding23. As 6 componentes são paramétricas: médias/sementes de 2026
+    (k36..k47) × corr556 (IPCA, já vivo no HTML) × fatores, com gatilho de escala em r15.
+    Saem só as premissas/sementes + a série-driver r32 (proxy de volume da matriz)."""
+    ws = wb["Holding"]
+    keep = {}
+    for i, r in enumerate(ws.iter_rows(min_row=1, max_row=45,
+                                       max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+        if i in (4, 8, 13, 14, 15, 16, 17, 18, 23, 27, 28, 29, 30, 32, 33):
+            keep[i] = r
+
+    def ser(rr):
+        row = keep.get(rr)
+        return [_num(row[COL_FIRST - 1 + k]) if row and COL_FIRST - 1 + k < len(row) else None
+                for k in range(N_MONTHS)]
+
+    def cval(rr, col):   # col 1-based (C=3, D=4)
+        row = keep.get(rr)
+        return _num(row[col - 1]) if row and col - 1 < len(row) else None
+
+    r13 = ser(13); r14 = ser(14); r15 = ser(15); r16 = ser(16); r17 = ser(17); r32 = ser(32)
+    K26 = list(range(36, 48))                              # 2026 = jan..dez (k36..k47)
+    seed13 = [(r13[k] or 0.0) for k in K26]                # semente de r13 por mês-calendário
+
+    def avg(rr):
+        vals = [(rr[k] or 0.0) for k in K26]
+        return sum(vals) / len(vals)
+
+    scal = {
+        "C27": cval(27, 3), "C28": cval(28, 3), "C29": cval(29, 3), "C30": cval(30, 3),
+        "C32": cval(32, 3), "C33": cval(33, 3), "D18": cval(18, 4),
+        "H8": cval(8, 3) if cval(8, 3) is not None else 1.0,
+        "SEED15": r15[46] or 0.0, "C34": r32[47] or 0.0,
+        "AVG14": avg(r14), "AVG16": avg(r16), "AVG17": avg(r17),
+    }
+    # semente do Holding23 (SUM 13:18) na banda de orçamento ago-dez/26 (k43..47): r13 é hardcode
+    # literal no modelo, então o paramétrico só vale de jan/27 (k48). Guardamos k<48 (realizado+banda).
+    r23 = ser(23)
+    seed23 = [r23[k] if k < 48 else None for k in range(N_MONTHS)]
+    return {"scalars": scal, "seed13": seed13, "r32": r32, "seed23": seed23}
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SRC
     if not os.path.exists(src):
@@ -883,6 +926,7 @@ def main():
     comp_term = extract_comp_term(orows)
     sga_cfg, sga_ocup, sga_seed, sga_regbase2 = extract_sga(orows, n_real)
     custo_total = extract_custo_total(orows)
+    holding_sga = extract_holding_sga(wb)          # SG&A da holding (para o EBITDA = RO + Holding23)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1002,6 +1046,17 @@ def main():
     ws_maj.append(["planta"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for p in range(6):
         ws_maj.append([p + 1] + mol_prem["ajusteExtraSer"][p])
+
+    # aba HoldingSga: premissas/sementes do SG&A da holding (matriz) — EBITDA = RO + Holding23.
+    # Escalares + semente 2026 de r13 (por mês) + série-driver r32 (proxy de volume da matriz).
+    ws_hs = out.create_sheet("HoldingSga")
+    ws_hs.append(["key", "value"])
+    for key in ("C27", "C28", "C29", "C30", "C32", "C33", "D18", "H8",
+                "SEED15", "C34", "AVG14", "AVG16", "AVG17"):
+        ws_hs.append([key, holding_sga["scalars"][key]])
+    ws_hs.append(["seed13"] + holding_sga["seed13"])          # 12 valores (jan..dez/26)
+    ws_hs.append(["r32"] + holding_sga["r32"])                # 192 (proxy de volume da matriz)
+    ws_hs.append(["seed23"] + holding_sga["seed23"])          # Holding23 realizado+banda (k<48)
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula
