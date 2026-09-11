@@ -241,7 +241,7 @@ def read_opex_rows(wb):
     ws = wb["OPEX"]
     keep = {}
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=2479, values_only=True), start=1):
-        if (380 <= i <= 412) or (407 <= i <= 412) or (560 <= i <= 574) \
+        if (190 <= i <= 556) or (560 <= i <= 574) \
            or (579 <= i <= 584) or (718 <= i <= 723) or (1976 <= i <= 1981) or i == 2478:
             keep[i] = row
     return keep
@@ -271,6 +271,60 @@ def extract_opex_cat(orows):
                     for k in range(N_MONTHS)]
         out[cat] = d
     return out
+
+
+# ---- Fase "fiel": premissas de OpEx para portar as fórmulas em JS ------------
+def _opex_series(orows, row):
+    rec = orows.get(row)
+    return [rec[COL_FIRST - 1 + k] if rec and COL_FIRST - 1 + k < len(rec) else None
+            for k in range(N_MONTHS)] if rec else [None] * N_MONTHS
+
+
+def _pp(orows, rows, cidx):
+    """Escalar por planta (1..6): valores da coluna cidx (0-based) nas 6 `rows`."""
+    out = []
+    for r in rows:
+        rec = orows.get(r)
+        v = rec[cidx] if rec and cidx < len(rec) else None
+        out.append(v if isinstance(v, (int, float)) else None)
+    return out
+
+
+def _pp_month(orows, rows, cidx):
+    """Mês (1-12) por planta a partir de uma data OU inteiro na coluna cidx."""
+    out = []
+    for r in rows:
+        rec = orows.get(r)
+        v = rec[cidx] if rec and cidx < len(rec) else None
+        if isinstance(v, (datetime.datetime, datetime.date)):
+            out.append(v.month)
+        elif isinstance(v, (int, float)):
+            out.append(int(v))
+        else:
+            out.append(None)
+    return out
+
+
+def extract_liquef_prem(orows):
+    """Premissas de liquefação por planta (energia, insumos, O&M, perdas, purga)."""
+    P = {}
+    P["precoMWh"] = _pp(orows, [426, 429, 432, 435, 438, 441], 2)   # C
+    P["gerador"]  = _pp(orows, [446, 447, 448, 449, 450, 451], 3)   # D
+    P["oem"]      = _pp(orows, [513, 514, 515, 516, 517, 518], 3)
+    P["perdaFrac"] = _pp(orows, [529, 530, 531, 532, 533, 534], 3)
+    P["purga_c"]  = _pp(orows, [537, 538, 539, 540, 541, 542], 2)   # C
+    P["purga_gate"] = _pp_month(orows, [537, 538, 539, 540, 541, 542], 4)  # E (data início)
+    # insumos: rate (D) por planta + gates (F,G) onde houver
+    INS = {"propano": 470, "agua": 477, "oleo": 484, "glycol": 491,
+           "residuos": 498, "mercaptano": 505, "outros": 546}
+    for name, r0 in INS.items():
+        rows = [r0 + i for i in range(6)]
+        P[name + "_rate"] = _pp(orows, rows, 3)   # D
+    for name, r0 in (("propano", 470), ("mercaptano", 505)):
+        rows = [r0 + i for i in range(6)]
+        P[name + "_g1"] = _pp_month(orows, rows, 5)   # F
+        P[name + "_g2"] = _pp_month(orows, rows, 6)   # G
+    return P
 
 
 def extract_custo_total(orows):
@@ -557,6 +611,9 @@ def main():
     gas_adj = extract_gas_adj(orows)
     opex_cat = extract_opex_cat(orows)
     custo_total = extract_custo_total(orows)
+    liquef_prem = extract_liquef_prem(orows)
+    corr556 = _opex_series(orows, 556)
+    vol192 = _opex_series(orows, 192)
 
     # ---- DRE / EBITDA (Fase E) ----
     dre = extract_dre(read_dfm_rows(wb))
@@ -678,6 +735,18 @@ def main():
     for cat in OPEX_CAT:
         for p in sorted(opex_cat.get(cat, {})):
             ws_ox.append([cat, p] + opex_cat[cat][p])
+
+    # aba PremLiquef: premissas de liquefação por planta (para portar em JS)
+    ws_pl = out.create_sheet("PremLiquef")
+    ws_pl.append(["key", "p1", "p2", "p3", "p4", "p5", "p6"])
+    for k in sorted(liquef_prem):
+        ws_pl.append([k] + list(liquef_prem[k]))
+
+    # aba SeriesOpex: séries mensais de apoio (fator correção IPCA, vol GNC row192)
+    ws_so = out.create_sheet("SeriesOpex")
+    ws_so.append(["key"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    ws_so.append(["corr556"] + corr556)
+    ws_so.append(["vol192"] + vol192)
 
     # aba CustoTotal: CUSTO TOTAL consolidado do modelo (realizado actual + projeção)
     if custo_total:
