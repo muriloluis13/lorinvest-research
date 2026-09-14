@@ -236,11 +236,12 @@ const MECH={
   custo_total:"Custo total = gás + as 6 categorias de OpEx (liquefação, compressão, terminal, SG&A planta, logística, regás). 100% por fórmula.",
   ebitda:"EBITDA = Resultado Operacional + SG&A da holding (matriz). Projeção por fórmula viva, validada 1:1 vs o modelo (banda ago-dez/26 = semente de orçamento).",
   sga_holding:"SG&A da holding (matriz) = 6 componentes (salários, viagens, serviços etc.): médias/sementes de 2026 × corr IPCA × fatores, com gatilho de economia de escala. É a despesa corporativa que separa o Resultado Operacional do EBITDA.",
-  receita_bruta:"Receita Bruta = Receita Líquida + deduções (impostos sobre receita). Vem do módulo de Impostos (só realizado por ora).",
-  depreciacao:"Depreciação = cronograma de depreciação do Capex + amortização da holding. Requer o módulo de capex (só realizado por ora).",
-  ebit:"EBIT = EBITDA − Depreciação. Requer a depreciação (módulo de capex).",
-  resultado_financeiro:"Resultado Financeiro = juros da dívida (líquido de receita financeira). Requer o módulo de dívida (só realizado por ora).",
-  lucro_liquido:"Lucro Líquido = EBIT + Resultado Financeiro − Impostos (IR/CSLL, com prejuízo fiscal). Requer os módulos de capex, dívida e impostos.",
+  receita_bruta:"Receita Bruta = Receita Líquida + deduções (PIS/COFINS/ICMS sobre receita). Driver do módulo de impostos.",
+  depreciacao:"Depreciação = cronograma de depreciação do Capex (por planta/classe) + amortização da holding. Driver do plano de investimento (premissa fixa, não reage às alavancas operacionais).",
+  ebit:"EBIT = EBITDA − Depreciação.",
+  resultado_financeiro:"Resultado Financeiro = juros da dívida + IOF/taxas − receita financeira do caixa. Driver do cronograma de dívida (premissa de financiamento).",
+  impostos:"Impostos (IR/CSLL) calculados AO VIVO por uma máquina de prejuízo fiscal de DUAS entidades (CNPJs): cada uma tem sua base pré-imposto, seu estoque de prejuízo (uso limitado a 30% do lucro) e piso em zero. IRPJ 15% + adicional 10% acima de R$20 mil/mês + CSLL 9%. Por isso o imposto ≠ alíquota×lucro e reage às premissas.",
+  lucro_liquido:"Lucro Líquido = EBIT + Resultado Financeiro − Impostos. DRE completa por fórmula, validada 1:1 vs o modelo.",
   vpl:"VPL operacional = fluxo (Receita GNL+GNC − Custo total) descontado mês a mês ao WACC, a partir do corte. Prévia — não inclui capex, impostos nem capital de giro.",
   tir:"TIR = taxa que zera o VPL do fluxo de caixa do projeto. Requer o investimento inicial (capex) do módulo de DCF, ainda a construir.",
   resultado_op:"Resultado operacional = Receita (GNL+GNC) − Custo total. Prévia enquanto a DRE não é portada.",
@@ -348,6 +349,13 @@ function parseWorkbook(buf){
     else if(r[0]==="r32") holdingSga.r32=r.slice(1);
     else if(r[0]==="seed23") holdingSga.seed23=r.slice(1);
     else holdingSga.scalars[r[0]]=r[1]; }
+  // DreBelow: linhas abaixo do EBITDA — drivers (deprec/resfin/receita bruta/deduções/imp36-37) + premissas fiscais
+  const gdb = grid("DreBelow"); const dreBelow={};
+  if(gdb) for(let i=1;i<gdb.length;i++){ const r=gdb[i]; if(!r||r[0]==null) continue;
+    if(r[0]==="taxconst"){ dreBelow.E30=+r[1]; dreBelow.E31=+r[2]; dreBelow.E32=+r[3]; dreBelow.E33=+r[4]; dreBelow.E34=+r[5]; }
+    else if(r[0]==="taxseed"){ dreBelow.seedA=+r[1]; dreBelow.seedB=+r[2]; dreBelow.seedD=+r[3]; }
+    else if(r[0]==="entityA"){ dreBelow.entityA=r.slice(1).filter(x=>x!=null).map(Number); }
+    else dreBelow[r[0]]=r.slice(1); }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -418,7 +426,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
           sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
@@ -1529,6 +1537,51 @@ function ebitdaSerie(){
   for(let k=0;k<n;k++) out[k]= k<=cut ? ((typeof eb[k]==="number")?eb[k]:null) : (ro[k]+(hs[k]||0));
   return out;
 }
+/* ---------------- DRE abaixo do EBITDA (Depreciação/EBIT/Result. Financeiro/Impostos/Lucro Líquido) ----
+   Depreciação e Result. Financeiro = cronogramas dos módulos de CAPEX e DÍVIDA (drivers/premissas fixas
+   dos planos de investimento/financiamento — não reagem às alavancas operacionais). IMPOSTOS é computado
+   AO VIVO: máquina de prejuízo fiscal (NOL) de DUAS entidades/CNPJ sobre o EBT — por isso o imposto ≠
+   alíquota×EBT e reage às premissas. Validado 1:1 vs golden (dre_below_ref.py). ===================== */
+function _dbSer(key){ const cut=DB.cutoffIdx, d=(DB.dreBelow&&DB.dreBelow[key])||[], n=DB.meses.length, out=new Array(n).fill(null);
+  for(let k=0;k<n;k++){ const v=d[k]; if(typeof v==="number") out[k]=v; } return out; }
+function depreciacaoSerie(){ return _dbSer("depreciacao"); }              // driver (plano de capex)
+function resultadoFinanceiroSerie(){ return _dbSer("resultado_financeiro"); }  // driver (cronograma de dívida)
+function ebitSerie(){ const eb=ebitdaSerie(), dp=depreciacaoSerie(); return eb.map((v,k)=> v==null?null:(v+(dp[k]||0))); }
+function ebtSerie(){ const e=ebitSerie(), rf=resultadoFinanceiroSerie(); return e.map((v,k)=> v==null?null:(v+(rf[k]||0))); }
+function roPlantaSerie(p){ const rc=receitaComp(p).total, ct=custoTotal(p), n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]=(rc[k]||0)-(ct[k]||0); return out; }
+// máquina fiscal por entidade: prejuízo acumulado S; usa até 30% do lucro (E34), aliquota E30+E31 + adicional E32 sobre E33.
+function _taxMachine(pre, seed, k0){
+  const n=pre.length, tax=new Array(n).fill(0), usage=new Array(n).fill(0); let close=seed;
+  const {E30,E31,E32,E33,E34}=DB.dreBelow;
+  for(let k=k0;k<n;k++){ const S=close, u=pre[k]>0?Math.min(pre[k]*E34,S):0, a=pre[k]<0?-pre[k]:0;
+    close=S-u+a; const b=Math.max(pre[k]-u,0); usage[k]=u; tax[k]=b*(E30+E31)+Math.max(b-E33,0)*E32; }
+  return {tax, usage};
+}
+// Impostos (IR/CSLL) AO VIVO: 2 entidades (A=planta RN; B=demais+holding+deprec+resfin), NOL própria,
+// + diferido DFM142. Semente do estoque de prejuízo em dez/26 (k47); máquina roda de jan/27 (k48).
+function impostosSerie(){
+  const n=DB.meses.length, K0=48, DBb=DB.dreBelow||{}, entA=new Set(DBb.entityA||[3]),
+        H23=holdingSgaSerie(), dep=depreciacaoSerie(), rf=resultadoFinanceiroSerie(),
+        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=DBb.imp37||[];
+  // RO da entidade A = Σ plantas da entidade A; B = RO total − A
+  let roA=new Array(n).fill(0); for(const p of entA){ const s=roPlantaSerie(p); for(let k=0;k<n;k++) roA[k]+=s[k]; }
+  const preA=new Array(n), preB=new Array(n);
+  for(let k=0;k<n;k++){ const a=(typeof im36[k]==="number"?im36[k]:0)+(typeof im37[k]==="number"?im37[k]:0);
+    preA[k]= roA[k] + a;
+    preB[k]= (H23[k]||0) + (roT[k]-roA[k]) + (dep[k]||0) + (rf[k]||0) - a; }
+  const A=_taxMachine(preA, DBb.seedA||0, K0), B=_taxMachine(preB, DBb.seedB||0, K0);
+  const out=new Array(n).fill(null); let d142=DBb.seedD||0;
+  for(let k=K0;k<n;k++){ const prev=d142; d142=Math.max(prev-B.usage[k],0);
+    out[k]= -(A.tax[k]+B.tax[k]) + (d142-prev); }
+  return out;   // NEGATIVO (despesa); k43-47 e realizado ficam null (imposto ~0 no ramp de 2026)
+}
+// Lucro Líquido: realizado da DRE (≤corte); projeção = EBT + Impostos (identidade DFM118).
+function lucroLiquidoSerie(){
+  const cut=DB.cutoffIdx, ll=DB.dre.lucro_liquido||[], ebt=ebtSerie(), im=impostosSerie(), n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]= k<=cut ? ((typeof ll[k]==="number")?ll[k]:null) : (ebt[k]==null?null:(ebt[k]+(im[k]||0)));
+  return out;
+}
 function dreYear(key){ return anoSum(DB.dre[key]||[]); }
 function renderResumo(){
   const reg=state.regiao, cut=DB.cutoffIdx;
@@ -1551,18 +1604,19 @@ function renderResumo(){
   const rl=anoSum(receitaLiquidaSerie()), rb=dreYear("receita_bruta"),
         cu=anoSum(custoTotal(0).map(v=>-(v||0))),                       // custo total (vivo, negativo)
         ro=anoSum(resultadoOperacionalSerie()), eb=anoSum(ebitdaSerie()), er=eb,  // EBITDA rec == EBITDA (proj)
-        dp=dreYear("depreciacao"), eG=dreYear("ebit"), ll=dreYear("lucro_liquido");
+        dp=anoSum(depreciacaoSerie()), eG=anoSum(ebitSerie()), rfin=anoSum(resultadoFinanceiroSerie()),
+        ll=anoSum(lucroLiquidoSerie());
   const ks=Object.keys(rl).sort();
   const has=y=> (rl[y]&&rl[y].nData>0);
   const mg=y=> (has(y)&&rl[y].v)? (eb[y]?.v||0)/rl[y].v : 0;
   const mgTxt=y=> has(y)? fmt(mg(y)*100,1)+"%" : "—";
   const lastReal = ks.filter(has).slice(-1)[0];
-  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → Resultado Operacional → <b>EBITDA</b>, por fórmula viva. EBITDA negativo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
-  h2+='<div class="note">Receita Líquida, Resultado Operacional e <b>EBITDA</b> são projeção por fórmula, validados 1:1 vs o modelo. As linhas <b>abaixo do EBITDA</b> (Depreciação, EBIT, Resultado Financeiro, Lucro Líquido) trazem só o realizado — dependem dos módulos de <b>capex, dívida e impostos</b> (fases futuras); anos projetados aparecem como “—”.</div>';
+  let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → <b>Lucro Líquido</b>, toda por fórmula viva e validada 1:1 vs o modelo. Prejuízo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
+  h2+='<div class="note">DRE completa por fórmula. Receita, custo e <b>EBITDA</b> reagem às premissas what-if. <b>Depreciação</b> e <b>Resultado Financeiro</b> são os cronogramas dos planos de capex e dívida (premissas fixas). <b>Impostos</b> (IR/CSLL) são calculados ao vivo por uma máquina de prejuízo fiscal de duas entidades sobre o lucro — por isso reagem ao resultado.</div>';
   h2+='<div class="mkpis">';
-  h2+=kpi("Receita Líq. 2030 (R$ MM)", yrMM(rl["2030"],0), "GNL+GNC+extras (fórmula)", "", MECH.receita_liquida);
   h2+=kpi("EBITDA 2030 (R$ MM)", yrMM(eb["2030"],0), "margem "+mgTxt("2030"), "", MECH.ebitda);
-  h2+=kpi("EBITDA 2035 (R$ MM)", yrMM(eb["2035"],0), "margem "+mgTxt("2035"), "", MECH.ebitda);
+  h2+=kpi("Lucro Líq. 2030 (R$ MM)", yrMM(ll["2030"],0), "após deprec./juros/impostos", "", MECH.lucro_liquido);
+  h2+=kpi("Lucro Líq. 2035 (R$ MM)", yrMM(ll["2035"],0), "", "", MECH.lucro_liquido);
   h2+=kpi("EBITDA "+lastReal+" (R$ MM)", yrMM(eb[lastReal],0), "último ano c/ realizado");
   h2+='</div>';
   h2+='<div class="card"><h4>Receita Líquida × EBITDA × Margem — Consolidado</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
@@ -1570,16 +1624,18 @@ function renderResumo(){
   const rows=[["Receita Bruta",rb],["Receita Líquida",rl],["Custos",cu],["Resultado Operacional",ro],
               ["EBITDA Recorrente",er],["EBITDA",eb],["Depreciação",dp],["EBIT",eG],["Lucro Líquido",ll]];
   const dser=k=>DB.dre[k]||[];
-  const dreRows=[{lbl:"Receita Bruta",serie:dser("receita_bruta"),tip:MECH.receita_bruta},
+  const dreRows=[{lbl:"Receita Bruta",serie:_dbSer("receita_bruta"),tip:MECH.receita_bruta},
+    {lbl:"Deduções",serie:_dbSer("deducoes"),tip:MECH.receita_bruta},
     {lbl:"Receita Líquida",serie:receitaLiquidaSerie(),tip:MECH.receita_liquida},
     {lbl:"Custo Total",serie:custoTotal(0).map(v=>-(v||0)),tip:MECH.custo_total},
     {lbl:"Resultado Operacional",serie:resultadoOperacionalSerie(),tip:MECH.resultado_op},
     {lbl:"SG&A Holding",serie:holdingSgaSerie(),tip:MECH.sga_holding},
     {lbl:"EBITDA",serie:ebitdaSerie(),bold:true,tip:MECH.ebitda},
-    {lbl:"Depreciação",serie:dser("depreciacao"),tip:MECH.depreciacao},
-    {lbl:"EBIT",serie:dser("ebit"),tip:MECH.ebit},
-    {lbl:"Resultado Financeiro",serie:dser("resultado_financeiro"),tip:MECH.resultado_financeiro},
-    {lbl:"Lucro Líquido",serie:dser("lucro_liquido"),bold:true,tip:MECH.lucro_liquido}];
+    {lbl:"Depreciação",serie:depreciacaoSerie(),tip:MECH.depreciacao},
+    {lbl:"EBIT",serie:ebitSerie(),tip:MECH.ebit},
+    {lbl:"Resultado Financeiro",serie:resultadoFinanceiroSerie(),tip:MECH.resultado_financeiro},
+    {lbl:"Impostos",serie:impostosSerie(),tip:MECH.impostos},
+    {lbl:"Lucro Líquido",serie:lucroLiquidoSerie(),bold:true,tip:MECH.lucro_liquido}];
   h2+='<h3 class="msub">DRE (R$ MM)</h3>'+serieTableHTML(dreRows,"R$ MM");
   return {html:h+h2, draw:()=>drawResumo(ks,rl,eb,mg)};
 }
@@ -1801,7 +1857,7 @@ function vplOperacional(wacc){
 function renderDashboard(){
   const cut=DB.cutoffIdx, MM=c=>fmt((c?c.v:0)/1e6,0);
   const yRec=anoSum(receitaComp(0).total), yCT=anoSum(custoTotal(0)), yRO=anoSum(resultadoOperacionalSerie()),
-        yEB=anoSum(ebitdaSerie());
+        yEB=anoSum(ebitdaSerie()), yLL=anoSum(lucroLiquidoSerie());
   const vpl=vplOperacional(DASH.wacc);
   let h=`<div class="pglead"><b>Dashboard</b> — visão executiva: retorno, resultado e premissas editáveis. VPL/TIR completos dependem do módulo de <b>DCF</b> (capex, impostos, capital de giro, valor terminal), ainda a construir — abaixo, a <b>prévia operacional</b> (Receita − Custo, ambos já por fórmula).${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}</div>`;
   h+='<div class="mkpis">';
@@ -1828,9 +1884,9 @@ function renderDashboard(){
   for(const y of ks) t+=`<th class="${yRO[y].proj?'o':''}">${y}</th>`; t+='</tr></thead><tbody>';
   const rowT=(lbl,yr,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`;
     for(const y of ks) r+=`<td class="${yr[y]?.proj?'o':''}">${yrMM(yr[y],0)}</td>`; return r+'</tr>'; };
-  t+=rowT("Receita (GNL+GNC+extras)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO)+rowT("EBITDA",yEB,true)+'</tbody></table></div>';
-  h+='<div class="card"><h4>Prévia operacional por ano</h4>'+t+'</div>';
-  h+='<div class="note"><b>Receita, custo e EBITDA já estão 100% por fórmula viva</b>, validados 1:1 (GNL/GNC Brent+IPCA, serviço, aluguel; gás + 6 categorias de OpEx; SG&A da holding). Falta para o Dashboard completo: as linhas <b>abaixo do EBITDA</b> (depreciação/impostos/resultado financeiro → Lucro Líquido) e o módulo de <b>DCF</b> (investimento, capital de giro, valor terminal) para VPL/TIR plenos.</div>';
+  t+=rowT("Receita (GNL+GNC+extras)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO)+rowT("EBITDA",yEB,true)+rowT("Lucro líquido",yLL)+'</tbody></table></div>';
+  h+='<div class="card"><h4>DRE resumida por ano (R$ MM)</h4>'+t+'</div>';
+  h+='<div class="note"><b>A DRE inteira já está por fórmula viva</b>, validada 1:1 — Receita → Custo → EBITDA → Depreciação → Result. Financeiro → Impostos → <b>Lucro Líquido</b> (impostos ao vivo por máquina de prejuízo fiscal de 2 entidades). Falta só o módulo de <b>DCF</b> (investimento inicial, capital de giro, valor terminal) para o VPL/TIR plenos — a prévia acima é o resultado operacional descontado.</div>';
   return h;
 }
 
@@ -2039,6 +2095,25 @@ async function validateEbitda(){
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism, mband};
 }
+async function validateLucroLiquido(){
+  // linhas abaixo do EBITDA (deprec/resfin drivers; impostos ao vivo; lucro líquido identidade) vs golden.
+  let txt; try{ const r=await fetch("build/golden/dre.csv",{cache:"no-store"}); if(!r.ok) throw 0; txt=await r.text(); }
+  catch(e){ return; }
+  const G_={}; txt.trim().split(/\r?\n/).slice(1).forEach(l=>{ const c=l.split(";"); G_[c[0]]=c.slice(1).map(Number); });
+  const chk=(lab, eng, gold, tolAbs)=>{ let worst=0, worstAt="", mism=0;
+    for(let k=49;k<(gold||[]).length;k++){ const g=gold[k], e=eng[k]; if(typeof g!=="number"||typeof e!=="number") continue;
+      const rel=Math.abs(e-g)/Math.max(Math.abs(g),1);
+      if(Math.abs(e-g)>tolAbs && rel>3e-3){ mism++; if(rel>worst){worst=rel;worstAt=`${DB.meses[k].ym} gold=${(g/1e6).toFixed(2)} eng=${(e/1e6).toFixed(2)} MM`;} } }
+    const ok=mism===0;
+    console.log(`%c[valida ${lab}] ${ok?"OK":"DIVERGÊNCIAS"} — paramétrico (k≥jan/27) ${mism} fora; pior: ${worstAt||"—"} (rel ${(worst*100).toFixed(2)}%)`,
+                `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`); return mism; };
+  const m1=chk("depreciação", depreciacaoSerie(), G_.depreciacao, 1000);
+  const m2=chk("result. financeiro", resultadoFinanceiroSerie(), G_.resultado_financeiro, 1000);
+  const m3=chk("EBIT", ebitSerie(), G_.ebit, 1000);
+  const m4=chk("impostos", impostosSerie(), (G_.lucro_liquido||[]).map((v,k)=>v-(G_.ebit[k]+G_.resultado_financeiro[k])), 1000); // impostos_impl = LL - EBT
+  const m5=chk("lucro líquido", lucroLiquidoSerie(), G_.lucro_liquido, 1000);
+  return {ok:(m1+m2+m3+m4+m5)===0};
+}
 
 async function validateMolecula(){
   // motor do FATOR de reajuste vs golden (mol_fator.csv = Variável 227-232, cache).
@@ -2067,7 +2142,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?fmtMes(cut.ym):"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateEbitda(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateEbitda(); validateLucroLiquido(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 

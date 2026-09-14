@@ -881,6 +881,47 @@ def extract_holding_sga(wb):
     return {"scalars": scal, "seed13": seed13, "r32": r32, "seed23": seed23}
 
 
+def extract_dre_below(wb):
+    """Linhas da DRE ABAIXO do EBITDA. Depreciação e Resultado Financeiro são cronogramas dos
+    módulos de CAPEX e DÍVIDA (premissas de plano de investimento/financiamento — fixas, não reagem
+    às alavancas operacionais); saem como séries-driver (DFM 103 / 108). Receita Bruta / Deduções
+    (DFM 33 / 35) idem (módulo de Impostos). IMPOSTOS é computado AO VIVO no HTML (máquina de NOL de
+    2 entidades sobre o EBT), então aqui saem só as PREMISSAS: constantes fiscais, imp36/imp37
+    (partição inter-CNPJ), sementes do estoque de prejuízo (k47) e a planta da entidade A (RN=3)."""
+    dfm = wb["Demonstrativo Financeiro Mensal"]
+    imp = wb["Impostos"]
+
+    def read_rows(ws, rowset, maxr):
+        keep = {}
+        for i, r in enumerate(ws.iter_rows(min_row=1, max_row=maxr,
+                                           max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+            if i in rowset:
+                keep[i] = r
+        return keep
+
+    dfmk = read_rows(dfm, {33, 35, 103, 108, 142}, 145)
+    impk = read_rows(imp, {30, 31, 32, 33, 34, 36, 37, 45, 70}, 82)
+
+    def ser(keep, r):
+        row = keep.get(r)
+        return [_num(row[COL_FIRST - 1 + k]) if row and COL_FIRST - 1 + k < len(row) else None
+                for k in range(N_MONTHS)]
+
+    def escal(r):   # coluna E (5) da aba Impostos
+        row = impk.get(r)
+        return _num(row[4]) if row and len(row) > 4 else None
+
+    return {
+        "receita_bruta": ser(dfmk, 33), "deducoes": ser(dfmk, 35),
+        "depreciacao": ser(dfmk, 103), "resultado_financeiro": ser(dfmk, 108),
+        "imp36": ser(impk, 36), "imp37": ser(impk, 37),
+        "seedA": (ser(impk, 45)[47] or 0.0), "seedB": (ser(impk, 70)[47] or 0.0),
+        "seedD": (ser(dfmk, 142)[47] or 0.0),
+        "E30": escal(30), "E31": escal(31), "E32": escal(32), "E33": escal(33), "E34": escal(34),
+        "entityA": [3],   # planta 3 (RN) = CNPJ da entidade A; B = as demais (DFM 614 vs 465/540/688/762/837)
+    }
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SRC
     if not os.path.exists(src):
@@ -927,6 +968,7 @@ def main():
     sga_cfg, sga_ocup, sga_seed, sga_regbase2 = extract_sga(orows, n_real)
     custo_total = extract_custo_total(orows)
     holding_sga = extract_holding_sga(wb)          # SG&A da holding (para o EBITDA = RO + Holding23)
+    dre_below = extract_dre_below(wb)              # linhas abaixo do EBITDA (deprec/resfin drivers + impostos live)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1057,6 +1099,18 @@ def main():
     ws_hs.append(["seed13"] + holding_sga["seed13"])          # 12 valores (jan..dez/26)
     ws_hs.append(["r32"] + holding_sga["r32"])                # 192 (proxy de volume da matriz)
     ws_hs.append(["seed23"] + holding_sga["seed23"])          # Holding23 realizado+banda (k<48)
+
+    # aba DreBelow: linhas abaixo do EBITDA. Drivers dos módulos de capex/dívida/impostos (deprec,
+    # resfin, receita bruta, deduções, imp36/37) + premissas fiscais (constantes, sementes, entidade A).
+    # IMPOSTOS é computado ao vivo no HTML (máquina de NOL de 2 entidades) — aqui só as premissas.
+    ws_db = out.create_sheet("DreBelow")
+    ws_db.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for key in ("receita_bruta", "deducoes", "depreciacao", "resultado_financeiro", "imp36", "imp37"):
+        ws_db.append([key] + dre_below[key])
+    ws_db.append(["taxconst", dre_below["E30"], dre_below["E31"], dre_below["E32"],
+                  dre_below["E33"], dre_below["E34"]])
+    ws_db.append(["taxseed", dre_below["seedA"], dre_below["seedB"], dre_below["seedD"]])
+    ws_db.append(["entityA"] + dre_below["entityA"])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula
