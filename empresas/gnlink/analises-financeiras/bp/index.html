@@ -367,6 +367,20 @@ function parseWorkbook(buf){
     else if(key==="op_dates") capex.op_dates=r.slice(1);
     else if(key==="cfg"){ capex.life=+r[1]; capex.holdlife=+r[2]; capex.flag=+r[3]; capex.seed146=+r[4]; capex.seed_hd54=+r[5]; }
     else if(key.startsWith("extra1_")){ const p=key.split("_"); (capex.extra1[+p[1]]=capex.extra1[+p[1]]||{})[+p[2]]=+r[1]; } }
+  // Divida: termos por instrumento (juros/saldo por fórmula) + sementes realizado + amort/pagJ colados (BA/RN)
+  const gdv = grid("Divida"); const dividaCfg={var_d6:0}, _dvById={};
+  if(gdv) for(let i=1;i<gdv.length;i++){ const r=gdv[i]; if(!r||r[0]==null) continue; const key=String(r[0]);
+    if(key==="cfg_var_d6"){ dividaCfg.var_d6=+r[1]||0; continue; }
+    const m=key.match(/^i(\d+)_(.+)$/); if(!m) continue; const id=+m[1], fld=m[2], inst=_dvById[id]||(_dvById[id]={id});
+    if(fld==="term"){ inst.name=r[1]; inst.tipo=+r[2]; inst.indice=+r[3]; inst.spread=+r[4]||0; inst.iof=+r[5]||0;
+      inst.comissao=+r[6]||0; inst.taxa_comp=+r[7]||0; inst.inicio_amort=r[8]; inst.n_amort=r[9]; inst.ultima=r[10];
+      inst.inicio_pgto=r[11]; inst.pg_period=+r[12]||0; inst.pg_offset=+r[13]||0; inst.override=(+r[14]===1); inst.g_rn=+r[15]||0;
+      inst.tranches=[]; for(let c=16;c+1<r.length;c+=2){ if(r[c]!=null&&r[c+1]!=null) inst.tranches.push([+r[c],+r[c+1]]); } }
+    else if(fld==="desemb") inst.seed_desemb=r.slice(1); else if(fld==="final") inst.seed_final=r.slice(1);
+    else if(fld==="amort") inst.seed_amort=r.slice(1); else if(fld==="despJ") inst.seed_despJ=r.slice(1);
+    else if(fld==="pagJ") inst.seed_pagJ=r.slice(1); else if(fld==="ovr_amort") inst.ovr_amort=r.slice(1);
+    else if(fld==="ovr_pagJ") inst.ovr_pagJ=r.slice(1); }
+  const divida=Object.keys(_dvById).map(k=>_dvById[k]); divida.cfg=dividaCfg;
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -437,7 +451,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
           sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
@@ -1607,6 +1621,67 @@ function depreciacaoSerie(){                             // DFM103: realizado da
   return out;
 }
 function imobilizadoSerie(){ return capexEngine().dfm144; }        // Ativo Imobilizado líquido (balanço)
+/* ---- MÓDULO DE DÍVIDA: juros e saldo devedor POR FÓRMULA a partir dos termos de cada instrumento
+   (desembolso, SAC/PRICE, índice IPCA/CDI, spread, amortização, gate de pagamento). Juros = saldo×taxa;
+   saldo devedor = Σ Final do período (passivo). BA/RN têm amortização/pagamento COLADOS (override no
+   Excel) → usados como premissa. Validado 1:1 vs modelo (divida_ref.py). ========================= */
+let _dividaCache=null;
+function _monthSerial(k){ const p=DB.meses[k].ym.split("-"); return Math.round((Date.UTC(+p[0],+p[1]-1,1)-Date.UTC(1899,11,30))/86400000); }
+function dividaEngine(){
+  if(_dividaCache) return _dividaCache;
+  const n=DB.meses.length, cut=DB.cutoffIdx, insts=DB.divida||[], cfg=(insts.cfg||{var_d6:0});
+  const IPCA=DB.idx.ipca_macro||DB.idx.ipca_m||[], CDI=DB.idx.cdi||[], num=x=>typeof x==="number"?x:0;   // dívida usa IPCA Macro (linha 8)
+  const dates=new Array(n); for(let k=0;k<n;k++) dates[k]=_monthSerial(k);
+  const idxOf=code=> code===1 ? (cfg.var_d6===1?new Array(n).fill(0):IPCA) : CDI;
+  function run(b){
+    const idx=idxOf(b.indice), spread_m=Math.pow(1+(b.spread||0),1/12)-1, tr=b.tranches||[];
+    const d1=tr.length?tr[0][0]:null, ult=b.ultima, ia=b.inicio_amort, npmt=b.n_amort||0;
+    const ipg=b.inicio_pgto, per=b.pg_period||0;
+    let k_ipg=-1; if(ipg!=null){ for(let k=0;k<n;k++){ if(dates[k]>=ipg){ k_ipg=k; break; } } }
+    const seed=(b.seed_final!=null), o={desemb:[],despJuros:[],pagJuros:[],amort:[],saldoFim:[],iof:[]};
+    let cumAmortAct=0, cumDespJ=0, cumPagJ=0, saldoFim_prev=0;
+    for(let k=0;k<n;k++){ const dt=dates[k];
+      let desemb=0; for(const t of tr) if(t[0]===Math.round(dt)) desemb+=t[1];
+      const active=(d1!=null&&ult!=null&&dt>d1&&dt<ult)?1:0;
+      const amortAct=(ia!=null&&dt>=ia)?active:0;
+      const remaining=(npmt-cumAmortAct)*amortAct;
+      const rate=(1+(idx[k]||0))*(1+spread_m)-1;
+      const saldoIni=saldoFim_prev;
+      let despJ=saldoIni*rate*active;
+      let pay=0;
+      if(ipg!=null&&dt>=ipg){ const msince=k-k_ipg;
+        if(amortAct>0) pay=1; else if(per&&active>0&&msince%per===0) pay=1; }
+      let pagJ=-(cumDespJ+despJ+cumPagJ)*pay;
+      if(b.override && k>cut && b.ovr_pagJ) pagJ=num(b.ovr_pagJ[k]);   // BA/RN: pagamento colado
+      const outstanding=saldoIni+desemb+despJ+pagJ;
+      let amort;
+      if(b.tipo===2) amort= remaining ? -(outstanding/remaining) : 0;
+      else amort= (remaining&&rate) ? ((-(rate*outstanding)/(1-Math.pow(1+rate,-remaining)))-despJ) : 0;
+      if(b.override && k>cut && b.ovr_amort) amort=num(b.ovr_amort[k]);  // BA/RN: amortização colada
+      cumAmortAct+=amortAct;
+      let iof=-desemb*(b.iof||0);
+      let saldoFim=outstanding+amort;
+      const nxtActive=(d1!=null&&ult!=null&&k+1<n&&dates[k+1]>d1&&dates[k+1]<ult)?1:0;
+      if(nxtActive===0) saldoFim=Math.round(saldoFim*100)/100;
+      if(ult!=null&&dt>=ult&&active===0){ desemb=amort=despJ=pagJ=iof=0; saldoFim=0; }
+      if(seed && k<=cut){ despJ=num(b.seed_despJ[k]); amort=num(b.seed_amort[k]); pagJ=num(b.seed_pagJ[k]);
+        desemb=num(b.seed_desemb[k]); saldoFim=num(b.seed_final[k]); }
+      cumDespJ+=despJ; cumPagJ+=pagJ;
+      o.desemb[k]=desemb; o.despJuros[k]=despJ; o.pagJuros[k]=pagJ; o.amort[k]=amort; o.saldoFim[k]=saldoFim; o.iof[k]=iof;
+      saldoFim_prev=saldoFim;
+    }
+    return o;
+  }
+  const R=insts.map(run);
+  const agg=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
+  const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof");
+  const imp37=new Array(n).fill(0);
+  for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g) continue;
+    for(let k=0;k<n;k++) imp37[k]+= -(g*(R[i].despJuros[k]+R[i].iof[k])); }
+  return (_dividaCache={juros, saldo, iof, imp37, R, insts});
+}
+function jurosDividaSerie(){ return dividaEngine().juros; }         // Dívida!20 (despesa de juros, >0)
+function saldoDividaSerie(){ return dividaEngine().saldo; }         // saldo devedor (Passivo do balanço)
 function resultadoFinanceiroSerie(){ return _dbSer("resultado_financeiro"); }  // driver (cronograma de dívida)
 function ebitSerie(){ const eb=ebitdaSerie(), dp=depreciacaoSerie(); return eb.map((v,k)=> v==null?null:(v+(dp[k]||0))); }
 function ebtSerie(){ const e=ebitSerie(), rf=resultadoFinanceiroSerie(); return e.map((v,k)=> v==null?null:(v+(rf[k]||0))); }
@@ -1625,7 +1700,7 @@ function _taxMachine(pre, seed, k0){
 function impostosSerie(){
   const n=DB.meses.length, K0=48, DBb=DB.dreBelow||{}, entA=new Set(DBb.entityA||[3]),
         H23=holdingSgaSerie(), dep=depreciacaoSerie(), rf=resultadoFinanceiroSerie(),
-        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=DBb.imp37||[];
+        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=DBb.imp37||[];   // TODO: vira vivo com o módulo de comissões (imp37 = juros+IOF+comissão+taxa RN)
   // RO da entidade A = Σ plantas da entidade A; B = RO total − A
   let roA=new Array(n).fill(0); for(const p of entA){ const s=roPlantaSerie(p); for(let k=0;k<n;k++) roA[k]+=s[k]; }
   const preA=new Array(n), preB=new Array(n);

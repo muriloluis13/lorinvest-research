@@ -19,9 +19,50 @@ Uso:
 
 Referência de estilo de extração: alavancagem/Modelos/extract_16.py (openpyxl, data_only=True).
 """
-import sys, os, datetime, base64, json
+import sys, os, datetime, base64, json, re, zipfile, html
 import openpyxl
 from openpyxl.utils import get_column_letter
+
+
+def read_sheet_formulas(src, display_name):
+    """Mapa {(col_1based, row): fórmula-texto} de uma aba, lido do XML (openpyxl com
+    data_only=True não expõe fórmulas). Resolve shared formulas pelo master."""
+    z = zipfile.ZipFile(src)
+    wbxml = z.read("xl/workbook.xml").decode("utf8")
+    rels = z.read("xl/_rels/workbook.xml.rels").decode("utf8")
+    sheets = re.findall(r'<sheet[^>]*name="([^"]+)"[^>]*r:id="([^"]+)"', wbxml)
+    relmap = dict(re.findall(r'<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"', rels))
+    name2file = {n: relmap[r] for n, r in sheets}
+    tgt = name2file[display_name]
+    if not tgt.startswith("xl/"):
+        tgt = "xl/" + tgt
+    xml = z.read(tgt).decode("utf8")
+    z.close()
+
+    def colnum(L):
+        n = 0
+        for ch in L:
+            n = n * 26 + (ord(ch) - 64)
+        return n
+    frm = {}; shared = {}
+    for m in re.finditer(r'<c r="([A-Z]+)(\d+)"[^>]*>(.*?)</c>', xml, re.S):
+        coord = (colnum(m.group(1)), int(m.group(2))); inner = m.group(3)
+        fb = re.search(r"<f([^>]*)>(.+?)</f>", inner, re.S)
+        if fb:
+            f = html.unescape(fb.group(2)); frm[coord] = f
+            si = re.search(r'si="(\d+)"', fb.group(1))
+            if 't="shared"' in fb.group(1) and si:
+                shared[si.group(1)] = f
+        else:
+            sc = re.search(r"<f([^>]*)/>", inner)
+            if sc:
+                si = re.search(r'si="(\d+)"', sc.group(1))
+                if si:
+                    frm[coord] = ("SHARED", si.group(1))
+    for coord, f in list(frm.items()):
+        if isinstance(f, tuple):
+            frm[coord] = shared.get(f[1], "")
+    return frm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BP_DIR = os.path.dirname(HERE)
@@ -881,6 +922,102 @@ def extract_holding_sga(wb):
     return {"scalars": scal, "seed13": seed13, "r32": r32, "seed23": seed23}
 
 
+def extract_divida(wb, div_formulas):
+    """MÓDULO DE DÍVIDA (aba Dívida) — reproduz o cronograma de cada instrumento a partir dos
+    TERMOS (premissas): desembolso, tipo (SAC/PRICE), índice (IPCA/CDI), spread, datas/nº de
+    amortização, gate de pagamento, comissões, alocação por projeto. Juros = saldo×taxa e o saldo
+    devedor saem POR FÓRMULA no HTML. Os blocos BA e RN têm amortização/pagamento COLADOS no Excel
+    (fórmula morta = override manual) → entram como VALORES COLADOS (premissa) na planilha."""
+    ws = wb["Dívida"]
+    # leitura de todas as linhas necessárias num passo (blocos 156..1541 + alocação 1518..1540)
+    rows = {}
+    for i, r in enumerate(ws.iter_rows(min_row=1, max_row=1545,
+                                       max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+        rows[i] = r
+    def cell(r, c):   # c 1-based
+        row = rows.get(r); return row[c - 1] if row and c - 1 < len(row) else None
+    def label(r):
+        v = cell(r, 2); return (str(v).strip() if v else "")
+    def ser(r):
+        row = rows.get(r)
+        return [_num(row[COL_FIRST - 1 + k]) if row and COL_FIRST - 1 + k < len(row) else None
+                for k in range(N_MONTHS)]
+    BASES = [156, 215, 274, 333, 389, 445, 501, 560, 615, 670, 729, 788, 847, 906, 965,
+             1024, 1083, 1144, 1205, 1266, 1327, 1388, 1449, 1510]
+    insts = []
+    for bi in range(len(BASES) - 1):
+        base, nb = BASES[bi], BASES[bi + 1]
+        lab = {}
+        for r in range(base, nb):
+            t = label(r)
+            if t and t not in lab:
+                lab[t] = r
+        def F(name, col=6):
+            r = lab.get(name)
+            return (cell(r, col)) if r else None
+        def has(name):
+            return name in lab
+        def _serial(v):   # datetime (openpyxl data_only) OU número -> serial Excel
+            if isinstance(v, datetime.datetime):
+                v = v.date()
+            if isinstance(v, datetime.date):
+                return float((v - datetime.date(1899, 12, 30)).days)
+            return float(v) if isinstance(v, (int, float)) else None
+        def num(name, col=6):
+            return _serial(F(name, col))
+        name = label(base)
+        ini = lab.get("Início do Período")
+        amt_row = next((r for r in ("Valor", "Cronograma", "Desembolso Total") if has(r)), "Desembolso Total")
+        dt_row = "Data Inicial" if has("Data Inicial") else "Data"
+        tr = []
+        d_f = _serial(F(dt_row)); a_f = F(amt_row)
+        if d_f is not None and isinstance(a_f, (int, float)) and a_f:
+            tr.append([int(round(d_f)), float(a_f)])
+        d_h = _serial(F(dt_row, 8)); a_h = F(amt_row, 8)
+        if d_h is not None and isinstance(a_h, (int, float)) and a_h:
+            tr.append([int(round(d_h)), float(a_h)])
+        tipo_row = "Cronograma de Amortização" if has("Cronograma de Amortização") else "Pagamento"
+        # gate de pagamento: lê do MOD() da fórmula
+        pg_period = 0; pg_offset = 0
+        for r in range(base, nb):
+            f = None
+            for c in range(9, 60):
+                ff = div_formulas.get((c, r))
+                if ff and "MOD(SUM" in ff:
+                    f = ff; break
+            if f:
+                m = re.search(r'MOD\(SUM\([^)]*\)\s*([+-]\s*\d+)?\s*,\s*\$?([A-Z]+)\$?(\d+)\)', f)
+                if m:
+                    if m.group(1):
+                        pg_offset = int(m.group(1).replace(" ", ""))
+                    dc = 0
+                    for ch in m.group(2):
+                        dc = dc * 26 + (ord(ch) - 64)
+                    pv = cell(int(m.group(3)), dc)
+                    pg_period = int(pv) if isinstance(pv, (int, float)) else 0
+                break
+        nm = name.lower()
+        override = ("bahia" in nm or " ba" in nm or "- ba" in nm or "rio grande" in nm or " rn" in nm or "- rn" in nm)
+        rec = {
+            "name": name, "tipo": int(F(tipo_row, 5) or 2), "indice": int(F("Índice", 5) or 2),
+            "spread": float(F("Spread") or 0.0), "iof": float(F("IOF") or 0.0),
+            "comissao": float(F("Comissão") or 0.0), "taxa_comp": float(F("Taxa de Compromisso") or 0.0),
+            "inicio_amort": num("Início - Amortização do Principal"),
+            "n_amort": num("Período - # Amortização do Principal"),
+            "ultima": num("Última Amortização do Principal"),
+            "inicio_pgto": num("Início - Pagamento de Juros"),
+            "pg_period": pg_period, "pg_offset": pg_offset, "tranches": tr, "override": override,
+            "g_rn": _num(cell(1518 + bi, 7)) or 0.0,   # % RN por instrumento (Imp37)
+        }
+        # sementes do realizado (resumo ini+0..+5) — realizado; para BA/RN também a projeção colada
+        if ini:
+            rec["seed_desemb"] = ser(ini + 1); rec["seed_amort"] = ser(ini + 2)
+            rec["seed_despJ"] = ser(ini + 3); rec["seed_pagJ"] = ser(ini + 4)
+            rec["seed_final"] = ser(ini + 5)
+        insts.append(rec)
+    return insts
+
+
 def extract_capex(wb):
     """MÓDULO DE CAPEX (aba Capex) — PREMISSAS do plano de investimento, para computar a
     depreciação AO VIVO (não extrair pronta): plano de capex por planta/classe + vidas úteis +
@@ -1006,6 +1143,13 @@ def main():
     # ---- Receita R$ (Fase C) ----
     vrows = read_variavel_rows(wb)
     idx_macro = extract_idx_macro(vrows)
+    _mac = wb["Macro"]                              # CDI % a.m. (Macro linha 10) — indexador da dívida
+    _macrow = {i: r for i, r in enumerate(_mac.iter_rows(min_row=1, max_row=11,
+              max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1)}
+    idx_macro["cdi"] = [_num(_macrow[10][COL_FIRST - 1 + k]) if 10 in _macrow and COL_FIRST - 1 + k < len(_macrow[10]) else None
+                        for k in range(N_MONTHS)]
+    idx_macro["ipca_macro"] = [_num(_macrow[8][COL_FIRST - 1 + k]) if 8 in _macrow and COL_FIRST - 1 + k < len(_macrow[8]) else None
+                               for k in range(N_MONTHS)]   # IPCA % a.m. (Macro 8) — indexador da dívida
     mol_prem = extract_molecula_prem(vrows, wb)
     preco = extract_preco(vrows)
     rev_golden = extract_revenue_golden(rrows, id2planta)
@@ -1026,6 +1170,8 @@ def main():
     holding_sga = extract_holding_sga(wb)          # SG&A da holding (para o EBITDA = RO + Holding23)
     dre_below = extract_dre_below(wb)              # linhas abaixo do EBITDA (resfin driver + impostos live)
     capex = extract_capex(wb)                      # módulo de capex (depreciação viva + imobilizado)
+    divida = extract_divida(wb, read_sheet_formulas(src, "Dívida"))   # módulo de dívida (juros/saldo vivos)
+    var_d6 = _num(wb["Variável"]["D6"].value) or 0.0                  # toggle IPCA on/off (lido enquanto wb aberto)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1104,7 +1250,7 @@ def main():
     # ipca_anual, dolar_spot (estes 2 alimentam o motor da molécula Argentina/piso-teto)
     ws_i = out.create_sheet("IdxMacro")
     ws_i.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("ipca_m", "ipca12", "brent", "hh", "dolar", "ipca_anual", "dolar_spot"):
+    for key in ("ipca_m", "ipca12", "brent", "hh", "dolar", "ipca_anual", "dolar_spot", "cdi", "ipca_macro"):
         ws_i.append([key] + idx_macro[key])
 
     # aba ReceitaHist: receita R$ REALIZADA (actuals) por planta/produto
@@ -1186,6 +1332,29 @@ def main():
     for p, seeds in capex["extra1"].items():
         for k, amt in seeds.items():
             ws_cx.append(["extra1_%d_%d" % (p, k), amt])
+
+    # aba Divida: termos por instrumento (juros/saldo saem por fórmula no HTML) + sementes do
+    # realizado; para BA/RN, a amortização/pagamento COLADOS (override manual no Excel) entram como
+    # VALORES COLADOS (as únicas séries coladas de projeção na planilha, rotuladas ovr_*).
+    ws_dv = out.create_sheet("Divida")
+    ws_dv.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    ws_dv.append(["cfg_var_d6", var_d6])   # toggle IPCA on/off dos índices (lido na fase de extração)
+    for i, d in enumerate(divida):
+        term = [d["name"], d["tipo"], d["indice"], d["spread"], d["iof"], d["comissao"],
+                d["taxa_comp"], d["inicio_amort"], d["n_amort"], d["ultima"], d["inicio_pgto"],
+                d["pg_period"], d["pg_offset"], d["override"] and 1 or 0, d["g_rn"]]
+        for t in d["tranches"]:
+            term += [t[0], t[1]]
+        ws_dv.append(["i%d_term" % i] + term)
+        if "seed_final" in d:
+            ws_dv.append(["i%d_desemb" % i] + real_only(d["seed_desemb"], n_real))
+            ws_dv.append(["i%d_final" % i] + real_only(d["seed_final"], n_real))
+            ws_dv.append(["i%d_amort" % i] + real_only(d["seed_amort"], n_real))
+            ws_dv.append(["i%d_despJ" % i] + real_only(d["seed_despJ"], n_real))
+            ws_dv.append(["i%d_pagJ" % i] + real_only(d["seed_pagJ"], n_real))
+            if d["override"]:            # BA/RN: amort/pagamento COLADOS (série completa = premissa)
+                ws_dv.append(["i%d_ovr_amort" % i] + d["seed_amort"])
+                ws_dv.append(["i%d_ovr_pagJ" % i] + d["seed_pagJ"])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula
