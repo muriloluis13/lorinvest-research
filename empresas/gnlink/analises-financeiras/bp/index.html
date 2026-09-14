@@ -2349,32 +2349,33 @@ function premLiquefPanel(reg){
 }
 
 // ---- painel de premissas de LOGÍSTICA (por cliente + cavalo por planta) ----
+// modal de distribuição (logística): ISO Container / Carreta GNL / Carreta GNC (Base Premissas)
+function logModal(lc){ const t=(lc.tipo||"").toString().toUpperCase(); if(t==="GNC") return "Carreta GNC"; return (+lc.cap>=30000)?"Carreta GNL":"ISO Container"; }
+function regModal(rc){ const m=(rc.modal||"").toString().toUpperCase(); if(m==="GNC") return "Carreta GNC"; const cd=+rc.custo_dia; return (cd>0&&cd<12000)?"ISO 8 bar":"ISO 18 bar"; }
+function _grpBy(list, fn){ const g={}; for(const x of list){ const k=fn(x); (g[k]=g[k]||[]).push(x); } return g; }
+function _repNZ(arr,f){ for(const x of arr){ if(+x[f]) return +x[f]; } return 0; }        // valor representativo (1º ativo)
+function _setNZ(arr,f,v){ for(const x of arr){ if(+x[f]) x[f]=+v; } }                       // aplica só nos ativos (preserva FOB=0)
+// controle de premissa GERAL por modal (aplica a todos os clientes ativos do modal)
+function premModalCtrl(arr,arr0,label,f,unit,o){ const ed=arr0&&premDif(_repNZ(arr,f),_repNZ(arr0,f));
+  return premCtrl(label,unit,_repNZ(arr,f),(a=>v=>_setNZ(a,f,v))(arr),Object.assign({edited:ed},o||{})); }
 function premLogPanel(reg){
-  const O=_premOrig?_premOrig:null, plantas = reg>0?[reg]:[1,2,3,4,5,6];
-  const cliById={}; if(O) O.logCli.forEach(c=>cliById[String(c.id)]=c);
-  const cliObj={}; DB.clientes.forEach(c=>cliObj[String(c.id)]=c);   // distância vive no cliente
-  const cliObj0={}; (DB.clientesBase||[]).forEach(c=>cliObj0[String(c.id)]=c);
-  const cls = DB.logCli.filter(lc=>plantas.includes(+lc.planta));
+  const O=_premOrig, plantas = reg>0?[reg]:[1,2,3,4,5,6];
+  const modals=_grpBy(DB.logCli, logModal), modals0=O?_grpBy(O.logCli, logModal):{};
   let h='<div class="premcard"><div class="ph"><b>Premissas — Logística</b>';
   h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'log\')">restaurar</button></div>';
-  h+='<div class="psub">Custo fixo por viagem, custo variável por km e distância média — por cliente. Cavalo mecânico por planta. Alterar re-projeta o frete ao vivo.</div>';
+  h+='<div class="psub">Custos por <b>modal de distribuição</b> (gerais, da Base Premissas) — editar aplica a todos os clientes ativos daquele modal. A <b>distância média</b> é específica do cliente (aba Clientes, no card). Cavalo mecânico é por planta.</div>';
   h+='<div class="premgrid">';
-  if(!cls.length) h+='<div style="grid-column:1/-1;font-size:12px;color:var(--muted)">Sem clientes com logística nesta região.</div>';
-  for(const lc of cls){
-    const o0=cliById[String(lc.id)]||{}, tag=(lc.tipo||"").toString().toUpperCase();
-    const ed=k=> O && premDif(lc[k], o0[k]);
-    h+='<div class="premgrp">Cliente '+lc.id+(tag?' · '+tag:'')+(lc.fob&&(''+lc.fob).toUpperCase()!=='N'?' · FOB':'')+'</div>';
-    h+=premCtrl("Custo fixo por viagem","R$/viagem", +lc.custo_viagem||0, (l=>v=>{ l.custo_viagem=+v; })(lc), {dec:0,edited:ed("custo_viagem")});
-    h+=premCtrl("Custo variável","R$/km", +lc.custo_km||0, (l=>v=>{ l.custo_km=+v; })(lc), {dec:2,edited:ed("custo_km")});
-    const cli=cliObj[String(lc.id)], cli0=cliObj0[String(lc.id)];
-    if(cli) h+=premCtrl("Distância média (ida)","km", +cli.distancia||0, (x=>v=>{ x.distancia=+v; })(cli),
-        {dec:0,edited: cli0&&premDif(cli.distancia,cli0.distancia)});
+  for(const m of ["ISO Container","Carreta GNL","Carreta GNC"]){ const arr=modals[m]; if(!arr) continue; const arr0=modals0[m];
+    h+='<div class="premgrp">'+m+' · '+arr.length+' cliente(s)</div>';
+    h+=premModalCtrl(arr,arr0,"Custo fixo por viagem","custo_viagem","R$/viagem",{dec:0});
+    h+=premModalCtrl(arr,arr0,"Frete variável","custo_km","R$/km",{dec:2});
+    h+=premModalCtrl(arr,arr0,"Aluguel do equipamento","aluguel","R$/un",{dec:0});
+    h+=premModalCtrl(arr,arr0,"Capacidade","cap","m³",{dec:0});
   }
   h+='<div class="premgrp">Cavalo mecânico (por planta · R$/mês)</div>';
   for(const p of plantas){ const lp=DB.logPlanta[p]; if(!lp) continue;
-    const nome=(DB.regioes.find(r=>r.id===p)||{}).nome||("Planta "+p);
-    const o0=O&&O.logPlanta[p]||{};
+    const nome=(DB.regioes.find(r=>r.id===p)||{}).nome||("Planta "+p), o0=O&&O.logPlanta[p]||{};
     h+=premCtrl(nome+" — fixo","R$/mês", +lp.cav_fix||0, (x=>v=>{ x.cav_fix=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_fix,o0.cav_fix)});
     h+=premCtrl(nome+" — variável","R$/mês", +lp.cav_var||0, (x=>v=>{ x.cav_var=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_var,o0.cav_var)});
   }
@@ -2437,14 +2438,14 @@ function premRegasPanel(reg){
   let h='<div class="premcard"><div class="ph"><b>Premissas — Regás</b>';
   h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'regas\')">restaurar</button></div>';
-  h+='<div class="psub">Aluguel de equipamento por cliente (capacidade, dias de estoque, custo/dia) e globais Furui. Alterar re-projeta o regás ao vivo.</div>';
+  h+='<div class="psub">Estocagem por <b>modal</b> (geral, da Base Premissas: ISO 8 bar / 18 bar / Carreta GNC) — editar aplica a todos os clientes ativos do modal. Globais Furui abaixo.</div>';
   h+='<div class="premgrid">';
-  if(!cls.length) h+='<div style="grid-column:1/-1;font-size:12px;color:var(--muted)">Sem clientes com regás nesta região.</div>';
-  for(const rc of cls){ const o0=cliById[String(rc.id)+"|"+rc.planta]||{}, ed=k=>O&&premDif(rc[k],o0[k]);
-    h+='<div class="premgrp">Cliente '+rc.id+' · '+(rc.modal||'')+(rc.fob&&(''+rc.fob)!=='0'&&(''+rc.fob).toUpperCase()!=='N'?' · FOB':'')+'</div>';
-    h+=premCtrl("Custo por dia","R$/dia", +rc.custo_dia||0, (x=>v=>{ x.custo_dia=+v; })(rc), {dec:0,edited:ed("custo_dia")});
-    h+=premCtrl("Capacidade","m³", +rc.cap||0, (x=>v=>{ x.cap=+v; })(rc), {dec:0,edited:ed("cap")});
-    h+=premCtrl("Dias de estoque","dias", +rc.dias_est||0, (x=>v=>{ x.dias_est=+v; })(rc), {dec:1,max:10,edited:ed("dias_est")});
+  const modals=_grpBy(DB.regasCli, regModal), modals0=O?_grpBy(O.regasCli, regModal):{};
+  for(const m of ["ISO 8 bar","ISO 18 bar","Carreta GNC"]){ const arr=modals[m]; if(!arr) continue; const arr0=modals0[m];
+    h+='<div class="premgrp">'+m+' · '+arr.length+' cliente(s)</div>';
+    h+=premModalCtrl(arr,arr0,"Locação (custo/dia)","custo_dia","R$/dia",{dec:0});
+    h+=premModalCtrl(arr,arr0,"Capacidade","cap","m³",{dec:0});
+    h+=premModalCtrl(arr,arr0,"Dias de estoque","dias_est","dias",{dec:1,max:10});
   }
   const G=DB.regasGlob, o0=O&&O.regasGlob||{}, ed=k=>O&&premDif(G[k],o0[k]);
   h+='<div class="premgrp">Furui (globais)</div>';
