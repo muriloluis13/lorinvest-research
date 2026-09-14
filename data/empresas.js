@@ -26,13 +26,13 @@
           supply:{PR:[39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580],BA:[42616,42616,42616,42616,85232,85232,85232,85232,85232,85232,85232,85232],RN:[null,72688,72688,72688,72688,72688,72688,72688,72688,72688,72688,72688]},
           rampTag:"topo: % da capacidade · segmentos: mil m³/dia",rampLegendExtra:"",tableColored:false,rfLegend:"",
           note:"<b>Máquinas por planta:</b> RN — 2 novas + 2 usadas (72.688); BA — 4 novas (85.232); PR — 2 novas + 1 usada (potencial 56.701).<br><b>Notas:</b> partida de RN em fev/26 (prazo legal da ANP); capacidade plena de BA com a 2ª fase da Energia Coelba (mai/26); 3ª máquina usada de PR não considerada (negociação Tradener e disponibilidade de energia — pode rodar com gerador) e infra pronta para +1 máquina nova (pedido não colocado na Galileo); volume adicional de GNC Purga de 14.400 m³/dia por planta.<br>Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 5)."},
-        rca:{srcCap:"GNLink · RCA — mai/2026 (slides 21, 26, 31)",
+        rca:{srcCap:"GNLink · RCA — mai/2026 (slides 21, 26, 31)",realN:5,
           plants:[{cls:"bb",nome:"PR — Paraná",cap:"39.580",rows:[["Início operacional","Em operação",0],["Capacidade plena","Jan/26",1],["Máquinas","2 novas + 1 usada",0]]},{cls:"ita",nome:"BA — Bahia",cap:"85.232",rows:[["Parcial (até set/26)","42.616",0],["Capacidade plena","Out/26",1],["Máquinas","4 novas",0]]},{cls:"assu",nome:"RN — Rio Grande do Norte",cap:"72.688",rows:[["Parcial (fev–set/26)","32.416",0],["Capacidade plena","Out/26",1],["Máquinas","2 novas + 2 usadas",0]]}],
           supply:{PR:[39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580],BA:[42616,42616,42616,42616,42616,42616,42616,42616,42616,85232,85232,85232],RN:[null,32416,32416,32416,32416,32416,32416,32416,32416,72688,72688,72688]},
           rampTag:"topo: % da capacidade · segmentos: mil m³/dia · realizado até mai/26",rampLegendExtra:'<span style="margin-left:auto">Topo: % da capacidade plena (197.500 m³/dia)</span>',tableColored:true,
           rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–mai/26)</span><span><i style="background:#4F7B8C"></i>Forecast (jun–dez/26)</span></div>',
           note:'<b>Atualização RCA vs RCI:</b> a capacidade plena (197.500 m³/dia) escorregou de mai/26 para <b>out/26</b> — BA opera a 42.616 (metade) até set/26 e sobe a 85.232 em out/26; RN parte em fev/26 a 32.416 e atinge 72.688 em out/26. PR permanece pleno (39.580) desde jan/26.<br>Fonte: GNLink — RCA, mai/2026 (linha “Capacidade Planta” · slides 21 · Barra Bonita, 26 · Itabuna, 31 · Assú).'},
-        rcaJun:{srcCap:"GNLink · RCA — jun/2026 (slides 20, 25, 30)",
+        rcaJun:{srcCap:"GNLink · RCA — jun/2026 (slides 20, 25, 30)",realN:6,
           plants:[{cls:"bb",nome:"PR — Paraná",cap:"39.580",rows:[["Início operacional","Em operação",0],["Capacidade plena","Jan/26",1],["GNC purga","14.400 → 19.400 (jul/26)",0],["Máquinas","2 novas + 1 usada",0]]},{cls:"ita",nome:"BA — Bahia",cap:"85.232",rows:[["Parcial (até set/26)","42.616",0],["Capacidade plena","Out/26",1],["GNC purga","14.400 (constante)",0],["Máquinas","4 novas",0]]},{cls:"assu",nome:"RN — Rio Grande do Norte",cap:"72.688",rows:[["Parcial (fev–set/26)","32.416",0],["Capacidade plena","Out/26",1],["GNC purga","14.400 → 19.400 (jul/26)",0],["Máquinas","2 novas + 2 usadas",0]]}],
           supply:{PR:[39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580],BA:[42616,42616,42616,42616,42616,42616,42616,42616,42616,85232,85232,85232],RN:[null,32416,32416,32416,32416,32416,32416,32416,32416,72688,72688,72688]},
           supplyGnc:{PR:[14400,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400],BA:[14400,14400,14400,14400,14400,14400,14400,14400,14400,14400,14400,14400],RN:[null,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400]},
@@ -40,12 +40,26 @@
           rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–jun/26)</span><span><i style="background:#4F7B8C"></i>Forecast (jul–dez/26)</span></div>',
           note:'<b>Capacidade de GNL sem alteração vs. mai/26:</b> PR pleno em 39.580 desde jan/26; BA a 42.616 até set/26 e 85.232 a partir de out/26; RN parte em fev/26 a 32.416 e atinge 72.688 em out/26. A capacidade plena das três plantas (197.500 m³/dia) segue prevista para <b>out/26</b>.<br>Fonte: GNLink — RCA, jun/2026 (linha “Capacidade Planta” · slides 20 · Barra Bonita, 25 · Itabuna, 30 · Assú).',
           noteGnc:'Capacidade de <b>GNC purga</b>, apresentada em quadro próprio nos mesmos slides. PR e RN sobem de 14.400 para <b>19.400 m³/dia</b> em jul/26; BA permanece em 14.400 o ano todo. O total sai de 43.200 (jun/26) para <b>53.200 m³/dia</b> em dez/26 — capacidade adicional à do GNL.<br>Fonte: GNLink — RCA, jun/2026 (linha “Capacidade Planta” do quadro de GNC · slides 20, 25 e 30).'},
+        // RCA Jul/26 (deck de 26/08/2026, 32 slides): a base que MUDA a curva de oferta.
+        // Duas quebras vs. jun/26, ambas na linha "Capacidade Planta" das colunas Real/Fcst:
+        // o PR sobe de 39.580 para 55.633 m³/dia a partir de jun/26 (3ª máquina), e o RN
+        // deixa de subir para 72.688 em out/26 — a 2ª unidade de regás sai do forecast e
+        // só continua na coluna de ORÇADO. Com isso a capacidade plena de dez/26 cai de
+        // 197.500 para 173.281 m³/dia. O GNC purga da BA também sobe a 19.400 em jul/26.
+        rcaJul:{srcCap:"GNLink · RCA — jul/2026 (slides 19, 24, 29)",realN:7,full:173281,
+          plants:[{cls:"bb",nome:"PR — Paraná",cap:"55.633",rows:[["Início operacional","Em operação",0],["Capacidade plena","Jun/26",1],["GNC purga","19.400 (desde jul/26)",0],["Máquinas","2 novas + 1 usada",0]]},{cls:"ita",nome:"BA — Bahia",cap:"85.232",rows:[["Parcial (até set/26)","42.616",0],["Capacidade plena","Out/26",1],["GNC purga","19.400 (desde jul/26)",0],["Máquinas","4 novas",0]]},{cls:"assu",nome:"RN — Rio Grande do Norte",cap:"32.416",rows:[["Capacidade (fev–dez/26)","32.416",0],["2ª unidade de regás","fora do forecast",1],["GNC purga","19.400 (desde jul/26)",0],["Máquinas","2 novas + 2 usadas",0]]}],
+          supply:{PR:[39580,39580,39580,39580,39580,55633,55633,55633,55633,55633,55633,55633],BA:[42616,42616,42616,42616,42616,42616,42616,42616,42616,85232,85232,85232],RN:[null,32416,32416,32416,32416,32416,32416,32416,32416,32416,32416,32416]},
+          supplyGnc:{PR:[14400,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400],BA:[14400,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400],RN:[null,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400]},
+          rampTag:"topo: % da capacidade · segmentos: mil m³/dia · realizado até jul/26",rampLegendExtra:'<span style="margin-left:auto">Topo: % da capacidade plena desta base (173.281 m³/dia)</span>',tableColored:true,
+          rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–jul/26)</span><span><i style="background:#4F7B8C"></i>Forecast (ago–dez/26)</span></div>',
+          note:'<b>Duas quebras de série vs. jun/26.</b> &nbsp; <b>(1) PR sobe:</b> a capacidade passa de 39.580 para <b>55.633 m³/dia</b> já em jun/26 — o valor que o deck de junho só mostrava no quadro de ocupação agora entra na própria linha de capacidade. &nbsp; <b>(2) RN não sobe mais:</b> a 2ª unidade de regás, que em abr–jun/26 levaria o Assú de 32.416 a <b>72.688</b> em out/26, saiu do forecast e sobrou apenas na coluna de <b>orçado</b>; nesta base o RN fica em 32.416 o ano inteiro. A BA segue a 42.616 até set/26 e 85.232 a partir de out/26. &nbsp; Resultado: a capacidade plena de dez/26 cai de <b>197.500</b> para <b>173.281 m³/dia</b> (−12%), e é essa a escala usada no gráfico desta base.<br>Fonte: GNLink — RCA, jul/2026 (linha “Capacidade Planta” · slides 19 · Barra Bonita, 24 · Itabuna, 29 · Assú).',
+          noteGnc:'Capacidade de <b>GNC purga</b>, em quadro próprio nos mesmos slides. Agora as <b>três</b> plantas sobem de 14.400 para <b>19.400 m³/dia</b> em jul/26 — em jun/26 a BA ficava em 14.400 o ano todo. O total sai de 43.200 (jun/26) para <b>58.200 m³/dia</b> de jul/26 em diante, capacidade adicional à do GNL.<br>Fonte: GNLink — RCA, jul/2026 (quadro de GNC · slides 19, 24 e 29).'},
         // RCA Abr/26 (deck de 02/06/2026, 34 slides): primeira base a publicar a linha
         // "Capacidade Planta" por planta e produto. A curva de capacidade é IDÊNTICA à de
         // mai/26 e jun/26 — o que muda entre as bases é a demanda, não a oferta.
         // Não há base rcaMar aqui: o deck de mar/26 (18 slides) só traz capacidade
         // CONSOLIDADA (slides 12–13), sem abertura por planta.
-        rcaAbr:{srcCap:"GNLink · RCA — abr/2026 (slides 21, 26, 31)",
+        rcaAbr:{srcCap:"GNLink · RCA — abr/2026 (slides 21, 26, 31)",realN:4,
           plants:[{cls:"bb",nome:"PR — Paraná",cap:"39.580",rows:[["Início operacional","Em operação",0],["Capacidade plena","Jan/26",1],["GNC purga","14.400 → 19.400 (jul/26)",0],["Máquinas","2 novas + 1 usada",0]]},{cls:"ita",nome:"BA — Bahia",cap:"85.232",rows:[["Parcial (até set/26)","42.616",0],["Capacidade plena","Out/26",1],["GNC purga","14.400 (constante)",0],["Máquinas","4 novas",0]]},{cls:"assu",nome:"RN — Rio Grande do Norte",cap:"72.688",rows:[["Parcial (fev–set/26)","32.416",0],["Capacidade plena","Out/26",1],["GNC purga","14.400 → 19.400 (jul/26)",0],["Máquinas","2 novas + 2 usadas",0]]}],
           supply:{PR:[39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580,39580],BA:[42616,42616,42616,42616,42616,42616,42616,42616,42616,85232,85232,85232],RN:[null,32416,32416,32416,32416,32416,32416,32416,32416,72688,72688,72688]},
           supplyGnc:{PR:[14400,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400],BA:[14400,14400,14400,14400,14400,14400,14400,14400,14400,14400,14400,14400],RN:[null,14400,14400,14400,14400,14400,19400,19400,19400,19400,19400,19400]},
@@ -94,6 +108,12 @@
           {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,22",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
           {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 1,95",w:88,mm:"—",br:"—",cen:"Cativo · 10 anos"}]},
           {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,76",w:79,mm:"—",br:"—",cen:"Cativo · 10 anos"}]}
+        ]},
+        rcaJul:{tag:"preço atual · jul/26",
+          note:'Contratos de suprimento <b>cativos</b>, com prazo de <b>10 anos</b> cada. <b>Os três supridores foram reprecificados em jul/26</b>, em sentidos opostos: <b>BBOG sobe de 2,22 para 2,33</b>, <b>Bahiagás sobe de 1,95 para 2,09</b> e <b>PetroRecôncavo cai de 1,76 para 1,58</b>. Como a PetroRecôncavo responde por 100.000 dos 160.000 m³/dia atuais, o custo médio ponderado <b>cai</b> de R$ 1,90 para <b>R$ 1,83/m³</b> (R$ 1,94/m³ no volume total contratado, ante 1,96). &nbsp; O volume atual da <b>Bahiagás dobra</b>, de 10.000 para 20.000 m³/dia — daí o volume atual da carteira subir de 155.000 para <b>160.000</b> m³/dia (o da BBOG cai de 45.000 para 40.000). &nbsp; No mês, a retirada real foi de 31.670 m³/dia na BBOG, 23.556 na Bahiagás e apenas <b>8.860</b> na PetroRecôncavo.<br>Fonte: GNLink — RCA, jul/2026 (slide 9).',groups:[
+          {cls:"btg",nm:"BBOG",loc:"PR",rows:[{v:"R$ 2,33",w:100,mm:"—",br:"—",cen:"Cativo · 10 anos · mín. 30% QDC"}]},
+          {cls:"bah",nm:"Bahiagás",loc:"BA",rows:[{v:"R$ 2,09",w:90,mm:"—",br:"—",cen:"Cativo · 10 anos · ToP 70% anual"}]},
+          {cls:"pet",nm:"PetroRecôncavo",loc:"RN",rows:[{v:"R$ 1,58",w:68,mm:"—",br:"—",cen:"Cativo · 10 anos · ToP 70% trimestral"}]}
         ]}
       },
       // Ordem e rótulos das bases do painel operacional — FONTE ÚNICA do seletor.
@@ -101,13 +121,14 @@
       // então acrescentar uma base é acrescentar uma linha nesta lista. Nem toda base tem
       // as duas seções: mar/26 publica molécula (slide 11) mas não abre capacidade por
       // planta, e cada render mostra um aviso no lugar do que falta.
-      baseOrder:["rci","rcaMar","rcaAbr","rca","rcaJun"],
-      baseLabels:{rci:"RCI · Dez/25",rcaMar:"RCA · Mar/26",rcaAbr:"RCA · Abr/26",rca:"RCA · Mai/26",rcaJun:"RCA · Jun/26"}
+      baseOrder:["rci","rcaMar","rcaAbr","rca","rcaJun","rcaJul"],
+      baseLabels:{rci:"RCI · Dez/25",rcaMar:"RCA · Mar/26",rcaAbr:"RCA · Abr/26",rca:"RCA · Mai/26",rcaJun:"RCA · Jun/26",rcaJul:"RCA · Jul/26"}
       },comercial:{
         funil:{
           rci:{tag:"valores em m³/dia",note:'Da demanda total mapeada até os contratos assinados. <b>Mais de R$ 1 bilhão</b> em contratos já assinados.',rows:[["Mercado mapeado","1.673.638",100],["Em prospecção","1.099.537",65.7],["Em negociação","275.000",16.4],["Negociações contratuais","96.500",5.8],["Contratos assinados","56.865 – 132.175",7.9]]},
           rca:{tag:"valores em m³/dia · ex. Norte",note:'Da demanda total mapeada (exceto Norte) até os contratos assinados. <b>Mais de R$ 1,1 bilhão</b> em contratos assinados.',rows:[["Mercado mapeado","1.847.776",100],["Em prospecção","1.118.561",60.5],["Em negociação — BID","596.050",32.3],["Em contrato","45.100",12],["Contratos assinados","90.065 – 222.675",15]]},
           rcaJun:{tag:"valores em m³/dia · ex. Norte",note:'Da demanda total mapeada (exceto Norte) até os contratos assinados. <b>R$ 1,09 bilhão</b> em contratos assinados.',rows:[["Mercado mapeado","1.847.776",100],["Em prospecção","1.118.561",60.5],["Em negociação — BID","603.350",32.7],["Em contrato","46.500",12],["Contratos assinados","90.065 – 226.175",15]]},
+          rcaJul:{tag:"valores em m³/dia · ex. Norte",note:'Da demanda total mapeada (exceto Norte) até os contratos assinados. O mercado mapeado é revisado para cima pela primeira vez desde mai/26 — de 1.847.776 para <b>2.004.566</b> — e os assinados saltam de 226.175 para <b>238.955 m³/dia</b>, com <b>R$ 1,23 bilhão</b> em contratos (17 contratos, ante 15 em jun/26).<br>Fonte: GNLink — RCA, jul/2026 (slide 6).',rows:[["Mercado mapeado","2.004.566",100],["Em prospecção","1.118.561",55.8],["Em negociação — BID","593.050",29.6],["Em contrato","54.000",12],["Contratos assinados","106.345 – 238.955",15]]},
           // Mar/26 e abr/26 publicam EXATAMENTE o mesmo funil — o deck de abril não
           // atualizou nenhuma das cinco linhas. As duas bases ficam separadas mesmo assim,
           // para o seletor mostrar a série completa e deixar a repetição visível.
@@ -170,6 +191,32 @@
               {t:"tst",c:["PARELHAS","16/04/2026","16/04/2026","330 dias","GNCp","1.500","3.000","1.128","6.000","2,05","—","—","—","—","RN"]}
             ],
             foot:'<b>(1)</b> Preço net considera o preço de face do contrato, sem efeito da receita de locação e sem os reajustes de preço ao longo do tempo. &nbsp; <b>(2)</b> Volume inicial, atual e final referem-se à rampa definida em contrato; o volume <b>real</b> é a média diária de jun/26. &nbsp; <b>(3)</b> %TOP = parcela take-or-pay do volume contratado.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'},
+          // Jul/26: 17 contratos (6 definitivos · 10 em teste · 1 temporário — o Largo/Vanádio,
+          // categoria nova neste deck). O slide perde a coluna "Início TOP" e ganha a de
+          // APURAÇÃO ao lado do %TOP; a ordem das plantas segue a do deck (RN, PR, BA).
+          rcaJul:{kpiCls:"kpi-row4",tag:"ramp-up de volume (m³/dia) · preço net atual",tagCol:true,totalSpan:6,totalVols:["106.345","63.500","55.634","238.955"],
+            kpis:[["k-slate","Contratos assinados","17","6 definitivos · 10 em teste · 1 temporário"],["k-teal","Prazo médio","2,5 <small>anos</small>","média simples dos 17 contratos"],["k-sage","Preço médio","R$ 3,58<small>/m³</small>","GNL 3,78 · GNCp 2,62 · pond. pelo volume final"],["k-sage","Valor total dos contratos","R$ 1,23 <small>bi</small>","R$ 1.227.032.067"]],
+            cols:["Contrato","Cliente","Assinatura","Início forn.","Prazo","Produto","Inicial","Atual","Real","Final","Preço net (R$/m³)","%TOP","Apuração","Valor do contrato","Planta"],
+            rows:[
+              {t:"def",c:["CEGÁS","28/10/2025","03/11/2025","5 anos","GNL","18.740","22.000","17.413","50.000","3,76","70%","Trimestral","R$ 226.003.744","RN"]},
+              {t:"def",c:["COPERGÁS — Trindade","28/01/2026","09/03/2026","3 anos","GNL","10.000","2.500","2.445","30.000","3,72","70%","Trimestral","R$ 133.560.000","RN"]},
+              {t:"tst",c:["POSTO LIDER","04/03/2026","05/03/2026","330 dias","GNCp","1.000","1.000","518","6.000","2,15","0%","—","—","RN"]},
+              {t:"tst",c:["PARELHAS GÁS","16/04/2026","16/04/2026","330 dias","GNCp","1.500","3.000","883","3.000","2,05","0%","—","—","RN"]},
+              {t:"tst",c:["MERI POBO","28/01/2026","19/05/2026","6 meses","GNCp","2.000","1.000","640","6.000","3,17","0%","—","—","RN"]},
+              {t:"def",c:["COMPAGÁS","29/12/2025","12/03/2026","1 ano","GNL","7.000","23.000","25.939","20.000","3,85","70%","Anual","R$ 71.832.000","PR"]},
+              {t:"tst",c:["SK METAIS","23/06/2026","24/08/2026","180 dias","GNL","3.000","0","0","4.000","3,80","0%","—","—","PR"]},
+              {t:"tst",c:["FEVEREIRO LD","28/01/2026","29/01/2026","330 dias","GNCp","3.000","2.000","1.043","4.000","3,20","0%","—","—","PR"]},
+              {t:"tst",c:["DALLON","21/01/2026","24/08/2026","330 dias","GNCp","6.000","0","0","10.000","2,90","0%","—","—","PR"]},
+              {t:"tst",c:["RB EMBALAGENS","15/05/2026","24/08/2026","180 dias","GNCp","1.000","0","0","2.000","3,45","0%","—","—","PR"]},
+              {t:"tst",c:["DALPARE","03/02/2026","15/09/2026","330 dias","GNCp","2.200","0","0","2.000","3,30","0%","—","—","PR"]},
+              {t:"def",c:["PETROBAHIA","05/10/2023","06/06/2025","10 anos","GNL","18.000","2.000","1.642","40.000","3,72","70%","Anual","R$ 554.668.768","BA"]},
+              {t:"tst",c:["PETYAN","04/07/2025","06/11/2025","10 meses","GNL","12.000","6.500","4.658","12.000","3,02","0%","—","—","BA"]},
+              {t:"tst",c:["CBL","27/07/2026","01/10/2026","60 dias","GNL","4.280","0","0","4.280","3,84","0%","—","—","BA"]},
+              {t:"tmp",c:["LARGO — VANÁDIO","14/08/2026","01/10/2026","8 meses","GNL","12.000","0","0","12.000","4,07","100%","—","R$ 16.986.078","BA"]},
+              {t:"def",c:["BAHIAGÁS","04/11/2025","07/05/2026","10 anos","GNL","1.625","500","452","25.175","4,11","70%","Anual","R$ 205.344.029","BA"]},
+              {t:"def",c:["ALGÁS","13/02/2026","01/09/2026","5 anos","GNCp","3.000","0","0","8.500","1,81","70%","Anual","R$ 18.637.448","BA"]}
+            ],
+            foot:'<b>(1)</b> Nesta base o deck muda a definição: <b>preço atual considera o preço SEM impostos, COM receita de locação e COM os reajustes contratuais</b> ao longo do tempo — em mai/26 e jun/26 era o preço de face, sem locação e sem reajuste. Daí a alta aparente de vários preços (CEGÁS 3,38→3,76 · COPERGÁS 3,34→3,72 · BAHIAGÁS 3,82→4,11 · PARELHAS 2,05 e LIDER 1,90→2,15); não é renegociação. &nbsp; <b>(2)</b> Volume inicial, atual e final referem-se à rampa definida em contrato; o volume <b>real</b> é o fornecido em jul/26. &nbsp; <b>(3)</b> Novidades do mês: <b>CBL</b> (teste, 60 dias) e <b>Largo/Vanádio</b> (temporário, 8 meses, 100% ToP, R$ 17,0 mi) saem do funil e entram como contratos assinados — são os dois contratos que levam a carteira de 15 para 17. &nbsp; <b>(4)</b> O deck deixa de publicar a coluna <b>Início TOP</b> e passa a publicar a <b>Apuração</b>. &nbsp; <b>(5)</b> Atenção à leitura do volume ATUAL: Petrobahia cai de 18.000 para <b>2.000</b>, Bahiagás de 1.625 para <b>500</b>, Dallon/Dalpare/RB/SK/Algás vão a <b>0</b> e Compagás sobe de 20.000 para <b>23.000</b> — o total “atual” cai de 108.625 para 63.500 m³/dia, enquanto o volume final contratado sobe para 238.955.<br>Fonte: GNLink — RCA, jul/2026 (slide 6).'},
           // Mar/26 e abr/26: 12 contratos (6 definitivos + 6 em teste), contra 15 em mai/26.
           // O preço médio é ponderado pelo volume FINAL e considera só os contratos com
           // preço publicado (os "NA" ficam de fora do numerador e do denominador).
@@ -290,6 +337,10 @@
             gnl:{head:"Ocupação total 39% · oferta 130.665 · demanda 51.411",tiles:[["k-teal","PR · GNL","47%","Demanda 26.393 · Oferta 55.633",47],["k-sage","BA · GNL","12%","Demanda 4.921 · Oferta 42.616",12],["k-stone","RN · GNL","62%","Demanda 20.097 · Oferta 32.416",62]]},
             gncp:{head:"Ocupação total 4% · oferta 43.200 · demanda 1.837",tiles:[["k-teal","PR · GNCp","5%","Demanda 709 · Oferta 14.400",5],["k-sage","BA · GNCp","0%","Demanda 0 · Oferta 14.400",0],["k-stone","RN · GNCp","8%","Demanda 1.128 · Oferta 14.400",8]]},
             note:'Oferta = capacidade instalada por planta e produto. <b>Atenção à quebra de série vs. mai/26:</b> no deck de jun/26 a demanda passou a ser o <b>volume real médio diário do mês</b>, enquanto em mai/26 era o volume <b>atual dos contratos</b>. A ocupação do GNL cai de 76% para 39% sobretudo por essa mudança de definição — e não por perda de contratos. A oferta de GNL da planta PR também subiu de 39.580 para 55.633 m³/dia.<br>Fonte: GNLink — RCA, jun/2026 (slide 6).'},
+          rcaJul:{
+            gnl:{head:"Ocupação total 40% · oferta 130.665 · demanda 52.549",tiles:[["k-teal","PR · GNL","47%","Demanda 25.939 · Oferta 55.633",47],["k-sage","BA · GNL","16%","Demanda 6.752 · Oferta 42.616",16],["k-stone","RN · GNL","61%","Demanda 19.858 · Oferta 32.416",61]]},
+            gncp:{head:"Ocupação total 5% · oferta 58.200 · demanda 3.084",tiles:[["k-teal","PR · GNCp","5%","Demanda 1.043 · Oferta 19.400",5],["k-sage","BA · GNCp","0%","Demanda 0 · Oferta 19.400",0],["k-stone","RN · GNCp","11%","Demanda 2.041 · Oferta 19.400",11]]},
+            note:'Mesma definição de jun/26 — demanda = <b>volume real fornecido no mês</b> (jul/26), oferta = capacidade instalada por planta e produto. A ocupação agregada do GNL fica praticamente estável (39% → <b>40%</b>): o PR repete 47%, o RN cai de 62% para 61% e a BA sobe de 12% para 16% com a retomada de Petyan (4.658) e a entrada da Bahiagás (452). &nbsp; No GNCp a oferta sobe de 43.200 para <b>58.200 m³/dia</b> (a BA passa a 19.400 em jul/26), e a demanda real de 1.837 para 3.084 — a ocupação vai de 4% para 5%, com o RN em 11% (Lider 518 · Parelhas 883 · Meri Pobo 640) e a BA ainda em zero, já que o Algás só começa a fornecer em set/26.<br>Fonte: GNLink — RCA, jul/2026 (slide 6).'},
           // Mar/26 e abr/26 medem a demanda como o volume ATUAL dos contratos assinados
           // (mesma definição de mai/26; só em jun/26 ela vira volume real do mês). Por isso
           // a ocupação passa de 100% onde o contratado excede a capacidade instalada.
@@ -341,9 +392,9 @@
             {cls:"fcx-key fcx-strong",cells:["Dívida Líquida","0,0","15,8","77,5","223,9"]}
           ],
           note:'<b>¹ FCT/25:</b> forecast do ano fechado de 2025 (jan–ago realizado + set–dez projetado). &nbsp; <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável.<br>As colunas mensais (jan–ago/25, set–dez/25) e as de Orçamento/25 e variação foram omitidas, conforme solicitado. Fonte: GNLink — Comitê de Investimentos Lorinvest, 15/dez/2025 (slide 19).'},
-        // Orçamento 2026 por base de dados (seletor RCI Dez/25 / RCA Mai/26 / RCA Jun/26).
+        // Orçamento 2026 por base de dados (seletor RCI Dez/25 → RCA Jul/26).
         // Cada base é { dre:{...}, fcxMensal:{...} } — ambos opcionais. "rci" tem DRE +
-        // fluxo mensal (CI Dez/25); "rcaJun" tem só o fluxo mensal (RCA Jun/26, slide 16).
+        // fluxo mensal (CI Dez/25). No RCA Jul/26 o fluxo mensal migrou do slide 16 para o 15.
         // Bases anteriores nunca são sobrescritas: base nova entra como item adicional.
         orc2026:{
         rci:{
@@ -667,6 +718,123 @@
           rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–jun/26)</span><span><i style="background:#4F7B8C"></i>Forecast (jul–dez/26)</span></div>',
           note:'<b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável; nesta base o fundo aparece com sinal negativo (dedução do saldo final), diferente da apresentação do RCI Dez/25.<br>Fonte: GNLink — Apresentação de Resultados Jun/26, 24/jun/2026 (slide 16).'}
         },
+        rcaJul:{ // DRE mensal (slide 17) + fluxo de caixa indireto mensal (slide 15) do RCA Jul/26:
+                 // jan–jul realizado e ago–dez forecast, fechando na coluna do ano. As colunas de
+                 // orçado (jul/26 e FY 2026) e de variação do slide foram omitidas, como nas demais
+                 // bases. Neste deck o fluxo de caixa mensal migrou do slide 16 para o 15.
+        kpis:{groups:[
+          {cls:"kpi-row4",tiles:[
+            {c:"k-slate",k:"Receita líquida 2026",v:"70,7",u:"R$ mi",
+             s:"GNL 62,2 · GNC 6,1 · outros 2,4",
+             sub:'Volume implícito no ano <b>20,1 mi de m³</b> · era 23,6 em jun/26'},
+            {c:"k-slate",k:"Preço médio",v:"3,52",u:"R$/m³",
+             s:"GNL 3,72 · GNC 3,02",
+             sub:'Último mês realizado, jul/26: <b>3,56</b>'},
+            {c:"k-stone",k:"Custo da molécula",v:"1,85",u:"R$/m³",
+             s:"R$ 37,1 mi · 52% da receita",
+             sub:'52% do preço médio'},
+            {c:"k-stone",k:"Custos GNLink",v:"2,36",u:"R$/m³",
+             s:"R$ 47,4 mi no ano",
+             sub:'Liquefação <b>0,99</b> · distribuição <b>0,81</b> · regás <b>0,16</b> · SG&amp;A <b>0,40</b>'}
+          ]},
+          {cls:"kpi-row4",tiles:[
+            {c:"k-stone",k:"Despesas matriz",v:"(27,3)",u:"R$ mi",neg:true,
+             s:"67% do EBITDA negativo do ano",
+             sub:'<b>(1,36) R$/m³</b>'},
+            {c:"k-red",k:"EBITDA 2026",v:"(41,0)",u:"R$ mi",neg:true,
+             s:"Consolidado · projetos (13,8)",
+             sub:'<b>(2,04) R$/m³</b> · projetos <b>(0,69)</b>'},
+            {c:"k-red",k:"Resultado financeiro 2026",v:"(39,3)",u:"R$ mi",neg:true,
+             s:"56% da receita · no caixa (35,8)",
+             sub:'<b>(1,96) R$/m³</b>'},
+            {c:"k-red",k:"Lucro líquido 2026",v:"(91,5)",u:"R$ mi",neg:true,
+             s:"Depreciação (11,2) · financeiro (39,3)",
+             sub:'<b>(4,55) R$/m³</b>'}
+          ]}
+        ],
+        note:'<b>O forecast do ano piora em toda a linha vs. jun/26:</b> receita de 83,0 para <b>70,7</b> (−15%), EBITDA de (35,0) para <b>(41,0)</b> e resultado líquido de (84,5) para <b>(91,5)</b>. A causa é volume, não preço — o preço médio do ano sobe de 3,51 para 3,52 e o do GNL de 3,69 para 3,72, enquanto o volume implícito cai de 23,6 para <b>20,1 milhões de m³</b> (a revisão da curva de demanda do Cegás, que passa a 10,1 mil m³/dia de ago/26 em diante, responde pela maior parte). &nbsp; Como o deck não publica o volume do ano, os R$/m³ acima usam o <b>volume implícito</b> (receita ÷ preço médio) — o mesmo denominador em todos os cards, para a conta fechar: preço 3,52 − molécula 1,85 − custos GNLink 2,36 = (0,69) de margem unitária, que reproduz os (0,68) do próprio slide 17. Na tabela abaixo, os unitários publicados no deck usam uma base de volume própria por linha.'},
+        dreMensal:{tag:"R$ milhões · R$/m³ · %",tblCls:"placeholder-table fcx-tbl mfc-tbl mfc-rf",
+          cols:[["R$ mi",""],["jan/26<small>real</small>","mth-rz"],["fev/26<small>real</small>","mth-rz"],["mar/26<small>real</small>","mth-rz"],["abr/26<small>real</small>","mth-rz"],["mai/26<small>real</small>","mth-rz"],["jun/26<small>real</small>","mth-rz"],["jul/26<small>real</small>","mth-rz"],["ago/26<small>fcst</small>","mth-fc"],["set/26<small>fcst</small>","mth-fc"],["out/26<small>fcst</small>","mth-fc"],["nov/26<small>fcst</small>","mth-fc"],["dez/26<small>fcst</small>","mth-fc"],["2026<small>real+fcst</small>","c-fct"]],
+          rows:[
+            {cls:"fcx-h",cells:["(=) Receita Líquida","2,5","1,1","2,6","3,3","4,2","6,4","6,2","5,8","6,7","10,0","10,1","11,7","70,7"]},
+            {cls:"fcx-sub",cells:["GNL","2,4","1,0","2,5","3,0","3,7","5,7","5,9","4,7","5,6","8,7","8,9","10,3","62,2"]},
+            {cls:"fcx-sub",cells:["Serviço sem molécula GNL","—","—","—","—","0,1","0,1","—","0,7","0,2","0,2","0,2","0,2","1,6"]},
+            {cls:"fcx-sub",cells:["Gás excedente (mercado livre)","—","0,1","—","—","0,3","0,4","—","—","—","—","—","—","0,8"]},
+            {cls:"fcx-sub",cells:["GNC","0,1","0,1","0,1","0,3","0,2","0,1","0,3","0,4","1,0","1,2","1,1","1,3","6,1"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Preço médio (R$/m³)","3,42","2,79","3,34","3,24","3,24","3,52","3,56","3,26","3,57","3,70","3,67","3,68","3,52"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Preço médio GNL (R$/m³)","3,43","3,47","3,37","3,33","3,51","3,74","3,63","3,76","3,80","3,89","3,85","3,86","3,72"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Serviço sem molécula GNL (R$/m³)","—","—","—","1,32","1,44","2,22","1,34","105,03","1,78","1,78","1,78","1,78","3,19"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Gás excedente (R$/m³)","—","0,83","—","—","1,84","2,19","—","—","—","—","—","—","0,93"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Preço médio GNC (R$/m³)","3,20","3,20","2,84","2,60","3,06","3,47","2,83","3,09","3,07","3,07","3,00","3,04","3,02"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) Custo da molécula","(1,6)","(0,8)","(1,5)","(2,1)","(2,5)","(3,6)","(3,9)","(3,6)","(3,8)","(2,9)","(5,0)","(5,7)","(37,1)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário molécula (R$/m³)","2,12","2,10","1,88","2,08","1,98","2,08","2,27","2,04","2,12","1,11","1,89","1,85","1,89"]},
+            {cls:"fcx-h",cells:["(–) Custo de liquefação","(1,3)","(0,9)","(1,1)","(1,3)","(1,5)","(1,2)","(1,6)","(2,0)","(2,0)","(2,0)","(2,3)","(2,6)","(19,9)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário liquefação (R$/m³)","1,71","2,87","1,44","1,32","1,31","0,75","0,92","1,47","1,05","0,75","0,85","0,82","1,03"]},
+            {cls:"fcx-h",cells:["(–) Distribuição","(1,8)","(0,8)","(1,6)","(1,6)","(1,3)","(1,3)","(1,3)","(1,1)","(1,3)","(1,4)","(1,4)","(1,5)","(16,3)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário distribuição (R$/m³)","2,43","2,75","2,00","1,56","1,15","0,81","0,73","0,79","0,71","0,54","0,53","0,50","0,87"]},
+            {cls:"fcx-h",cells:["(–) Regás / descompressão","(0,2)","(0,2)","(0,3)","(0,3)","(0,2)","(0,2)","(0,2)","(0,2)","(0,3)","(0,4)","(0,3)","(0,4)","(3,2)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário regás (R$/m³)","0,25","0,61","0,41","0,27","0,20","0,12","0,11","0,15","0,17","0,14","0,12","0,14","0,17"]},
+            {cls:"fcx-h",cells:["(–) Plant-level SG&amp;A","(0,8)","(0,5)","(0,8)","(0,5)","(0,7)","(0,8)","(0,6)","(0,5)","(0,7)","(0,8)","(0,6)","(0,8)","(8,0)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Custo unitário SG&amp;A (R$/m³)","1,01","1,23","0,97","0,51","0,54","0,45","0,37","0,27","0,37","0,29","0,20","0,26","0,40"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-tot",cells:["(=) Resultado Operacional","(3,1)","(2,1)","(2,7)","(2,5)","(2,0)","(0,7)","(1,4)","(1,6)","(1,3)","2,6","0,5","0,6","(13,8)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Margem unitária (R$/m³)","(4,11)","(5,22)","(3,35)","(2,49)","(1,54)","(0,41)","(0,81)","(0,92)","(0,70)","0,95","0,17","0,19","(0,68)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Margem operacional","(119,9%)","(186,6%)","(100,4%)","(76,9%)","(47,6%)","(11,6%)","(22,8%)","(28,1%)","(19,7%)","25,6%","4,7%","5,3%","(19,5%)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) Despesas matriz","(1,6)","(1,6)","(1,5)","(5,7)","(1,8)","(2,1)","(2,2)","(2,0)","(2,2)","(2,0)","(2,3)","(2,3)","(27,3)"]},
+            {cls:"fcx-tot",cells:["(=) EBITDA","(4,6)","(3,7)","(4,1)","(8,2)","(3,8)","(2,8)","(3,6)","(3,6)","(3,5)","0,6","(1,8)","(1,7)","(41,0)"]},
+            {cls:"fcx-sub2",noNeg:true,cells:["Margem EBITDA","(182,6%)","(331,0%)","(156,6%)","(251,5%)","(91,1%)","(44,8%)","(57,9%)","(62,5%)","(51,9%)","5,7%","(17,9%)","(14,8%)","(58,0%)"]},
+            {cls:"fcx-h",cells:["EBITDA normalizado¹","(4,3)","(3,0)","(4,1)","(8,2)","(3,7)","(2,3)","(3,0)","(3,2)","(3,0)","0,6","(1,8)","(1,7)","(41,0)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) Depreciação","(0,4)","(0,4)","(0,7)","(0,7)","(0,7)","(0,7)","(0,7)","(1,4)","(1,4)","(1,4)","(1,4)","(1,4)","(11,2)"]},
+            {cls:"fcx-h",cells:["(–) Despesas financeiras","(3,0)","(2,4)","(3,4)","(2,6)","(3,0)","(3,4)","(3,5)","(2,9)","(4,3)","(3,0)","(3,3)","(4,3)","(39,3)"]},
+            {cls:"fcx-h",cells:["(–) CSLL / IRPJ","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-key fcx-strong fcx-blk fcx-blk-top",cells:["(=) Resultado Líquido","(8,1)","(6,5)","(8,2)","(11,5)","(7,5)","(6,9)","(7,8)","(8,0)","(9,2)","(3,8)","(6,5)","(7,5)","(91,5)"]},
+            {cls:"fcx-sub2 fcx-blk",noNeg:true,cells:["Margem líquida","(319,8%)","(589,0%)","(308,6%)","(352,6%)","(177,2%)","(109,0%)","(126,2%)","(136,7%)","(136,0%)","(38,4%)","(64,7%)","(63,7%)","(129,4%)"]}
+          ],
+          rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–jul/26)</span><span><i style="background:#4F7B8C"></i>Forecast (ago–dez/26)</span></div>',
+          note:'<b>¹ EBITDA normalizado:</b> segundo o deck, exclui do SG&amp;A os gastos com a arbitragem da BBOG e, no custo de molécula do PR, a diferença entre o valor da NF e o efetivamente pago. Nesta base os ajustes aparecem em jan, fev, mai, jun, jul, ago e set; a coluna 2026 do slide traz <b>(41,0)</b>, igual ao EBITDA sem ajuste, embora a soma dos 12 meses normalizados dê (39,2). Valor mantido como no original. &nbsp; <b>Atenção ao unitário do “Serviço sem molécula GNL” em ago/26:</b> o slide publica <b>105,03 R$/m³</b> — artefato de dividir R$ 0,7 mi por um volume quase nulo, não é preço. &nbsp; <b>Pequenas revisões de série vs. jun/26:</b> a receita de GNL de mar/26 vai de 2,6 para 2,5, o resultado líquido de abr/26 de (11,4) para (11,5) e o de mar/26 de (8,1) para (8,2).<br>Fonte: GNLink — Apresentação de Resultados Jul/26, 26/ago/2026 (slide 17). Linhas em R$ milhões, exceto preços e custos unitários (R$/m³) e margens (%).'},
+        fcxMensal:{tag:"R$ milhões",tblCls:"placeholder-table fcx-tbl mfc-tbl mfc-rf",
+          cols:[["R$ mi",""],["jan/26<small>real</small>","mth-rz"],["fev/26<small>real</small>","mth-rz"],["mar/26<small>real</small>","mth-rz"],["abr/26<small>real</small>","mth-rz"],["mai/26<small>real</small>","mth-rz"],["jun/26<small>real</small>","mth-rz"],["jul/26<small>real</small>","mth-rz"],["ago/26<small>fcst</small>","mth-fc"],["set/26<small>fcst</small>","mth-fc"],["out/26<small>fcst</small>","mth-fc"],["nov/26<small>fcst</small>","mth-fc"],["dez/26<small>fcst</small>","mth-fc"],["FY 2026<small>real+fcst</small>","c-fct"]],
+          rows:[
+            {cls:"fcx-h",cells:["(+/–) EBITDA","(4,6)","(3,7)","(4,1)","(8,2)","(3,8)","(2,8)","(3,6)","(3,6)","(3,5)","0,6","(1,8)","(1,7)","(41,0)"]},
+            {cls:"fcx-sub",cells:["Matriz","(1,6)","(1,6)","(1,5)","(5,7)","(1,8)","(2,1)","(2,2)","(2,0)","(2,2)","(2,0)","(2,3)","(2,3)","(27,3)"]},
+            {cls:"fcx-sub",cells:["Projetos","(3,1)","(2,1)","(2,7)","(2,5)","(2,0)","(0,7)","(1,4)","(1,6)","(1,3)","2,6","0,5","0,6","(13,8)"]},
+            {cls:"fcx-sub2 fcx-plt",cells:["PR","(1,9)","(1,0)","(0,9)","(1,1)","(0,8)","(0,2)","(0,1)","(0,3)","(0,1)","3,0","0,4","0,4","(2,6)"]},
+            {cls:"fcx-sub2 fcx-plt",cells:["BA","(1,0)","(0,9)","(1,3)","(1,0)","(0,6)","(0,2)","(0,8)","(1,0)","(0,9)","(0,1)","—","(0,4)","(8,3)"]},
+            {cls:"fcx-sub2 fcx-plt",cells:["RN","(0,1)","(0,1)","(0,5)","(0,4)","(0,6)","(0,3)","(0,5)","(0,4)","(0,3)","(0,4)","—","0,6","(2,9)"]},
+            {cls:"fcx-h",cells:["(–) IRPJ / CSLL","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-h",cells:["(+/–) Δ Capital de Giro","1,3","(2,7)","(1,3)","(1,5)","1,0","(3,6)","(0,3)","(1,0)","(0,6)","(4,5)","4,5","0,2","(8,6)"]},
+            {cls:"fcx-tot",cells:["(=) CFO","(3,4)","(6,4)","(5,5)","(9,7)","(2,9)","(6,4)","(3,9)","(4,6)","(4,1)","(3,9)","2,7","(1,6)","(49,6)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(–) CapEx","(7,2)","(3,7)","(6,0)","(1,7)","(2,0)","(4,5)","(1,6)","(5,7)","(1,5)","(1,6)","(1,7)","(2,5)","(39,6)"]},
+            {cls:"fcx-sub",cells:["Matriz","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-sub fcx-plt",cells:["PR","(1,2)","(1,2)","(1,3)","(0,5)","(0,1)","(1,4)","(0,4)","(1,1)","(0,4)","(0,4)","(0,5)","(0,7)","(0,4)²"]},
+            {cls:"fcx-sub fcx-plt",cells:["BA","(1,1)","(0,8)","(0,5)","(0,2)","(0,9)","(1,2)","(0,2)","(1,3)","(0,2)","(0,6)","(0,6)","(0,8)","(0,8)²"]},
+            {cls:"fcx-sub fcx-plt",cells:["RN","(4,8)","(1,6)","(4,1)","(1,0)","(0,9)","(1,9)","(0,9)","(3,3)","(0,9)","(0,7)","(0,7)","(1,0)","—²"]},
+            {cls:"fcx-tot",cells:["(=) CFI","(7,2)","(3,7)","(6,0)","(1,7)","(2,0)","(4,5)","(1,6)","(5,7)","(1,5)","(1,6)","(1,7)","(2,5)","(39,6)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-h",cells:["(+) Aporte Hankoe","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-h",cells:["(+) Aporte Copa Energia","—","—","—","—","—","—","—","—","—","—","—","—","—"]},
+            {cls:"fcx-h",cells:["(+) Ingresso de dívida","145,3","75,3","—","—","—","—","160,0","—","15,4","—","—","—","396,0"]},
+            {cls:"fcx-h",cells:["(–) Pgto Principal","(135,0)","—","—","—","—","—","(145,3)","—","—","(0,7)","(0,7)","(0,7)","(282,4)"]},
+            {cls:"fcx-h",cells:["(–) Resultado Financeiro","(10,5)","0,4","(1,7)","0,5","(1,9)","(2,0)","(11,5)","(2,2)","(3,1)","0,1","(2,7)","(1,3)","(35,8)"]},
+            {cls:"fcx-tot",cells:["(=) CFF","(0,3)","75,7","(1,7)","0,5","(1,9)","(2,0)","3,3","(2,2)","12,4","(0,6)","(3,4)","(2,0)","77,8"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-key fcx-blk fcx-blk-top",cells:["Caixa BoP","18,5","7,7","73,3","60,1","49,2","42,6","29,6","27,4","14,9","21,7","15,5","13,0","18,5"]},
+            {cls:"fcx-key fcx-blk",cells:["(+/–) Δ Caixa","(10,8)","65,6","(13,1)","(10,9)","(6,7)","(12,9)","(2,2)","(12,6)","6,8","(6,2)","(2,4)","(6,0)","(11,4)"]},
+            {cls:"fcx-key fcx-blk",cells:["Caixa EoP","7,7","73,3","60,1","49,2","42,6","29,6","27,4","14,9","21,7","15,5","13,0","7,0","7,0"]},
+            {cls:"fcx-key fcx-blk",cells:["Fundo de Líquidez BNB (retido)","(6,5)","(6,6)","(6,6)","(6,8)","(6,8)","(6,8)","(6,8)","(6,8)","(7,6)","(7,6)","(7,6)","(7,6)","(7,6)"]},
+            {cls:"fcx-key fcx-strong fcx-blk",cells:["Caixa EoP livre","1,1","66,6","53,5","42,5","35,8","22,9","20,6","8,0","14,1","7,9","5,4","(0,6)","(0,6)"]},
+            {cls:"fcx-sp",sp:1},
+            {cls:"fcx-key",cells:["Dívida Bruta","236,5","314,6","316,3","319,4","320,5","322,0","328,8","329,5","346,1","348,5","348,5","350,8","350,8"]},
+            {cls:"fcx-key fcx-strong",cells:["Dívida Líquida","228,9","241,4","256,2","270,2","278,0","292,3","301,3","314,6","324,4","333,0","335,4","343,8","343,8"]}
+          ],
+          rfLegend:'<div class="rf-legend"><span><i style="background:#C55A17"></i>Realizado (jan–jul/26)</span><span><i style="background:#4F7B8C"></i>Forecast (ago–dez/26)</span></div>',
+          note:'<b>O saldo final de caixa LIVRE fica negativo em dez/26 — (0,6) R$ mi</b>, e é o próprio deck que abre o slide com esse alerta: o caixa EoP cai de 27,4 (jul) para 7,0 em dez, abaixo dos 7,6 do fundo de liquidez do BNB retido. &nbsp; <b>Fundo de Líquidez BNB (retido):</b> 3% do desembolsado na BA e 5% no RN — retido em caixa, não utilizável; aparece com sinal negativo, como em jun/26. &nbsp; <b>² Atenção:</b> a coluna FY 2026 das três plantas no CapEx vem <b>inconsistente no próprio slide</b> — PR (0,4), BA (0,8) e RN 0,0, contra (39,6) do total. Somando os 12 meses publicados dá PR (9,2), BA (8,4) e RN (21,8), que fecham nos (39,4) do orçado. Os valores foram mantidos como no deck. &nbsp; <b>Financiamentos:</b> o deck explica que estavam orçados R$ 166,7 mi em jul/26 (rolagem de R$ 150 mi de dívida de curto prazo + R$ 16,7 mi do BNB Carnaúba); foram captados R$ 160 mi e o desembolso do BNB foi reprogramado para set/26, por R$ 15,4 mi, após crítica orçamentária.<br>Fonte: GNLink — Apresentação de Resultados Jul/26, 26/ago/2026 (slide 15).'}
+        },
         // RCA Mar/26 (deck de 24/04/2026, 18 slides): base PARCIAL, por limite do próprio deck.
         // Ele não publica DRE mensal dos 12 meses — só mês, YTD (slide 6) e forecast por
         // trimestre (slide 8) —, então esta base tem faixa de KPIs e fluxo de caixa, sem DRE.
@@ -866,10 +1034,11 @@
       //   rci    → RCI Dez/25 (slide 13): NÃO é série mensal. O deck compara o perfil
       //            da dívida de então ("cenário atual") com o alongamento pretendido
       //            ("cenário futuro"), por isso a base tem tipo:"cenarios".
-      //   rcaMai → RCA Mai/26 (slide 15) e rcaJun → RCA Jun/26 (slide 14): saldo
+      //   rcaMai → RCA Mai/26 (slide 15), rcaJun → RCA Jun/26 (slide 14) e rcaJul →
+      //            RCA Jul/26 (slide 13): saldo
       //            devedor mensal por emissão em 2026 (tipo:"mensal"). realN = nº de
       //            meses realizados; os demais são forecast.
-      // Nas duas bases mensais o financiamento BNB da Bahia entra como UMA emissão
+      // Nas bases mensais o financiamento BNB da Bahia entra como UMA emissão
       // (1ª + 2ª fase), como no slide, que só publica o total das fases. A debênture
       // de infraestrutura do PR fica de fora: no RCA ela só existe na coluna orçado.
       alavancagem:{
@@ -946,6 +1115,30 @@
               ],sub:[49.6,50.2,50.9,51.5,52.2,52.9,60.0,60.8,61.6,62.4,63.2,64.0]}
             ],
             foot:'Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; Fonte: GNLink — RCA jun/2026 (slide 14).'},
+
+          rcaJul:{tipo:"mensal",realN:7,pos:"jul/26",posTitulo:"posição jul/2026",
+            srcCap:"RCA · Jul/26 — Apresentação de Resultados GNLink, 26/ago/2026 (slide 13)",
+            intro:'Saldo devedor por emissão, planta e banco — <b>realizado até jul/26</b>, demais meses em <b>forecast</b>. Julho é o mês da <b>rolagem</b>: as três bridges da ABC (8ª, 9ª e 10ª emissões, R$ 145,3 mi) vencem em 07/07/26 e saem do mapa, substituídas pelas notas comerciais privadas de 1 ano (11ª e 12ª emissões, R$ 161,8 mi). O desembolso final do BNB Assú estava orçado em R$ 16,7 mi para jul/26; após crítica orçamentária o banco chegou a propor R$ 10,9 mi e, depois da defesa, aprovou <b>R$ 15,4 mi</b>, agora previsto para set/26. <span style="color:var(--muted)">Colunas de orçado (jul/26 e dez/26) e variação foram omitidas.</span>',
+            total:[236.5,314.6,316.3,319.4,320.5,322.0,328.8,329.5,346.1,348.5,348.5,350.8],
+            plantas:[
+              {key:"BA",nome:"Bahia",emissoes:[
+                {nome:"Financiamento BNB",banco:"BNB",emissao:"13/12/24",venc:"15/09/36",taxa:"8,5%",idx:"IPCA + 4,4% a.a.",pnom:"12 anos",gar:"75% contrato Copergás<sup>1</sup> + 25% fiança corporativa",saldo:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.6,88.4,87.4,86.7]}
+              ],sub:[89.8,90.5,89.4,89.8,90.5,89.2,89.9,90.3,88.6,88.4,87.4,86.7]},
+              {key:"RN",nome:"Assú",emissoes:[
+                {nome:"Financiamento BNB Carnaúba — 1ª fase",banco:"BNB",emissao:"05/02/26",venc:"15/11/37",taxa:"9,8%",idx:"IPCA + 5,7% a.a.",pnom:"12 anos",gar:"Fiança corporativa + contrato Cegás",saldo:[null,75.7,76.4,77.1,75.6,76.3,77.1,75.3,75.7,76.1,75.4,75.7]},
+                {nome:"Financiamento BNB Carnaúba — 2ª fase",banco:"BNB",emissao:"TBD",venc:"TBD",taxa:"9,8%",idx:"IPCA + 5,7% a.a.",pnom:"12 anos",gar:"Fiança corporativa + contrato Cegás",saldo:[null,null,null,null,null,null,null,null,15.8,15.9,15.3,15.8]}
+              ],sub:[null,75.7,76.4,77.1,75.6,76.3,77.1,75.3,91.5,92.0,90.7,91.5]},
+              {key:"PR",nome:"Paraná",emissoes:[
+                {nome:"Bridge (ABC) — 9ª emissão",banco:"ABC",emissao:"12/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[42.6,43.1,43.8,44.3,44.9,45.5,null,null,null,null,null,null]},
+                {nome:"Bridge (ABC) — 10ª emissão",banco:"ABC",emissao:"12/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[54.5,55.1,55.9,56.6,57.4,58.1,null,null,null,null,null,null]},
+                {nome:"NC privada — 12ª emissão",banco:"TBD",emissao:"TBD",venc:"TBD",taxa:"16,7%",idx:"CDI + 2,4% a.a.",pnom:"1 ano",gar:"100% fiança corporativa",saldo:[null,null,null,null,null,null,101.1,102.4,103.7,105.1,106.5,107.8]}
+              ],sub:[97.1,98.2,99.7,100.9,102.3,103.6,101.1,102.4,103.7,105.1,106.5,107.8]},
+              {key:"GIRO",nome:"Giro",emissoes:[
+                {nome:"Bridge (ABC) — 8ª emissão",banco:"ABC",emissao:"06/01/26",venc:"07/07/26",taxa:"17,1%",idx:"CDI + 2,4% a.a.",pnom:"6 meses",gar:"100% fiança corporativa",saldo:[49.6,50.2,50.9,51.5,52.2,52.9,null,null,null,null,null,null]},
+                {nome:"NC privada — 11ª emissão",banco:"TBD",emissao:"TBD",venc:"TBD",taxa:"16,7%",idx:"CDI + 2,4% a.a.",pnom:"1 ano",gar:"100% fiança corporativa",saldo:[null,null,null,null,null,null,60.7,61.5,62.2,63.1,63.9,64.7]}
+              ],sub:[49.6,50.2,50.9,51.5,52.2,52.9,60.7,61.5,62.2,63.1,63.9,64.7]}
+            ],
+            foot:'Valores em R$ milhões · <b>Prazo</b> = vencimento − emissão. &nbsp; <sup>1</sup> BNB Bahia: tentaremos substituir o contrato Petrobahia por contrato da Copergás. &nbsp; <b>Rolagem confirmada:</b> as NCs privadas entram em jul/26 com R$ 101,1 mi (PR) e R$ 60,7 mi (Giro) — acima dos R$ 100,0 e R$ 50,0 mi orçados —, e a 2ª fase do BNB Carnaúba escorrega de jul/26 para set/26, com R$ 15,8 mi em vez dos R$ 16,7 mi orçados. &nbsp; A <b>debênture de infraestrutura do PR</b> (R$ 103,7 mi, IPCA + 8,95% a.a., 10 anos, 100% contrato Bahiagás) segue só na coluna de orçado de dez/26 e por isso fica de fora desta tabela, como nas bases anteriores. &nbsp; Fonte: GNLink — RCA jul/2026 (slide 13).'},
 
           // Mar/26 (slide 16): o slide NÃO abre jan e fev — começa em mar/26 (real) e segue
           // com abr–dez em forecast. Os dois primeiros meses ficam nulos aqui, de propósito.
@@ -1028,6 +1221,13 @@
               cap:[39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6,39.6],semVol:0},
               gnc:{cli:[["FEVEREIRO","ativo",[1.2,0.6,1,1.1,0.8,0.7,0.8,2,2,2,2,2]],["DALLON","ativo",[null,null,null,0.5,null,null,1.5,6.7,6.7,6.7,6.7,6.7]],["RIO BONITO EMBALAG","previsto",[null,null,null,null,null,null,null,0.7,2,2,2,2]],["DALPARE","ativo",[null,null,null,null,null,null,null,null,1.1,2,2,2]],["DALBA","previsto",[null,null,null,null,null,null,null,null,1.1,1.1,1.1,1.1]],["SAMP","previsto",[null,null,null,null,null,null,null,null,null,null,null,0.5]]],
               total:[1.2,0.6,1,1.6,0.8,0.7,2.4,9.4,12.9,13.8,13.8,14.3],
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:0}},
+            rcaJul:{realN:7,srcCap:"RCA · Jul/26 — Apresentação de Resultados GNLink, 26/ago/2026 (slide 19)",
+              gnl:{cli:[["LD CELULOSE","spot",[4.5,null,null,null,null,null,null,null,null,null,null,null]],["COMPAGÁS","ativo",[null,null,2.7,1.9,8.9,26.4,25.9,21.3,25,26.5,26.5,26.5]],["SK METAIS","previsto",[null,null,null,null,null,null,null,null,0.8,3,3,3]],["STARA","previsto",[null,null,null,null,null,null,null,null,null,null,null,2]]],
+              total:[4.5,null,2.7,1.9,8.9,26.4,25.9,21.3,25.8,29.5,29.5,31.5],
+              cap:[39.6,39.6,39.6,39.6,39.6,55.6,55.6,55.6,55.6,55.6,55.6,55.6],semVol:2},
+              gnc:{cli:[["FEVEREIRO","ativo",[null,0.6,1,1.1,0.8,0.7,1,0.8,1,1,1,1]],["DALLON","ativo",[null,null,null,0.5,null,null,null,1,3,3,3,3]],["RIO BONITO EMBALAG","previsto",[null,null,null,null,null,null,null,null,1.7,2,2,2]],["DALPARE","ativo",[null,null,null,null,null,null,null,null,1.1,2,2,2]],["SAMP","previsto",[null,null,null,null,null,null,null,null,null,null,null,0.5]]],
+              total:[null,0.6,1,1.6,0.8,0.7,1,1.8,6.8,8,8,8.5],
               cap:[14.4,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:0}}
           }},
           {key:"BA",nome:"Itabuna",uf:"Bahia",bases:{
@@ -1051,7 +1251,14 @@
               cap:[42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,85.2,85.2,85.2],semVol:2},
               gnc:{cli:[["ALGÁS (SERVIÇO)","ativo",[null,null,null,null,null,null,null,null,3,3,3,3]],["BAHIAGÁS","ativo",[null,null,null,null,0.3,0.4,0.5,1,null,null,null,null]]],
               total:[null,null,null,null,0.3,0.4,0.5,1,3,3,3,3],
-              cap:[14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4],semVol:0}}
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4,14.4],semVol:0}},
+            rcaJul:{realN:7,srcCap:"RCA · Jul/26 — Apresentação de Resultados GNLink, 26/ago/2026 (slide 24)",
+              gnl:{cli:[["PETROBAHIA","ativo",[2.1,1.5,1.5,2.5,1,2.1,1.6,2.4,2,2,2,2]],["PETYAN","ativo",[2.9,1.6,3.5,4.9,4.1,2.4,4.7,3.9,4.8,5.3,5.3,5.6]],["BAHIAGÁS VDC","ativo",[null,null,null,null,null,null,null,null,0.8,1.5,1.5,1.5]],["VANADIUM","previsto",[null,null,null,null,null,null,null,null,null,12,12,12]],["CBL","previsto",[null,null,null,null,null,null,null,null,null,4,4,0]],["GRAFITE DO BRASIL","previsto",[null,null,null,null,null,null,null,null,null,null,null,2.2]]],
+              total:[5,3.1,5,7.3,5.1,4.5,6.3,6.2,7.5,24.8,24.8,23.3],
+              cap:[42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,42.6,85.2,85.2,85.2],semVol:2},
+              gnc:{cli:[["BAHIAGÁS","ativo",[null,null,null,null,0.3,0.4,0.5,0.3,0.3,null,null,null]],["PETROBAHIA (VDC)","previsto",[null,null,null,null,null,null,null,0.1,1.1,1.1,1.1,1.1]],["ALGÁS (SERVIÇO)","ativo",[null,null,null,null,null,null,null,null,3,3,3,3]]],
+              total:[null,null,null,null,0.3,0.4,0.5,0.5,4.4,4.1,4.1,4.1],
+              cap:[14.4,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:0}}
           }},
           {key:"RN",nome:"Assú",uf:"Rio Grande do Norte",bases:{
             rcaAbr:{realN:4,srcCap:"RCA · Abr/26 — Apresentação de Resultados GNLink, 02/jun/2026 (slide 31)",
@@ -1074,6 +1281,13 @@
               cap:[null,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4,72.7,72.7,72.7],semVol:0},
               gnc:{cli:[["MERI POBO","ativo",[null,null,null,0.5,0.7,null,0.7,2,2,2,2,2]],["PARELHAS","novo",[null,null,null,0.8,1.1,1.1,1.3,2,2,2,2,2]],["LIDER","novo",[null,null,0.4,0.8,0.1,null,0.3,null,null,null,null,null]]],
               total:[null,null,0.4,2,1.9,1.1,2.3,4,4,4,4,4],
+              cap:[null,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:1}},
+            rcaJul:{realN:7,srcCap:"RCA · Jul/26 — Apresentação de Resultados GNLink, 26/ago/2026 (slide 29)",
+              gnl:{cli:[["CEGÁS","ativo",[13.3,6.8,14.7,18.2,17.5,17.6,17.4,10.1,10.1,10.1,10.1,10.1]],["COPERGÁS","ativo",[null,null,1.7,2.4,2.5,2.5,2.4,2.4,5.6,7.5,12.3,20.8]]],
+              total:[13.3,6.8,16.4,20.6,20,20.1,19.9,12.4,15.7,17.6,22.3,30.9],
+              cap:[null,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4,32.4],semVol:1},
+              gnc:{cli:[["MERI POBO","ativo",[null,null,null,0.5,0.7,null,0.6,1.3,1,1,1,2]],["PARELHAS","novo",[null,null,null,0.8,1.1,1.1,0.9,0.6,1,1.5,1.5,1.5]],["LIDER","novo",[null,null,0.4,0.8,0.1,null,0.5,0.4,0.5,0.5,0.5,0.5]]],
+              total:[null,null,0.4,2,1.9,1.1,2,2.3,2.5,3,3,4],
               cap:[null,14.4,14.4,14.4,14.4,14.4,19.4,19.4,19.4,19.4,19.4,19.4],semVol:1}}
           }}
         ]
