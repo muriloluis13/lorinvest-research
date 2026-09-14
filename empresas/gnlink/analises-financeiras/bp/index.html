@@ -212,7 +212,6 @@ const ABAS = [
   ]},
   {grp:"Modelagem", items:[
     {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
-    {id:"variavel", nome:"Variável",        regiao:true,  fase:null},
     {id:"opex",     nome:"OPEX",            regiao:true,  fase:null},
     {id:"holding",  nome:"Holding",         regiao:false, fase:"D"},
   ]},
@@ -221,7 +220,7 @@ const ABAS = [
     {id:"macro",     nome:"Macro",     regiao:false, fase:null},
   ]},
 ];
-const MODELAGEM_ABAS = new Set(["resumo","receita","variavel","opex","holding","balanco"]);  // têm seletor de periodicidade
+const MODELAGEM_ABAS = new Set(["resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
 const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto"};
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
@@ -625,9 +624,6 @@ function render(){
   if(aba.id==="balanco"){ m.innerHTML = html + renderBalanco(); return; }
   if(aba.id==="opex"){
     const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); wireOcat(); if(r.draw) r.draw(); return;
-  }
-  if(aba.id==="variavel"){
-    const r=renderVariavel(); m.innerHTML=html+r.html; wireSubtabs(); drawMolecula(r.mol); return;
   }
   if(aba.id==="holding"){
     const r=renderHolding(); m.innerHTML=html+r.html; if(r.draw) r.draw(); return;
@@ -2250,7 +2246,21 @@ function renderOpexCat(reg, cat, h){
   }
   if(!comps) h+='<div class="note">Esta categoria ainda mostra o subtotal do modelo (realizado + projeção). O detalhe por sub-linha com valores entra quando a categoria for portada em fórmula (mecânicas acima já mapeadas).</div>';
   else h+='<div class="note">Sub-linhas em <b>projeção-fórmula</b> (portadas). O realizado é mostrado no total pelo valor do modelo.</div>';
-  return {html:h, draw:()=> comps ? drawOcatStack(comps, M) : drawOcatLine(tot, M.label)};
+  // Custo do gás: o driver é o custo da molécula (R$/m³) — detalhe incorporado aqui (era a aba Variável)
+  if(cat==="gas"){
+    const mol=moleculaMedia(reg), cut=DB.cutoffIdx;
+    h+='<h3 class="msub">Custo da molécula (R$/m³) — driver do gás</h3>';
+    h+='<div class="mkpis">';
+    h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+fmtMes(DB.meses[cut].ym),null,MECH.molecula);
+    h+=kpi("Molécula (dez/38)", mol[mol.length-1]!=null?fmt(mol[mol.length-1],3):"—", "R$/m³",null,MECH.molecula);
+    h+='</div>';
+    h+='<div class="card"><h4>Custo da molécula — '+regName(reg)+' (R$/m³)</h4><div class="chart-box"><canvas id="cMol"></canvas></div></div>';
+    const molRows=DB.regioes.map(r=>({lbl:r.nome, serie:moleculaLive(r.id)||[], how:"avg", div:1, d:3, tip:MECH.molecula}))
+      .concat([{lbl:"Média ponderada ("+regName(reg)+")", serie:mol, how:"avg", div:1, d:3, bold:true, tip:MECH.molecula}]);
+    h+=serieTableHTML(molRows,"R$/m³");
+    h+='<div class="note">Motor de reajuste IPCA/Brent/Dólar com piso/teto — reage às premissas de molécula acima e ao câmbio.</div>';
+  }
+  return {html:h, draw:()=>{ comps ? drawOcatStack(comps, M) : drawOcatLine(tot, M.label); if(cat==="gas") drawMolecula(moleculaMedia(reg)); }};
 }
 function drawOpexStack(s){
   const labels=DB.meses.map(m=>fmtMes(m.ym));
@@ -2282,8 +2292,9 @@ function drawOcatLine(tot, label){
       y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}})});
 }
 const drawGas = drawOpexStack;  // compat
-/* --------------------------------------------------- aba Variável (mol, D) -- */
-function renderVariavel(){
+/* Molécula: o detalhe (premissas + R$/m³) foi INCORPORADO na categoria "Custo do gás" da aba OpEx
+   (renderOpexCat cat="gas"); a antiga aba Variável foi removida. drawMolecula é reusado lá. */
+function _renderVariavel_DEPRECATED(){
   const reg=state.regiao, cut=DB.cutoffIdx;
   const mol=moleculaMedia(reg);
   let h=subtabsHTML();
@@ -2574,6 +2585,7 @@ function premMoleculaPanel(reg){
 
 // mapa categoria OpEx → painel de premissas
 const PREM_OPEX = {
+  gas: premMoleculaPanel,          // custo do gás = molécula × volume; premissas da molécula aqui
   liquefacao: premLiquefPanel,
   distribuicao: premLogPanel,
   compressao: reg=>premCompTermPanel(reg,"comp_tarifa","Compressão","Tarifa de compressão por planta (R$/mês fixo). Liberada a partir da data de início (estrutural)."),
