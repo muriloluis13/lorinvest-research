@@ -164,7 +164,9 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
 .cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
-.cli-sec-h{display:flex;align-items:center;gap:10px;background:var(--accent);color:#fff;padding:9px 15px}
+.cli-sec-h{display:flex;align-items:center;gap:10px;background:var(--accent);color:#fff;padding:9px 15px;cursor:pointer;user-select:none}
+.cli-sec-h:hover{background:#33404F}
+.cli-chev{font-size:11px;width:14px;display:inline-block;color:#EAF0F6}
 .cli-sec-h b{font-size:13.5px;letter-spacing:.01em}
 .cli-sec-n{font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,.18);border-radius:999px;padding:2px 10px}
 .cli-sec-vol{font-size:11.5px;color:#EAF0F6;font-weight:600}
@@ -233,7 +235,8 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto"};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", cliCollapsed:{}};
+function toggleCliPlanta(id){ state.cliCollapsed[id]=!state.cliCollapsed[id]; render(); }
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
 let G = {volMult:1, precoMult:1, molMult:1};
 const gAtivo = () => G.volMult!==1 || G.precoMult!==1 || G.molMult!==1;
@@ -1548,17 +1551,22 @@ function renderClientes(){
   for(const rg of DB.regioes){
     const arr=filtered.filter(c=>+c.planta===rg.id); if(!arr.length) continue;
     const volSum=arr.reduce((s,c)=>s+(+c.volmax||0),0);
-    h += `<div class="cli-sec"><div class="cli-sec-h"><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx: ${fmt(volSum,0)} m³/d</span></div>`;
-    h += '<div class="tblwrap"><table class="mtbl clitbl">'+THEAD+'<tbody>';
-    for(const [pr,lbl] of [["GNL","GNL"],["GNC","GNC"],["","Outros"]]){
-      const sub=arr.filter(c=> pr ? (c.produto||"").toUpperCase()===pr : !["GNL","GNC"].includes((c.produto||"").toUpperCase()));
-      if(!sub.length) continue;
-      h += `<tr class="grp-prod"><td class="l" colspan="6">${lbl} · ${sub.length}</td></tr>`;
-      for(const c of sub){ cnt++; h += cliRow(c); }
+    const collapsed=!!state.cliCollapsed[rg.id];
+    cnt+=arr.length;   // conta mesmo quando recolhido (p/ o rodapé)
+    h += `<div class="cli-sec${collapsed?' collapsed':''}"><div class="cli-sec-h" onclick="toggleCliPlanta(${rg.id})" title="${collapsed?'Abrir':'Fechar'}"><span class="cli-chev">${collapsed?'▸':'▾'}</span><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx: ${fmt(volSum,0)} m³/d</span></div>`;
+    if(!collapsed){
+      h += '<div class="tblwrap"><table class="mtbl clitbl">'+THEAD+'<tbody>';
+      for(const [pr,lbl] of [["GNL","GNL"],["GNC","GNC"],["","Outros"]]){
+        const sub=arr.filter(c=> pr ? (c.produto||"").toUpperCase()===pr : !["GNL","GNC"].includes((c.produto||"").toUpperCase()));
+        if(!sub.length) continue;
+        h += `<tr class="grp-prod"><td class="l" colspan="6">${lbl} · ${sub.length}</td></tr>`;
+        for(const c of sub){ h += cliRow(c); }
+      }
+      const pAvg=wavg(arr);
+      h += `<tr class="grp-total"><td class="l">Total ${rg.nome}</td><td class="l">—</td><td><b>${fmt(volSum,0)}</b></td><td>—</td><td>—</td><td>${pAvg!=null?fmt(pAvg,2):'—'}</td></tr>`;
+      h += '</tbody></table></div>';
     }
-    const pAvg=wavg(arr);
-    h += `<tr class="grp-total"><td class="l">Total ${rg.nome}</td><td class="l">—</td><td><b>${fmt(volSum,0)}</b></td><td>—</td><td>—</td><td>${pAvg!=null?fmt(pAvg,2):'—'}</td></tr>`;
-    h += '</tbody></table></div></div>';
+    h += '</div>';
   }
   if(!cnt) h += '<div class="note">Nenhum cliente encontrado.</div>';
   else h += `<div class="note">${cnt} cliente(s) em ${DB.regioes.filter(rg=>filtered.some(c=>+c.planta===rg.id)).length} planta(s). Cada planta é uma tabela separada; GNL e GNC agrupados dentro. Clique num cliente para abrir o card.</div>`;
