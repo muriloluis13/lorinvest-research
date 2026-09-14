@@ -922,6 +922,61 @@ def extract_holding_sga(wb):
     return {"scalars": scal, "seed13": seed13, "r32": r32, "seed23": seed23}
 
 
+def extract_balanco(wb):
+    """MÓDULO CAIXA / FLUXO DE CAIXA + BALANÇO + DCF. O HTML reproduz por fórmula: waterfall de
+    caixa, capital de giro (níveis = driver×prazo/30), DFM385 (=Caixa[k-1]×G383×CDI), Div26/resfin,
+    máquinas de estado do PL, somas do balanço, VPL/TIR. Aqui saem os INSUMOS COLADOS/de outro
+    módulo (pastes voláteis, imposto-caixa, política de dividendos, override de ICMS, sementes,
+    geração anual do DCF) + as constantes de prazo/desconto. Validado 1:1 (caixa_balanco_ref.py)."""
+    dfm = wb["Demonstrativo Financeiro Mensal"]; dv = wb["Dívida"]; imp = wb["Impostos"]
+    dcf = wb["DCF"]; dfa = wb["Demonstrativo Financeiro Anual"]
+    def read(ws, rowset, maxr):
+        keep = {}
+        for i, r in enumerate(ws.iter_rows(min_row=1, max_row=maxr,
+                                           max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+            if i in rowset:
+                keep[i] = r
+        return keep
+    dfm_rows = {130, 135, 140, 141, 142, 143, 144, 148, 157, 158, 160, 165, 195, 208, 223,
+                242, 281, 292, 294, 299, 300, 302, 316, 319, 321, 344, 345, 352, 353, 354, 356,
+                360, 362, 363, 364, 368, 374, 383, 385, 349, 351, 355, 357, 359}
+    dfmk = read(dfm, dfm_rows, 400)
+    dvk = read(dv, {12, 13, 26}, 30)
+    impk = read(imp, {37}, 82)
+    dcfk = read(dcf, {5, 20, 22}, 25)
+    dfak = read(dfa, {227}, 230)
+
+    def ser(keep, r):
+        row = keep.get(r)
+        return [_num(row[COL_FIRST - 1 + k]) if row and COL_FIRST - 1 + k < len(row) else None
+                for k in range(N_MONTHS)]
+    def kc(keep, r, c):   # célula (col 1-based) de uma linha já lida
+        row = keep.get(r)
+        return _num(row[c - 1]) if row and c - 1 < len(row) else None
+    def kdate(keep, r, c):   # célula de DATA -> serial Excel (openpyxl data_only dá datetime)
+        row = keep.get(r)
+        v = row[c - 1] if row and c - 1 < len(row) else None
+        if isinstance(v, datetime.datetime):
+            v = v.date()
+        if isinstance(v, datetime.date):
+            return float((v - datetime.date(1899, 12, 30)).days)
+        return _num(v)
+
+    out = {}
+    for r in dfm_rows:
+        out["dfm%d" % r] = ser(dfmk, r)
+    out["div26"] = ser(dvk, 26); out["div12"] = ser(dvk, 12); out["div13"] = ser(dvk, 13)
+    out["imp37"] = ser(impk, 37)
+    out["const"] = {
+        "F349": kc(dfmk, 349, 6), "F357": kc(dfmk, 357, 6), "F359": kc(dfmk, 359, 6),
+        "H355": kc(dfmk, 355, 8), "G383": kc(dfmk, 383, 7),
+        "F20": kc(dcfk, 20, 6), "F22": kdate(dcfk, 22, 6),
+    }
+    out["dcf_anos"] = [kc(dcfk, 5, COL_FIRST + j) for j in range(20)]
+    out["dfa_gen_cons"] = [kc(dfak, 227, COL_FIRST + j) for j in range(20)]
+    return out
+
+
 def extract_divida(wb, div_formulas):
     """MÓDULO DE DÍVIDA (aba Dívida) — reproduz o cronograma de cada instrumento a partir dos
     TERMOS (premissas): desembolso, tipo (SAC/PRICE), índice (IPCA/CDI), spread, datas/nº de
@@ -1106,8 +1161,7 @@ def extract_dre_below(wb):
 
     return {
         "receita_bruta": ser(dfmk, 33), "deducoes": ser(dfmk, 35),
-        "resultado_financeiro": ser(dfmk, 108),   # TODO: vira vivo no módulo de Dívida (próximo)
-        "imp36": ser(impk, 36), "imp37": ser(impk, 37),
+        "imp36": ser(impk, 36), "imp37": ser(impk, 37),   # imp37: alocação RN de juros+comissões da dívida
         "seedA": (ser(impk, 45)[47] or 0.0), "seedB": (ser(impk, 70)[47] or 0.0),
         "seedD": (ser(dfmk, 142)[47] or 0.0),
         "E30": escal(30), "E31": escal(31), "E32": escal(32), "E33": escal(33), "E34": escal(34),
@@ -1172,6 +1226,7 @@ def main():
     capex = extract_capex(wb)                      # módulo de capex (depreciação viva + imobilizado)
     divida = extract_divida(wb, read_sheet_formulas(src, "Dívida"))   # módulo de dívida (juros/saldo vivos)
     var_d6 = _num(wb["Variável"]["D6"].value) or 0.0                  # toggle IPCA on/off (lido enquanto wb aberto)
+    balanco = extract_balanco(wb)                  # caixa/fluxo de caixa + balanço + DCF (insumos colados)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1308,7 +1363,7 @@ def main():
     # IMPOSTOS é computado ao vivo no HTML (máquina de NOL de 2 entidades) — aqui só as premissas.
     ws_db = out.create_sheet("DreBelow")
     ws_db.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("receita_bruta", "deducoes", "resultado_financeiro", "imp36", "imp37"):
+    for key in ("receita_bruta", "deducoes", "imp36", "imp37"):
         ws_db.append([key] + dre_below[key])
     ws_db.append(["taxconst", dre_below["E30"], dre_below["E31"], dre_below["E32"],
                   dre_below["E33"], dre_below["E34"]])
@@ -1355,6 +1410,21 @@ def main():
             if d["override"]:            # BA/RN: amort/pagamento COLADOS (série completa = premissa)
                 ws_dv.append(["i%d_ovr_amort" % i] + d["seed_amort"])
                 ws_dv.append(["i%d_ovr_pagJ" % i] + d["seed_pagJ"])
+
+    # aba Balanco: insumos do módulo caixa/balanço/DCF. Séries COLADAS/de outro módulo (imposto-caixa,
+    # dividendos, override de ICMS, seguros/comissões da dívida, sementes, carries) + constantes de
+    # prazo/desconto + geração anual do DCF. O waterfall/capital de giro/balanço/VPL/TIR são fórmula no HTML.
+    ws_bl = out.create_sheet("Balanco")
+    ws_bl.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for key, serie in balanco.items():
+        if key in ("const", "dcf_anos", "dfa_gen_cons"):
+            continue
+        ws_bl.append([key] + serie)
+    c = balanco["const"]
+    ws_bl.append(["const_keys"] + list(c.keys()))
+    ws_bl.append(["const_vals"] + list(c.values()))
+    ws_bl.append(["dcf_anos"] + balanco["dcf_anos"])
+    ws_bl.append(["dfa_gen_cons"] + balanco["dfa_gen_cons"])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula

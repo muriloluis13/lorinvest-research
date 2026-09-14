@@ -242,8 +242,8 @@ const MECH={
   resultado_financeiro:"Resultado Financeiro = juros da dívida + IOF/taxas − receita financeira do caixa. Driver do cronograma de dívida (premissa de financiamento).",
   impostos:"Impostos (IR/CSLL) calculados AO VIVO por uma máquina de prejuízo fiscal de DUAS entidades (CNPJs): cada uma tem sua base pré-imposto, seu estoque de prejuízo (uso limitado a 30% do lucro) e piso em zero. IRPJ 15% + adicional 10% acima de R$20 mil/mês + CSLL 9%. Por isso o imposto ≠ alíquota×lucro e reage às premissas.",
   lucro_liquido:"Lucro Líquido = EBIT + Resultado Financeiro − Impostos. DRE completa por fórmula, validada 1:1 vs o modelo.",
-  vpl:"VPL operacional = fluxo (Receita GNL+GNC − Custo total) descontado mês a mês ao WACC, a partir do corte. Prévia — não inclui capex, impostos nem capital de giro.",
-  tir:"TIR = taxa que zera o VPL do fluxo de caixa do projeto. Requer o investimento inicial (capex) do módulo de DCF, ainda a construir.",
+  vpl:"VPL = fluxo de caixa livre anual descontado ao WACC (fator (1+r)^t ancorado no último mês realizado). Módulo de DCF completo, validado 1:1 vs o modelo (R$ 202 MM consolidado).",
+  tir:"TIR = taxa interna de retorno do fluxo de caixa livre (IRR da geração não-descontada). O consolidado é n.a. quando não há troca de sinal no fluxo; por projeto (PR/BA/RN) há TIR.",
   resultado_op:"Resultado operacional = Receita (GNL+GNC) − Custo total. Prévia enquanto a DRE não é portada.",
   wacc:"WACC = custo médio ponderado de capital, a taxa usada para descontar os fluxos futuros a valor presente.",
   volume:"Volume por cliente = estágio de rampa ativo (curva de contratação) → override near-term → × fator de operação × sensibilidade da planta.",
@@ -381,6 +381,15 @@ function parseWorkbook(buf){
     else if(fld==="pagJ") inst.seed_pagJ=r.slice(1); else if(fld==="ovr_amort") inst.ovr_amort=r.slice(1);
     else if(fld==="ovr_pagJ") inst.ovr_pagJ=r.slice(1); }
   const divida=Object.keys(_dvById).map(k=>_dvById[k]); divida.cfg=dividaCfg;
+  // Balanco: insumos do módulo caixa/balanço/DCF (séries coladas/de outro módulo + constantes + geração anual)
+  const gbl = grid("Balanco"); const balanco={const:{}};
+  if(gbl){ let ckeys=[];
+    for(let i=1;i<gbl.length;i++){ const r=gbl[i]; if(!r||r[0]==null) continue; const key=String(r[0]);
+      if(key==="const_keys") ckeys=r.slice(1).filter(x=>x!=null);
+      else if(key==="const_vals") ckeys.forEach((k,j)=>balanco.const[k]=+r[j+1]);
+      else if(key==="dcf_anos") balanco.dcf_anos=r.slice(1);
+      else if(key==="dfa_gen_cons") balanco.dfa_gen_cons=r.slice(1);
+      else balanco[key]=r.slice(1); } }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -451,7 +460,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
           sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
@@ -1674,15 +1683,100 @@ function dividaEngine(){
   }
   const R=insts.map(run);
   const agg=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
-  const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof");
+  const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof"),
+        desemb=agg("desemb"), amort=agg("amort"), pagJ=agg("pagJuros");
   const imp37=new Array(n).fill(0);
   for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g) continue;
     for(let k=0;k<n;k++) imp37[k]+= -(g*(R[i].despJuros[k]+R[i].iof[k])); }
-  return (_dividaCache={juros, saldo, iof, imp37, R, insts});
+  return (_dividaCache={juros, saldo, iof, imp37, desemb, amort, pagJ, R, insts});
 }
 function jurosDividaSerie(){ return dividaEngine().juros; }         // Dívida!20 (despesa de juros, >0)
 function saldoDividaSerie(){ return dividaEngine().saldo; }         // saldo devedor (Passivo do balanço)
-function resultadoFinanceiroSerie(){ return _dbSer("resultado_financeiro"); }  // driver (cronograma de dívida)
+/* ---- MÓDULO CAIXA / FLUXO DE CAIXA + BALANÇO + DCF. Waterfall de caixa, capital de giro (níveis
+   = driver×prazo/30), DFM385 (=Caixa[k-1]×G383×CDI), resultado financeiro completo, máquinas de
+   estado do PL, somas do balanço (Ativo=Passivo+PL), VPL/TIR — tudo POR FÓRMULA a partir dos meus
+   módulos vivos + os insumos colados (aba Balanco). Validado 1:1 (caixa_balanco_ref.py). ======= */
+let _cbCache=null;
+function caixaBalancoEngine(){
+  if(_cbCache) return _cbCache;
+  const n=DB.meses.length, cut=DB.cutoffIdx, B=DB.balanco||{}, C=(B.const||{}), num=x=>typeof x==="number"?x:0;
+  const g=k=>B[k]||[], CDI=DB.idx.cdi||[], G383=C.G383||0, de=dividaEngine();
+  // capital de giro (níveis = driver × prazo/30). Drivers vivos: RecLiq (composição), deduções.
+  const recliq=receitaLiquidaSerie(), deduc=_dbSer("deducoes"), cmv=g("dfm344"), pess=g("dfm345");
+  const F349=C.F349||0, F357=C.F357||0, F359=C.F359||0, H355=C.H355||0, dias351=g("dfm352"), dias355=g("dfm356"), r360=g("dfm360");
+  const cr=[],est=[],forn=[],trab=[],trib=[];
+  for(let k=0;k<n;k++){ cr[k]=num(recliq[k])*F349/30; est[k]=-num(cmv[k])*num(dias351[k])/30;
+    forn[k]=-num(cmv[k])*num(dias355[k])/30+H355; trab[k]=-num(pess[k])*F357/30; trib[k]=-(num(deduc[k])*F359+num(r360[k])); }
+  const d353=g("dfm353"),d354=g("dfm354"),d362=g("dfm362"),d363=g("dfm363"),cg364c=g("dfm364"), cg364=new Array(n);
+  for(let k=0;k<n;k++){ if(k<=cut){ cg364[k]=num(cg364c[k]); continue; }
+    cg364[k]=(cr[k]+est[k]+num(d353[k])+num(d354[k])+num(d362[k])) - (forn[k]+trab[k]+trib[k]+num(d363[k])); }
+  const dWC=new Array(n); for(let k=0;k<n;k++) dWC[k]=-(cg364[k]-(k>0?cg364[k-1]:0));
+  // waterfall de caixa (recursivo) + DFM385 + PL
+  const ebitda=ebitdaSerie(), irccsll=g("dfm195"), r368=g("dfm368"), r374=g("dfm374"), fci=g("dfm208"),
+        fca=g("dfm223"), div26=g("div26"), caixaC=g("dfm130"),
+        ll299=g("dfm299"), div281=g("dfm281"), r292=g("dfm292"), r300=g("dfm300"), r319=g("dfm319"), r316=g("dfm316"),
+        d302c=g("dfm302"), d321c=g("dfm321"), d294c=g("dfm294");
+  const caixa=new Array(n).fill(0), dfm385=new Array(n).fill(0), resfin=new Array(n),
+        lucroAcum=new Array(n).fill(0), capital=new Array(n).fill(0), resLegal=new Array(n).fill(0);
+  for(let k=0;k<n;k++){
+    const cxPrev=k>0?caixa[k-1]:0;
+    dfm385[k]=Math.max(cxPrev*G383*num(CDI[k]),0);
+    resfin[k]= -num(de.juros[k]) + num(div26[k]) + dfm385[k];                          // DFM108
+    const fcd=num(de.desemb[k])+num(de.amort[k])+num(de.pagJ[k])+num(div26[k])+dfm385[k];  // DFM215
+    const fco=num(ebitda[k])+num(irccsll[k])+(dWC[k]+num(r368[k])+num(r374[k]));         // DFM198
+    const fcApos=fcd+num(fci[k])+fco;
+    if(k<=cut){ caixa[k]=num(caixaC[k]); lucroAcum[k]=num(d302c[k]); capital[k]=num(d321c[k]); resLegal[k]=num(d294c[k]); }
+    else{ caixa[k]=cxPrev+fcApos+num(fca[k]);                                            // DFM229
+      lucroAcum[k]=lucroAcum[k-1]+num(ll299[k])-num(div281[k])-num(r292[k])+num(r300[k]);// DFM302
+      capital[k]=capital[k-1]+num(r319[k])-num(r316[k]);                                 // DFM321
+      resLegal[k]=resLegal[k-1]+num(r292[k]); }                                          // DFM294
+  }
+  // balanço
+  const ac135=g("dfm135"),ac136=g("dfm242"),a140=g("dfm140"),a141=g("dfm141"),a142=g("dfm142"),
+        a143=g("dfm143"),a148=g("dfm148"),imob=imobilizadoSerie(),
+        pc157=g("dfm157"),pc158=g("dfm158"),pc160=g("dfm160"),pnc165=g("dfm165"),div12=g("div12"),div13=g("div13");
+  const ativoCirc=new Array(n),ativoNC=new Array(n),totAtivo=new Array(n),
+        passCirc=new Array(n),passNC=new Array(n),totPass=new Array(n),pl=new Array(n),ident=new Array(n);
+  for(let k=0;k<n;k++){
+    ativoCirc[k]=caixa[k]+cr[k]+est[k]+num(d353[k])+num(d354[k])+num(ac135[k])+num(ac136[k]);   // DFM137
+    ativoNC[k]=num(a140[k])+num(a141[k])+num(a142[k])+num(a143[k])+num(imob[k])+num(a148[k]);    // DFM149
+    totAtivo[k]=ativoCirc[k]+ativoNC[k];                                                          // DFM151
+    const pc156=forn[k]-num(pc157[k]), pc159=trab[k]+trib[k];
+    passCirc[k]=pc156+num(pc157[k])+num(pc158[k])+pc159+num(pc160[k])+num(div12[k]);              // DFM162
+    passNC[k]=num(pnc165[k])+num(div13[k]);                                                       // DFM167
+    totPass[k]=passCirc[k]+passNC[k];                                                             // DFM169
+    pl[k]=capital[k]+lucroAcum[k]+resLegal[k];                                                    // DFM176
+    ident[k]=pl[k]+totPass[k]-totAtivo[k];                                                        // ≈0
+  }
+  return (_cbCache={resfin, dfm385, caixa, cg364, dWC, ativoCirc, ativoNC, totAtivo,
+                    passCirc, passNC, totPass, pl, capital, lucroAcum, resLegal, ident});
+}
+// DCF consolidado (grade ANUAL): VPL = Σ geração/fator; fator=(1+F20)^t ancorado no último mês
+// realizado (F22); TIR = IRR(geração não-descontada). Geração e anos extraídos do DFA/DCF.
+function _irr(flows){
+  const npv=r=>flows.reduce((s,f,i)=>s+f/Math.pow(1+r,i),0);
+  let r=0.1; for(let it=0;it<100;it++){ const f0=npv(r), f1=(npv(r+1e-6)-f0)/1e-6; if(Math.abs(f1)<1e-12) break;
+    const rn=r-f0/f1; if(!(rn>-0.9999&&rn<1e6)) break; if(Math.abs(rn-r)<1e-9) return rn; r=rn; }
+  let lo=-0.99,hi=10,flo=npv(lo),fhi=npv(hi); if(flo*fhi>0) return null;
+  for(let it=0;it<200;it++){ const mid=(lo+hi)/2, fm=npv(mid); if(Math.abs(fm)<1e-3) return mid;
+    if(flo*fm<0){hi=mid;fhi=fm;}else{lo=mid;flo=fm;} } return (lo+hi)/2;
+}
+function dcfConsolidado(){
+  const B=DB.balanco||{}, C=B.const||{}, F20=C.F20||0, F22=C.F22||0;
+  const anos=(B.dcf_anos||[]).map(x=>x==null?null:Math.round(x)), gen=(B.dfa_gen_cons||[]).map(x=>+x||0);
+  const d=new Date(Date.UTC(1899,11,30)+Math.round(F22)*86400000), YF22=d.getUTCFullYear(), MF22=d.getUTCMonth()+1;
+  const fac=y=> y==null?null : (y<YF22?1 : (y===YF22?Math.pow(1+F20,(12-MF22)/12) : Math.pow(1+F20,(12-MF22)/12+(y-YF22))));
+  let vpl=0; for(let j=4;j<20;j++){ const f=fac(anos[j]); if(f) vpl+=gen[j]/f; }
+  const flows=[]; for(let j=0;j<16;j++){ if(anos[j]!=null) flows.push(gen[j]); }
+  return {vpl, tir:_irr(flows), gen, anos};
+}
+// Resultado Financeiro VIVO: realizado da DRE (≤corte) + projeção do módulo caixa/dívida
+// (−juros da dívida + Div26 comissões/seguros + DFM385 rendimento do caixa). Ver caixaBalancoEngine.
+function resultadoFinanceiroSerie(){
+  const cut=DB.cutoffIdx, d=DB.dre.resultado_financeiro||[], eng=caixaBalancoEngine().resfin, n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]= k<=cut ? ((typeof d[k]==="number")?d[k]:null) : eng[k];
+  return out;
+}
 function ebitSerie(){ const eb=ebitdaSerie(), dp=depreciacaoSerie(); return eb.map((v,k)=> v==null?null:(v+(dp[k]||0))); }
 function ebtSerie(){ const e=ebitSerie(), rf=resultadoFinanceiroSerie(); return e.map((v,k)=> v==null?null:(v+(rf[k]||0))); }
 function roPlantaSerie(p){ const rc=receitaComp(p).total, ct=custoTotal(p), n=DB.meses.length, out=new Array(n);
@@ -1998,8 +2092,9 @@ function renderDashboard(){
   const vpl=vplOperacional(DASH.wacc);
   let h=`<div class="pglead"><b>Dashboard</b> — visão executiva: retorno, resultado e premissas editáveis. VPL/TIR completos dependem do módulo de <b>DCF</b> (capex, impostos, capital de giro, valor terminal), ainda a construir — abaixo, a <b>prévia operacional</b> (Receita − Custo, ambos já por fórmula).${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}</div>`;
   h+='<div class="mkpis">';
-  h+=kpi("VPL operacional", "R$ "+fmt(vpl/1e6,0)+" MM", "resultado op. descontado @ "+Math.round(DASH.wacc*100)+"% a.a. · prévia (sem capex/impostos)",null,MECH.vpl);
-  h+=kpi("TIR", "—", "requer investimento inicial (DCF)",null,MECH.tir);
+  const _dcf=dcfConsolidado();
+  h+=kpi("VPL (DCF)", "R$ "+fmt(_dcf.vpl/1e6,0)+" MM", "fluxo de caixa livre descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (consolidado)",null,MECH.vpl);
+  h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+=kpi("Resultado op. 2030 (R$ MM)", MM(yRO["2030"]), "receita − custo total",null,MECH.resultado_op);
   h+=kpi("Receita 2030 (R$ MM)", MM(yRec["2030"]), "GNL+GNC (fórmula)",null,MECH.receita);
