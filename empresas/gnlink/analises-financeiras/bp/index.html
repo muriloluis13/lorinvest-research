@@ -163,9 +163,15 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
-.clitbl tr.grp-planta td{background:var(--accent);color:#fff;font-weight:700;font-size:11.5px;letter-spacing:.02em;text-transform:uppercase;padding:6px 12px}
-.clitbl tr.grp-prod td{background:var(--chip);color:var(--accent);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 12px 3px 24px;border-bottom:1px solid var(--line)}
-.clitbl tr.grp-planta:hover td,.clitbl tr.grp-prod:hover td{cursor:default}
+.cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
+.cli-sec-h{display:flex;align-items:center;gap:10px;background:var(--accent);color:#fff;padding:9px 15px}
+.cli-sec-h b{font-size:13.5px;letter-spacing:.01em}
+.cli-sec-n{font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,.18);border-radius:999px;padding:2px 10px}
+.cli-sec-vol{font-size:11.5px;color:#EAF0F6;font-weight:600}
+.cli-sec .tblwrap{overflow-x:auto}
+.cli-sec .clitbl{border:0;margin:0}
+.clitbl tr.grp-prod td{background:var(--chip);color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:3px 12px 3px 22px;border-bottom:1px solid var(--line)}
+.clitbl tr.grp-prod:hover td{cursor:default}
 </style>
 </head>
 <body class="loading">
@@ -1520,26 +1526,28 @@ function renderClientes(){
   let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Editar a <b>curva de volume</b> re-projeta o BP ao vivo.<span class="tag">Fase B</span></div>`;
   h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome, planta ou segmento…" oninput="onCliSearch(this.value)"></div>`;
   const q=(state.cliQ||"").toLowerCase();
-  h += '<div class="tblwrap" style="max-height:560px;overflow:auto"><table class="mtbl clitbl"><thead><tr><th class="l">Cliente</th><th class="l">Segmento</th><th>Vol. máx (m³/d)</th><th>Início op.</th><th>Fim contrato</th><th>Preço (R$/m³)</th></tr></thead><tbody>';
   const match=c=> !q || (c.nome||'').toLowerCase().includes(q) || (regShort(c.planta)||'').toLowerCase().includes(q) || (c.segmento||'').toLowerCase().includes(q) || (c.produto||'').toLowerCase().includes(q);
   const filtered=DB.clientes.filter(match);
   const cliRow=c=>{ const seg=c.segmento?`<span class="seg-badge seg-${c.segmento}">${c.segmento}</span>`:'<span style="color:var(--muted)">—</span>';
     return `<tr class="${c.id===state.cliSel?'sel':''}" onclick="selCli('${c.id}')"><td class="l">${isEdited(c)?'<span class="dot"></span>':''}${c.nome||c.id}</td><td class="l">${seg}</td><td>${c.volmax!=null?fmt(c.volmax,0):'—'}</td><td>${fmtMesY(c.ini_op)}</td><td>${fmtMesY(c.fim_contrato)}</td><td>${c.preco!=null?fmt(c.preco,2):'—'}</td></tr>`; };
+  const THEAD='<thead><tr><th class="l">Cliente</th><th class="l">Segmento</th><th>Vol. máx (m³/d)</th><th>Início op.</th><th>Fim contrato</th><th>Preço (R$/m³)</th></tr></thead>';
   let cnt=0;
+  // uma TABELA POR PLANTA (bloco independente, sem barra de rolagem única); GNL/GNC separados dentro
   for(const rg of DB.regioes){
     const arr=filtered.filter(c=>+c.planta===rg.id); if(!arr.length) continue;
-    h += `<tr class="grp-planta"><td class="l" colspan="6">${rg.nome} · ${arr.length} cliente(s)</td></tr>`;
-    const buckets=[["GNL","GNL"],["GNC","GNC"],["","Outros"]];
-    for(const [pr,lbl] of buckets){
+    const volSum=arr.reduce((s,c)=>s+(+c.volmax||0),0);
+    h += `<div class="cli-sec"><div class="cli-sec-h"><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx: ${fmt(volSum,0)} m³/d</span></div>`;
+    h += '<div class="tblwrap"><table class="mtbl clitbl">'+THEAD+'<tbody>';
+    for(const [pr,lbl] of [["GNL","GNL"],["GNC","GNC"],["","Outros"]]){
       const sub=arr.filter(c=> pr ? (c.produto||"").toUpperCase()===pr : !["GNL","GNC"].includes((c.produto||"").toUpperCase()));
       if(!sub.length) continue;
       h += `<tr class="grp-prod"><td class="l" colspan="6">${lbl} · ${sub.length}</td></tr>`;
       for(const c of sub){ cnt++; h += cliRow(c); }
     }
+    h += '</tbody></table></div></div>';
   }
-  if(!cnt) h += '<tr><td class="l" colspan="6" style="color:var(--muted)">Nenhum cliente encontrado.</td></tr>';
-  h += '</tbody></table></div>';
-  h += `<div class="note">${cnt} cliente(s), agrupados por planta e por produto (GNL/GNC). Clique em um cliente para abrir o card e editar suas premissas.</div>`;
+  if(!cnt) h += '<div class="note">Nenhum cliente encontrado.</div>';
+  else h += `<div class="note">${cnt} cliente(s) em ${DB.regioes.filter(rg=>filtered.some(c=>+c.planta===rg.id)).length} planta(s). Cada planta é uma tabela separada; GNL e GNC agrupados dentro. Clique num cliente para abrir o card.</div>`;
   if(state.cliSel){ const c=DB.clientes.find(x=>x.id===state.cliSel); if(c) h += modalHTML(c); }
   return h;
 }
