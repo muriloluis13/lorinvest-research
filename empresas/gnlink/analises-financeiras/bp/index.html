@@ -1802,8 +1802,9 @@ function dividaEngine(){
       if(k>cut && mo%3===0 && (!end || dates[k]<end)) seg[k]= -cum*qr; }   // negativo (despesa)
     return seg;
   }
-  const segRN=blocoSeguro("g_rn", cfg.seg_rate_rn!=null?cfg.seg_rate_rn:0.013, cfg.seg_end_rn!=null?cfg.seg_end_rn:47119);
-  const segBA=blocoSeguro("g_ba", cfg.seg_rate_ba!=null?cfg.seg_rate_ba:0.013, cfg.seg_end_ba!=null?cfg.seg_end_ba:47119);
+  // taxa/data-fim do seguro vêm 100% da planilha (cfg_seg_rate_*/seg_end_*); sem valor hardcoded no JS.
+  const segRN=blocoSeguro("g_rn", +cfg.seg_rate_rn||0, +cfg.seg_end_rn||0);
+  const segBA=blocoSeguro("g_ba", +cfg.seg_rate_ba||0, +cfg.seg_end_ba||0);
   // imp37 (Impostos!37 = reclass. RN do resultado financeiro) = −(juros_RN + IOF_RN + seguro_RN).
   // IOF/comissão/taxa = 0 no cenário; seguro_RN = −r85. Validado 1:1 vs Impostos!37.
   const imp37=new Array(n).fill(0);
