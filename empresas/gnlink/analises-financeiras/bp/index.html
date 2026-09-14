@@ -271,7 +271,7 @@ const MECH={
   custo_total:"Custo total = gás + as 6 categorias de OpEx (liquefação, compressão, terminal, SG&A planta, logística, regás). 100% por fórmula.",
   ebitda:"EBITDA = Resultado Operacional + SG&A da holding (matriz). Projeção por fórmula viva, validada 1:1 vs o modelo (banda ago-dez/26 = semente de orçamento).",
   sga_holding:"SG&A da holding (matriz) = 6 componentes (salários, viagens, serviços etc.): médias/sementes de 2026 × corr IPCA × fatores, com gatilho de economia de escala. É a despesa corporativa que separa o Resultado Operacional do EBITDA.",
-  receita_bruta:"Receita Bruta = Receita Líquida + deduções (PIS/COFINS/ICMS sobre receita). Driver do módulo de impostos.",
+  receita_bruta:"Receita Bruta = Σ_planta Receita Líquida ÷ (1−ICMS_planta) ÷ (1−PIS−COFINS) (grossup por alíquota). Deduções = ICMS + (Bruta−ICMS)×(PIS+COFINS). ICMS 12% (RN 20%), PIS 1,65%, COFINS 7,6% — premissas. Receita Líquida = Bruta − Deduções.",
   depreciacao:"Depreciação por FÓRMULA: cada investimento do plano de capex deprecia linearmente (valor ÷ 240 meses) durante a vida útil, a partir do início de operação da planta; + amortização do intangível da holding (pool, 120 meses). Reproduz o cronograma do modelo a partir do plano de investimento (premissa).",
   ebit:"EBIT = EBITDA − Depreciação.",
   resultado_financeiro:"Resultado Financeiro = juros da dívida + IOF/taxas − receita financeira do caixa. Driver do cronograma de dívida (premissa de financiamento).",
@@ -1647,6 +1647,29 @@ function receitaLiquidaSerie(){
   // composição viva (GNL+GNC+serviço+aluguel+outros), realizado + projeção — validada 1:1.
   return receitaComp(0).total;
 }
+// Receita Bruta (DFM33) e Deduções (DFM35) POR FÓRMULA: grossup da receita líquida por planta pelas
+// alíquotas (ICMS por planta, PIS, COFINS — premissas). Bruta_p = RecLíq_p/((1−ICMS_p)(1−PIS−COFINS));
+// Bruta = Σ; Deduções = −[ICMS + (Bruta−ICMS)(PIS+COFINS)], ICMS = Σ(ICMS_p×Bruta_p). Realizado = actual
+// (semente); projeção = fórmula. Identidade: Receita Líquida = Bruta + Deduções. Validado 1:1.
+function _dbAliq(){ const DBb=DB.dreBelow||{}, ic=DBb.icms||[], pcArr=DBb.pis_cofins||[];
+  return {icms:ic, pc:(+pcArr[0]||0)+(+pcArr[1]||0)}; }
+function receitaBrutaSerie(){
+  const cut=DB.cutoffIdx, n=DB.meses.length, seed=(DB.dreBelow||{}).receita_bruta||[], {icms,pc}=_dbAliq();
+  const rcp=[]; for(let p=1;p<=6;p++) rcp[p]=receitaComp(p).total;
+  const out=new Array(n);
+  for(let k=0;k<n;k++){ if(k<=cut){ out[k]=(typeof seed[k]==="number")?seed[k]:null; continue; }
+    let rb=0; for(let p=1;p<=6;p++) rb+=(rcp[p][k]||0)/((1-(+icms[p-1]||0))*(1-pc)); out[k]=rb; }
+  return out;
+}
+function deducoesSerie(){
+  const cut=DB.cutoffIdx, n=DB.meses.length, seed=(DB.dreBelow||{}).deducoes||[], {icms,pc}=_dbAliq();
+  const rcp=[]; for(let p=1;p<=6;p++) rcp[p]=receitaComp(p).total;
+  const rb=receitaBrutaSerie(), out=new Array(n);
+  for(let k=0;k<n;k++){ if(k<=cut){ out[k]=(typeof seed[k]==="number")?seed[k]:null; continue; }
+    let icmsTot=0; for(let p=1;p<=6;p++){ const rbp=(rcp[p][k]||0)/((1-(+icms[p-1]||0))*(1-pc)); icmsTot+=(+icms[p-1]||0)*rbp; }
+    out[k]= -(icmsTot + (rb[k]-icmsTot)*pc); }
+  return out;
+}
 // SG&A da holding (matriz): Holding 23 = Σ(rows 13-18). EBITDA = Resultado Operacional + Holding23.
 // 6 componentes: médias/sementes de 2026 × corr556 (IPCA) × fatores; gatilho de escala (r15) na
 // série r32 (proxy de volume). corr556 já vivo. Validado 1:1 vs modelo (dre_ref.py, k≥jan/27).
@@ -1828,7 +1851,7 @@ function caixaBalancoEngine(){
   const n=DB.meses.length, cut=DB.cutoffIdx, B=DB.balanco||{}, C=(B.const||{}), num=x=>typeof x==="number"?x:0;
   const g=k=>B[k]||[], CDI=DB.idx.cdi||[], G383=C.G383||0, de=dividaEngine();
   // capital de giro (níveis = driver × prazo/30). Drivers vivos: RecLiq (composição), deduções.
-  const recliq=receitaLiquidaSerie(), deduc=_dbSer("deducoes"), cmv=g("dfm344"), pess=g("dfm345");
+  const recliq=receitaLiquidaSerie(), deduc=deducoesSerie(), cmv=g("dfm344"), pess=g("dfm345");
   const F349=C.F349||0, F357=C.F357||0, F359=C.F359||0, H355=C.H355||0, dias351=g("dfm352"), dias355=g("dfm356"), r360=g("dfm360");
   const cr=[],est=[],forn=[],trab=[],trib=[];
   for(let k=0;k<n;k++){ cr[k]=num(recliq[k])*F349/30; est[k]=-num(cmv[k])*num(dias351[k])/30;
@@ -1991,7 +2014,7 @@ function renderResumo(){
     return {html:h, draw:()=>drawContrib(ks,yr,yc,yk)};
   }
   // Consolidado: DRE do modelo (+ overlay das premissas what-if em Receita Líq. e EBITDA)
-  const rl=anoSum(receitaLiquidaSerie()), rb=dreYear("receita_bruta"),
+  const rl=anoSum(receitaLiquidaSerie()), rb=anoSum(receitaBrutaSerie()),
         cu=anoSum(custoTotal(0).map(v=>-(v||0))),                       // custo total (vivo, negativo)
         ro=anoSum(resultadoOperacionalSerie()), eb=anoSum(ebitdaSerie()), er=eb,  // EBITDA rec == EBITDA (proj)
         dp=anoSum(depreciacaoSerie()), eG=anoSum(ebitSerie()), rfin=anoSum(resultadoFinanceiroSerie()),
@@ -2014,8 +2037,8 @@ function renderResumo(){
   const rows=[["Receita Bruta",rb],["Receita Líquida",rl],["Custos",cu],["Resultado Operacional",ro],
               ["EBITDA Recorrente",er],["EBITDA",eb],["Depreciação",dp],["EBIT",eG],["Lucro Líquido",ll]];
   const dser=k=>DB.dre[k]||[];
-  const dreRows=[{lbl:"Receita Bruta",serie:_dbSer("receita_bruta"),tip:MECH.receita_bruta},
-    {lbl:"Deduções",serie:_dbSer("deducoes"),tip:MECH.receita_bruta},
+  const dreRows=[{lbl:"Receita Bruta",serie:receitaBrutaSerie(),tip:MECH.receita_bruta},
+    {lbl:"Deduções",serie:deducoesSerie(),tip:MECH.receita_bruta},
     {lbl:"Receita Líquida",serie:receitaLiquidaSerie(),tip:MECH.receita_liquida},
     {lbl:"Custo Total",serie:custoTotal(0).map(v=>-(v||0)),tip:MECH.custo_total},
     {lbl:"Resultado Operacional",serie:resultadoOperacionalSerie(),tip:MECH.resultado_op},

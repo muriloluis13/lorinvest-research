@@ -1161,7 +1161,7 @@ def extract_dre_below(wb):
         return keep
 
     dfmk = read_rows(dfm, {33, 35, 103, 108, 142}, 145)
-    impk = read_rows(imp, {30, 31, 32, 33, 34, 36, 37, 45, 70}, 82)
+    impk = read_rows(imp, {13, 14, 15, 16, 17, 18, 30, 31, 32, 33, 34, 36, 37, 45, 70}, 82)
 
     def ser(keep, r):
         row = keep.get(r)
@@ -1172,8 +1172,15 @@ def extract_dre_below(wb):
         row = impk.get(r)
         return _num(row[4]) if row and len(row) > 4 else None
 
+    # alíquotas da Receita Bruta/Deduções (Impostos rows 13-18): D=ICMS por planta, F=PIS, G=COFINS.
+    # Bruta = Σ_p ReceitaLíq_p/((1-ICMS_p)(1-PIS-COFINS)); Deduções = ICMS + (Bruta-ICMS)(PIS+COFINS).
+    def _cell(r, c):
+        row = impk.get(r)
+        return _num(row[c - 1]) if row and c - 1 < len(row) else None
+    icms = [(_cell(r, 4) or 0.0) for r in (13, 14, 15, 16, 17, 18)]   # coluna D = ICMS por planta
     return {
         "receita_bruta": ser(dfmk, 33), "deducoes": ser(dfmk, 35),
+        "icms": icms, "pis": (_cell(13, 6) or 0.0), "cofins": (_cell(13, 7) or 0.0),   # premissas de alíquota
         "imp36": ser(impk, 36), "imp37": ser(impk, 37),   # imp37: alocação RN de juros+comissões da dívida
         "seedA": (ser(impk, 45)[47] or 0.0), "seedB": (ser(impk, 70)[47] or 0.0),
         "seedD": (ser(dfmk, 142)[47] or 0.0),
@@ -1386,8 +1393,13 @@ def main():
     # RN) — removido daqui. imp36 (deprec RN) segue extraído.
     ws_db = out.create_sheet("DreBelow")
     ws_db.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("receita_bruta", "deducoes", "imp36"):
-        ws_db.append([key] + dre_below[key])
+    # receita_bruta/deducoes: só o REALIZADO (semente) — a projeção é FÓRMULA no HTML (grossup por
+    # alíquotas ICMS/PIS/COFINS da receita líquida por planta). imp36 (deprec RN) segue extraído.
+    for key in ("receita_bruta", "deducoes"):
+        ws_db.append([key] + real_only(dre_below[key], n_real))
+    ws_db.append(["imp36"] + dre_below["imp36"])
+    ws_db.append(["icms"] + dre_below["icms"])                       # alíquota ICMS por planta (premissa)
+    ws_db.append(["pis_cofins", dre_below["pis"], dre_below["cofins"]])  # PIS/COFINS (premissa)
     ws_db.append(["taxconst", dre_below["E30"], dre_below["E31"], dre_below["E32"],
                   dre_below["E33"], dre_below["E34"]])
     ws_db.append(["taxseed", dre_below["seedA"], dre_below["seedB"], dre_below["seedD"]])
