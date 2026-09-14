@@ -942,7 +942,9 @@ def extract_balanco(wb):
                 242, 281, 292, 294, 299, 300, 302, 316, 319, 321, 344, 345, 352, 353, 354, 356,
                 360, 362, 363, 364, 368, 374, 383, 385, 349, 351, 355, 357, 359}
     dfmk = read(dfm, dfm_rows, 400)
-    dvk = read(dv, {12, 13, 26}, 30)
+    # +linhas por bloco do Div26: Seguro (67,76,85,94,103,112) e IOF (64,73,82,91,100,109,118),
+    # p/ isolar o "outros" (comissão+taxa, colado) = Div26 − seguros_modelo − IOF_modelo.
+    dvk = read(dv, {12, 13, 26, 64, 67, 73, 76, 82, 85, 91, 94, 100, 103, 109, 112, 118}, 120)
     impk = read(imp, {37}, 82)
     dcfk = read(dcf, {5, 20, 22}, 25)
     dfak = read(dfa, {227}, 230)
@@ -967,6 +969,15 @@ def extract_balanco(wb):
     for r in dfm_rows:
         out["dfm%d" % r] = ser(dfmk, r)
     out["div26"] = ser(dvk, 26); out["div12"] = ser(dvk, 12); out["div13"] = ser(dvk, 13)
+    # Div26 ("Outros" do resultado financeiro) = Σ_blocos (IOF + Comissão + Taxa + Seguro). O SEGURO é a
+    # parcela que depende do SALDO da dívida (reage às premissas) → reproduzido vivo no HTML. As demais
+    # (comissão/taxa/IOF = fees de estruturação com cronograma fixo) ficam como baseline COLADO. No HTML:
+    #   Div26_vivo = Div26_colado + (seguro_vivo − seguro_modelo). Extraímos o seguro do MODELO (Σ blocos)
+    #   para o delta zerar no default (Div26 == colado) e reagir quando uma premissa de dívida muda.
+    # só BA (r76) e RN (r85) são reproduzidos vivos (seguro trimestral sobre o saldo do bloco). Outros
+    # blocos de seguro (ex.: r103, mensal a partir de 2028) ficam no baseline colado do Div26.
+    _segrows = [ser(dvk, r) for r in (76, 85)]
+    out["div26_seg"] = [sum((_segrows[j][k] or 0.0) for j in range(len(_segrows))) for k in range(N_MONTHS)]
     out["imp37"] = ser(impk, 37)
     out["const"] = {
         "F349": kc(dfmk, 349, 6), "F357": kc(dfmk, 357, 6), "F359": kc(dfmk, 359, 6),
@@ -1063,7 +1074,8 @@ def extract_divida(wb, div_formulas):
             "ultima": num("Última Amortização do Principal"),
             "inicio_pgto": num("Início - Pagamento de Juros"),
             "pg_period": pg_period, "pg_offset": pg_offset, "tranches": tr, "override": override,
-            "g_rn": _num(cell(1518 + bi, 7)) or 0.0,   # % RN por instrumento (Imp37)
+            "g_rn": _num(cell(1518 + bi, 7)) or 0.0,   # % RN por instrumento (col G) — Imp37 + seguro RN
+            "g_ba": _num(cell(1518 + bi, 6)) or 0.0,   # % BA por instrumento (col F) — seguro BA (Div26)
         }
         # sementes do realizado (resumo ini+0..+5) — realizado; para BA/RN também a projeção colada
         if ini:
@@ -1230,11 +1242,14 @@ def main():
     # premissa do SEGURO da dívida (bloco RN, Dívida!D85/E85) — taxa a.a. + data-fim; alimenta o
     # imp37 vivo (seguro trimestral sobre o principal RN em aberto). Reproduzido por fórmula no HTML.
     _dvsheet = wb["Dívida"]
-    seg_rate_rn = _num(_dvsheet["D85"].value) or 0.0
-    _e85 = _dvsheet["E85"].value
-    seg_end_rn = (float((_e85.date() - datetime.date(1899, 12, 30)).days)
-                  if isinstance(_e85, (datetime.datetime, datetime.date))
-                  else (_num(_e85) or 0.0))
+    def _segrate(rrow):
+        return _num(_dvsheet.cell(row=rrow, column=4).value) or 0.0   # coluna D = taxa a.a.
+    def _segend(rrow):
+        v = _dvsheet.cell(row=rrow, column=5).value                   # coluna E = data-fim
+        return (float((v.date() - datetime.date(1899, 12, 30)).days)
+                if isinstance(v, (datetime.datetime, datetime.date)) else (_num(v) or 0.0))
+    seg_rate_rn, seg_end_rn = _segrate(85), _segend(85)   # bloco RN (Dívida r85)
+    seg_rate_ba, seg_end_ba = _segrate(76), _segend(76)   # bloco BA (Dívida r76)
     balanco = extract_balanco(wb)                  # caixa/fluxo de caixa + balanço + DCF (insumos colados)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
@@ -1404,10 +1419,12 @@ def main():
     ws_dv.append(["cfg_var_d6", var_d6])   # toggle IPCA on/off dos índices (lido na fase de extração)
     ws_dv.append(["cfg_seg_rate_rn", seg_rate_rn])   # taxa a.a. do seguro RN (Dívida!D85) — premissa
     ws_dv.append(["cfg_seg_end_rn", seg_end_rn])     # data-fim do seguro RN (Dívida!E85, serial) — premissa
+    ws_dv.append(["cfg_seg_rate_ba", seg_rate_ba])   # taxa a.a. do seguro BA (Dívida!D76) — premissa
+    ws_dv.append(["cfg_seg_end_ba", seg_end_ba])     # data-fim do seguro BA (Dívida!E76, serial) — premissa
     for i, d in enumerate(divida):
         term = [d["name"], d["tipo"], d["indice"], d["spread"], d["iof"], d["comissao"],
                 d["taxa_comp"], d["inicio_amort"], d["n_amort"], d["ultima"], d["inicio_pgto"],
-                d["pg_period"], d["pg_offset"], d["override"] and 1 or 0, d["g_rn"]]
+                d["pg_period"], d["pg_offset"], d["override"] and 1 or 0, d["g_rn"], d["g_ba"]]
         for t in d["tranches"]:
             term += [t[0], t[1]]
         ws_dv.append(["i%d_term" % i] + term)

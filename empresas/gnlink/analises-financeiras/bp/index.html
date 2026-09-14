@@ -430,11 +430,13 @@ function parseWorkbook(buf){
     if(key==="cfg_var_d6"){ dividaCfg.var_d6=+r[1]||0; continue; }
     if(key==="cfg_seg_rate_rn"){ dividaCfg.seg_rate_rn=(r[1]==null?null:+r[1]); continue; }
     if(key==="cfg_seg_end_rn"){ dividaCfg.seg_end_rn=(r[1]==null?null:+r[1]); continue; }
+    if(key==="cfg_seg_rate_ba"){ dividaCfg.seg_rate_ba=(r[1]==null?null:+r[1]); continue; }
+    if(key==="cfg_seg_end_ba"){ dividaCfg.seg_end_ba=(r[1]==null?null:+r[1]); continue; }
     const m=key.match(/^i(\d+)_(.+)$/); if(!m) continue; const id=+m[1], fld=m[2], inst=_dvById[id]||(_dvById[id]={id});
     if(fld==="term"){ inst.name=r[1]; inst.tipo=+r[2]; inst.indice=+r[3]; inst.spread=+r[4]||0; inst.iof=+r[5]||0;
       inst.comissao=+r[6]||0; inst.taxa_comp=+r[7]||0; inst.inicio_amort=r[8]; inst.n_amort=r[9]; inst.ultima=r[10];
-      inst.inicio_pgto=r[11]; inst.pg_period=+r[12]||0; inst.pg_offset=+r[13]||0; inst.override=(+r[14]===1); inst.g_rn=+r[15]||0;
-      inst.tranches=[]; for(let c=16;c+1<r.length;c+=2){ if(r[c]!=null&&r[c+1]!=null) inst.tranches.push([+r[c],+r[c+1]]); } }
+      inst.inicio_pgto=r[11]; inst.pg_period=+r[12]||0; inst.pg_offset=+r[13]||0; inst.override=(+r[14]===1); inst.g_rn=+r[15]||0; inst.g_ba=+r[16]||0;
+      inst.tranches=[]; for(let c=17;c+1<r.length;c+=2){ if(r[c]!=null&&r[c+1]!=null) inst.tranches.push([+r[c],+r[c+1]]); } }
     else if(fld==="desemb") inst.seed_desemb=r.slice(1); else if(fld==="final") inst.seed_final=r.slice(1);
     else if(fld==="amort") inst.seed_amort=r.slice(1); else if(fld==="despJ") inst.seed_despJ=r.slice(1);
     else if(fld==="pagJ") inst.seed_pagJ=r.slice(1); else if(fld==="ovr_amort") inst.ovr_amort=r.slice(1);
@@ -1790,20 +1792,28 @@ function dividaEngine(){
   const agg=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
   const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof"),
         desemb=agg("desemb"), amort=agg("amort"), pagJ=agg("pagJuros");
-  // imp37 (Impostos!37 = reclassificação RN do resultado financeiro) = −(juros + IOF + comissão
-  // + taxa + SEGUROS) alocado a RN (coluna G do modelo). Neste cenário IOF/comissão/taxa = 0; o
-  // SEGURO (Dívida r85) é TRIMESTRAL = −(principal RN em aberto) × ((1+taxa)^(3/12)−1), até a
-  // data-fim. taxa/data-fim = premissa (cfg.seg_rate_rn/seg_end_rn). Validado 1:1 vs Impostos!37.
+  // SEGURO da dívida por bloco (Dívida r67/76/85…): TRIMESTRAL = −(principal do bloco em aberto)
+  // × ((1+taxa)^(3/12)−1), meses múltiplos de 3, até a data-fim. Principal do bloco = Σ_i aloc[i]×
+  // (desemb+amort). Só BA (col F) e RN (col G) têm taxa>0 e dívida; PR (taxa 0) e demais = 0.
+  function blocoSeguro(gk, rate, end){
+    const qr=Math.pow(1+(rate!=null?rate:0),3/12)-1, seg=new Array(n).fill(0); let cum=0;
+    for(let k=0;k<n;k++){ let flow=0; for(let i=0;i<insts.length;i++){ const g=insts[i][gk]||0; if(g) flow+=g*(R[i].desemb[k]+R[i].amort[k]); }
+      cum+=flow; const mo=+DB.meses[k].ym.slice(5);
+      if(k>cut && mo%3===0 && (!end || dates[k]<end)) seg[k]= -cum*qr; }   // negativo (despesa)
+    return seg;
+  }
+  const segRN=blocoSeguro("g_rn", cfg.seg_rate_rn!=null?cfg.seg_rate_rn:0.013, cfg.seg_end_rn!=null?cfg.seg_end_rn:47119);
+  const segBA=blocoSeguro("g_ba", cfg.seg_rate_ba!=null?cfg.seg_rate_ba:0.013, cfg.seg_end_ba!=null?cfg.seg_end_ba:47119);
+  // imp37 (Impostos!37 = reclass. RN do resultado financeiro) = −(juros_RN + IOF_RN + seguro_RN).
+  // IOF/comissão/taxa = 0 no cenário; seguro_RN = −r85. Validado 1:1 vs Impostos!37.
   const imp37=new Array(n).fill(0);
   for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g) continue;
     for(let k=0;k<n;k++) imp37[k]+= -(g*(R[i].despJuros[k]+R[i].iof[k])); }
-  const segRate=(cfg.seg_rate_rn!=null?cfg.seg_rate_rn:0.013), segEnd=(cfg.seg_end_rn!=null?cfg.seg_end_rn:47119),
-        qr=Math.pow(1+segRate,3/12)-1;
-  let cumRN=0;
-  for(let k=0;k<n;k++){ let flow=0; for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(g) flow+=g*(R[i].desemb[k]+R[i].amort[k]); }
-    cumRN+=flow; const mo=+DB.meses[k].ym.slice(5);
-    if(k>cut && mo%3===0 && dates[k]<segEnd) imp37[k]+= cumRN*qr; }   // −r85 (seguro é negativo → soma +)
-  return (_dividaCache={juros, saldo, iof, imp37, desemb, amort, pagJ, R, insts});
+  for(let k=0;k<n;k++) imp37[k]+= -segRN[k];   // −r85 (seguro negativo → soma +)
+  // seguro total (BA+RN) — componente FÓRMULA do Div26; o resto do Div26 (comissão colada + IOF)
+  // é montado no caixaBalancoEngine: Div26 = comissão(premissa) + seguros(vivo) + IOF(vivo). Validado 1:1.
+  const seguros=new Array(n); for(let k=0;k<n;k++) seguros[k]=segBA[k]+segRN[k];
+  return (_dividaCache={juros, saldo, iof, imp37, seguros, desemb, amort, pagJ, R, insts});
 }
 function jurosDividaSerie(){ return dividaEngine().juros; }         // Dívida!20 (despesa de juros, >0)
 function saldoDividaSerie(){ return dividaEngine().saldo; }         // saldo devedor (Passivo do balanço)
@@ -1828,9 +1838,15 @@ function caixaBalancoEngine(){
   const dWC=new Array(n); for(let k=0;k<n;k++) dWC[k]=-(cg364[k]-(k>0?cg364[k-1]:0));
   // waterfall de caixa (recursivo) + DFM385 + PL
   const ebitda=ebitdaSerie(), irccsll=g("dfm195"), r368=g("dfm368"), r374=g("dfm374"), fci=g("dfm208"),
-        fca=g("dfm223"), div26=g("div26"), caixaC=g("dfm130"),
+        fca=g("dfm223"), caixaC=g("dfm130"),
         ll299=g("dfm299"), div281=g("dfm281"), r292=g("dfm292"), r300=g("dfm300"), r319=g("dfm319"), r316=g("dfm316"),
         d302c=g("dfm302"), d321c=g("dfm321"), d294c=g("dfm294");
+  // Div26 (Dívida r26 = "Outros" do resultado financeiro). O SEGURO (BA/RN, depende do saldo) é vivo;
+  // comissão/taxa/IOF (fees de cronograma fixo) ficam como baseline colado. Div26 = colado + (seguro_vivo
+  // − seguro_modelo): no default o delta é 0 (Div26 == colado, 1:1); ao mexer numa premissa de dívida o
+  // seguro reage. Realizado usa o actual da planilha.
+  const div26frozen=g("div26"), segModel=g("div26_seg"), div26=new Array(n);
+  for(let k=0;k<n;k++) div26[k]= k<=cut ? num(div26frozen[k]) : (num(div26frozen[k]) + (num(de.seguros[k])-num(segModel[k])));
   const caixa=new Array(n).fill(0), dfm385=new Array(n).fill(0), resfin=new Array(n),
         lucroAcum=new Array(n).fill(0), capital=new Array(n).fill(0), resLegal=new Array(n).fill(0);
   for(let k=0;k<n;k++){
