@@ -881,6 +881,62 @@ def extract_holding_sga(wb):
     return {"scalars": scal, "seed13": seed13, "r32": r32, "seed23": seed23}
 
 
+def extract_capex(wb):
+    """MÓDULO DE CAPEX (aba Capex) — PREMISSAS do plano de investimento, para computar a
+    depreciação AO VIVO (não extrair pronta): plano de capex por planta/classe + vidas úteis +
+    datas de início. Depreciação linear por vintage (investimento/240 durante 240 meses a partir
+    de max(data, início-op)); intangível da holding = amortização em pool (120 meses). O HTML
+    reproduz depreciação mensal, capex acumulado e o Ativo Imobilizado do balanço."""
+    cx = wb["Capex"]; hd = wb["Holding"]; bp = wb["Base Premissas"]
+    pn = wb["Painel de Controle"]; dfm = wb["Demonstrativo Financeiro Mensal"]
+    HDR1 = [706, 1039, 1384, 1733, 2088, 2432]; INV1_ROW = [h + 1 for h in HDR1]   # 707..
+    HDR2 = [711, 1044, 1389, 1738, 2093, 2437]; INV2_ROW = [h + 1 for h in HDR2]   # 712..
+    want = set(INV1_ROW + INV2_ROW + [2])
+    cxk = {}
+    for i, r in enumerate(cx.iter_rows(min_row=1, max_row=2440,
+                                       max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+        if i in want:
+            cxk[i] = r
+    def cser(keep, r):
+        row = keep.get(r)
+        return [_num(row[COL_FIRST - 1 + k]) if row and COL_FIRST - 1 + k < len(row) else None
+                for k in range(N_MONTHS)]
+    inv1 = [cser(cxk, INV1_ROW[p]) for p in range(6)]
+    inv2 = [cser(cxk, INV2_ROW[p]) for p in range(6)]
+    dates_cx = cser(cxk, 2)                       # eixo de datas do Capex (serial 1º do mês)
+    hd46 = None; hd54 = None
+    for i, r in enumerate(hd.iter_rows(min_row=1, max_row=55,
+                                       max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+        if i == 46:
+            hd46 = [_num(r[COL_FIRST - 1 + k]) if COL_FIRST - 1 + k < len(r) else None
+                    for k in range(N_MONTHS)]
+        elif i == 54:
+            hd54 = [_num(r[COL_FIRST - 1 + k]) if COL_FIRST - 1 + k < len(r) else None
+                    for k in range(N_MONTHS)]
+    dfmk = {}
+    for i, r in enumerate(dfm.iter_rows(min_row=1, max_row=148,
+                                        max_col=COL_FIRST - 1 + N_MONTHS, values_only=True), start=1):
+        if i in (146, 147):
+            dfmk[i] = r
+    def dser(r):
+        row = dfmk.get(r)
+        return [_num(row[COL_FIRST - 1 + k]) if row and COL_FIRST - 1 + k < len(row) else None
+                for k in range(N_MONTHS)]
+    dfm146 = dser(146); dfm147 = dser(147)
+    op_dates = [_num(bp.cell(row=148 + p, column=4).value) for p in range(1, 7)]   # D149..D154
+    life = int(round(_num(cx.cell(row=719, column=4).value) or 240))
+    holdlife = int(round((_num(hd.cell(row=52, column=4).value) or 10.0) * 12))     # D52 anos -> meses
+    flag = _num(pn.cell(row=53, column=2).value) or 0.0
+    return {
+        "inv1": inv1, "inv2": inv2, "hd46": [(_num(x) if x is not None else 0.0) for x in hd46],
+        "dfm147": dfm147, "dates": dates_cx, "op_dates": op_dates,
+        "life": life, "holdlife": holdlife, "flag": flag,
+        "seed146": (dfm146[42] or 0.0), "seed_hd54": ((hd54[42] if hd54 else 0.0) or 0.0),
+        # sementes hardcode de ativos classe-1 lançados direto no cronograma (Bahia/PE/Arg/Sal)
+        "extra1": {1: {41: 43764.09, 42: 45658.0}, 3: {42: 45658.0}, 4: {42: 45658.0}, 5: {42: 45658.0}},
+    }
+
+
 def extract_dre_below(wb):
     """Linhas da DRE ABAIXO do EBITDA. Depreciação e Resultado Financeiro são cronogramas dos
     módulos de CAPEX e DÍVIDA (premissas de plano de investimento/financiamento — fixas, não reagem
@@ -913,7 +969,7 @@ def extract_dre_below(wb):
 
     return {
         "receita_bruta": ser(dfmk, 33), "deducoes": ser(dfmk, 35),
-        "depreciacao": ser(dfmk, 103), "resultado_financeiro": ser(dfmk, 108),
+        "resultado_financeiro": ser(dfmk, 108),   # TODO: vira vivo no módulo de Dívida (próximo)
         "imp36": ser(impk, 36), "imp37": ser(impk, 37),
         "seedA": (ser(impk, 45)[47] or 0.0), "seedB": (ser(impk, 70)[47] or 0.0),
         "seedD": (ser(dfmk, 142)[47] or 0.0),
@@ -968,7 +1024,8 @@ def main():
     sga_cfg, sga_ocup, sga_seed, sga_regbase2 = extract_sga(orows, n_real)
     custo_total = extract_custo_total(orows)
     holding_sga = extract_holding_sga(wb)          # SG&A da holding (para o EBITDA = RO + Holding23)
-    dre_below = extract_dre_below(wb)              # linhas abaixo do EBITDA (deprec/resfin drivers + impostos live)
+    dre_below = extract_dre_below(wb)              # linhas abaixo do EBITDA (resfin driver + impostos live)
+    capex = extract_capex(wb)                      # módulo de capex (depreciação viva + imobilizado)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1105,12 +1162,30 @@ def main():
     # IMPOSTOS é computado ao vivo no HTML (máquina de NOL de 2 entidades) — aqui só as premissas.
     ws_db = out.create_sheet("DreBelow")
     ws_db.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("receita_bruta", "deducoes", "depreciacao", "resultado_financeiro", "imp36", "imp37"):
+    for key in ("receita_bruta", "deducoes", "resultado_financeiro", "imp36", "imp37"):
         ws_db.append([key] + dre_below[key])
     ws_db.append(["taxconst", dre_below["E30"], dre_below["E31"], dre_below["E32"],
                   dre_below["E33"], dre_below["E34"]])
     ws_db.append(["taxseed", dre_below["seedA"], dre_below["seedB"], dre_below["seedD"]])
     ws_db.append(["entityA"] + dre_below["entityA"])
+
+    # aba Capex: PREMISSAS do plano de investimento (inv por planta/classe, datas de início, vidas
+    # úteis, semente da depreciação acumulada no corte). Depreciação e imobilizado saem por fórmula.
+    ws_cx = out.create_sheet("Capex")
+    hdr = ["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym]
+    ws_cx.append(hdr)
+    for p in range(6):
+        ws_cx.append(["inv1_%d" % (p + 1)] + capex["inv1"][p])
+        ws_cx.append(["inv2_%d" % (p + 1)] + capex["inv2"][p])
+    ws_cx.append(["hd46"] + capex["hd46"])
+    ws_cx.append(["dfm147"] + capex["dfm147"])
+    ws_cx.append(["dates"] + capex["dates"])
+    ws_cx.append(["op_dates"] + capex["op_dates"])
+    ws_cx.append(["cfg", capex["life"], capex["holdlife"], capex["flag"], capex["seed146"], capex["seed_hd54"]])
+    # extra1: sementes hardcode -> linhas "extra1_<planta>_<k>" = valor
+    for p, seeds in capex["extra1"].items():
+        for k, amt in seeds.items():
+            ws_cx.append(["extra1_%d_%d" % (p, k), amt])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula

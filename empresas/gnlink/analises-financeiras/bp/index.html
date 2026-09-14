@@ -237,7 +237,7 @@ const MECH={
   ebitda:"EBITDA = Resultado Operacional + SG&A da holding (matriz). Projeção por fórmula viva, validada 1:1 vs o modelo (banda ago-dez/26 = semente de orçamento).",
   sga_holding:"SG&A da holding (matriz) = 6 componentes (salários, viagens, serviços etc.): médias/sementes de 2026 × corr IPCA × fatores, com gatilho de economia de escala. É a despesa corporativa que separa o Resultado Operacional do EBITDA.",
   receita_bruta:"Receita Bruta = Receita Líquida + deduções (PIS/COFINS/ICMS sobre receita). Driver do módulo de impostos.",
-  depreciacao:"Depreciação = cronograma de depreciação do Capex (por planta/classe) + amortização da holding. Driver do plano de investimento (premissa fixa, não reage às alavancas operacionais).",
+  depreciacao:"Depreciação por FÓRMULA: cada investimento do plano de capex deprecia linearmente (valor ÷ 240 meses) durante a vida útil, a partir do início de operação da planta; + amortização do intangível da holding (pool, 120 meses). Reproduz o cronograma do modelo a partir do plano de investimento (premissa).",
   ebit:"EBIT = EBITDA − Depreciação.",
   resultado_financeiro:"Resultado Financeiro = juros da dívida + IOF/taxas − receita financeira do caixa. Driver do cronograma de dívida (premissa de financiamento).",
   impostos:"Impostos (IR/CSLL) calculados AO VIVO por uma máquina de prejuízo fiscal de DUAS entidades (CNPJs): cada uma tem sua base pré-imposto, seu estoque de prejuízo (uso limitado a 30% do lucro) e piso em zero. IRPJ 15% + adicional 10% acima de R$20 mil/mês + CSLL 9%. Por isso o imposto ≠ alíquota×lucro e reage às premissas.",
@@ -356,6 +356,17 @@ function parseWorkbook(buf){
     else if(r[0]==="taxseed"){ dreBelow.seedA=+r[1]; dreBelow.seedB=+r[2]; dreBelow.seedD=+r[3]; }
     else if(r[0]==="entityA"){ dreBelow.entityA=r.slice(1).filter(x=>x!=null).map(Number); }
     else dreBelow[r[0]]=r.slice(1); }
+  // Capex: premissas do plano de investimento (depreciação/imobilizado saem por fórmula)
+  const gcx = grid("Capex"); const capex={inv1:[], inv2:[], extra1:{}};
+  if(gcx) for(let i=1;i<gcx.length;i++){ const r=gcx[i]; if(!r||r[0]==null) continue; const key=String(r[0]);
+    if(key.startsWith("inv1_")) capex.inv1[+key.slice(5)-1]=r.slice(1);
+    else if(key.startsWith("inv2_")) capex.inv2[+key.slice(5)-1]=r.slice(1);
+    else if(key==="hd46") capex.hd46=r.slice(1);
+    else if(key==="dfm147") capex.dfm147=r.slice(1);
+    else if(key==="dates") capex.dates=r.slice(1);
+    else if(key==="op_dates") capex.op_dates=r.slice(1);
+    else if(key==="cfg"){ capex.life=+r[1]; capex.holdlife=+r[2]; capex.flag=+r[3]; capex.seed146=+r[4]; capex.seed_hd54=+r[5]; }
+    else if(key.startsWith("extra1_")){ const p=key.split("_"); (capex.extra1[+p[1]]=capex.extra1[+p[1]]||{})[+p[2]]=+r[1]; } }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -426,7 +437,7 @@ function parseWorkbook(buf){
   const cutoffIdx = meses.reduce((acc,m,i)=> m.flag==="R"?i:acc, -1);
   const diasMes = meses.map(m=>{ const p=m.ym.split("-"); return new Date(+p[0], +p[1], 0).getDate(); });
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
-          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
+          preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
           sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
 }
@@ -1544,7 +1555,58 @@ function ebitdaSerie(){
    alíquota×EBT e reage às premissas. Validado 1:1 vs golden (dre_below_ref.py). ===================== */
 function _dbSer(key){ const cut=DB.cutoffIdx, d=(DB.dreBelow&&DB.dreBelow[key])||[], n=DB.meses.length, out=new Array(n).fill(null);
   for(let k=0;k<n;k++){ const v=d[k]; if(typeof v==="number") out[k]=v; } return out; }
-function depreciacaoSerie(){ return _dbSer("depreciacao"); }              // driver (plano de capex)
+/* ---- MÓDULO DE CAPEX: depreciação e imobilizado POR FÓRMULA (plano de investimento + vida útil).
+   Depreciação linear por vintage: cada investimento B no mês j deprecia B/240 durante 240 meses a
+   partir de max(data_j, início-op da planta). Intangível da holding = amortização em pool (120m).
+   Validado 1:1 vs modelo (capex_ref.py). ================================================= */
+let _capexCache=null;
+function capexEngine(){
+  if(_capexCache) return _capexCache;
+  const C=DB.capex||{}, n=DB.meses.length, cut=DB.cutoffIdx, LIFE=C.life||240, HL=C.holdlife||120;
+  const dates=C.dates||[], op=C.op_dates||[], num=x=>typeof x==="number"?x:0;
+  const ymd=s=>{ const d=new Date(Date.UTC(1899,11,30)+Math.round(s)*86400000); return [d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate()]; };
+  const datedifM=(sS,dS)=>{ if(dS<sS) return null; const a=ymd(sS),b=ymd(dS); let m=(b[0]-a[0])*12+(b[1]-a[1]); if(b[2]<a[2]) m--; return m; };
+  function depreciate(inv, opDate, dropK42){
+    const dep=new Array(n).fill(0);
+    for(let k=0;k<n;k++){ const dk=dates[k]; let s=0;
+      for(let j=0;j<=k;j++){ if(dropK42&&j===cut) continue; const b=num(inv[j]); if(!b) continue;
+        const H=Math.max(dates[j], opDate), md=datedifM(H, dk);
+        if(md!=null && md>=0 && md<LIFE) s+=b/LIFE; }
+      dep[k]=-s; }
+    return dep;
+  }
+  const dep1=[], dep2=[];
+  for(let p=0;p<6;p++){ dep1.push(depreciate(C.inv1[p]||[], op[p], p!==0)); dep2.push(depreciate(C.inv2[p]||[], op[p], p!==0)); }
+  for(const pk in (C.extra1||{})){ const p=+pk, seeds=C.extra1[pk], ex=new Array(n).fill(0);
+    for(const k in seeds) ex[+k]=seeds[k]; const d=depreciate(ex, op[p], false);
+    dep1[p]=dep1[p].map((v,k)=>v+d[k]); }
+  const cap695=new Array(n), cap700=new Array(n), cap694=new Array(n), cap699=new Array(n);
+  for(let k=0;k<n;k++){ let a=0,b=0,c=0,e=0;
+    for(let p=0;p<6;p++){ a+=dep1[p][k]; b+=dep2[p][k]; c+=num((C.inv1[p]||[])[k]); e+=num((C.inv2[p]||[])[k]); }
+    cap695[k]=a; cap700[k]=b; cap694[k]=c; cap699[k]=e; }
+  // amortização do intangível da holding (pool 120m), semente do acumulado no corte
+  const hd46=C.hd46||[], cum=new Array(n); let run=0;
+  for(let k=0;k<n;k++){ run+=num(hd46[k]); cum[k]=run; }
+  const h53=new Array(n).fill(0), h54=new Array(n).fill(0); h54[cut]=C.seed_hd54||0;
+  for(let k=cut+1;k<n;k++){ h53[k]= (h54[k-1]<=cum[k-1]) ? 0 : Math.max(cum[k]/HL, cum[k]-h54[k-1]);
+    h54[k]=Math.max(h54[k-1]+h53[k], cum[k]); }
+  const dfm103=new Array(n), gross=new Array(n), dacc=new Array(n); let cg=0,ch=0,cd=0;
+  for(let k=0;k<n;k++){ dfm103[k]=cap695[k]+cap700[k]+h53[k];
+    cg+=cap694[k]+cap699[k]; ch+=num(hd46[k]); cd+=cap695[k]+cap700[k];
+    gross[k]=cg-ch; dacc[k]=cd+h54[k]; }
+  // imobilizado do balanço: acumulado de depreciação semeado no corte + rolagem pela depreciação viva
+  const dfm146=dacc.slice(); dfm146[cut]=C.seed146||0;
+  for(let k=cut+1;k<n;k++) dfm146[k]=dfm146[k-1]+dfm103[k];
+  const dfm147=C.dfm147||[], net=new Array(n);
+  for(let k=0;k<n;k++) net[k]=gross[k]+dfm146[k]+num(dfm147[k]);
+  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net});
+}
+function depreciacaoSerie(){                             // DFM103: realizado da DRE + projeção viva
+  const cut=DB.cutoffIdx, d=DB.dre.depreciacao||[], eng=capexEngine().dfm103, n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]= k<=cut ? ((typeof d[k]==="number")?d[k]:null) : eng[k];
+  return out;
+}
+function imobilizadoSerie(){ return capexEngine().dfm144; }        // Ativo Imobilizado líquido (balanço)
 function resultadoFinanceiroSerie(){ return _dbSer("resultado_financeiro"); }  // driver (cronograma de dívida)
 function ebitSerie(){ const eb=ebitdaSerie(), dp=depreciacaoSerie(); return eb.map((v,k)=> v==null?null:(v+(dp[k]||0))); }
 function ebtSerie(){ const e=ebitSerie(), rf=resultadoFinanceiroSerie(); return e.map((v,k)=> v==null?null:(v+(rf[k]||0))); }
@@ -1612,7 +1674,7 @@ function renderResumo(){
   const mgTxt=y=> has(y)? fmt(mg(y)*100,1)+"%" : "—";
   const lastReal = ks.filter(has).slice(-1)[0];
   let h2=`<div class="pglead"><b>DRE consolidada</b> — Receita Líquida → EBITDA → <b>Lucro Líquido</b>, toda por fórmula viva e validada 1:1 vs o modelo. Prejuízo nos primeiros anos reflete o ramp-up.<span class="tag">Fase E</span></div>`;
-  h2+='<div class="note">DRE completa por fórmula. Receita, custo e <b>EBITDA</b> reagem às premissas what-if. <b>Depreciação</b> e <b>Resultado Financeiro</b> são os cronogramas dos planos de capex e dívida (premissas fixas). <b>Impostos</b> (IR/CSLL) são calculados ao vivo por uma máquina de prejuízo fiscal de duas entidades sobre o lucro — por isso reagem ao resultado.</div>';
+  h2+='<div class="note">DRE completa por fórmula. Receita, custo e <b>EBITDA</b> reagem às premissas what-if. <b>Depreciação</b> agora sai do <b>módulo de capex</b> (depreciação por vintage do plano de investimento) — que também monta o Ativo Imobilizado. <b>Impostos</b> (IR/CSLL) são calculados ao vivo por uma máquina de prejuízo fiscal de duas entidades sobre o lucro. <b>Resultado Financeiro</b> é a única linha ainda como cronograma extraído (o módulo de dívida está sendo portado a seguir).</div>';
   h2+='<div class="mkpis">';
   h2+=kpi("EBITDA 2030 (R$ MM)", yrMM(eb["2030"],0), "margem "+mgTxt("2030"), "", MECH.ebitda);
   h2+=kpi("Lucro Líq. 2030 (R$ MM)", yrMM(ll["2030"],0), "após deprec./juros/impostos", "", MECH.lucro_liquido);
