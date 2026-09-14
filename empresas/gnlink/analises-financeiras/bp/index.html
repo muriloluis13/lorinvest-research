@@ -1495,23 +1495,23 @@ function editorHTML(c){
   h+=`<div class="frow"><label>Serviço inclui molécula</label><select id="e_customol">${opt(c.custo_mol,1,'Sim — com liquefação/compressão')}${opt(c.custo_mol,0,'Não — só serviço (sem molécula)')}</select></div>`;
   h+=`<div class="frow"><label>Entrega (logística)</label><select id="e_entrega">${opt(c.entrega||'','CIF','CIF — GNLink entrega (incorre custo logístico)')}${opt(c.entrega||'','FOB','FOB — cliente retira (sem custo logístico)')}</select></div>`;
   h+='<div class="sec">Curva de volume (m³/dia) — re-projeta ao vivo</div>';
-  h+='<div class="stagegrid"><div class="sh">Estágio</div><div class="sh">Volume</div><div class="sh">Início (AAAA-MM)</div><div class="sh">Fim (AAAA-MM)</div></div>';
+  h+='<div class="stagegrid"><div class="sh">Estágio</div><div class="sh">Volume</div><div class="sh">Início (Mmm/AAAA)</div><div class="sh">Fim (Mmm/AAAA)</div></div>';
   for(let s=1;s<=6;s++){ const st=c.stages[s-1];
-    h+=`<div class="stagegrid"><div class="st">S${s}</div><input id="e_s${s}v" type="number" step="any" value="${st.vol==null?'':st.vol}"><input id="e_s${s}i" value="${st.iniYm||''}" placeholder="AAAA-MM"><input id="e_s${s}f" value="${st.fimYm||''}" placeholder="AAAA-MM"></div>`; }
+    h+=`<div class="stagegrid"><div class="st">S${s}</div><input id="e_s${s}v" type="number" step="any" value="${st.vol==null?'':st.vol}"><input id="e_s${s}i" value="${fmtMesY(st.iniYm)==='—'?'':fmtMesY(st.iniYm)}" placeholder="Mmm/AAAA"><input id="e_s${s}f" value="${fmtMesY(st.fimYm)==='—'?'':fmtMesY(st.fimYm)}" placeholder="Mmm/AAAA"></div>`; }
   h+='<div class="sec">Comercial</div>';
-  h+=_fr("e_preco","Preço de venda (R$/m³)",c.preco,"type=number step=any");
+  h+=_fr("e_preco","Preço de venda (R$/m³)",c.preco!=null?(+c.preco).toFixed(2):null,"type=number step=0.01");
   h+=_fr("e_aluguel","Aluguel fixo (R$/mês)",c.aluguel,"type=number step=any");
   h+=_fr("e_dist","Distância (km)",c.distancia,"type=number step=any");
   h+=`<div class="frow"><label>Take-or-Pay (%)</label><input id="e_top" type="number" step="any" value="${c.top!=null?+(c.top*100).toFixed(6):''}"></div>`;
   h+=_fr("e_regas","Tipo regás",c.tipo_regas||"","type=text");
   h+=_fr("e_correcao","Correção molécula",c.correcao_mol,"type=number step=any");
   h+='<div class="sec">Datas do contrato</div>';
-  h+=_fr("e_iniop","Início operação (AAAA-MM-DD)",c.ini_op||"","type=text");
-  h+=_fr("e_fim","Fim do contrato (AAAA-MM-DD)",c.fim_contrato||"","type=text");
+  h+=`<div class="frow"><label>Início operação</label><input id="e_iniop" value="${fmtMesY(c.ini_op)==='—'?'':fmtMesY(c.ini_op)}" placeholder="Mmm/AAAA"></div>`;
+  h+=`<div class="frow"><label>Fim do contrato</label><input id="e_fim" value="${fmtMesY(c.fim_contrato)==='—'?'':fmtMesY(c.fim_contrato)}" placeholder="Mmm/AAAA"></div>`;
   const pz=DB.preco[c.id]||{};
   h+='<div class="sec">Indexação de preço (re-projeta receita ao vivo)</div>';
-  h+=_fr("e_precoBase","Preço base (R$/m³)",pz.precoBase,"type=number step=any");
-  h+=`<div class="frow"><label>Data base (AAAA-MM)</label><input id="e_dataBase" value="${pz.dataBase!=null?ymFromOrd(pz.dataBase):''}" placeholder="AAAA-MM"></div>`;
+  h+=_fr("e_precoBase","Preço base (R$/m³)",pz.precoBase!=null?(+pz.precoBase).toFixed(2):null,"type=number step=0.01");
+  h+=`<div class="frow"><label>Data base</label><input id="e_dataBase" value="${pz.dataBase!=null?fmtMesY(ymFromOrd(pz.dataBase)):''}" placeholder="Mmm/AAAA"></div>`;
   h+=`<div class="frow"><label>Indicador</label><select id="e_indicador">${["IPCA 100%","Brent","Brent Bahia","Brent RN","Brent Sal"].map(o=>`<option ${pz.indicador===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
   h+='<div class="note" style="border-left-color:var(--orange)">Reajuste <b>IPCA</b> = exato (bump anual no aniversário). Reajuste <b>Brent</b> (Bahia/RN/Sal) é preliminar até a Fase D (acopla o custo da molécula com piso/teto).</div>';
   h+='<div class="sec">CapEx de regás/descompressão</div><div class="note">Por cliente — entra na Fase Capex.</div>';
@@ -1530,21 +1530,29 @@ const _v = id => { const e=$("#"+id); return e?e.value.trim():""; };
 const _n = id => { const s=_v(id); if(s==="") return null; const x=parseFloat(s.replace(",",".")); return isNaN(x)?null:x; };
 const ordOf = ym => { if(!ym) return null; const p=String(ym).split("-"); return p.length>=2?(+p[0])*12+(+p[1]-1):null; };
 const ymFromOrd = o => o==null?"":`${Math.floor(o/12)}-${String(o%12+1).padStart(2,"0")}`;
+// aceita "Mar/2026", "mar/26" ou "2026-03" -> "AAAA-MM" (dia descartado)
+function parseMesY(s){ if(!s) return null; s=String(s).trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})/); if(m) return m[1]+"-"+String(+m[2]).padStart(2,"0");
+  m=s.match(/^([A-Za-zçÇ]{3,})[\/\s.\-]+(\d{2,4})$/);
+  if(m){ const mi=MES_ABBR.findIndex(x=>x.toLowerCase()===m[1].slice(0,3).toLowerCase());
+    if(mi>=0){ let y=+m[2]; if(y<100) y+=2000; return y+"-"+String(mi+1).padStart(2,"0"); } }
+  return null;
+}
 function aplicarCli(id){
   const c=DB.clientes.find(x=>x.id===id); if(!c) return;
   c.nome=_v("e_nome"); c.planta=+_v("e_planta"); c.produto=_v("e_produto");
   for(let s=1;s<=6;s++){ const st=c.stages[s-1];
-    st.vol=_n("e_s"+s+"v"); st.iniYm=_v("e_s"+s+"i")||null; st.fimYm=_v("e_s"+s+"f")||null;
+    st.vol=_n("e_s"+s+"v"); st.iniYm=parseMesY(_v("e_s"+s+"i")); st.fimYm=parseMesY(_v("e_s"+s+"f"));
     st.ini=ordOf(st.iniYm); st.fim=ordOf(st.fimYm);
   }
   c.preco=_n("e_preco"); c.aluguel=_n("e_aluguel"); c.custo_mol=+_v("e_customol");
   c.segmento=_v("e_segmento")||null;
   c.distancia=_n("e_dist"); c.entrega=_v("e_entrega"); { const t=_n("e_top"); c.top=(t==null?null:t/100); }  // ToP em % na UI
   c.tipo_regas=_v("e_regas")||null; c.correcao_mol=_n("e_correcao");
-  c.ini_op=_v("e_iniop")||null; c.fim_contrato=_v("e_fim")||null;
+  c.ini_op=parseMesY(_v("e_iniop")); c.fim_contrato=parseMesY(_v("e_fim"));
   // indexação de preço
   const pz=DB.preco[id]||(DB.preco[id]={});
-  pz.precoBase=_n("e_precoBase"); pz.dataBase=ordOf(_v("e_dataBase")); pz.indicador=_v("e_indicador");
+  pz.precoBase=_n("e_precoBase"); pz.dataBase=ordOf(parseMesY(_v("e_dataBase"))); pz.indicador=_v("e_indicador");
   state.cliMsg="✓ aplicado — projeção atualizada (ver Receita)";
   render();
 }
