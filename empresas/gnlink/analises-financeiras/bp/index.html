@@ -1503,6 +1503,23 @@ function modalHTML(c){
 }
 function closeCli(){ state.cliSel=null; state.cliMsg=""; render(); }
 const _fr = (id,lbl,val,type)=>`<div class="frow"><label>${lbl}</label><input id="${id}" ${type||''} value="${val==null?'':val}"></div>`;
+// premissas de preço/volume do cliente — slider + caixa, aplica ao vivo (sem botão)
+function premClientePanel(c){
+  const pz=DB.preco[c.id]||(DB.preco[c.id]={});
+  const O=(DB.clientesBase||[]).find(x=>x.id===c.id)||{};
+  const brent=isBrentInd(pz.indicador);
+  let h='<div class="premcard" style="margin:2px 0 12px"><div class="ph"><b>Premissas de preço &amp; contrato</b>';
+  h+='<span class="badge-ok">valores reais · ao vivo</span></div>';
+  h+='<div class="psub">Só as premissas que <b>re-projetam</b>: slider ou caixa aplica na hora (sem botão). '
+    +(brent?'Cliente <b>Brent</b> — preço = resíduo × fator IPCA + molécula da planta.':'Cliente <b>IPCA</b> — preço = base × fator IPCA.')+'</div>';
+  h+='<div class="premgrid">';
+  if(brent) h+=premCtrl("Resíduo Brent","R$/m³", +pz.residual||0, v=>{ pz.residual=+v; }, {dec:2});
+  else      h+=premCtrl("Preço base","R$/m³", +pz.precoBase||0, v=>{ pz.precoBase=+v; }, {dec:2});
+  h+=premCtrl("Aluguel fixo","R$/mês", +c.aluguel||0, v=>{ c.aluguel=+v; }, {dec:0, edited:premDif(c.aluguel,O.aluguel)});
+  h+=premCtrl("Distância (ida)","km", +c.distancia||0, v=>{ c.distancia=+v; }, {dec:0, edited:premDif(c.distancia,O.distancia)});
+  h+='</div></div>';
+  return h;
+}
 function editorHTML(c){
   const opt=(cur,v,l)=>`<option value="${v}" ${String(cur)===String(v)?'selected':''}>${l}</option>`;
   let h=`<div class="cform"><h4>${c.nome||c.id} <span class="tag">id ${c.id}</span>${isEdited(c)?' <span class="okmsg" style="color:var(--orange)">• editado</span>':''}</h4>`;
@@ -1517,10 +1534,10 @@ function editorHTML(c){
   h+='<div class="stagegrid"><div class="sh">Estágio</div><div class="sh">Volume</div><div class="sh">Início (Mmm/AAAA)</div><div class="sh">Fim (Mmm/AAAA)</div></div>';
   for(let s=1;s<=6;s++){ const st=c.stages[s-1];
     h+=`<div class="stagegrid"><div class="st">S${s}</div><input id="e_s${s}v" type="number" step="any" value="${st.vol==null?'':st.vol}"><input id="e_s${s}i" value="${fmtMesY(st.iniYm)==='—'?'':fmtMesY(st.iniYm)}" placeholder="Mmm/AAAA"><input id="e_s${s}f" value="${fmtMesY(st.fimYm)==='—'?'':fmtMesY(st.fimYm)}" placeholder="Mmm/AAAA"></div>`; }
-  h+='<div class="sec">Comercial</div>';
-  h+=_fr("e_preco","Preço de venda (R$/m³)",c.preco!=null?(+c.preco).toFixed(2):null,"type=number step=0.01");
-  h+=_fr("e_aluguel","Aluguel fixo (R$/mês)",c.aluguel,"type=number step=any");
-  h+=_fr("e_dist","Distância (km)",c.distancia,"type=number step=any");
+  h+=premClientePanel(c);   // premissas de preço/volume — slider + caixa, ao vivo (sem botão)
+  h+='<div class="sec">Comercial — referência (aplica no botão)</div>';
+  h+='<div class="psub" style="margin:-2px 0 8px">Dados de contrato que <b>não</b> entram na projeção deste motor (preço-vitrine e ToP são informativos; o preço que projeta está no bloco de premissas acima).</div>';
+  h+=_fr("e_preco","Preço de venda — vitrine (R$/m³)",c.preco!=null?(+c.preco).toFixed(2):null,"type=number step=0.01");
   h+=`<div class="frow"><label>Take-or-Pay (%)</label><input id="e_top" type="number" step="any" value="${c.top!=null?+(c.top*100).toFixed(6):''}"></div>`;
   h+=_fr("e_regas","Tipo regás",c.tipo_regas||"","type=text");
   h+=_fr("e_correcao","Correção molécula",c.correcao_mol,"type=number step=any");
@@ -1529,7 +1546,7 @@ function editorHTML(c){
   h+=`<div class="frow"><label>Fim do contrato</label><input id="e_fim" value="${fmtMesY(c.fim_contrato)==='—'?'':fmtMesY(c.fim_contrato)}" placeholder="Mmm/AAAA"></div>`;
   const pz=DB.preco[c.id]||{};
   h+='<div class="sec">Indexação de preço (re-projeta receita ao vivo)</div>';
-  h+=_fr("e_precoBase","Preço base (R$/m³)",pz.precoBase!=null?(+pz.precoBase).toFixed(2):null,"type=number step=0.01");
+  h+='<div class="psub" style="margin:-2px 0 8px">Preço base editável no bloco de premissas acima (ao vivo).</div>';
   h+=`<div class="frow"><label>Data base</label><input id="e_dataBase" value="${pz.dataBase!=null?fmtMesY(ymFromOrd(pz.dataBase)):''}" placeholder="Mmm/AAAA"></div>`;
   h+=`<div class="frow"><label>Indicador</label><select id="e_indicador">${["IPCA 100%","Brent","Brent Bahia","Brent RN","Brent Sal"].map(o=>`<option ${pz.indicador===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
   h+='<div class="note" style="border-left-color:var(--orange)">Reajuste <b>IPCA</b> = exato (bump anual no aniversário). Reajuste <b>Brent</b> (Bahia/RN/Sal) é preliminar até a Fase D (acopla o custo da molécula com piso/teto).</div>';
@@ -1564,14 +1581,17 @@ function aplicarCli(id){
     st.vol=_n("e_s"+s+"v"); st.iniYm=parseMesY(_v("e_s"+s+"i")); st.fimYm=parseMesY(_v("e_s"+s+"f"));
     st.ini=ordOf(st.iniYm); st.fim=ordOf(st.fimYm);
   }
-  c.preco=_n("e_preco"); c.aluguel=_n("e_aluguel"); c.custo_mol=+_v("e_customol");
+  c.custo_mol=+_v("e_customol");
   c.segmento=_v("e_segmento")||null;
-  c.distancia=_n("e_dist"); c.entrega=_v("e_entrega"); { const t=_n("e_top"); c.top=(t==null?null:t/100); }  // ToP em % na UI
+  c.entrega=_v("e_entrega");
+  // aluguel / distancia / preço-base são geridos ao vivo (premClientePanel) — não reler aqui.
+  // preço-vitrine e ToP são referência de contrato (não projetam) mas ficam editáveis:
+  c.preco=_n("e_preco"); { const t=_n("e_top"); c.top=(t==null?null:t/100); }
   c.tipo_regas=_v("e_regas")||null; c.correcao_mol=_n("e_correcao");
   c.ini_op=parseMesY(_v("e_iniop")); c.fim_contrato=parseMesY(_v("e_fim"));
-  // indexação de preço
+  // indexação de preço (preço base gerido ao vivo)
   const pz=DB.preco[id]||(DB.preco[id]={});
-  pz.precoBase=_n("e_precoBase"); pz.dataBase=ordOf(parseMesY(_v("e_dataBase"))); pz.indicador=_v("e_indicador");
+  pz.dataBase=ordOf(parseMesY(_v("e_dataBase"))); pz.indicador=_v("e_indicador");
   state.cliMsg="✓ aplicado — projeção atualizada (ver Receita)";
   render();
 }
