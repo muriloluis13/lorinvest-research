@@ -172,6 +172,8 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .cli-sec .clitbl{border:0;margin:0}
 .clitbl tr.grp-prod td{background:var(--chip);color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:3px 12px 3px 22px;border-bottom:1px solid var(--line)}
 .clitbl tr.grp-prod:hover td{cursor:default}
+.clitbl tr.grp-total td{background:#EEF2F7;font-weight:700;color:var(--ink);border-top:2px solid var(--line)}
+.clitbl tr.grp-total:hover td{cursor:default}
 </style>
 </head>
 <body class="loading">
@@ -1531,6 +1533,16 @@ function renderClientes(){
   const cliRow=c=>{ const seg=c.segmento?`<span class="seg-badge seg-${c.segmento}">${c.segmento}</span>`:'<span style="color:var(--muted)">—</span>';
     return `<tr class="${c.id===state.cliSel?'sel':''}" onclick="selCli('${c.id}')"><td class="l">${isEdited(c)?'<span class="dot"></span>':''}${c.nome||c.id}</td><td class="l">${seg}</td><td>${c.volmax!=null?fmt(c.volmax,0):'—'}</td><td>${fmtMesY(c.ini_op)}</td><td>${fmtMesY(c.fim_contrato)}</td><td>${c.preco!=null?fmt(c.preco,2):'—'}</td></tr>`; };
   const THEAD='<thead><tr><th class="l">Cliente</th><th class="l">Segmento</th><th>Vol. máx (m³/d)</th><th>Início op.</th><th>Fim contrato</th><th>Preço (R$/m³)</th></tr></thead>';
+  // preço médio ponderado pelo volume máx
+  const wavg=list=>{ let num=0,den=0; for(const c of list){ if(c.preco!=null && +c.volmax){ num+=(+c.preco)*(+c.volmax); den+=(+c.volmax); } } return den>0?num/den:null; };
+  const volTot=filtered.reduce((s,c)=>s+(+c.volmax||0),0), pmed=wavg(filtered);
+  const nPl=DB.regioes.filter(rg=>filtered.some(c=>+c.planta===rg.id)).length;
+  const nGNL=filtered.filter(c=>(c.produto||'').toUpperCase()==='GNL').length, nGNC=filtered.filter(c=>(c.produto||'').toUpperCase()==='GNC').length;
+  h += '<div class="mkpis">';
+  h += kpi("Clientes / contratos", fmt(filtered.length,0), nGNL+" GNL · "+nGNC+" GNC · "+nPl+" planta(s)");
+  h += kpi("Volume máx total (m³/d)", fmt(volTot,0), "soma dos contratos");
+  h += kpi("Preço médio ponderado", pmed!=null?("R$ "+fmt(pmed,2)):"—", "R$/m³ · pond. pelo volume máx");
+  h += '</div>';
   let cnt=0;
   // uma TABELA POR PLANTA (bloco independente, sem barra de rolagem única); GNL/GNC separados dentro
   for(const rg of DB.regioes){
@@ -1544,6 +1556,8 @@ function renderClientes(){
       h += `<tr class="grp-prod"><td class="l" colspan="6">${lbl} · ${sub.length}</td></tr>`;
       for(const c of sub){ cnt++; h += cliRow(c); }
     }
+    const pAvg=wavg(arr);
+    h += `<tr class="grp-total"><td class="l">Total ${rg.nome}</td><td class="l">—</td><td><b>${fmt(volSum,0)}</b></td><td>—</td><td>—</td><td>${pAvg!=null?fmt(pAvg,2):'—'}</td></tr>`;
     h += '</tbody></table></div></div>';
   }
   if(!cnt) h += '<div class="note">Nenhum cliente encontrado.</div>';
