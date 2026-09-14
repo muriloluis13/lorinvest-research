@@ -175,6 +175,7 @@ const ABAS = [
   {grp:"Outputs", items:[
     {id:"dashboard", nome:"Dashboard",       regiao:false, fase:null},
     {id:"resumo",    nome:"Resumo (EBITDA)", regiao:true,  fase:null},
+    {id:"balanco",   nome:"Balanço & DCF",   regiao:false, fase:null},
   ]},
   {grp:"Modelagem", items:[
     {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
@@ -187,7 +188,7 @@ const ABAS = [
     {id:"macro",     nome:"Macro",     regiao:false, fase:null},
   ]},
 ];
-const MODELAGEM_ABAS = new Set(["resumo","receita","variavel","opex","holding"]);  // têm seletor de periodicidade
+const MODELAGEM_ABAS = new Set(["resumo","receita","variavel","opex","holding","balanco"]);  // têm seletor de periodicidade
 
 const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto"};
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
@@ -560,6 +561,7 @@ function render(){
   if(aba.id==="resumo"){
     const r=renderResumo(); m.innerHTML=html+r.html; wireSubtabs(); if(r.draw) r.draw(); return;
   }
+  if(aba.id==="balanco"){ m.innerHTML = html + renderBalanco(); return; }
   if(aba.id==="opex"){
     const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); wireOcat(); if(r.draw) r.draw(); return;
   }
@@ -1814,6 +1816,33 @@ function lucroLiquidoSerie(){
   return out;
 }
 function dreYear(key){ return anoSum(DB.dre[key]||[]); }
+/* --------------------------------------------------- aba Balanço & DCF (Fase F) */
+function renderBalanco(){
+  const e=caixaBalancoEngine(), dcf=dcfConsolidado(), n=DB.meses.length;
+  const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
+  let h=`<div class="pglead"><b>Balanço Patrimonial & DCF</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando. VPL/TIR do fluxo de caixa livre.<span class="tag">Fase F</span></div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("VPL (DCF)", "R$ "+fmt(dcf.vpl/1e6,0)+" MM", "fluxo de caixa livre descontado", "", MECH.vpl);
+  h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "consolidado", "", MECH.tir);
+  h+=kpi("Total de Ativos "+lastY+" (R$ MM)", fmt(e.totAtivo[lastK]/1e6,0), "saldo no fim do horizonte");
+  h+=kpi("Caixa "+lastY+" (R$ MM)", fmt(e.caixa[lastK]/1e6,0), "saldo de caixa");
+  h+='</div>';
+  const L={how:"last",d:1,div:1e6};
+  const rows=[
+    {lbl:"Caixa e aplicações",serie:e.caixa,...L},
+    {lbl:"Ativo Circulante",serie:e.ativoCirc,...L,bold:true},
+    {lbl:"Ativo Imobilizado (líq.)",serie:imobilizadoSerie(),...L,tip:MECH.depreciacao},
+    {lbl:"Ativo Não Circulante",serie:e.ativoNC,...L,bold:true},
+    {lbl:"Total de Ativos",serie:e.totAtivo,...L,bold:true},
+    {lbl:"Passivo Circulante",serie:e.passCirc,...L,bold:true},
+    {lbl:"Passivo Não Circulante",serie:e.passNC,...L,bold:true},
+    {lbl:"Total de Passivos",serie:e.totPass,...L,bold:true},
+    {lbl:"Patrimônio Líquido",serie:e.pl,...L,bold:true,tip:MECH.lucro_liquido},
+  ];
+  h+='<h3 class="msub">Balanço Patrimonial (R$ MM, saldo no fim do período)</h3>'+serieTableHTML(rows,"R$ MM");
+  h+='<div class="note">Ativo Imobilizado do módulo de capex; Passivo inclui o saldo devedor da dívida (juros e amortização por fórmula); PL = capital + lucros acumulados + reserva legal (máquinas de estado sobre o Lucro Líquido). A identidade Ativo = Passivo + PL fecha a ~0,01% (arredondamento do imobilizado + override BA/RN).</div>';
+  return h;
+}
 function renderResumo(){
   const reg=state.regiao, cut=DB.cutoffIdx;
   let h=subtabsHTML();
