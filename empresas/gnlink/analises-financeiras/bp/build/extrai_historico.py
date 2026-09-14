@@ -1227,6 +1227,14 @@ def main():
     capex = extract_capex(wb)                      # módulo de capex (depreciação viva + imobilizado)
     divida = extract_divida(wb, read_sheet_formulas(src, "Dívida"))   # módulo de dívida (juros/saldo vivos)
     var_d6 = _num(wb["Variável"]["D6"].value) or 0.0                  # toggle IPCA on/off (lido enquanto wb aberto)
+    # premissa do SEGURO da dívida (bloco RN, Dívida!D85/E85) — taxa a.a. + data-fim; alimenta o
+    # imp37 vivo (seguro trimestral sobre o principal RN em aberto). Reproduzido por fórmula no HTML.
+    _dvsheet = wb["Dívida"]
+    seg_rate_rn = _num(_dvsheet["D85"].value) or 0.0
+    _e85 = _dvsheet["E85"].value
+    seg_end_rn = (float((_e85.date() - datetime.date(1899, 12, 30)).days)
+                  if isinstance(_e85, (datetime.datetime, datetime.date))
+                  else (_num(_e85) or 0.0))
     balanco = extract_balanco(wb)                  # caixa/fluxo de caixa + balanço + DCF (insumos colados)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
@@ -1357,11 +1365,13 @@ def main():
     ws_hs.append(["seed23"] + holding_sga["seed23"])          # Holding23 realizado+banda (k<48)
 
     # aba DreBelow: linhas abaixo do EBITDA. Drivers dos módulos de capex/dívida/impostos (deprec,
-    # resfin, receita bruta, deduções, imp36/37) + premissas fiscais (constantes, sementes, entidade A).
+    # resfin, receita bruta, deduções, imp36) + premissas fiscais (constantes, sementes, entidade A).
     # IMPOSTOS é computado ao vivo no HTML (máquina de NOL de 2 entidades) — aqui só as premissas.
+    # imp37 (reclass. RN do resultado financeiro) agora é VIVO (módulo de dívida: juros+IOF+seguros
+    # RN) — removido daqui. imp36 (deprec RN) segue extraído.
     ws_db = out.create_sheet("DreBelow")
     ws_db.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("receita_bruta", "deducoes", "imp36", "imp37"):
+    for key in ("receita_bruta", "deducoes", "imp36"):
         ws_db.append([key] + dre_below[key])
     ws_db.append(["taxconst", dre_below["E30"], dre_below["E31"], dre_below["E32"],
                   dre_below["E33"], dre_below["E34"]])
@@ -1392,6 +1402,8 @@ def main():
     ws_dv = out.create_sheet("Divida")
     ws_dv.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     ws_dv.append(["cfg_var_d6", var_d6])   # toggle IPCA on/off dos índices (lido na fase de extração)
+    ws_dv.append(["cfg_seg_rate_rn", seg_rate_rn])   # taxa a.a. do seguro RN (Dívida!D85) — premissa
+    ws_dv.append(["cfg_seg_end_rn", seg_end_rn])     # data-fim do seguro RN (Dívida!E85, serial) — premissa
     for i, d in enumerate(divida):
         term = [d["name"], d["tipo"], d["indice"], d["spread"], d["iof"], d["comissao"],
                 d["taxa_comp"], d["inicio_amort"], d["n_amort"], d["ultima"], d["inicio_pgto"],

@@ -428,6 +428,8 @@ function parseWorkbook(buf){
   const gdv = grid("Divida"); const dividaCfg={var_d6:0}, _dvById={};
   if(gdv) for(let i=1;i<gdv.length;i++){ const r=gdv[i]; if(!r||r[0]==null) continue; const key=String(r[0]);
     if(key==="cfg_var_d6"){ dividaCfg.var_d6=+r[1]||0; continue; }
+    if(key==="cfg_seg_rate_rn"){ dividaCfg.seg_rate_rn=(r[1]==null?null:+r[1]); continue; }
+    if(key==="cfg_seg_end_rn"){ dividaCfg.seg_end_rn=(r[1]==null?null:+r[1]); continue; }
     const m=key.match(/^i(\d+)_(.+)$/); if(!m) continue; const id=+m[1], fld=m[2], inst=_dvById[id]||(_dvById[id]={id});
     if(fld==="term"){ inst.name=r[1]; inst.tipo=+r[2]; inst.indice=+r[3]; inst.spread=+r[4]||0; inst.iof=+r[5]||0;
       inst.comissao=+r[6]||0; inst.taxa_comp=+r[7]||0; inst.inicio_amort=r[8]; inst.n_amort=r[9]; inst.ultima=r[10];
@@ -1788,9 +1790,19 @@ function dividaEngine(){
   const agg=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
   const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof"),
         desemb=agg("desemb"), amort=agg("amort"), pagJ=agg("pagJuros");
+  // imp37 (Impostos!37 = reclassificação RN do resultado financeiro) = −(juros + IOF + comissão
+  // + taxa + SEGUROS) alocado a RN (coluna G do modelo). Neste cenário IOF/comissão/taxa = 0; o
+  // SEGURO (Dívida r85) é TRIMESTRAL = −(principal RN em aberto) × ((1+taxa)^(3/12)−1), até a
+  // data-fim. taxa/data-fim = premissa (cfg.seg_rate_rn/seg_end_rn). Validado 1:1 vs Impostos!37.
   const imp37=new Array(n).fill(0);
   for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g) continue;
     for(let k=0;k<n;k++) imp37[k]+= -(g*(R[i].despJuros[k]+R[i].iof[k])); }
+  const segRate=(cfg.seg_rate_rn!=null?cfg.seg_rate_rn:0.013), segEnd=(cfg.seg_end_rn!=null?cfg.seg_end_rn:47119),
+        qr=Math.pow(1+segRate,3/12)-1;
+  let cumRN=0;
+  for(let k=0;k<n;k++){ let flow=0; for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(g) flow+=g*(R[i].desemb[k]+R[i].amort[k]); }
+    cumRN+=flow; const mo=+DB.meses[k].ym.slice(5);
+    if(k>cut && mo%3===0 && dates[k]<segEnd) imp37[k]+= cumRN*qr; }   // −r85 (seguro é negativo → soma +)
   return (_dividaCache={juros, saldo, iof, imp37, desemb, amort, pagJ, R, insts});
 }
 function jurosDividaSerie(){ return dividaEngine().juros; }         // Dívida!20 (despesa de juros, >0)
@@ -1897,7 +1909,7 @@ function _taxMachine(pre, seed, k0){
 function impostosSerie(){
   const n=DB.meses.length, K0=48, DBb=DB.dreBelow||{}, entA=new Set(DBb.entityA||[3]),
         H23=holdingSgaSerie(), dep=depreciacaoSerie(), rf=resultadoFinanceiroSerie(),
-        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=DBb.imp37||[];   // TODO: vira vivo com o módulo de comissões (imp37 = juros+IOF+comissão+taxa RN)
+        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=dividaEngine().imp37;   // imp37 VIVO (juros+IOF+seguros RN, do módulo de dívida); imp36 (deprec RN) segue extraído
   // RO da entidade A = Σ plantas da entidade A; B = RO total − A
   let roA=new Array(n).fill(0); for(const p of entA){ const s=roPlantaSerie(p); for(let k=0;k<n;k++) roA[k]+=s[k]; }
   const preA=new Array(n), preB=new Array(n);
