@@ -161,6 +161,8 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .premgrp{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin:12px 0 2px;grid-column:1/-1}
 .btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
+.mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
+.mtbl th.proj{color:var(--accent2)}
 </style>
 </head>
 <body class="loading">
@@ -569,7 +571,7 @@ function render(){
   let html = `<div class="pgttl">${aba.nome}${aba.fase?`<span class="tag">Fase ${aba.fase}</span>`:''}</div>`;
   if(MODELAGEM_ABAS.has(aba.id)) html += `<div style="margin:2px 0 4px"><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:8px">Periodicidade</span>${perbarHTML()}</div>`;
   if(aba.id==="macro"){
-    html += `<div class="pglead">Indicadores macro — base histórica (Realizado). Projeção macro vira premissa editável na Fase E.</div>`;
+    html += `<div class="pglead">Indicadores macro (SELIC/IPCA/CDI/Brent/Henry Hub/Dólar/CPI) — <b>realizado + projeção</b>. A projeção é <b>premissa</b> colada na base <code>gnlink-bp-historico.xlsx</code> (não é fórmula) e dirige toda a indexação (preço, molécula, dívida).</div>`;
     html += renderMacro();
     m.innerHTML = html;
     drawMacro();
@@ -616,30 +618,34 @@ function macroList(){ return Object.values(DB.macro); }
 function nRealizado(){ return DB.meses.filter(m=>m.flag==="R").length; }
 
 function renderMacro(){
-  const n = nRealizado();
+  const n = nRealizado(), cut = DB.cutoffIdx;
   let h = '<div class="mkpis">';
   for(const s of macroList()){
     const last = s.vals.slice(0,n).filter(v=>v!=null).pop();
+    const end = s.vals[s.vals.length-1];
     const pct = /a\.m\./.test(s.unidade);
+    const fm = v => v==null?'—':(pct?fmtPct(v):fmt(v,2));
     h += `<div class="mkpi"><div class="cap">${s.label}</div>
-          <div class="val">${last==null?'—':(pct?fmtPct(last):fmt(last,2))}</div>
-          <div class="sub">${s.unidade} · último realizado</div></div>`;
+          <div class="val">${fm(last)}</div>
+          <div class="sub">${s.unidade} · últ. real. · proj. dez/38 <b>${fm(end)}</b></div></div>`;
   }
   h += '</div>';
-  h += '<div class="card"><h4>Séries macro (Realizado)</h4><div class="chart-box"><canvas id="cMacroRates"></canvas></div></div>';
-  h += '<div class="card"><h4>Commodities & câmbio (Realizado)</h4><div class="chart-box"><canvas id="cMacroComm"></canvas></div></div>';
+  h += '<div class="card"><h4>Séries macro — Realizado + Projeção <span style="font-size:11px;color:var(--muted);font-weight:500">(tracejado = premissa projetada, na planilha)</span></h4><div class="chart-box"><canvas id="cMacroRates"></canvas></div></div>';
+  h += '<div class="card"><h4>Commodities & câmbio — Realizado + Projeção <span style="font-size:11px;color:var(--muted);font-weight:500">(tracejado = projeção)</span></h4><div class="chart-box"><canvas id="cMacroComm"></canvas></div></div>';
   h += macroTable();
   return h;
 }
 function macroTable(){
-  const n = nRealizado(), ms = DB.meses.slice(0,n);
-  let h='<h3 class="msub">Tabela — Realizado ('+fmtMes(ms[0].ym)+' a '+fmtMes(ms[n-1].ym)+')</h3><div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Indicador</th>';
-  for(const mo of ms) h+=`<th>${fmtMes(mo.ym)}</th>`;
+  const ms = DB.meses, cut = DB.cutoffIdx;
+  let h='<h3 class="msub">Tabela — Realizado + Projeção ('+fmtMes(ms[0].ym)+' a '+fmtMes(ms[ms.length-1].ym)+')</h3>'
+      +'<div class="note" style="margin:6px 0">A projeção macro (a partir de '+fmtMes(ms[cut+1].ym)+') é <b>premissa</b> — vem colada da planilha <code>gnlink-bp-historico.xlsx</code>, não é calculada. Dirige a indexação de preço, molécula e dívida.</div>'
+      +'<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Indicador</th>';
+  for(let i=0;i<ms.length;i++) h+=`<th class="${i>cut?'proj':''}">${fmtMes(ms[i].ym)}</th>`;
   h+='</tr></thead><tbody>';
   for(const s of macroList()){
     const pct = /a\.m\./.test(s.unidade);
     h+=`<tr><td class="l">${s.label}</td>`;
-    for(let i=0;i<n;i++){ const v=s.vals[i]; h+=`<td>${v==null?'':(pct?fmtPct(v):fmt(v,2))}</td>`; }
+    for(let i=0;i<ms.length;i++){ const v=s.vals[i]; h+=`<td class="${i>cut?'proj':''}">${v==null?'':(pct?fmtPct(v):fmt(v,2))}</td>`; }
     h+='</tr>';
   }
   h+='</tbody></table></div>';
@@ -647,9 +653,11 @@ function macroTable(){
 }
 const PAL = ["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#55677C","#7FC6A2","#4880A8"];
 function drawMacro(){
-  const n = nRealizado(), labels = DB.meses.slice(0,n).map(m=>fmtMes(m.ym));
-  const by = id => (DB.macro[id]||{vals:[]}).vals.slice(0,n);
+  const cut = DB.cutoffIdx, labels = DB.meses.map(m=>fmtMes(m.ym));
+  const dash = ctx => ctx.p0DataIndex>=cut ? [5,4] : undefined;   // projeção tracejada
+  const by = id => (DB.macro[id]||{vals:[]}).vals.slice();
   const byPct = id => by(id).map(v=> v==null?null:v*100);   // frações -> % p/ o gráfico
+  const seg = {segment:{borderDash:dash}};
   const ratesOpts = baseLineOpts();
   ratesOpts.scales = { x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
                        y:{ticks:{callback:v=>fmtNum(v,2)+"%",color:"#5C6B7A"}} };
@@ -658,19 +666,19 @@ function drawMacro(){
   charts.rates = new Chart($("#cMacroRates"),{
     type:"line",
     data:{labels, datasets:[
-      {label:"SELIC (% a.m.)",data:byPct("selic"),borderColor:PAL[0],tension:.25,pointRadius:0},
-      {label:"IPCA (% a.m.)", data:byPct("ipca"), borderColor:PAL[1],tension:.25,pointRadius:0},
-      {label:"CDI (% a.m.)",  data:byPct("cdi"),  borderColor:PAL[2],tension:.25,pointRadius:0},
-      {label:"CPI EUA (% a.m.)",data:byPct("cpi"),borderColor:PAL[3],tension:.25,pointRadius:0},
+      Object.assign({label:"SELIC (% a.m.)",data:byPct("selic"),borderColor:PAL[0],tension:.25,pointRadius:0},seg),
+      Object.assign({label:"IPCA (% a.m.)", data:byPct("ipca"), borderColor:PAL[1],tension:.25,pointRadius:0},seg),
+      Object.assign({label:"CDI (% a.m.)",  data:byPct("cdi"),  borderColor:PAL[2],tension:.25,pointRadius:0},seg),
+      Object.assign({label:"CPI EUA (% a.m.)",data:byPct("cpi"),borderColor:PAL[3],tension:.25,pointRadius:0},seg),
     ]},
     options:ratesOpts
   });
   charts.comm = new Chart($("#cMacroComm"),{
     type:"line",
     data:{labels, datasets:[
-      {label:"Brent (US$/bbl)",     data:by("brent"),   borderColor:PAL[0],yAxisID:"y", tension:.25,pointRadius:0},
-      {label:"Henry Hub (US$/MMBtu)",data:by("henryhub"),borderColor:PAL[1],yAxisID:"y1",tension:.25,pointRadius:0},
-      {label:"Dólar (BRL/USD)",     data:by("dolar"),   borderColor:PAL[2],yAxisID:"y1",tension:.25,pointRadius:0},
+      Object.assign({label:"Brent (US$/bbl)",     data:by("brent"),   borderColor:PAL[0],yAxisID:"y", tension:.25,pointRadius:0},seg),
+      Object.assign({label:"Henry Hub (US$/MMBtu)",data:by("henryhub"),borderColor:PAL[1],yAxisID:"y1",tension:.25,pointRadius:0},seg),
+      Object.assign({label:"Dólar (BRL/USD)",     data:by("dolar"),   borderColor:PAL[2],yAxisID:"y1",tension:.25,pointRadius:0},seg),
     ]},
     options:Object.assign(baseLineOpts(),{scales:{
       x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},

@@ -135,16 +135,17 @@ def row_values(ws, row):
 
 
 def extract_macro(wb, months, cutoff):
-    """aba Macro: mantém só o Realizado (meses <= cutoff); projeção fica em branco."""
+    """aba Macro: séries COMPLETAS (realizado + projeção). A projeção macro é PREMISSA
+    — valor colado no modelo (SELIC/IPCA/CDI/Brent/HH/Dólar/CPI) que dirige a indexação,
+    não é output de fórmula — então vai inteira à planilha. O split realizado/projeção
+    continua no flag R/O da aba `meses` (cutoff mantido na assinatura por compat.)."""
     ws = wb["Macro"]
     ym = [(m.year, m.month) for m in months]
-    keep = [ (datetime.date(y, mo, 1) <= cutoff) for (y, mo) in ym ]
     rows = []
     header = ["serie_id", "label", "unidade"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym]
     rows.append(header)
     for (r, sid, label, unit) in MACRO_SERIES:
         vals = row_values(ws, r)
-        vals = [ (v if keep[i] else None) for i, v in enumerate(vals) ]
         rows.append([sid, label, unit] + vals)
     return rows
 
