@@ -629,6 +629,9 @@ function render(){
   if(aba.id==="variavel"){
     const r=renderVariavel(); m.innerHTML=html+r.html; wireSubtabs(); drawMolecula(r.mol); return;
   }
+  if(aba.id==="holding"){
+    const r=renderHolding(); m.innerHTML=html+r.html; if(r.draw) r.draw(); return;
+  }
   // demais abas: placeholder com sub-abas de região já operantes
   html += `<div class="pglead">Região selecionada: <b>${regName(state.regiao)}</b>.</div>`;
   html += subtabsHTML();
@@ -1674,25 +1677,85 @@ function deducoesSerie(){
 // 6 componentes: médias/sementes de 2026 × corr556 (IPCA) × fatores; gatilho de escala (r15) na
 // série r32 (proxy de volume). corr556 já vivo. Validado 1:1 vs modelo (dre_ref.py, k≥jan/27).
 // Retorna série NEGATIVA (é despesa); ago-dez/26 (k43-47) = banda de orçamento (r13 é hardcode).
-function holdingSgaSerie(){
+const HOLD_SUB=["pessoal","admin","viagens","comunicacao","servicos","erp"];
+const HOLD_LABEL={pessoal:"Pessoal (matriz)",admin:"Administrativo",viagens:"Viagens",comunicacao:"Comunicação",servicos:"Prestação de serviço",erp:"Opex ERP"};
+function holdingSgaComp(){   // {comp:{sub:[192]}, total:[192]} — 6 componentes do SG&A da matriz
   const n=DB.meses.length, cut=DB.cutoffIdx, corr=DB.seriesOpex.corr556||[], mo=DB.monthsOrd,
         H=DB.holdingSga||{scalars:{}}, S=H.scalars||{}, seed13=H.seed13||[], r32=H.r32||[];
   const H8=(S.H8!=null?+S.H8:1), H28=(+S.C28||0)*(1+(+S.C29||0)), C27=+S.C27||0, C30=+S.C30||0,
         C32=+S.C32||0, C33=+S.C33||0, D18=+S.D18||0, SEED15=+S.SEED15||0, C34=+S.C34||0,
-        AVG14=+S.AVG14||0, AVG16=+S.AVG16||0, AVG17=+S.AVG17||0, seed23=H.seed23||[], out=new Array(n).fill(null);
+        AVG14=+S.AVG14||0, AVG16=+S.AVG16||0, AVG17=+S.AVG17||0, seed23=H.seed23||[];
+  const C={}; HOLD_SUB.forEach(s=>C[s]=new Array(n).fill(0)); const total=new Array(n).fill(null);
   for(let k=0;k<n;k++){
     if(k<=cut) continue;                                         // realizado vem da DRE histórica
-    if(typeof seed23[k]==="number"){ out[k]=seed23[k]; continue; }  // banda orçamento ago-dez/26 (r13 hardcode)
+    if(typeof seed23[k]==="number"){ total[k]=seed23[k]; C.pessoal[k]=seed23[k]; continue; }  // banda orçamento (r13 hardcode)
     const cr=(typeof corr[k]==="number")?corr[k]:1, year=Math.floor(mo[k]/12), mon=(mo[k]%12)+1;
     const H27=Math.min(C27*(year-2026)+3, C30);
     const s13=(typeof seed13[mon-1]==="number")?seed13[mon-1]:0;
-    const r13=(s13 - H28*H27)*cr;
-    const r14=AVG14*cr*H8, r16=AVG16*cr*H8, r17=AVG17*cr*H8;
+    C.pessoal[k]=(s13 - H28*H27)*cr;
+    C.admin[k]=AVG14*cr*H8; C.comunicacao[k]=AVG16*cr*H8; C.servicos[k]=AVG17*cr*H8;
     const gate=C34?Math.max(C33, 1 - C32*(((+r32[k]||0)-C34)/C34)):C33;
-    const r15=SEED15*gate*H8*cr, r18=-D18*H8*cr;
-    out[k]=r13+r14+r15+r16+r17+r18;
+    C.viagens[k]=SEED15*gate*H8*cr; C.erp[k]=-D18*H8*cr;
+    total[k]=C.pessoal[k]+C.admin[k]+C.viagens[k]+C.comunicacao[k]+C.servicos[k]+C.erp[k];
   }
-  return out;
+  return {comp:C, total};
+}
+function holdingSgaSerie(){ return holdingSgaComp().total; }
+/* -------------------------------------------------- aba Holding (SG&A matriz) */
+function premHoldingPanel(){
+  const S=(DB.holdingSga||{scalars:{}}).scalars||{}, O=_premOrig&&_premOrig.holdingSga?_premOrig.holdingSga.scalars:null;
+  const edN=k=>O&&premDif(S[k],O[k]);
+  const N=(lbl,k,unit,o)=>premCtrl(lbl,unit, S[k]==null?0:+S[k], (x=>v=>{ (DB.holdingSga.scalars)[k]=+v; })(0), Object.assign({edited:edN(k)},o||{}));
+  const P=(lbl,k,o)=>premCtrl(lbl,"%", (S[k]==null?0:+S[k])*100, v=>{ DB.holdingSga.scalars[k]=(+v)/100; }, Object.assign({edited:edN(k)},o||{}));
+  let h='<div class="premcard"><div class="ph"><b>Premissas — SG&A da holding</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'holding\')">restaurar</button></div>';
+  h+='<div class="psub">Overhead da matriz — headcount, viagens (elasticidade ao volume) e Opex ERP. Alterar re-projeta o EBITDA ao vivo.</div>';
+  h+='<div class="premgrid">';
+  h+='<div class="premgrp">Pessoal (headcount)</div>';
+  h+=N("Custo médio do colaborador","C28","R$/mês",{dec:0});
+  h+=P("Encargos + benefícios","C29",{dec:0});
+  h+=N("Colaboradores adicionais/ano","C27","pessoas",{dec:0,max:12});
+  h+=N("Limite de colaboradores add.","C30","pessoas",{dec:0,max:30});
+  h+='<div class="premgrp">Viagens (elasticidade ao volume)</div>';
+  h+=P("Elasticidade viagens/volume","C32",{dec:0});
+  h+=P("Piso mínimo de viagens","C33",{dec:0});
+  h+=N("Volume-base","C34","m³/dia",{dec:0});
+  h+=N("Viagens — base","SEED15","R$/mês",{dec:0});
+  h+='<div class="premgrp">Outros componentes (base 2026 · R$/mês)</div>';
+  h+=N("Administrativo","AVG14","R$/mês",{dec:0});
+  h+=N("Comunicação","AVG16","R$/mês",{dec:0});
+  h+=N("Prestação de serviço","AVG17","R$/mês",{dec:0});
+  h+=N("Opex ERP","D18","R$/mês",{dec:0});
+  h+='</div></div>';
+  return h;
+}
+function renderHolding(){
+  const HC=holdingSgaComp(), tot=HC.total, cut=DB.cutoffIdx, n=DB.meses.length, MM=v=>fmt(v/1e6,1);
+  const yTot=anoSum(tot), ks=Object.keys(yTot).sort();
+  let h=`<div class="pglead"><b>SG&A da Holding (matriz)</b> — overhead corporativo rateado, por fórmula viva: Pessoal (rampa de headcount), Administrativo/Comunicação/Serviço (base 2026 × IPCA), Viagens (com elasticidade ao volume) e Opex ERP. Entra no EBITDA (EBITDA = Resultado Operacional + SG&A holding).<span class="tag">Fase D</span></div>`;
+  h+=premHoldingPanel();
+  h+='<div class="mkpis">';
+  h+=kpi("SG&A holding 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
+  h+=kpi("SG&A holding 2030 (R$ MM)", MM(yTot["2030"]?.v||0), "");
+  h+=kpi("SG&A holding "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
+  h+='</div>';
+  h+='<div class="card"><h4>SG&A da holding — mensal por componente (R$ MM)</h4><div class="chart-box"><canvas id="cHold"></canvas></div></div>';
+  const rows=HOLD_SUB.map(s=>({lbl:HOLD_LABEL[s], serie:HC.comp[s], d:1}))
+    .concat([{lbl:"Total SG&A holding", serie:tot, bold:true, d:1}]);
+  h+='<h3 class="msub">Componentes (R$ MM)</h3>'+serieTableHTML(rows,"R$ MM");
+  h+='<div class="note">Projeção por fórmula (validada 1:1 no EBITDA). Realizado vem da DRE histórica; ago-dez/26 é semente de orçamento (só o total).</div>';
+  return {html:h, draw:()=>drawHoldStack(HC)};
+}
+function drawHoldStack(HC){
+  const labels=DB.meses.map(m=>fmtMes(m.ym));
+  const ds=HOLD_SUB.map((s,i)=>({label:HOLD_LABEL[s], data:HC.comp[s].map(v=>v/1e6), backgroundColor:SUBPAL[i%SUBPAL.length], borderWidth:0, stack:"h"}));
+  charts.hold=new Chart($("#cHold"),{type:"bar",data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
+      scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
+              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
 }
 // EBITDA: realizado da DRE histórica (≤corte); projeção = Resultado Operacional + SG&A holding.
 function ebitdaSerie(){
@@ -2270,7 +2333,7 @@ function snapshotPrem(){
               logGlob:C(DB.logGlob), regasCli:C(DB.regasCli), regasGlob:C(DB.regasGlob), cryoMW:CRYO_MW.slice(),
               sgaCfg:C(DB.sgaCfg), sgaGlob:C(DB.sgaGlob), compTerm:C(DB.compTerm),
               molCompBase:C(DB.molCompBase), molCompBasePreco:C(DB.molCompBasePreco),
-              molPiso:C(DB.molPiso), molTeto:C(DB.molTeto), molPrem:C(DB.molPrem) };
+              molPiso:C(DB.molPiso), molTeto:C(DB.molTeto), molPrem:C(DB.molPrem), holdingSga:C(DB.holdingSga) };
 }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
@@ -2302,6 +2365,7 @@ function premReset(grupo){
   else if(grupo==="regas"){ DB.regasCli=JSON.parse(JSON.stringify(O.regasCli)); DB.regasGlob=JSON.parse(JSON.stringify(O.regasGlob)); }
   else if(grupo==="mol"){ DB.molCompBase=JSON.parse(JSON.stringify(O.molCompBase)); DB.molCompBasePreco=JSON.parse(JSON.stringify(O.molCompBasePreco));
     DB.molPiso=JSON.parse(JSON.stringify(O.molPiso)); DB.molTeto=JSON.parse(JSON.stringify(O.molTeto)); DB.molPrem=JSON.parse(JSON.stringify(O.molPrem)); }
+  else if(grupo==="holding"){ DB.holdingSga=JSON.parse(JSON.stringify(O.holdingSga)); }
   clearAllCaches(); render();
 }
 // desloca (delta-shift) a projeção de uma série mensal p/ o novo nível, preservando a forma da curva
