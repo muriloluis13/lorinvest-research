@@ -2340,6 +2340,7 @@ function premLiquefPanel(reg){
   h+=premCtrl("Perda no processo","%", (PL.perdaFrac?+PL.perdaFrac[i]:0)*100,
         v=>{ (PL.perdaFrac=PL.perdaFrac||[])[i]=(+v)/100; }, {dec:1,min:0,max:15,edited: O&&O.perdaFrac&&premDif(PL.perdaFrac&&PL.perdaFrac[i],O.perdaFrac[i])});
   h+=arr("Outros","outros_rate","R$/mês",{dec:0});
+  h+=arr("Recuperação de purga","purga_c","frac(GNC) ou R$/m³·dia",{dec:2});   // PR fração de vol GNC · BA flat/dia
   h+='<div class="premgrp">Potência por estágio de Cryo (global · MW)</div>';
   for(let s=0;s<CRYO_MW.length;s++){ const so=_premOrig?_premOrig.cryoMW:null;
     h+=premCtrl((s+1)+" Cryo(s) ligado(s)","MW",CRYO_MW[s], (function(idx){return v=>{ CRYO_MW[idx]=+v; };})(s),
@@ -2372,12 +2373,21 @@ function premLogPanel(reg){
     h+=premModalCtrl(arr,arr0,"Frete variável","custo_km","R$/km",{dec:2});
     h+=premModalCtrl(arr,arr0,"Aluguel do equipamento","aluguel","R$/un",{dec:0});
     h+=premModalCtrl(arr,arr0,"Capacidade","cap","m³",{dec:0});
+    h+=premModalCtrl(arr,arr0,"Tempo de descarga","descarga","horas",{dec:0});
   }
-  h+='<div class="premgrp">Cavalo mecânico (por planta · R$/mês)</div>';
+  // premissas gerais da distribuição (globais)
+  h+='<div class="premgrp">Distribuição — geral</div>';
+  const allLog=DB.logCli, allLog0=O?O.logCli:[];
+  h+=premModalCtrl(allLog,allLog0,"Distância máx. percorrida","hmax","km/turno",{dec:0});
+  const LG=DB.logGlob, lg0=O&&O.logGlob||{}, edLG=k=>O&&premDif(LG[k],lg0[k]);
+  h+=premCtrl("ISOs ociosos — custo","R$/ISO·mês", +LG.fix_cost||0, (x=>v=>{ x.fix_cost=+v; })(LG), {dec:0,edited:edLG("fix_cost")});
+  h+=premCtrl("Preparação de ISO","R$/ISO", +LG.prep_cost||0, (x=>v=>{ x.prep_cost=+v; })(LG), {dec:0,edited:edLG("prep_cost")});
+  h+='<div class="premgrp">Cavalo mecânico + sinergia (por planta)</div>';
   for(const p of plantas){ const lp=DB.logPlanta[p]; if(!lp) continue;
     const nome=(DB.regioes.find(r=>r.id===p)||{}).nome||("Planta "+p), o0=O&&O.logPlanta[p]||{};
-    h+=premCtrl(nome+" — fixo","R$/mês", +lp.cav_fix||0, (x=>v=>{ x.cav_fix=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_fix,o0.cav_fix)});
-    h+=premCtrl(nome+" — variável","R$/mês", +lp.cav_var||0, (x=>v=>{ x.cav_var=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_var,o0.cav_var)});
+    h+=premCtrl(nome+" — cavalo fixo","R$/mês", +lp.cav_fix||0, (x=>v=>{ x.cav_fix=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_fix,o0.cav_fix)});
+    h+=premCtrl(nome+" — cavalo variável","R$/mês", +lp.cav_var||0, (x=>v=>{ x.cav_var=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_var,o0.cav_var)});
+    h+=premCtrl(nome+" — sinergia (redução)","%", (+lp.sin_red||0)*100, (x=>v=>{ x.sin_red=(+v)/100; })(lp), {dec:1,max:100,edited:O&&premDif(lp.sin_red,o0.sin_red)});
   }
   h+='</div></div>';
   return h;
@@ -2416,8 +2426,8 @@ function premSgaPanel(reg){
   h+='<div class="premgrp">Pessoal</div>';
   h+=F("Salário médio","sal_d","R$/mês·pessoa",{dec:0}); h+=F("Headcount","sal_hc","pessoas",{dec:0,max:40});
   h+='<div class="premgrp">Seguros</div>';
-  h+=F("Seg. operacional — valor segurado","segop_d","R$",{dec:0}); h+=P("Seg. operacional — taxa a.a.","segop_e");
-  h+=F("Seg. equipamento — valor segurado","segeq_d","R$",{dec:0}); h+=P("Seg. equipamento — taxa a.a.","segeq_e");
+  h+=F("Seg. operacional — valor segurado","segop_d","R$",{dec:0}); h+=P("Seg. operacional — taxa a.a.","segop_e"); h+=F("Seg. operacional — periodicidade","segop_f","meses",{dec:0,max:12});
+  h+=F("Seg. equipamento — valor segurado","segeq_d","R$",{dec:0}); h+=P("Seg. equipamento — taxa a.a.","segeq_e"); h+=F("Seg. equipamento — periodicidade","segeq_f","meses",{dec:0,max:12});
   h+='<div class="premgrp">Serviços & viagens</div>';
   h+=F("Assistência técnica (anual)","assist_d","R$/ano",{dec:0}); h+=F("Serviços gerais","serv_d","R$/mês",{dec:0}); h+=F("Viagens e hospedagens","viag_d","R$/mês",{dec:0});
   h+='<div class="premgrp">Projetos · regulatório</div>';
@@ -2451,6 +2461,7 @@ function premRegasPanel(reg){
   h+='<div class="premgrp">Furui (globais)</div>';
   h+=premCtrl("Leasing 18 bar","US$/dia", +G.usd_dia||0, (x=>v=>{ x.usd_dia=+v; })(G), {dec:0,edited:ed("usd_dia")});
   h+=premCtrl("Nº de equipamentos","equip", +G.equip||0, (x=>v=>{ x.equip=+v; })(G), {dec:0,max:30,edited:ed("equip")});
+  h+=premCtrl("Equipamentos disponíveis","equip", +G.equip_disp||0, (x=>v=>{ x.equip_disp=+v; })(G), {dec:0,max:30,edited:ed("equip_disp")});
   h+=premCtrl("Aluguel ISO","R$/dia", +G.isos||0, (x=>v=>{ x.isos=+v; })(G), {dec:0,edited:ed("isos")});
   h+=premCtrl("Preparação de ISO","R$/ISO", +G.prep_iso||0, (x=>v=>{ x.prep_iso=+v; })(G), {dec:0,edited:ed("prep_iso")});
   h+=premCtrl("Assistência — valor","R$", +G.assist_valor||0, (x=>v=>{ x.assist_valor=+v; })(G), {dec:0,edited:ed("assist_valor")});
@@ -2476,6 +2487,9 @@ function premMoleculaPanel(reg){
   const baseEd=O&&O.molCompBase[pp]&&premDif(cb?cb[fp]:0, O.molCompBase[pp][fp]);
   h+=premCtrl("Custo-base","R$/m³", cb?+cb[fp]:0,
         v=>{ molShiftSerie(DB.molCompBase[pp],fp,+v); molShiftSerie(DB.molCompBasePreco[pp],fp,+v); }, {dec:3, edited:baseEd});
+  const MPo=DB.molPrem;   // frequência de reajuste (ocorrência, em meses) por planta
+  h+=premCtrl("Frequência de reajuste","meses", MPo.ocorrencia?+MPo.ocorrencia[i]:0,
+        v=>{ (MPo.ocorrencia=MPo.ocorrencia||[])[i]=+v; }, {dec:0, min:1, max:12, edited: O&&O.molPrem&&O.molPrem.ocorrencia&&premDif(MPo.ocorrencia&&MPo.ocorrencia[i], O.molPrem.ocorrencia[i])});
   const piso=DB.molPiso&&DB.molPiso[pp], teto=DB.molTeto&&DB.molTeto[pp];
   const hasPiso=piso&&typeof piso[fp]==="number", hasTeto=teto&&typeof teto[fp]==="number";
   if(hasPiso||hasTeto){ h+='<div class="premgrp">Piso / teto do preço (R$/m³)</div>';
