@@ -118,10 +118,23 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .stagegrid{display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:6px;align-items:center;margin:4px 0}
 .stagegrid .sh{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase}
 .stagegrid .st{font-size:12px;font-weight:700;color:var(--accent)}
-.clitbl tbody tr{cursor:pointer}
-.clitbl tbody tr:hover td{background:#EEF2F7}
+.clitbl{border-collapse:separate;border-spacing:0}
+.clitbl thead th{background:#F4F6FA;color:var(--accent);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:9px 12px;border-bottom:2px solid var(--line);text-align:right}
+.clitbl thead th.l{text-align:left}
+.clitbl tbody td{padding:9px 12px;font-size:12.5px;border-bottom:1px solid #EEF1F5;text-align:right;white-space:nowrap}
+.clitbl tbody td.l{text-align:left;font-weight:600;color:var(--ink)}
+.clitbl tbody tr{cursor:pointer;transition:background .1s}
+.clitbl tbody tr:hover td{background:#F1F5FA}
 .clitbl tbody tr.sel td{background:#EAF0F6}
 .clitbl td.l .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--orange);margin-right:6px;vertical-align:middle}
+.seg-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
+.seg-Industrial{background:#E8EEF6;color:#3D4A5C}.seg-Distribuidora{background:#EAF3EC;color:#2E7D4F}.seg-Posto{background:#FBEEE6;color:#C55A17}
+.modal-overlay{position:fixed;inset:0;background:rgba(35,39,42,.45);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:36px 16px;overflow:auto;animation:mfade .12s ease}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.28);max-width:640px;width:100%;position:relative;padding:24px 28px 26px}
+.modal .mclose{position:absolute;top:12px;right:14px;cursor:pointer;font-size:24px;line-height:1;color:var(--muted);border:none;background:none;padding:2px 8px;border-radius:8px}
+.modal .mclose:hover{color:var(--accent3);background:#F4F6FA}
+.modal .cform{max-width:none}
 .formbtns{display:flex;gap:10px;margin-top:18px;align-items:center}
 .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:700;font-size:13px}
 .btn-primary:hover{background:var(--accent2)}
@@ -219,6 +232,7 @@ const fmtNum = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{m
 // datas: "Jan/23", "Fev/23" ...
 const MES_ABBR=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function fmtMes(ym){ if(!ym) return ""; const p=String(ym).split("-"); return (MES_ABBR[(+p[1])-1]||"?")+"/"+String(p[0]).slice(2); }
+function fmtMesY(v){ if(!v) return "—"; const p=String(v).split("-"); if(p.length<2) return String(v); return (MES_ABBR[(+p[1])-1]||"?")+"/"+p[0]; }  // Mar/2026
 // ícone de ajuda (?) que mostra a mecânica/fórmula ao passar o mouse
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function help(text){ return text ? `<span class="hlp" tabindex="0" data-tip="${esc(text)}">?</span>` : ""; }
@@ -1449,26 +1463,37 @@ function isEdited(c){ const b=(DB.clientesBase||[]).find(x=>x.id===c.id); return
 
 function renderClientes(){
   let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Editar a <b>curva de volume</b> re-projeta o BP ao vivo.<span class="tag">Fase B</span></div>`;
-  h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome ou planta…" oninput="onCliSearch(this.value)"></div>`;
+  h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome, planta ou segmento…" oninput="onCliSearch(this.value)"></div>`;
   const q=(state.cliQ||"").toLowerCase();
-  h += '<div class="tblwrap" style="max-height:300px;overflow:auto"><table class="mtbl clitbl"><thead><tr><th class="l">Cliente</th><th>Planta</th><th>Produto</th><th>Vol máx</th><th>Início op.</th><th>Fim contrato</th><th>Preço</th></tr></thead><tbody>';
+  h += '<div class="tblwrap" style="max-height:460px;overflow:auto"><table class="mtbl clitbl"><thead><tr><th class="l">Cliente</th><th class="l">Planta</th><th class="l">Segmento</th><th class="l">Produto</th><th>Vol. máx (m³/d)</th><th>Início op.</th><th>Fim contrato</th><th>Preço (R$/m³)</th></tr></thead><tbody>';
+  let cnt=0;
   for(const c of DB.clientes){
-    if(q && !((c.nome||'').toLowerCase().includes(q) || (regShort(c.planta)||'').toLowerCase().includes(q))) continue;
-    h += `<tr class="${c.id===state.cliSel?'sel':''}" onclick="selCli('${c.id}')"><td class="l">${isEdited(c)?'<span class="dot"></span>':''}${c.nome||c.id}</td><td>${regShort(c.planta)}</td><td>${c.produto||''}</td><td>${c.volmax!=null?fmt(c.volmax,0):'—'}</td><td>${c.ini_op||'—'}</td><td>${c.fim_contrato||'—'}</td><td>${c.preco!=null?fmt(c.preco,2):'—'}</td></tr>`;
+    if(q && !((c.nome||'').toLowerCase().includes(q) || (regShort(c.planta)||'').toLowerCase().includes(q) || (c.segmento||'').toLowerCase().includes(q))) continue;
+    cnt++;
+    const seg=c.segmento?`<span class="seg-badge seg-${c.segmento}">${c.segmento}</span>`:'<span style="color:var(--muted)">—</span>';
+    h += `<tr class="${c.id===state.cliSel?'sel':''}" onclick="selCli('${c.id}')"><td class="l">${isEdited(c)?'<span class="dot"></span>':''}${c.nome||c.id}</td><td class="l">${regShort(c.planta)}</td><td class="l">${seg}</td><td class="l">${c.produto||''}</td><td>${c.volmax!=null?fmt(c.volmax,0):'—'}</td><td>${fmtMesY(c.ini_op)}</td><td>${fmtMesY(c.fim_contrato)}</td><td>${c.preco!=null?fmt(c.preco,2):'—'}</td></tr>`;
   }
   h += '</tbody></table></div>';
-  h += state.cliSel ? editorHTML(DB.clientes.find(c=>c.id===state.cliSel))
-                    : '<div class="note">Selecione um cliente acima para editar suas premissas.</div>';
+  h += `<div class="note">${cnt} cliente(s). Clique em um cliente para abrir o card e editar suas premissas.</div>`;
+  if(state.cliSel){ const c=DB.clientes.find(x=>x.id===state.cliSel); if(c) h += modalHTML(c); }
   return h;
 }
+function modalHTML(c){
+  return `<div class="modal-overlay" onclick="if(event.target===this)closeCli()"><div class="modal">
+    <button class="mclose" onclick="closeCli()" title="Fechar (Esc)">×</button>${editorHTML(c)}</div></div>`;
+}
+function closeCli(){ state.cliSel=null; state.cliMsg=""; render(); }
 const _fr = (id,lbl,val,type)=>`<div class="frow"><label>${lbl}</label><input id="${id}" ${type||''} value="${val==null?'':val}"></div>`;
 function editorHTML(c){
   const opt=(cur,v,l)=>`<option value="${v}" ${String(cur)===String(v)?'selected':''}>${l}</option>`;
-  let h=`<div class="cform card"><h4>${c.nome||c.id} <span class="tag">id ${c.id}</span>${isEdited(c)?' <span class="okmsg" style="color:var(--orange)">• editado</span>':''}</h4>`;
-  h+='<div class="sec">Identificação</div>';
+  let h=`<div class="cform"><h4>${c.nome||c.id} <span class="tag">id ${c.id}</span>${isEdited(c)?' <span class="okmsg" style="color:var(--orange)">• editado</span>':''}</h4>`;
+  h+='<div class="sec">Identificação & modalidade</div>';
   h+=_fr("e_nome","Nome",c.nome||"","type=text");
   h+=`<div class="frow"><label>Planta</label><select id="e_planta">${DB.regioes.map(r=>opt(c.planta,r.id,r.nome)).join('')}</select></div>`;
   h+=`<div class="frow"><label>Produto</label><select id="e_produto">${opt(c.produto,'GNL','GNL')}${opt(c.produto,'GNC','GNC')}</select></div>`;
+  h+=`<div class="frow"><label>Segmento</label><select id="e_segmento">${opt(c.segmento||'','','—')}${["Industrial","Distribuidora","Posto"].map(s=>opt(c.segmento||'',s,s)).join('')}</select></div>`;
+  h+=`<div class="frow"><label>Serviço inclui molécula</label><select id="e_customol">${opt(c.custo_mol,1,'Sim — com liquefação/compressão')}${opt(c.custo_mol,0,'Não — só serviço (sem molécula)')}</select></div>`;
+  h+=`<div class="frow"><label>Entrega (logística)</label><select id="e_entrega">${opt(c.entrega||'','CIF','CIF — GNLink entrega (incorre custo logístico)')}${opt(c.entrega||'','FOB','FOB — cliente retira (sem custo logístico)')}</select></div>`;
   h+='<div class="sec">Curva de volume (m³/dia) — re-projeta ao vivo</div>';
   h+='<div class="stagegrid"><div class="sh">Estágio</div><div class="sh">Volume</div><div class="sh">Início (AAAA-MM)</div><div class="sh">Fim (AAAA-MM)</div></div>';
   for(let s=1;s<=6;s++){ const st=c.stages[s-1];
@@ -1476,10 +1501,8 @@ function editorHTML(c){
   h+='<div class="sec">Comercial</div>';
   h+=_fr("e_preco","Preço de venda (R$/m³)",c.preco,"type=number step=any");
   h+=_fr("e_aluguel","Aluguel fixo (R$/mês)",c.aluguel,"type=number step=any");
-  h+=`<div class="frow"><label>Custo molécula</label><select id="e_customol">${opt(c.custo_mol,1,'Sim (1)')}${opt(c.custo_mol,0,'Não (0)')}</select></div>`;
   h+=_fr("e_dist","Distância (km)",c.distancia,"type=number step=any");
-  h+=`<div class="frow"><label>Entrega</label><select id="e_entrega">${opt(c.entrega||'','CIF','CIF')}${opt(c.entrega||'','FOB','FOB')}</select></div>`;
-  h+=_fr("e_top","Take-or-Pay (ToP)",c.top,"type=number step=any");
+  h+=`<div class="frow"><label>Take-or-Pay (%)</label><input id="e_top" type="number" step="any" value="${c.top!=null?+(c.top*100).toFixed(6):''}"></div>`;
   h+=_fr("e_regas","Tipo regás",c.tipo_regas||"","type=text");
   h+=_fr("e_correcao","Correção molécula",c.correcao_mol,"type=number step=any");
   h+='<div class="sec">Datas do contrato</div>';
@@ -1515,7 +1538,8 @@ function aplicarCli(id){
     st.ini=ordOf(st.iniYm); st.fim=ordOf(st.fimYm);
   }
   c.preco=_n("e_preco"); c.aluguel=_n("e_aluguel"); c.custo_mol=+_v("e_customol");
-  c.distancia=_n("e_dist"); c.entrega=_v("e_entrega"); c.top=_n("e_top");
+  c.segmento=_v("e_segmento")||null;
+  c.distancia=_n("e_dist"); c.entrega=_v("e_entrega"); { const t=_n("e_top"); c.top=(t==null?null:t/100); }  // ToP em % na UI
   c.tipo_regas=_v("e_regas")||null; c.correcao_mol=_n("e_correcao");
   c.ini_op=_v("e_iniop")||null; c.fim_contrato=_v("e_fim")||null;
   // indexação de preço
