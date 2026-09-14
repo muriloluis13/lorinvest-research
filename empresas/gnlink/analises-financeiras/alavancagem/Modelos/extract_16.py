@@ -213,13 +213,13 @@ FUND = {'Equity': 'equity', 'DI+2,5%': 'di25', 'DI': 'di100', 'IPCA+4,5%': 'ipca
 
 
 def parse(name):
-    m = re.match(r'GNLink_Model_2026\.09\.04 (\d) plantas (.+?) CapExM (ON|OFF)\.xlsx$', name)
+    m = re.match(r'GNLink_Model_2026\.09\.07 (\d) plantas (.+?) CapExM (ON|OFF)\.xlsx$', name)
     return 'p' + m.group(1), FUND[m.group(2)], m.group(3).lower()
 
 
 def main():
     out = {}
-    files = sorted(glob.glob('GNLink_Model_2026.09.04 *.xlsx'))
+    files = sorted(glob.glob('GNLink_Model_2026.09.07 *.xlsx'))
     assert len(files) == 16, files
     for f in files:
         p, fu, cx = parse(os.path.basename(f))

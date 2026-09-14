@@ -42,12 +42,12 @@ h1{font-size:20px;margin:0;color:var(--ink);font-weight:700;letter-spacing:-.2px
 .scdesc{font-size:12px;color:var(--accent);font-weight:600;margin:8px 0 14px;}
 /* kpis */
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:6px 0 8px;}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.kpi{background:#EEF2F6;background:color-mix(in srgb,var(--stripe,#8891A0) 12%,#fff);border:1px solid rgba(19,32,46,.06);border:1px solid color-mix(in srgb,var(--stripe,#8891A0) 20%,#fff);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden;display:flex;flex-direction:column;}
 .kpi::before{display:none;}
-.kpi .cap{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-.kpi .val{font-size:20px;font-weight:700;margin-top:5px;letter-spacing:-.4px;color:var(--ink);word-break:break-word;}
-.kpi .sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
-.kpi .split{margin-top:8px;font-size:11px;color:#46566A;display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:7px;}
+.kpi .cap{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#5A6675;}
+.kpi .val{font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.4px;color:var(--ink);word-break:break-word;}
+.kpi .sub{font-size:10px;color:#6B7787;margin-top:2px;}
+.kpi .split{margin-top:8px;font-size:11px;color:#46566A;display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(19,32,46,.08);padding-top:7px;}
 .kpi .split span{display:flex;justify-content:space-between;}
 .kpi .split b{font-weight:700;color:var(--ink);}
 .kpi-sage{--stripe:var(--green);}.kpi-celeste{--stripe:var(--nw-blue);}.kpi-ice{--stripe:var(--teal);}
@@ -173,8 +173,8 @@ footer b{letter-spacing:.12em;}
   </div>
   <div class="chips">
     <span class="lab">CapEx de manutenção</span>
-    <button class="pbtn cx active" data-x="on">Ligado</button>
-    <button class="pbtn cx" data-x="off">Desligado</button>
+    <button class="pbtn cx" data-x="on">Ligado</button>
+    <button class="pbtn cx active" data-x="off">Desligado</button>
   </div>
   <div class="scdesc" id="scDesc"></div>
 
@@ -239,7 +239,7 @@ const PLANT={pr:'#002D5C', ba:'#28477E', rn:'#4880A8'};
 let cur='equity';
 let horizon=2035;
 let lblSize=11;
-let capex='on';
+let capex='off';
 let charts={};
 
 const fmtMi = v => (v==null||v==='n/a')?'n/a':(v<0?'(R$ '+Math.abs(v).toLocaleString('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:1})+')':'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:1}));

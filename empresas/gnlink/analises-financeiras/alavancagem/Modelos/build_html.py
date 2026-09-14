@@ -8,8 +8,8 @@ Diferenças em relação à versão de julho:
 """
 import json, re, io
 
-SRC = 'index.html'
-DST = 'index-2026-09-04.html'
+SRC = '../index.html'
+DST = '../index-2026-09-04.html'
 DATA_JSON = '_data_2026-09-04.json'
 
 PLANT_KEYS = ['pr', 'ba', 'rn', 'ar', 'sal']

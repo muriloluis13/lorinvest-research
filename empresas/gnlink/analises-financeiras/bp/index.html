@@ -2164,7 +2164,8 @@ let _premOrig=null;   // snapshot dos defaults extraídos (p/ reset)
 function snapshotPrem(){
   const C=o=>JSON.parse(JSON.stringify(o));
   _premOrig={ premLiquef:C(DB.premLiquef), logCli:C(DB.logCli), logPlanta:C(DB.logPlanta),
-              logGlob:C(DB.logGlob), regasCli:C(DB.regasCli), regasGlob:C(DB.regasGlob), cryoMW:CRYO_MW.slice() };
+              logGlob:C(DB.logGlob), regasCli:C(DB.regasCli), regasGlob:C(DB.regasGlob), cryoMW:CRYO_MW.slice(),
+              sgaCfg:C(DB.sgaCfg), sgaGlob:C(DB.sgaGlob), compTerm:C(DB.compTerm) };
 }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
@@ -2191,6 +2192,9 @@ function premReset(grupo){
   if(!_premOrig) return; const O=_premOrig;
   if(grupo==="liquef"){ DB.premLiquef=JSON.parse(JSON.stringify(O.premLiquef)); for(let i=0;i<CRYO_MW.length;i++) CRYO_MW[i]=O.cryoMW[i]; }
   else if(grupo==="log"){ DB.logCli=JSON.parse(JSON.stringify(O.logCli)); DB.logPlanta=JSON.parse(JSON.stringify(O.logPlanta)); DB.logGlob=JSON.parse(JSON.stringify(O.logGlob)); }
+  else if(grupo==="comp"){ DB.compTerm=JSON.parse(JSON.stringify(O.compTerm)); }
+  else if(grupo==="sga"){ DB.sgaCfg=JSON.parse(JSON.stringify(O.sgaCfg)); DB.sgaGlob=JSON.parse(JSON.stringify(O.sgaGlob)); }
+  else if(grupo==="regas"){ DB.regasCli=JSON.parse(JSON.stringify(O.regasCli)); DB.regasGlob=JSON.parse(JSON.stringify(O.regasGlob)); }
   clearAllCaches(); render();
 }
 function premDif(a,b){ return Math.abs((+a||0)-(+b||0)) > 1e-9; }
@@ -2267,8 +2271,91 @@ function premLogPanel(reg){
   h+='</div></div>';
   return h;
 }
+// ---- premissas de COMPRESSÃO / TERMINAL (por planta) ----
+function premCompTermPanel(reg, field, titulo, sub){
+  const CT=DB.compTerm, O=_premOrig?_premOrig.compTerm:null, plantas=reg>0?[reg]:[1,2,3,4,5,6];
+  let h='<div class="premcard"><div class="ph"><b>Premissas — '+titulo+'</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'comp\')">restaurar</button></div>';
+  h+='<div class="psub">'+sub+'</div><div class="premgrid">';
+  for(const p of plantas){ const c=CT[String(p)]; if(!c) continue;
+    const nome=(DB.regioes.find(r=>r.id===p)||{}).nome||("Planta "+p);
+    const o0=O&&O[String(p)]||{}, dec=field==="term_tarifa"?2:0;
+    h+=premCtrl(nome, field==="term_tarifa"?"R$/(m³·dia)":"R$/mês", +c[field]||0,
+        (x=>v=>{ x[field]=+v; })(c), {dec, edited:O&&premDif(c[field],o0[field])}); }
+  h+='</div></div>'; return h;
+}
+
+// ---- premissas de SG&A da planta (por planta) ----
+function premSgaPanel(reg){
+  const S=DB.sgaCfg, O=_premOrig?_premOrig.sgaCfg:null, pp=premPlanta(reg), key=String(pp), c=S[key];
+  const nome=(DB.regioes.find(r=>r.id===pp)||{}).nome||("Planta "+pp);
+  let h='<div class="premcard"><div class="ph"><b>Premissas — SG&A da planta</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'sga\')">restaurar</button></div>';
+  h+='<div class="psub">Salários, seguros, serviços, segurança, frota… na unidade real. Editando: <b>'+nome+'</b>.</div>';
+  if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
+      `<button class="${r.id===pp?'on':''}" onclick="state.premPlanta=${r.id};render()">${r.nome}</button>`).join('')+'</div>'; }
+  if(!c){ h+='<div style="font-size:12px;color:var(--muted)">Sem SG&A configurado para esta planta.</div></div>'; return h; }
+  const o0=O&&O[key]||{}, F=(lbl,fk,unit,o)=> premCtrl(lbl,unit, c[fk]==null?0:+c[fk],
+        (x=>v=>{ x[fk]=+v; })(c), Object.assign({edited:O&&premDif(c[fk],o0[fk])},o));
+  const P=(lbl,fk)=> premCtrl(lbl,"%", (c[fk]==null?0:+c[fk])*100, (x=>v=>{ x[fk]=(+v)/100; })(c),
+        {dec:2, edited:O&&premDif(c[fk],o0[fk])});
+  h+='<div class="premgrid">';
+  h+='<div class="premgrp">Pessoal</div>';
+  h+=F("Salário médio","sal_d","R$/mês·pessoa",{dec:0}); h+=F("Headcount","sal_hc","pessoas",{dec:0,max:40});
+  h+='<div class="premgrp">Seguros</div>';
+  h+=F("Seg. operacional — valor segurado","segop_d","R$",{dec:0}); h+=P("Seg. operacional — taxa a.a.","segop_e");
+  h+=F("Seg. equipamento — valor segurado","segeq_d","R$",{dec:0}); h+=P("Seg. equipamento — taxa a.a.","segeq_e");
+  h+='<div class="premgrp">Serviços & viagens</div>';
+  h+=F("Assistência técnica (anual)","assist_d","R$/ano",{dec:0}); h+=F("Serviços gerais","serv_d","R$/mês",{dec:0}); h+=F("Viagens e hospedagens","viag_d","R$/mês",{dec:0});
+  h+='<div class="premgrp">Projetos · regulatório</div>';
+  h+=F("Projetos eng. — base","proj_d","R$",{dec:0}); h+=F("Projetos eng. — se ocupação alta","proj_f","R$",{dec:0}); h+=P("Gatilho de ocupação","proj_g");
+  h+=F("Regulatório","reg_d","R$",{dec:0}); h+=F("Regulatório — periodicidade","reg_f","meses",{dec:0,max:12});
+  h+='<div class="premgrp">Segurança</div>';
+  h+=F("Patrimonial","patr_d","R$/mês",{dec:0}); h+=F("Ocupacional","ocup_d","R$/mês",{dec:0}); h+=F("Trabalho","trab_d","R$",{dec:0}); h+=F("Trabalho — periodicidade","trab_f","meses",{dec:0,max:12});
+  h+='<div class="premgrp">Contingência · frota</div>';
+  h+=F("Contingência","cont","R$/mês",{dec:0}); h+=F("Frota — custo/veículo","frota_d","R$/mês",{dec:0}); h+=F("Frota — nº de veículos","frota_n","veículos",{dec:0,max:20});
+  h+='</div></div>'; return h;
+}
+
+// ---- premissas de REGÁS (por cliente + globais Furui) ----
+function premRegasPanel(reg){
+  const O=_premOrig?_premOrig:null, plantas=reg>0?[reg]:[1,2,3,4,5,6];
+  const cliById={}; if(O) O.regasCli.forEach(c=>cliById[String(c.id)+"|"+c.planta]=c);
+  const cls=DB.regasCli.filter(rc=>plantas.includes(+rc.planta));
+  let h='<div class="premcard"><div class="ph"><b>Premissas — Regás</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'regas\')">restaurar</button></div>';
+  h+='<div class="psub">Aluguel de equipamento por cliente (capacidade, dias de estoque, custo/dia) e globais Furui. Alterar re-projeta o regás ao vivo.</div>';
+  h+='<div class="premgrid">';
+  if(!cls.length) h+='<div style="grid-column:1/-1;font-size:12px;color:var(--muted)">Sem clientes com regás nesta região.</div>';
+  for(const rc of cls){ const o0=cliById[String(rc.id)+"|"+rc.planta]||{}, ed=k=>O&&premDif(rc[k],o0[k]);
+    h+='<div class="premgrp">Cliente '+rc.id+' · '+(rc.modal||'')+(rc.fob&&(''+rc.fob)!=='0'&&(''+rc.fob).toUpperCase()!=='N'?' · FOB':'')+'</div>';
+    h+=premCtrl("Custo por dia","R$/dia", +rc.custo_dia||0, (x=>v=>{ x.custo_dia=+v; })(rc), {dec:0,edited:ed("custo_dia")});
+    h+=premCtrl("Capacidade","m³", +rc.cap||0, (x=>v=>{ x.cap=+v; })(rc), {dec:0,edited:ed("cap")});
+    h+=premCtrl("Dias de estoque","dias", +rc.dias_est||0, (x=>v=>{ x.dias_est=+v; })(rc), {dec:1,max:10,edited:ed("dias_est")});
+  }
+  const G=DB.regasGlob, o0=O&&O.regasGlob||{}, ed=k=>O&&premDif(G[k],o0[k]);
+  h+='<div class="premgrp">Furui (globais)</div>';
+  h+=premCtrl("Leasing 18 bar","US$/dia", +G.usd_dia||0, (x=>v=>{ x.usd_dia=+v; })(G), {dec:0,edited:ed("usd_dia")});
+  h+=premCtrl("Nº de equipamentos","equip", +G.equip||0, (x=>v=>{ x.equip=+v; })(G), {dec:0,max:30,edited:ed("equip")});
+  h+=premCtrl("Aluguel ISO","R$/dia", +G.isos||0, (x=>v=>{ x.isos=+v; })(G), {dec:0,edited:ed("isos")});
+  h+=premCtrl("Preparação de ISO","R$/ISO", +G.prep_iso||0, (x=>v=>{ x.prep_iso=+v; })(G), {dec:0,edited:ed("prep_iso")});
+  h+=premCtrl("Assistência — valor","R$", +G.assist_valor||0, (x=>v=>{ x.assist_valor=+v; })(G), {dec:0,edited:ed("assist_valor")});
+  h+=premCtrl("Assistência — a cada (volume)","m³", +G.assist_por||0, (x=>v=>{ x.assist_por=+v; })(G), {dec:0,edited:ed("assist_por")});
+  h+='</div></div>'; return h;
+}
+
 // mapa categoria OpEx → painel de premissas
-const PREM_OPEX = { liquefacao: premLiquefPanel, distribuicao: premLogPanel };
+const PREM_OPEX = {
+  liquefacao: premLiquefPanel,
+  distribuicao: premLogPanel,
+  compressao: reg=>premCompTermPanel(reg,"comp_tarifa","Compressão","Tarifa de compressão por planta (R$/mês fixo). Liberada a partir da data de início (estrutural)."),
+  terminal: reg=>premCompTermPanel(reg,"term_tarifa","Terminal","Tarifa de terminal por planta (R$ por m³·dia de volume GNL)."),
+  sga: premSgaPanel,
+  regas: premRegasPanel,
+};
 let DASH={wacc:0.12};
 function onWacc(v){ DASH.wacc=+v; render(); }
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
