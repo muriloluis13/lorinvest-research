@@ -292,6 +292,26 @@ const MECH={
 };
 const abaById = id => ABAS.flatMap(g=>g.items).find(a=>a.id===id);
 
+/* Deriva as séries de indexação a partir das 7 séries BRUTAS da aba Macro
+   (SELIC/IPCA/CDI a.m.; Brent/HH/Dólar; CPI a.m.). Reproduz as fórmulas do modelo:
+   - média(m-2,m-3,m-4) → Brent/HH/Dólar (Macro r15/r17/r21)
+   - acumulado 12m PRODUCT(1+x)-1 → IPCA janela [k-13,k-2] (r9); SELIC/CDI/CPI [k-11,k] (r7/r11/r25)
+   Validado 1:1 vs o modelo (as antigas linhas extraídas da Variável). Única fonte = Macro. */
+function deriveIdxFromMacro(macro){
+  const raw = id => { const s=(macro[id]||{vals:[]}).vals; return s.map(x=> typeof x==="number"?x:null); };
+  const ipca=raw("ipca"), brent=raw("brent"), dolar=raw("dolar"), hh=raw("henryhub"), cpi=raw("cpi"), selic=raw("selic"), cdi=raw("cdi");
+  const avg3 = s => s.map((_,k)=>{ const a=s[k-4],b=s[k-3],c=s[k-2]; return (a==null||b==null||c==null)?null:(a+b+c)/3; });
+  const acum = (s,lag,cnt) => s.map((_,k)=>{ let p=1; for(let j=0;j<cnt;j++){ const i=k-lag+j; if(i<0||i>=s.length||s[i]==null) return null; p*=(1+s[i]); } return p-1; });
+  return {
+    ipca_m: ipca.slice(), ipca_macro: ipca.slice(),   // IPCA a.m. (bruto) — dívida/base
+    cdi: cdi.slice(),                                  // CDI a.m. (bruto) — dívida/caixa
+    ipca12: acum(ipca,13,12),                          // IPCA acum 12m [k-13,k-2] — reajuste de preço
+    ipca_anual: acum(cpi,11,12),                       // CPI acum 12m [k-11,k] — motor Argentina/Sal
+    brent: avg3(brent), hh: avg3(hh), dolar: avg3(dolar),  // médias (m-2,m-3,m-4) — molécula
+    dolar_spot: dolar.slice(),                         // Dólar bruto (PTAX) — Argentina/piso-teto/regás(Furui)
+    selic12: acum(selic,11,12), cdi12: acum(cdi,11,12), cpi12: acum(cpi,11,12)  // p/ display/uso futuro
+  };
+}
 /* --------------------------------------------------- carregar base xlsx ---- */
 function parseWorkbook(buf){
   const wb = XLSX.read(buf,{type:"array"});
@@ -356,9 +376,11 @@ function parseWorkbook(buf){
   const gp = grid("Preco"); const preco={};
   for(let i=1;i<gp.length;i++){ const r=gp[i]; if(!r||r[0]==null) continue;
     preco[String(r[0]).trim()]={precoBase:r[1], dataBase:ord(r[2]), indicador:r[3], residual:r[4], correcao:r[5]}; }
-  // IdxMacro: séries de indexação
-  const gi = grid("IdxMacro"); const idx={};
-  for(let i=1;i<gi.length;i++){ const r=gi[i]; if(!r||r[0]==null) continue; idx[r[0]]=r.slice(1); }
+  // Séries de indexação: DERIVADAS ao vivo das 7 séries BRUTAS da aba Macro
+  // (única fonte da verdade). No modelo, as linhas de indexação da Variável são só
+  // fórmulas sobre a Macro (SUMIF): média(m-2,m-3,m-4) p/ Brent/HH/Dólar; acumulado
+  // 12m p/ IPCA/SELIC/CDI/CPI. Reproduzimos essas fórmulas aqui (validadas 1:1).
+  const idx = deriveIdxFromMacro(macro);
   // ReceitaHist: receita realizada por planta/produto
   const grh = grid("ReceitaHist"); const revHist={};
   for(let i=1;i<grh.length;i++){ const r=grh[i]; if(!r||r[0]==null) continue;
@@ -1097,7 +1119,7 @@ function regasSerie(){
   const key=G.volMult+"|"+G.precoMult+"|"+G.molMult;
   if(_regCache.key===key) return _regCache.total;
   const n=DB.meses.length, mo=DB.monthsOrd, dias=DB.diasMes, corr=DB.seriesOpex.corr556||[],
-        dolar=DB.regasDolar||DB.idx.dolar||[], RG=DB.regasGlob, P=[1,2,3,4,5,6],
+        dolar=DB.idx.dolar_spot||[], RG=DB.regasGlob, P=[1,2,3,4,5,6],   // Furui usa o dólar BRUTO da Macro (=OPEX r39 na projeção)
         z=()=>new Array(n).fill(0), obj=()=>({1:z(),2:z(),3:z(),4:z(),5:z(),6:z()});
   const cliById={}; for(const c of DB.clientes) cliById[String(c.id)]=c;
   // nº de equipamentos por cliente + agregados por planta/tipo

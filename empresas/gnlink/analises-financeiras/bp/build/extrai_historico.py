@@ -1302,12 +1302,9 @@ def main():
         ws_p.append([cid, p.get("precoBase"), p.get("dataBase"), p.get("indicador"),
                      p.get("residual"), p.get("correcao")])
 
-    # aba IdxMacro: séries de indexação (Variável): ipca_m, ipca12, brent, hh, dolar,
-    # ipca_anual, dolar_spot (estes 2 alimentam o motor da molécula Argentina/piso-teto)
-    ws_i = out.create_sheet("IdxMacro")
-    ws_i.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
-    for key in ("ipca_m", "ipca12", "brent", "hh", "dolar", "ipca_anual", "dolar_spot", "cdi", "ipca_macro"):
-        ws_i.append([key] + idx_macro[key])
+    # (aba IdxMacro REMOVIDA) — as séries de indexação (média m-2/m-3/m-4; acumulado 12m)
+    # são FÓRMULAS sobre a aba Macro no modelo, então o HTML as DERIVA ao vivo das 7 séries
+    # brutas da aba Macro (deriveIdxFromMacro). A aba Macro é a ÚNICA fonte da verdade macro.
 
     # aba ReceitaHist: receita R$ REALIZADA (actuals) por planta/produto
     ws_rh = out.create_sheet("ReceitaHist")
@@ -1487,10 +1484,11 @@ def main():
     for k in ("equip", "usd_dia", "inicio_ord", "compra_ord", "isos", "equip_disp",
               "prep_iso", "custo_fixo", "assist_valor", "assist_por"):
         ws_rg.append([k, regas_glob[k]])
-    ws_rs = out.create_sheet("OpexRegasSeed")   # semente da variação + dólar Macro (Furui)
+    ws_rs = out.create_sheet("OpexRegasSeed")   # semente da variação de frota (Furui)
     ws_rs.append(["serie"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     ws_rs.append(["necess"] + regas_necess)
-    ws_rs.append(["dolar_macro"] + regas_dolar)
+    # (dólar_macro REMOVIDO) — o dólar do Furui é o dólar BRUTO da aba Macro; o HTML o usa
+    # direto de lá (DB.idx.dolar_spot), mantendo a Macro como única fonte da verdade.
 
     # abas do SG&A: config por planta + ocupação (driver) + semente do hardcode ago-dez/26
     SGA_KEYS = ["sal_d", "sal_hc", "segop_d", "segop_e", "segop_f", "segop_ini",
