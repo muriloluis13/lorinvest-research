@@ -143,6 +143,24 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .badge-ok,.badge-wip{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:2px 7px}
 .badge-ok{color:var(--green);border:1px solid var(--green);background:#F0F7F2}
 .badge-wip{color:var(--orange);border:1px solid var(--orange);background:#FDF3EC}
+/* ---- Premissas editáveis (valores literais) ---- */
+.premcard{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#FBFCFE,#F7F9FC);padding:14px 16px;margin:10px 0 14px}
+.premcard>.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.premcard>.ph b{font-size:13.5px}
+.premcard .psub{font-size:11.5px;color:var(--muted);margin:2px 0 10px;line-height:1.45}
+.premchips{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.premchips button{font-family:inherit;font-size:11.5px;font-weight:600;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer}
+.premchips button.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+.premgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 22px}
+.prow{display:grid;grid-template-columns:1fr 96px 84px;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #EEF1F5}
+.prow>label{font-size:12px;color:var(--ink);font-weight:600;line-height:1.25}
+.prow .pu{font-size:10.5px;color:var(--muted);font-weight:600}
+.prow .pslider{width:100%;accent-color:var(--accent3);margin:0}
+.prow .pnum{font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%;text-align:right}
+.prow .pnum:focus{outline:none;border-color:var(--accent3)}
+.premgrp{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin:12px 0 2px;grid-column:1/-1}
+.btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
+.prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
 </style>
 </head>
 <body class="loading">
@@ -545,6 +563,7 @@ function wireSubtabs(){
 /* ------------------------------------------------------------- render ---- */
 function render(){
   destroyCharts();
+  _premReg=[];                       // registradores de premissas reconstruídos a cada render
   const aba = abaById(state.aba);
   const m = $("#main");
   let html = `<div class="pgttl">${aba.nome}${aba.fase?`<span class="tag">Fase ${aba.fase}</span>`:''}</div>`;
@@ -2044,6 +2063,7 @@ function renderOpexCat(reg, cat, h){
   const M=OPEX_MECH[cat], tot=costCatSerie(reg,cat), yTot=anoSum(tot), ks=Object.keys(yTot).sort(), MM=v=>fmt(v/1e6,1);
   const comps = M.compute ? M.compute(reg) : null;   // sub-linhas portadas (ex.: liquefação)
   h+=`<div class="pglead"><b>${M.label}</b> — ${regName(reg)}. Detalhe por sub-linha e a mecânica de cada uma.</div>`;
+  if(PREM_OPEX[cat]) h+=PREM_OPEX[cat](reg);          // painel de premissas literais editáveis
   h+='<div class="mkpis">';
   h+=kpi(M.label+" 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
   h+=kpi(M.label+" "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
@@ -2133,6 +2153,122 @@ function gslider(key,gk,lbl,min,max,step){
 }
 function applyG(gk,val){ G[gk]=+val; render(); }
 function resetG(){ G={volMult:1,precoMult:1,molMult:1}; render(); }
+
+/* ============================================================ PREMISSAS ====
+   Edição das premissas LITERAIS (em unidade real: R$/MWh, R$/km, MW, km …).
+   Cada controle registra um aplicador; ao alterar, muta a config no DB, limpa
+   TODOS os caches (que são chaveados por alavanca G, não pelas premissas) e
+   re-projeta ao vivo. Snapshot original permite reset por grupo. */
+let _premReg=[];      // reconstruído a cada render(): índice → função aplicadora
+let _premOrig=null;   // snapshot dos defaults extraídos (p/ reset)
+function snapshotPrem(){
+  const C=o=>JSON.parse(JSON.stringify(o));
+  _premOrig={ premLiquef:C(DB.premLiquef), logCli:C(DB.logCli), logPlanta:C(DB.logPlanta),
+              logGlob:C(DB.logGlob), regasCli:C(DB.regasCli), regasGlob:C(DB.regasGlob), cryoMW:CRYO_MW.slice() };
+}
+function clearAllCaches(){
+  _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
+  _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null;
+}
+function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(val); clearAllCaches(); render(); }
+// registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
+function premCtrl(label, unit, disp, apply, o){
+  o=o||{}; disp=+disp||0;
+  const i=_premReg.push(apply)-1, dec=o.dec!=null?o.dec:2;
+  const lo=o.min!=null?o.min:0;
+  const hi=o.max!=null?o.max:+(disp>0?disp*2:1).toFixed(dec);
+  const st=o.step!=null?o.step:+Math.max((hi-lo)/100, Math.pow(10,-dec)).toFixed(6);
+  const vid="pv"+i, edited=o.edited?'<span class="prem-edited">alt</span>':'';
+  return `<div class="prow"><label>${label}${unit?` <span class="pu">${unit}</span>`:''}${edited}</label>`
+    +`<input type="range" class="pslider" min="${lo}" max="${hi}" step="${st}" value="${disp}" `
+    +`oninput="document.getElementById('${vid}').value=(+this.value).toFixed(${dec})" `
+    +`onchange="premApply(${i},this.value)">`
+    +`<input type="number" class="pnum" id="${vid}" value="${disp.toFixed(dec)}" step="${st}" `
+    +`onchange="premApply(${i},this.value)"></div>`;
+}
+// reset de um grupo de premissas ao default extraído
+function premReset(grupo){
+  if(!_premOrig) return; const O=_premOrig;
+  if(grupo==="liquef"){ DB.premLiquef=JSON.parse(JSON.stringify(O.premLiquef)); for(let i=0;i<CRYO_MW.length;i++) CRYO_MW[i]=O.cryoMW[i]; }
+  else if(grupo==="log"){ DB.logCli=JSON.parse(JSON.stringify(O.logCli)); DB.logPlanta=JSON.parse(JSON.stringify(O.logPlanta)); DB.logGlob=JSON.parse(JSON.stringify(O.logGlob)); }
+  clearAllCaches(); render();
+}
+function premDif(a,b){ return Math.abs((+a||0)-(+b||0)) > 1e-9; }
+// planta ativa p/ edição de premissas por-planta (segue a sub-aba de região; consolidado → escolha)
+function premPlanta(reg){ if(reg>0) return reg; return state.premPlanta || DB.regioes.find(r=>r.id<=6).id; }
+
+// ---- painel de premissas de LIQUEFAÇÃO (por planta) ----
+function premLiquefPanel(reg){
+  const PL=DB.premLiquef, O=_premOrig?_premOrig.premLiquef:null, pp=premPlanta(reg), i=pp-1;
+  const nome=(DB.regioes.find(r=>r.id===pp)||{}).nome||("Planta "+pp);
+  const ed=(k)=> O && O[k] && premDif(PL[k]&&PL[k][i], O[k][i]);
+  const arr=(label,key,unit,o)=> premCtrl(label,unit, PL[key]?+PL[key][i]:0,
+                v=>{ (PL[key]=PL[key]||[])[i]=+v; }, Object.assign({edited:ed(key)},o));
+  let h='<div class="premcard"><div class="ph"><b>Premissas — Liquefação</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'liquef\')">restaurar</button></div>';
+  h+='<div class="psub">Valores literais do modelo, na unidade real. Alterar re-projeta ao vivo (energia, insumos, O&M…). Editando: <b>'+nome+'</b>.</div>';
+  if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
+      `<button class="${r.id===pp?'on':''}" onclick="state.premPlanta=${r.id};render()">${r.nome}</button>`).join('')+'</div>'; }
+  h+='<div class="premgrid">';
+  h+='<div class="premgrp">Energia</div>';
+  h+=arr("Preço de energia","precoMWh","R$/MWh",{dec:0,min:100,max:900});
+  h+=arr("Gerador","gerador","R$/mês",{dec:0});
+  h+='<div class="premgrp">Insumos (R$/mês)</div>';
+  h+=arr("Propano","propano_rate","R$/mês",{dec:0});
+  h+=arr("Água","agua_rate","R$/mês",{dec:0});
+  h+=arr("Óleo","oleo_rate","R$/mês",{dec:0});
+  h+=arr("Glicol","glycol_rate","R$/mês",{dec:0});
+  h+=arr("Resíduos","residuos_rate","R$/mês",{dec:0});
+  h+=arr("Mercaptano","mercaptano_rate","R$/mês",{dec:0});
+  h+='<div class="premgrp">O&M · perdas · outros</div>';
+  h+=arr("O&M","oem","R$/mês",{dec:0});
+  h+=premCtrl("Perda no processo","%", (PL.perdaFrac?+PL.perdaFrac[i]:0)*100,
+        v=>{ (PL.perdaFrac=PL.perdaFrac||[])[i]=(+v)/100; }, {dec:1,min:0,max:15,edited: O&&O.perdaFrac&&premDif(PL.perdaFrac&&PL.perdaFrac[i],O.perdaFrac[i])});
+  h+=arr("Outros","outros_rate","R$/mês",{dec:0});
+  h+='<div class="premgrp">Potência por estágio de Cryo (global · MW)</div>';
+  for(let s=0;s<CRYO_MW.length;s++){ const so=_premOrig?_premOrig.cryoMW:null;
+    h+=premCtrl((s+1)+" Cryo(s) ligado(s)","MW",CRYO_MW[s], (function(idx){return v=>{ CRYO_MW[idx]=+v; };})(s),
+        {dec:2,min:0,max:3,edited: so&&premDif(CRYO_MW[s],so[s])}); }
+  h+='</div></div>';
+  return h;
+}
+
+// ---- painel de premissas de LOGÍSTICA (por cliente + cavalo por planta) ----
+function premLogPanel(reg){
+  const O=_premOrig?_premOrig:null, plantas = reg>0?[reg]:[1,2,3,4,5,6];
+  const cliById={}; if(O) O.logCli.forEach(c=>cliById[String(c.id)]=c);
+  const cliObj={}; DB.clientes.forEach(c=>cliObj[String(c.id)]=c);   // distância vive no cliente
+  const cliObj0={}; (DB.clientesBase||[]).forEach(c=>cliObj0[String(c.id)]=c);
+  const cls = DB.logCli.filter(lc=>plantas.includes(+lc.planta));
+  let h='<div class="premcard"><div class="ph"><b>Premissas — Logística</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'log\')">restaurar</button></div>';
+  h+='<div class="psub">Custo fixo por viagem, custo variável por km e distância média — por cliente. Cavalo mecânico por planta. Alterar re-projeta o frete ao vivo.</div>';
+  h+='<div class="premgrid">';
+  if(!cls.length) h+='<div style="grid-column:1/-1;font-size:12px;color:var(--muted)">Sem clientes com logística nesta região.</div>';
+  for(const lc of cls){
+    const o0=cliById[String(lc.id)]||{}, tag=(lc.tipo||"").toString().toUpperCase();
+    const ed=k=> O && premDif(lc[k], o0[k]);
+    h+='<div class="premgrp">Cliente '+lc.id+(tag?' · '+tag:'')+(lc.fob&&(''+lc.fob).toUpperCase()!=='N'?' · FOB':'')+'</div>';
+    h+=premCtrl("Custo fixo por viagem","R$/viagem", +lc.custo_viagem||0, (l=>v=>{ l.custo_viagem=+v; })(lc), {dec:0,edited:ed("custo_viagem")});
+    h+=premCtrl("Custo variável","R$/km", +lc.custo_km||0, (l=>v=>{ l.custo_km=+v; })(lc), {dec:2,edited:ed("custo_km")});
+    const cli=cliObj[String(lc.id)], cli0=cliObj0[String(lc.id)];
+    if(cli) h+=premCtrl("Distância média (ida)","km", +cli.distancia||0, (x=>v=>{ x.distancia=+v; })(cli),
+        {dec:0,edited: cli0&&premDif(cli.distancia,cli0.distancia)});
+  }
+  h+='<div class="premgrp">Cavalo mecânico (por planta · R$/mês)</div>';
+  for(const p of plantas){ const lp=DB.logPlanta[p]; if(!lp) continue;
+    const nome=(DB.regioes.find(r=>r.id===p)||{}).nome||("Planta "+p);
+    const o0=O&&O.logPlanta[p]||{};
+    h+=premCtrl(nome+" — fixo","R$/mês", +lp.cav_fix||0, (x=>v=>{ x.cav_fix=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_fix,o0.cav_fix)});
+    h+=premCtrl(nome+" — variável","R$/mês", +lp.cav_var||0, (x=>v=>{ x.cav_var=+v; })(lp), {dec:0,edited:O&&premDif(lp.cav_var,o0.cav_var)});
+  }
+  h+='</div></div>';
+  return h;
+}
+// mapa categoria OpEx → painel de premissas
+const PREM_OPEX = { liquefacao: premLiquefPanel, distribuicao: premLogPanel };
 let DASH={wacc:0.12};
 function onWacc(v){ DASH.wacc=+v; render(); }
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
@@ -2432,6 +2568,7 @@ function boot(){
   document.body.classList.remove("loading");
   $("#loader").hidden=true; $("#app").hidden=false;
   DB.clientesBase = JSON.parse(JSON.stringify(DB.clientes));   // baseline p/ reverter/marcar edições
+  snapshotPrem();                                              // snapshot dos defaults p/ reset de premissas
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   $("#cutoffBadge").textContent = "Realizado até "+(cut?fmtMes(cut.ym):"—");
   buildSidebar(); render();
