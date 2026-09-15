@@ -1176,6 +1176,21 @@ def extract_dcfproj(wb):
     return {"flags": flags, "debt": debt, "ro": ro, "wc": wc, "imp": imp}
 
 
+def extract_capacidade(wb):
+    """Capacidade instalada de liquefação/compressão por planta × produto (m³/dia), da aba Receita
+    (CAPACIDADE - GNL r9-14, GNC r18-23; PR/BA/RN/PE/AR/SAL). É uma CURVA DE CAPACIDADE (plano de
+    expansão da planta, premissa da aba Base Premissas → 'DEMANDA - CURVA DE CAPACIDADE', 4 fases),
+    resolvida na Receita. Vai como série colada (não reage às alavancas operacionais). A UTILIZAÇÃO
+    (%) = volume / capacidade é reproduzida AO VIVO no HTML (reage ao volume)."""
+    ws = wb["Receita"]
+    def dser(r):
+        return [_num(ws.cell(row=r, column=COL_FIRST + k).value) for k in range(N_MONTHS)]
+    gnl = {1: 9, 2: 10, 3: 11, 4: 12, 5: 13, 6: 14}
+    gnc = {1: 18, 2: 19, 3: 20, 4: 21, 5: 22, 6: 23}
+    return {"GNL": {p: dser(r) for p, r in gnl.items()},
+            "GNC": {p: dser(r) for p, r in gnc.items()}}
+
+
 def extract_dre_below(wb):
     """Linhas da DRE ABAIXO do EBITDA. Depreciação e Resultado Financeiro são cronogramas dos
     módulos de CAPEX e DÍVIDA (premissas de plano de investimento/financiamento — fixas, não reagem
@@ -1293,6 +1308,7 @@ def main():
     seg_rate_ba, seg_end_ba = _segrate(76), _segend(76)   # bloco BA (Dívida r76)
     balanco = extract_balanco(wb)                  # caixa/fluxo de caixa + balanço + DCF (insumos colados)
     dcfproj = extract_dcfproj(wb)                  # flags de planta + FC financeiro por projeto (colado)
+    capacidade = extract_capacidade(wb)            # curva de capacidade por planta × produto (m³/dia, colada)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1512,6 +1528,13 @@ def main():
         ws_dp.append(["%s_ro" % p] + real_only(dcfproj["ro"][p], n_real))
         ws_dp.append(["%s_wc" % p] + real_only(dcfproj["wc"][p], n_real))
         ws_dp.append(["%s_imp" % p] + real_only(dcfproj["imp"][p], n_real))
+
+    # aba Capacidade: curva de capacidade por planta × produto (m³/dia, série completa colada).
+    ws_cap = out.create_sheet("Capacidade")
+    ws_cap.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    for prod in ("GNL", "GNC"):
+        for p in range(1, 7):
+            ws_cap.append(["%s_%d" % (prod, p)] + capacidade[prod][p])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula

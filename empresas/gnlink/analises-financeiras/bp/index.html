@@ -544,6 +544,10 @@ function parseWorkbook(buf){
         if(m){ (dcfProj.debt[m[1]]=dcfProj.debt[m[1]]||{})[m[2]]=r.slice(1); continue; }
         m=key.match(/^(PR|BA|RN|PE|AR|SAL)_(ro|wc|imp)$/);
         if(m){ dcfProj[m[2]][m[1]]=r.slice(1); } } } }
+  // Capacidade: curva de capacidade por planta × produto (m³/dia) — colada; utilização = volume/capac. viva
+  const gcap = grid("Capacidade"); const capacidade={GNL:{}, GNC:{}};
+  if(gcap){ for(let i=1;i<gcap.length;i++){ const r=gcap[i]; if(!r||r[0]==null) continue;
+    const m=String(r[0]).match(/^(GNL|GNC)_(\d)$/); if(m) capacidade[m[1]][+m[2]]=r.slice(1); } }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -616,7 +620,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade};
 }
 
 async function tryFetch(){
@@ -703,7 +707,7 @@ function render(){
     const r = renderVolume();
     m.innerHTML = html + r.html;
     wireSubtabs();
-    drawVol(r.gnl, r.gnc);
+    drawVol(r.gnl, r.gnc, r.cap);
     return;
   }
   if(aba.id==="receita"){
@@ -1540,6 +1544,17 @@ function renderReceita(){
 }
 /* ---------------------------------------------------- aba Volume (separada da Receita) */
 function volTotalSerie(reg){ const g=volAgg(reg,"GNL"), c=volAgg(reg,"GNC"); return g.map((v,i)=>v+(c[i]||0)); }
+// capacidade instalada (m³/dia) por planta × produto (colada); consolidado = Σ plantas
+function capacidadeSerie(reg, produto){ const n=DB.meses.length, C=(DB.capacidade||{})[produto]||{}, out=new Array(n).fill(0);
+  const add=p=>{ const s=C[p]; if(s) for(let k=0;k<n;k++){ const v=s[k]; if(typeof v==="number") out[k]+=v; } };
+  if(reg===0){ for(let p=1;p<=6;p++) add(p); } else add(reg);
+  return out; }
+function capacidadeTotalSerie(reg){ const g=capacidadeSerie(reg,"GNL"), c=capacidadeSerie(reg,"GNC"); return g.map((v,i)=>v+(c[i]||0)); }
+// utilização (%) = volume / capacidade — VIVA (reage ao volume). null quando capacidade=0.
+function utilizacaoSerie(reg, produto){ const vol=volAgg(reg,produto), cap=capacidadeSerie(reg,produto), n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++){ out[k]= (cap[k]>0) ? vol[k]/cap[k] : null; } return out; }
+function utilizacaoTotalSerie(reg){ const vol=volTotalSerie(reg), cap=capacidadeTotalSerie(reg), n=DB.meses.length, out=new Array(n);
+  for(let k=0;k<n;k++){ out[k]= (cap[k]>0) ? vol[k]/cap[k] : null; } return out; }
 function _cliVolSum(reg,pred){ const n=DB.meses.length, acc=new Array(n).fill(0);
   for(const c of DB.clientes){ if(reg!==0&&+c.planta!==reg) continue; if(!pred(c)) continue; const s=volClienteSerie(c);
     for(let k=0;k<n;k++) acc[k]+=s[k]; } return acc; }
@@ -1570,20 +1585,34 @@ function voldimbarHTML(){ return '<div class="perbar" style="margin-bottom:8px">
 function renderVolume(){
   const reg=state.regiao, cut=DB.cutoffIdx;
   const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC"), tot=gnl.map((v,i)=>v+(gnc[i]||0));
+  const cap=capacidadeTotalSerie(reg), util=utilizacaoTotalSerie(reg);
   const kMax=tot.reduce((bi,v,i,a)=>v>a[bi]?i:bi,0);
+  const kUtil=util.reduce((bi,v,i)=> (v!=null && (util[bi]==null||v>util[bi]))?i:bi, 0);
   let h=subtabsHTML();
-  h+=`<div class="pglead"><b>Volume</b> (m³/dia) — GNL + GNC, pela rampa de cada cliente. Editar a curva de volume de um cliente (aba <b>Clientes</b>) re-projeta ao vivo. A <b>receita</b> fica na aba Receita.<span class="tag">Fase B</span></div>`;
+  h+=`<div class="pglead"><b>Volume &amp; capacidade</b> (m³/dia) — GNL + GNC pela rampa de cada cliente. <b>Capacidade</b> = curva de expansão da planta (premissa da Base Premissas); <b>utilização</b> = volume ÷ capacidade (reage às alavancas). A <b>receita</b> fica na aba Receita.<span class="tag">Fase B</span></div>`;
   h+='<div class="mkpis">';
   h+=kpi("Volume atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
+  h+=kpi("Capacidade instalada (atual)", fmt(cap[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym));
+  h+=kpi("Utilização atual", util[cut]!=null?fmtPct(util[cut]):"—", "volume ÷ capacidade");
   h+=kpi("Pico de volume projetado", fmt(tot[kMax],0), "m³/dia · "+fmtMes(DB.meses[kMax].ym),null,MECH.volume);
-  h+=kpi("GNL no pico", fmt(gnl[kMax],0), "m³/dia ("+fmt(tot[kMax]?100*gnl[kMax]/tot[kMax]:0,0)+"%)");
-  h+=kpi("GNC no pico", fmt(gnc[kMax],0), "m³/dia ("+fmt(tot[kMax]?100*gnc[kMax]/tot[kMax]:0,0)+"%)");
+  h+=kpi("Utilização máx. projetada", util[kUtil]!=null?fmtPct(util[kUtil]):"—", "em "+fmtMes(DB.meses[kUtil].ym));
   h+='</div>';
-  h+='<div class="card"><h4>Volume mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
+  h+='<div class="card"><h4>Volume × capacidade mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
   const dim=state.voldim||"produto";
   h+='<h3 class="msub">Volume — por '+(REVDIMS.find(d=>d[0]===dim)[1])+' (m³/dia médio)</h3>'+voldimbarHTML()+serieTableHTML(volDimRows(reg),"m³/dia")+
     '<div class="note">Média de m³/dia no período. Cinza = período com meses projetados.'+(reg===0?' No consolidado, clique numa linha para abrir os projetos.':'')+' Nas visões por cliente/segmento/modalidade o volume vem da rampa do cliente (reage às premissas).</div>';
-  return {html:h, gnl, gnc};
+  // ---- Capacidade & Utilização ----
+  const A={how:"avg",div:1,d:0};
+  const capRows=[
+    {lbl:"Capacidade GNL",serie:capacidadeSerie(reg,"GNL"),...A,perPlanta:p=>capacidadeSerie(p,"GNL")},
+    {lbl:"Capacidade GNC",serie:capacidadeSerie(reg,"GNC"),...A,perPlanta:p=>capacidadeSerie(p,"GNC")},
+    {lbl:"Capacidade total",serie:cap,...A,bold:true,perPlanta:p=>capacidadeTotalSerie(p)},
+    {lbl:"Volume total",serie:tot,...A,perPlanta:p=>volTotalSerie(p)},
+    {lbl:"Utilização",serie:util,how:"avg",pct:true,bold:true,perPlanta:p=>utilizacaoTotalSerie(p)},
+  ];
+  h+='<h3 class="msub">Capacidade &amp; utilização — '+regName(reg)+'</h3>'+serieTableHTML(capRows,"m³/dia · %")+
+    '<div class="note">Capacidade = curva de expansão da planta (premissa, m³/dia médio no período). Utilização = volume médio ÷ capacidade média. '+(reg===0?'Clique numa linha para abrir por planta. ':'')+'Terminal PE sem capacidade neste cenário.</div>';
+  return {html:h, gnl, gnc, cap};
 }
 const REVDIMS=[["produto","Produto"],["planta","Planta"],["cliente","Cliente"],["segmento","Segmento"],["modalidade","Modalidade (CIF/FOB)"]];
 function revdimbarHTML(){
@@ -1635,14 +1664,16 @@ function drawRev(rc){
 }
 function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
-function drawVol(gnl,gnc){
+function drawVol(gnl,gnc,cap){
   const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym));
   const dash = ctx => ctx.p0DataIndex>=cut ? [5,4] : undefined;
+  const ds=[
+    {label:"GNL",data:gnl,borderColor:PAL[0],backgroundColor:PAL[0]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash},order:3,stack:"vol"},
+    {label:"GNC",data:gnc,borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash},order:2,stack:"vol"},
+  ];
+  if(cap && cap.some(v=>v>0)) ds.push({label:"Capacidade",data:cap.map(v=>v||null),borderColor:"#8C9BAB",borderWidth:1.5,borderDash:[6,4],fill:false,tension:0,pointRadius:0,order:1,stack:"cap"});
   charts.vol = new Chart($("#cVol"),{ type:"line",
-    data:{labels, datasets:[
-      {label:"GNL",data:gnl,borderColor:PAL[0],backgroundColor:PAL[0]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
-      {label:"GNC",data:gnc,borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash}},
-    ]},
+    data:{labels, datasets:ds},
     options:Object.assign(baseLineOpts(),{scales:{
       x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
       y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"m³/dia"}}},
