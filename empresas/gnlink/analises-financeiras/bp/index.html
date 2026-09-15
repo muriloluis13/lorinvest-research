@@ -264,7 +264,7 @@ const ABAS = [
   {grp:"Outputs", items:[
     {id:"dashboard", nome:"Dashboard",       regiao:false, fase:null},
     {id:"resumo",    nome:"Resumo (EBITDA)", regiao:true,  fase:null},
-    {id:"balanco",   nome:"Balanço & DCF",   regiao:false, fase:null},
+    {id:"balanco",   nome:"Balanço, DFC & DCF",   regiao:false, fase:null},
   ]},
   {grp:"Modelagem", items:[
     {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
@@ -1467,9 +1467,9 @@ function periodBuckets(){
     b.proj=b.months.some(k=>k>DB.cutoffIdx); }
   return out;
 }
-function aggBucket(serie,b,how){ let s=0,c=0,last=null;
-  for(const k of b.months){ const v=serie[k]; if(typeof v==="number"){ s+=v; c++; last=v; } }
-  return how==="last"?last : how==="avg"?(c?s/c:null) : (c?s:null); }
+function aggBucket(serie,b,how){ let s=0,c=0,last=null,first=null;
+  for(const k of b.months){ const v=serie[k]; if(typeof v==="number"){ s+=v; c++; last=v; if(first===null) first=v; } }
+  return how==="last"?last : how==="first"?first : how==="avg"?(c?s/c:null) : (c?s:null); }
 // tabela periódica com linha de tipo (Hist/Orç/Forecast) acima das datas.
 // rows: [{lbl, serie:[192], how?, d?, pct?, div?, bold?, perPlanta?:fn(plantaId)->serie}]
 // No CONSOLIDADO, linhas com perPlanta abrem (clique) as linhas de todos os projetos.
@@ -2112,6 +2112,8 @@ function caixaBalancoEngine(){
   for(let k=0;k<n;k++) div26[k]= k<=cut ? num(div26frozen[k]) : (num(div26frozen[k]) + (num(de.seguros[k])-num(segModel[k])));
   const caixa=new Array(n).fill(0), dfm385=new Array(n).fill(0), resfin=new Array(n),
         lucroAcum=new Array(n).fill(0), capital=new Array(n).fill(0), resLegal=new Array(n).fill(0);
+  // componentes da DFC (fluxo de caixa): operacional (FCO), investimento (FCI), financiamento (FCF)
+  const fcoA=new Array(n), fciA=new Array(n), fcfA=new Array(n);
   for(let k=0;k<n;k++){
     const cxPrev=k>0?caixa[k-1]:0;
     dfm385[k]=Math.max(cxPrev*G383*num(CDI[k]),0);
@@ -2119,12 +2121,17 @@ function caixaBalancoEngine(){
     const fcd=num(de.desemb[k])+num(de.amort[k])+num(de.pagJ[k])+num(div26[k])+dfm385[k];  // DFM215
     const fco=num(ebitda[k])+num(irccsll[k])+(dWC[k]+num(r368[k])+num(r374[k]));         // DFM198
     const fcApos=fcd+num(fci[k])+fco;
+    fcoA[k]=fco; fciA[k]=num(fci[k]); fcfA[k]=fcd;
     if(k<=cut){ caixa[k]=num(caixaC[k]); lucroAcum[k]=num(d302c[k]); capital[k]=num(d321c[k]); resLegal[k]=num(d294c[k]); }
     else{ caixa[k]=cxPrev+fcApos+num(fca[k]);                                            // DFM229
       lucroAcum[k]=lucroAcum[k-1]+num(ll299[k])-num(div281[k])-num(r292[k])+num(r300[k]);// DFM302
       capital[k]=capital[k-1]+num(r319[k])-num(r316[k]);                                 // DFM321
       resLegal[k]=resLegal[k-1]+num(r292[k]); }                                          // DFM294
   }
+  // DFC: caixa início/variação e "ajustes" (fca DFM223 + resíduo que fecha a variação real no realizado)
+  const caixaIni=new Array(n), varCaixa=new Array(n), ajusteA=new Array(n);
+  for(let k=0;k<n;k++){ caixaIni[k]=k>0?caixa[k-1]:0; varCaixa[k]=caixa[k]-caixaIni[k];
+    ajusteA[k]=varCaixa[k]-fcoA[k]-fciA[k]-fcfA[k]; }                                    // fecha a DFC em todo período
   // balanço
   const ac135=g("dfm135"),ac136=g("dfm242"),a140=g("dfm140"),a141=g("dfm141"),a142=g("dfm142"),
         a143=g("dfm143"),a148=g("dfm148"),imob=imobilizadoSerie(),
@@ -2144,7 +2151,9 @@ function caixaBalancoEngine(){
   }
   return (_cbCache={resfin, dfm385, caixa, cg364, dWC, ativoCirc, ativoNC, totAtivo,
                     passCirc, passNC, totPass, pl, capital, lucroAcum, resLegal, ident,
-                    cr, est, forn, trab, trib});   // componentes p/ a abertura do balanço
+                    cr, est, forn, trab, trib,                       // componentes p/ a abertura do balanço
+                    fco:fcoA, fci:fciA, fcf:fcfA, ajuste:ajusteA, caixaIni, varCaixa, div26,
+                    r368:g("dfm368"), r374:g("dfm374"), irccsll:g("dfm195")});   // DFC
 }
 // DCF consolidado (grade ANUAL): VPL = Σ geração/fator; fator=(1+F20)^t ancorado no último mês
 // realizado (F22); TIR = IRR(geração não-descontada). Geração e anos extraídos do DFA/DCF.
@@ -2222,7 +2231,7 @@ function dreYear(key){ return anoSum(DB.dre[key]||[]); }
 function renderBalanco(){
   const e=caixaBalancoEngine(), dcf=dcfConsolidado(), n=DB.meses.length;
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
-  let h=`<div class="pglead"><b>Balanço Patrimonial & DCF</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando. VPL/TIR do fluxo de caixa livre.<span class="tag">Fase F</span></div>`;
+  let h=`<div class="pglead"><b>Balanço Patrimonial · Fluxo de Caixa (DFC) · DCF</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando e a <b>DFC</b> reconciliando o caixa. VPL/TIR do fluxo de caixa livre.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
   const _ev=evParts(), _nd=_ev.grossDebt-_ev.cash, _ndM=fmtMesY(DB.meses[_ev.cut].ym);
   h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" mi", "Equity Value + Dívida Líquida", "", MECH.vpl);
@@ -2277,6 +2286,32 @@ function renderBalanco(){
   h+='<h3 class="msub">Balanço Patrimonial (R$ MM, saldo no fim do período)</h3>';
   h+='<div class="note" style="margin:0 0 8px">Clique numa linha em <b>negrito</b> (Ativo/Passivo Circulante, Não Circulante, Patrimônio Líquido) para <b>abrir/recolher</b> o detalhamento de cada conta. Ativo Imobilizado vem do módulo de capex; a dívida (CP+LP) traz o saldo devedor por fórmula; PL = capital + lucros acumulados + reserva legal. A identidade Ativo = Passivo + PL fecha a ~0,01%.</div>';
   h+=serieTableHTML(rows,"R$ MM");
+  // ---- Demonstração do Fluxo de Caixa (método indireto) ----
+  const de=dividaEngine();
+  const wcChange=e.dWC.map((v,k)=> num(v)+num(e.r368[k])+num(e.r374[k]));   // Δ capital de giro (DFM)
+  const F={how:"sum",d:1,div:1e6}, P={how:"last",d:1,div:1e6};
+  const dfcRows=[
+    {lbl:"Caixa no início do período",serie:e.caixaIni,how:"first",d:1,div:1e6},
+    {lbl:"Fluxo de Caixa Operacional",serie:e.fco,...F,bold:true,children:[
+      {lbl:"EBITDA",serie:ebitdaSerie(),tip:MECH.ebitda},
+      {lbl:"IR/CSLL pagos (caixa)",serie:e.irccsll},
+      {lbl:"Variação do capital de giro",serie:wcChange},
+    ]},
+    {lbl:"Fluxo de Caixa de Investimentos (capex)",serie:e.fci,...F,bold:true},
+    {lbl:"Fluxo de Caixa de Financiamento",serie:e.fcf,...F,bold:true,children:[
+      {lbl:"Captações (desembolsos)",serie:de.desemb},
+      {lbl:"Amortização de principal",serie:de.amort},
+      {lbl:"Juros pagos",serie:de.pagJ},
+      {lbl:"Comissões / seguros / IOF",serie:e.div26},
+      {lbl:"Rendimento de aplicações",serie:e.dfm385},
+    ]},
+    {lbl:"Ajustes / outras variações",serie:e.ajuste,...F},
+    {lbl:"Variação de caixa no período",serie:e.varCaixa,...F,bold:true},
+    {lbl:"Caixa no fim do período",serie:e.caixa,...P,bold:true},
+  ];
+  h+='<h3 class="msub">Demonstração do Fluxo de Caixa (R$ MM)</h3>';
+  h+='<div class="note" style="margin:0 0 8px">Método indireto: <b>Operacional</b> (EBITDA − IR/CSLL ± capital de giro) + <b>Investimentos</b> (capex) + <b>Financiamento</b> (captações, amortização, juros, comissões/seguros e rendimento do caixa). Clique nos grupos em <b>negrito</b> para abrir o detalhamento. Fluxos somados no período; caixa início/fim são saldos. Realizado usa o caixa efetivo; a projeção é o waterfall vivo (reage às premissas). Fecha por construção: início + Operacional + Investimentos + Financiamento + Ajustes = fim.</div>';
+  h+=serieTableHTML(dfcRows,"R$ MM");
   return h;
 }
 function renderResumo(){
