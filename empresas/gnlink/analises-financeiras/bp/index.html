@@ -228,8 +228,8 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
       <div class="hsub" id="hsubR">—</div>
     </div>
     <div class="hspace"></div>
-    <div class="hkpi" id="hkpiEV" title="Equity Value @Ke — valor presente do fluxo de caixa livre ao acionista descontado ao custo de capital próprio (Ke). Recalcula ao vivo com as premissas.">
-      <div class="hkpi-cap">Equity Value @Ke</div>
+    <div class="hkpi" id="hkpiEV" title="Enterprise Value — Equity Value (@Ke) + Dívida Líquida (dívida bruta − caixa do último mês realizado). Recalcula ao vivo com as premissas.">
+      <div class="hkpi-cap">Enterprise Value</div>
       <div class="hkpi-val" id="hkpiEVval">—</div>
     </div>
   </div>
@@ -673,7 +673,7 @@ function wireSubtabs(){
 
 /* ------------------------------------------------------------- render ---- */
 function updateTopKpi(){ const el=$("#hkpiEVval"); if(!el) return;
-  try{ const ev=dcfConsolidado().vpl; el.textContent="R$ "+fmt(ev/1e6,0)+" MM"; }catch(_){ el.textContent="—"; } }
+  try{ const ev=evParts().ev; el.textContent="R$ "+fmt(ev/1e6,0)+" mi"; }catch(_){ el.textContent="—"; } }
 function render(){
   destroyCharts();
   _premReg=[];                       // registradores de premissas reconstruídos a cada render
@@ -2224,9 +2224,10 @@ function renderBalanco(){
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
   let h=`<div class="pglead"><b>Balanço Patrimonial & DCF</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando. VPL/TIR do fluxo de caixa livre.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
-  const _ev=evParts();
-  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" MM", "FCF ao acionista descontado (Ke)", "", MECH.vpl);
-  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" MM", "Equity + Dívida Bruta − Caixa", "", MECH.vpl);
+  const _ev=evParts(), _nd=_ev.grossDebt-_ev.cash, _ndM=fmtMesY(DB.meses[_ev.cut].ym);
+  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" mi", "Equity Value + Dívida Líquida", "", MECH.vpl);
+  h+=kpi("Dívida Líquida", "R$ "+fmt(_nd/1e6,0)+" mi", "Dívida Bruta − Caixa · base "+_ndM, "", MECH.vpl);
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "FCF ao acionista descontado (Ke)", "", MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "consolidado", "", MECH.tir);
   h+=kpi("Total de Ativos "+lastY+" (R$ MM)", fmt(e.totAtivo[lastK]/1e6,0), "saldo no fim do horizonte");
   h+=kpi("Caixa "+lastY+" (R$ MM)", fmt(e.caixa[lastK]/1e6,0), "saldo de caixa");
@@ -2836,14 +2837,12 @@ function renderDashboard(){
   const vpl=vplOperacional(DASH.wacc);
   let h=`<div class="pglead"><b>Dashboard</b> — visão executiva: retorno, resultado e premissas editáveis. VPL/TIR completos dependem do módulo de <b>DCF</b> (capex, impostos, capital de giro, valor terminal), ainda a construir — abaixo, a <b>prévia operacional</b> (Receita − Custo, ambos já por fórmula).${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}</div>`;
   h+='<div class="mkpis">';
-  const _dcf=dcfConsolidado(), _ev=evParts(), cutM=fmtMesY(DB.meses[_ev.cut].ym);
-  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" MM", "FCF ao acionista descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (Ke, consolidado)",null,MECH.vpl);
-  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" MM", "Equity + Dívida Bruta ("+fmt(_ev.grossDebt/1e6,0)+") − Caixa ("+fmt(_ev.cash/1e6,0)+"), em "+cutM,null,MECH.vpl);
+  const _dcf=dcfConsolidado(), _ev=evParts(), cutM=fmtMesY(DB.meses[_ev.cut].ym), _netDebt=_ev.grossDebt-_ev.cash;
+  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" mi", "Equity Value + Dívida Líquida · base "+cutM,null,MECH.vpl);
+  h+=kpi("Dívida Líquida", "R$ "+fmt(_netDebt/1e6,0)+" mi", "Dívida Bruta ("+fmt(_ev.grossDebt/1e6,0)+") − Caixa ("+fmt(_ev.cash/1e6,0)+") · base "+cutM,null,MECH.vpl);
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "FCF ao acionista descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (Ke, consolidado)",null,MECH.vpl);
   h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
-  h+=kpi("Resultado op. 2030 (R$ MM)", MM(yRO["2030"]), "receita − custo total",null,MECH.resultado_op);
-  h+=kpi("Receita 2030 (R$ MM)", MM(yRec["2030"]), "GNL+GNC (fórmula)",null,MECH.receita);
-  h+=kpi("Custo total 2030 (R$ MM)", MM(yCT["2030"]), "gás + OpEx (fórmula)",null,MECH.custo_total);
   h+='</div>';
   h+='<div class="cform"><div class="sec">Taxa de desconto'+help(MECH.wacc)+'</div>';
   h+=`<div class="frow"><label>WACC <b style="color:var(--accent3)" id="wacc_v">${Math.round(DASH.wacc*100)}%</b> a.a.</label>
