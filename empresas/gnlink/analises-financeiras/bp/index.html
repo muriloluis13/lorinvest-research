@@ -142,6 +142,9 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .modal .mclose{position:absolute;top:12px;right:14px;cursor:pointer;font-size:24px;line-height:1;color:var(--muted);border:none;background:none;padding:2px 8px;border-radius:8px}
 .modal .mclose:hover{color:var(--accent3);background:#F4F6FA}
 .modal .cform{max-width:none}
+.modal.modal-chart{max-width:1400px;width:96vw;padding:20px 22px 22px}
+.mchart-h{font-size:14px;font-weight:700;color:var(--ink);margin:0 30px 10px 0}
+.mchart-box{position:relative;height:72vh;width:100%}
 .formbtns{display:flex;gap:10px;margin-top:18px;align-items:center}
 .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:700;font-size:13px}
 .btn-primary:hover{background:var(--accent2)}
@@ -279,7 +282,7 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", cliCollapsed:{}};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}};
 function toggleCliPlanta(id){ state.cliCollapsed[id]=!state.cliCollapsed[id]; render(); }
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
 let G = {volMult:1, precoMult:1, molMult:1};
@@ -724,6 +727,7 @@ function render(){
     m.innerHTML = html + r.html;
     wireSubtabs();
     drawVol();
+    if(state.volExp) drawVol("cVolBig");
     return;
   }
   if(aba.id==="receita"){
@@ -1627,8 +1631,10 @@ function renderVolume(){
   h+=kpi("Utilização máx. projetada", util[kUtil]!=null?fmtPct(util[kUtil],0):"—", "em "+fmtMes(DB.meses[kUtil].ym));
   h+='</div>';
   const dim=state.voldim||"produto";
-  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 8px"><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Empilhar por</span>'+voldimbarHTML()+'</div>';
-  h+='<div class="card"><h4>Volume × capacidade — '+regName(reg)+' (mil m³/dia · empilhado por '+(REVDIMS.find(d=>d[0]===dim)[1])+')</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
+  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 8px"><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Empilhar por</span>'+voldimbarHTML();
+  if(state.per==="M"||state.per==="Q") h+='<span class="hspace"></span><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Janela</span>'+volhorbarHTML();
+  h+='</div>';
+  h+='<div class="card"><div style="display:flex;align-items:center;gap:8px"><h4 style="flex:1;margin:0">Volume × capacidade — '+regName(reg)+' (mil m³/dia · empilhado por '+(REVDIMS.find(d=>d[0]===dim)[1])+')</h4><button class="btn-ghost" style="padding:4px 10px;font-size:11.5px" onclick="toggleVolExp()" title="Expandir gráfico">⤢ Expandir</button></div><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
   h+='<h3 class="msub">Volume — por '+(REVDIMS.find(d=>d[0]===dim)[1])+' (m³/dia médio)</h3>'+serieTableHTML(volDimRows(reg),"m³/dia")+
     '<div class="note">Média de m³/dia no período. Cinza = período com meses projetados.'+(reg===0?' No consolidado, clique numa linha para abrir os projetos.':'')+' Nas visões por cliente/segmento/modalidade o volume vem da rampa do cliente (reage às premissas).</div>';
   // ---- Capacidade & Utilização ----
@@ -1643,8 +1649,19 @@ function renderVolume(){
   h+='<h3 class="msub">Capacidade &amp; utilização — '+regName(reg)+'</h3>'+serieTableHTML(capRows,"m³/dia · %")+
     '<div class="note">Capacidade = curva de expansão da planta (premissa, m³/dia médio no período). Utilização = volume médio ÷ capacidade média. '+(reg===0?'Clique numa linha para abrir por planta. ':'')+'Terminal PE sem capacidade neste cenário.</div>';
   h+=premCapacidadePanel(reg);   // premissas editáveis da curva de capacidade (por fase)
+  if(state.volExp){   // pop-up grande do gráfico
+    h+='<div class="modal-overlay" onclick="if(event.target===this)toggleVolExp()"><div class="modal modal-chart"><button class="mclose" onclick="toggleVolExp()" title="Fechar (Esc)">×</button>'
+      +'<div class="mchart-h">Volume × capacidade — '+regName(reg)+' (mil m³/dia · empilhado por '+(REVDIMS.find(d=>d[0]===dim)[1])+')</div>'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px">'+voldimbarHTML()
+      +((state.per==="M"||state.per==="Q")?('<span class="hspace"></span>'+volhorbarHTML()):'')+'</div>'
+      +'<div class="mchart-box"><canvas id="cVolBig"></canvas></div></div></div>';
+  }
   return {html:h, gnl, gnc, cap};
 }
+function setVolHor(hh){ state.volHor=hh; render(); }
+function volhorbarHTML(){ const O=[["m12","12 meses"],["m24","24 meses"],["y5","5 anos"],["y10","10 anos"],["full","Completo"]];
+  return '<div class="perbar" style="margin-bottom:0">'+O.map(o=>`<button onclick="setVolHor('${o[0]}')" class="${(state.volHor||'full')===o[0]?'on':''}">${o[1]}</button>`).join('')+'</div>'; }
+function toggleVolExp(){ state.volExp=!state.volExp; render(); }
 // painel de premissas EDITÁVEIS da capacidade (curva de expansão por fase), por planta
 function premCapacidadePanel(reg){
   const pp=premPlanta(reg), nome=(DB.regioes.find(r=>r.id===pp)||{}).nome||("Planta "+pp);
@@ -1723,13 +1740,24 @@ function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div cla
 const VOL_PROJCOL={"Paraná":"#16283C","Bahia":"#C55A17","Rio Grande do Norte":"#4880A8","Terminal PE":"#55677C","Argentina":"#2E7D4F","Projeto SAL":"#7FC6A2","Outro":"#8C9BAB"};
 // gráfico de volume: COLUNA EMPILHADA por dimensão (produto/projeto/cliente/segmento/modalidade),
 // no período selecionado, + LINHA PRETA TRACEJADA da capacidade das plantas (mil m³/dia).
-function drawVol(){
-  const reg=state.regiao, B=periodBuckets(), labels=B.map(b=>b.label);
+// janela de visualização (só mensal/trimestral): próximos N meses a partir do último realizado
+const VOL_HOR={m12:12, m24:24, y5:60, y10:120, full:null};
+function volBuckets(){
+  let B=periodBuckets();
+  const hor=VOL_HOR[state.volHor||"full"];
+  if(hor!=null && (state.per==="M"||state.per==="Q")){ const cut=DB.cutoffIdx, endK=cut+hor;
+    B=B.filter(b=> b.months.some(k=> k>=cut && k<=endK)); }
+  return B;
+}
+function drawVol(canvasId){
+  canvasId=canvasId||"cVol";
+  const reg=state.regiao, B=volBuckets(), labels=B.map(b=>b.label);
   const rows=volDimRows(reg).filter(r=>!r.bold);                 // categorias (sem a linha de total)
   const barData=rows.map(r=>B.map(b=>(aggBucket(r.serie,b,"avg")||0)/1000));   // mil m³/dia
   const totals=B.map((b,bi)=>barData.reduce((s,d)=>s+(d[bi]||0),0));
-  const dense=B.length>28;                                        // muitas barras → rótulos por barra poluem
-  const few=rows.length<=6 && !dense;
+  const big=canvasId==="cVolBig";
+  const dense=B.length>(big?60:28);                              // muitas barras → rótulos por barra poluem
+  const few=rows.length<=8 && !dense;
   const ds=rows.map((r,i)=>({type:"bar",label:r.lbl,data:barData[i],stack:"vol",order:3,
     backgroundColor:VOL_PROJCOL[r.lbl]||PAL[i%PAL.length],
     datalabels: few?{color:"#fff",font:{size:9,weight:"bold"},display:c=>c.dataset.data[c.dataIndex]>=10,formatter:v=>fmt(v,0)}:{display:false}}));
@@ -1747,7 +1775,7 @@ function drawVol(){
     datalabels:{align:"top",anchor:"end",color:"#fff",backgroundColor:"#13202E",borderRadius:3,padding:{top:2,bottom:2,left:5,right:5},font:{size:9.5,weight:"bold"},
       display:c=>capLbl.has(c.dataIndex),
       formatter:v=>fmt(v,0)}});
-  charts.vol = new Chart($("#cVol"),{ data:{labels, datasets:ds},
+  charts[big?"volBig":"vol"] = new Chart($("#"+canvasId),{ data:{labels, datasets:ds},
     plugins: (window.ChartDataLabels?[window.ChartDataLabels]:[]),   // datalabels só neste gráfico (rótulos de capacidade/total)
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
       layout:{padding:{top:18}},
@@ -3433,6 +3461,8 @@ function boot(){
   document.body.classList.remove("loading");
   $("#loader").hidden=true; $("#app").hidden=false;
   initNumFmt();
+  if(!window._escInit){ window._escInit=true; document.addEventListener("keydown", e=>{
+    if(e.key==="Escape"){ if(state.volExp) toggleVolExp(); else if(state.cliSel) closeCli(); } }); }
   DB.clientesBase = JSON.parse(JSON.stringify(DB.clientes));   // baseline p/ reverter/marcar edições
   snapshotPrem();                                              // snapshot dos defaults p/ reset de premissas
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
