@@ -29,6 +29,10 @@ header::before{content:'';display:block;height:3px;background:linear-gradient(90
 #navToggle{background:#fff;border:1px solid var(--line);border-radius:8px;font-size:15px;font-weight:700;color:var(--accent);padding:3px 10px;line-height:1.2}
 #navToggle:hover{background:#F2F5F8;border-color:var(--accent2)}
 .htitle{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.hlogo{display:flex;align-items:center;flex:none;line-height:0}
+.hlogo img{height:30px;width:auto;display:block}
+.hsep{width:1px;height:26px;background:var(--line);flex:none;margin:0 2px}
+@media(max-width:640px){.hlogo img{height:24px}.hsep{display:none}}
 .hsub{font-size:10.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 .hspace{flex:1}
 .conf{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--accent);border:1px solid rgba(61,74,92,.4);border-radius:6px;padding:4px 9px;background:var(--chip)}
@@ -209,8 +213,10 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 <header>
   <div class="hwrap">
     <button id="navToggle" title="Mostrar/ocultar seções">☰</button>
+    <a class="hlogo" href="../../../../index.html" title="Painel da Área de Research"><img src="logos/gnlink-logo.jpg" alt="GNLink"></a>
+    <span class="hsep"></span>
     <div>
-      <div class="htitle">GNLink · Business Plan</div>
+      <div class="htitle">Business Plan</div>
       <div class="hsub">Modelo financeiro mensal — motor ao vivo</div>
     </div>
     <div class="hspace"></div>
