@@ -155,6 +155,14 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .badge-wip{color:var(--orange);border:1px solid var(--orange);background:#FDF3EC}
 /* ---- Premissas editáveis (valores literais) ---- */
 .premcard{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#FBFCFE,#F7F9FC);padding:14px 16px;margin:10px 0 14px}
+.pswitch{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.psw{display:inline-flex;align-items:center;gap:9px;font-family:inherit;font-size:12.5px;font-weight:700;border-radius:999px;padding:6px 15px 6px 9px;cursor:pointer;border:1px solid var(--line);transition:background .12s,border-color .12s,color .12s}
+.psw .psw-dot{width:28px;height:16px;border-radius:999px;position:relative;flex:none;transition:background .12s}
+.psw .psw-dot::after{content:'';position:absolute;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .12s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.psw.on{background:#EAF3EC;border-color:#BFE0C8;color:#2E7D4F}
+.psw.on .psw-dot{background:#2E7D4F}.psw.on .psw-dot::after{left:14px}
+.psw.off{background:var(--chip);border-color:var(--line);color:var(--muted)}
+.psw.off .psw-dot{background:#C7CFD8}.psw.off .psw-dot::after{left:2px}
 .premcard>.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .premcard>.ph b{font-size:13.5px}
 .premcard .psub{font-size:11.5px;color:var(--muted);margin:2px 0 10px;line-height:1.45}
@@ -282,7 +290,24 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}};
+// SWITCH de planta ligada/desligada (cenário): desliga TUDO daquela planta do consolidado — capacidade,
+// volume, receita, custos, SG&A planta, capex/depreciação/imobilizado, dívida da planta. A HOLDING
+// (SG&A da holding + dívidas da holding) fica fixa, independente dos switches.
+function plantOn(p){ return !(state.plantOff && state.plantOff[+p]); }
+function _actP(regiao){ return regiao===0 ? DB.regioes.filter(r=>plantOn(r.id)).map(r=>r.id) : (plantOn(regiao)?[regiao]:[]); }
+function togglePlant(p){ state.plantOff[p]=!state.plantOff[p]; clearAllCaches(); render(); }
+function plantSwitchHTML(){
+  let h='<div class="premcard" style="margin:4px 0 12px"><div class="ph"><b>Cenário — plantas ligadas/desligadas</b>';
+  const nOff=Object.values(state.plantOff||{}).filter(Boolean).length;
+  h+=nOff?'<span class="prem-edited">'+nOff+' desligada(s)</span>':'<span class="badge-ok">todas ligadas</span>';
+  h+='</div><div class="psub">Desligar uma planta remove <b>tudo</b> dela do consolidado — capacidade, volume, receita, custos (variáveis e fixos), SG&amp;A da planta, capex/depreciação/imobilizado e dívida da planta. A <b>Holding</b> (SG&amp;A e dívidas da matriz) fica fixa.</div>';
+  h+='<div class="pswitch">';
+  for(let id=1;id<=6;id++){ const on=plantOn(id), nm=(DB.regioes.find(r=>r.id===id)||{}).nome||CAP_PLANTA[id];
+    h+=`<button class="psw ${on?'on':'off'}" onclick="togglePlant(${id})" role="switch" aria-checked="${on}"><span class="psw-dot"></span>${nm}</button>`; }
+  h+='</div></div>';
+  return h;
+}
 function toggleCliPlanta(id){ state.cliCollapsed[id]=!state.cliCollapsed[id]; render(); }
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
 let G = {volMult:1, precoMult:1, molMult:1};
@@ -529,6 +554,9 @@ function parseWorkbook(buf){
     else if(fld==="pagJ") inst.seed_pagJ=r.slice(1); else if(fld==="ovr_amort") inst.ovr_amort=r.slice(1);
     else if(fld==="ovr_pagJ") inst.ovr_pagJ=r.slice(1); }
   const divida=Object.keys(_dvById).map(k=>_dvById[k]); divida.cfg=dividaCfg;
+  // planta de cada instrumento de dívida (1=PR,2=BA,3=RN,0=holding) — p/ o switch de planta gatear a dívida
+  const ggpr=grid("DividaGpr"); let dividaGpr=[];
+  if(ggpr) for(let i=0;i<ggpr.length;i++){ const r=ggpr[i]; if(r&&String(r[0])==="plant_by_instrument") dividaGpr=r.slice(1).map(x=>+x||0); }
   // Balanco: insumos do módulo caixa/balanço/DCF (séries coladas/de outro módulo + constantes + geração anual)
   const gbl = grid("Balanco"); const balanco={const:{}};
   if(gbl){ let ckeys=[];
@@ -639,7 +667,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr};
 }
 
 async function tryFetch(){
@@ -876,6 +904,7 @@ function volAggProj(regiao, produto){   // projeção por rampa (soma clientes)
   for(const cli of DB.clientes){
     if(produto && cli.produto!==produto) continue;
     if(regiao!==0 && cli.planta!==regiao) continue;
+    if(!plantOn(cli.planta)) continue;
     const s=volClienteSerie(cli);
     for(let k=0;k<n;k++) acc[k]+=s[k];
   }
@@ -884,7 +913,7 @@ function volAggProj(regiao, produto){   // projeção por rampa (soma clientes)
 function histAgg(regiao, produto){      // realizado (actuals extraídos) até o corte
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const add=p=>{ const a=(DB.volHist[p]||{})[produto]; if(a) for(let k=0;k<=cut;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } };
-  if(regiao===0) DB.regioes.forEach(r=>add(r.id)); else add(regiao);
+  for(const p of _actP(regiao)) add(p);
   return acc;
 }
 // série final: realizado (actuals) até o corte, projeção (rampa) depois
@@ -968,6 +997,7 @@ function revAggProj(regiao, produto){
   for(const cli of DB.clientes){
     if(cli.produto!==produto) continue;
     if(regiao!==0 && cli.planta!==regiao) continue;
+    if(!plantOn(cli.planta)) continue;
     const s=revClienteSerie(cli);
     for(let k=0;k<n;k++) acc[k]+=s[k];
   }
@@ -976,7 +1006,7 @@ function revAggProj(regiao, produto){
 function revHistAgg(regiao, produto){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const add=p=>{ const a=(DB.revHist[p]||{})[produto]; if(a) for(let k=0;k<=cut;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } };
-  if(regiao===0) DB.regioes.forEach(r=>add(r.id)); else add(regiao);
+  for(const p of _actP(regiao)) add(p);
   return acc;
 }
 function revAgg(regiao, produto){
@@ -1019,7 +1049,7 @@ function _extraProjPlanta(comp){
 function revExtraAgg(regiao, comp){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const blk=DB.revExtra[comp]||{}, proj=_extraProjPlanta(comp);
-  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const plantas = _actP(regiao);
   for(const p of plantas){
     const h=blk[p], pj=proj?proj[p]:null;
     for(let k=0;k<n;k++){
@@ -1134,6 +1164,7 @@ function volComMolecula(regiao){
   for(const cli of DB.clientes){
     if(!cli.custo_mol) continue;
     if(regiao!==0 && cli.planta!==regiao) continue;
+    if(!plantOn(cli.planta)) continue;
     const s=volClienteSerie(cli);
     for(let k=0;k<n;k++) acc[k]+=s[k];
   }
@@ -1141,7 +1172,7 @@ function volComMolecula(regiao){
 }
 function gasProj(regiao){
   const n=DB.meses.length, dias=DB.diasMes, acc=new Array(n).fill(0);
-  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const plantas = _actP(regiao);
   const cut=DB.cutoffIdx;
   for(const p of plantas){
     const mol=moleculaLive(p), vp=volComMolecula(p), adj=DB.gasAdj[p];
@@ -1155,7 +1186,7 @@ function gasProj(regiao){
 function gasHistAgg(regiao){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const add=p=>{ const a=DB.gasHist[p]; if(a) for(let k=0;k<=cut;k++){ if(typeof a[k]==="number") acc[k]+=a[k]; } };
-  if(regiao===0) DB.regioes.forEach(r=>add(r.id)); else add(regiao);
+  for(const p of _actP(regiao)) add(p);
   return acc;
 }
 function gasAgg(regiao){
@@ -1232,7 +1263,7 @@ function logisticaSerie(){
 const LOG_SUB=["frete_fixo","frete_var","aluguel","cavalo","ociosos","sinergia"];
 function logisticaCompAgg(regiao){   // {subkey:[192]} somado na região
   logisticaSerie();                  // garante cache
-  const n=DB.meses.length, comp=_logCache.comp, plantas = regiao===0 ? [1,2,3,4,5,6] : [regiao];
+  const n=DB.meses.length, comp=_logCache.comp, plantas = _actP(regiao);
   const out={}; for(const s of LOG_SUB){ out[s]=new Array(n).fill(0);
     for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
   return out;
@@ -1299,7 +1330,7 @@ function regasSerie(){
 }
 const REG_SUB=["aluguel","furui_prep","furui_leasing","assistencia"];
 function regasCompAgg(regiao){
-  regasSerie(); const n=DB.meses.length, comp=_regCache.comp, plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
+  regasSerie(); const n=DB.meses.length, comp=_regCache.comp, plantas=_actP(regiao);
   const out={}; for(const s of REG_SUB){ out[s]=new Array(n).fill(0);
     for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
   return out;
@@ -1366,13 +1397,13 @@ function sgaSerie(){
   _sgaCache={key,comp,total}; return total;
 }
 function sgaCompAgg(regiao){
-  sgaSerie(); const n=DB.meses.length, comp=_sgaCache.comp, plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
+  sgaSerie(); const n=DB.meses.length, comp=_sgaCache.comp, plantas=_actP(regiao);
   const out={}; for(const s of SGA_SUB){ out[s]=new Array(n).fill(0);
     for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
   return out;
 }
 function aggByRegiao(byPlanta, regiao){   // {planta:[192]} -> [192] somado na região
-  const n=DB.meses.length, out=new Array(n).fill(0), plantas=regiao===0?[1,2,3,4,5,6]:[regiao];
+  const n=DB.meses.length, out=new Array(n).fill(0), plantas=_actP(regiao);
   for(const p of plantas){ const a=byPlanta[p]||[]; for(let k=0;k<n;k++) out[k]+=a[k]||0; } return out;
 }
 // categorias já portadas em fórmula (usa fórmula na projeção; realizado = extraído)
@@ -1382,7 +1413,7 @@ function portedOpex(cat){ return cat==="liquefacao" ? liquefSerie() : cat==="dis
 function opexCatAgg(regiao, cat){
   const n=DB.meses.length, cut=DB.cutoffIdx, acc=new Array(n).fill(0);
   const blk=DB.opexCat[cat]||{}, ported=portedOpex(cat);
-  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const plantas = _actP(regiao);
   for(const p of plantas){ const a=blk[p];
     for(let k=0;k<n;k++){
       if(k>cut && ported && ported[p]) acc[k]+=ported[p][k];      // projeção = fórmula portada
@@ -1442,7 +1473,7 @@ function liquefSerie(){   // {planta:[192]} total (soma das sub-linhas)
 // componentes de liquefação agregados por região (soma das plantas)
 function liquefCompAgg(regiao){
   const n=DB.meses.length, out={}; LIQUEF_SUB.forEach(s=>out[s]=new Array(n).fill(0));
-  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const plantas = _actP(regiao);
   for(const p of plantas){ if(p>6) continue; const C=liquefComp(p);
     LIQUEF_SUB.forEach(s=>{ for(let k=0;k<n;k++) out[s][k]+=C[s][k]; }); }
   return out;
@@ -1461,7 +1492,7 @@ function custoTotal(regiao){ // gás + OpEx (ex-gás)
 // Pondera pelo volume total (hist no realizado, projeção depois) p/ não zerar no corte.
 function moleculaMedia(regiao){
   const n=DB.meses.length, out=new Array(n).fill(null);
-  const plantas = regiao===0 ? DB.regioes.map(r=>r.id) : [regiao];
+  const plantas = _actP(regiao);
   const wvol = {};
   for(const p of plantas){ const g=volAgg(p,"GNL"), c=volAgg(p,"GNC"); wvol[p]=g.map((v,i)=>v+c[i]); }
   for(let k=0;k<n;k++){
@@ -1571,7 +1602,8 @@ function capacidadePlanta(produto, p){
   const n=DB.meses.length, mo=DB.monthsOrd, cut=DB.cutoffIdx, out=new Array(n).fill(0);
   const res=((DB.capacidade||{})[produto]||{})[p]||[];   // realizado = série resolvida (colada)
   const ph=((DB.capPrem||{})[produto]||{})[p]||[];
-  const flags=(DB.dcfProj||{}).flags||{}, fl=flags[CAP_PLANTA[p]]!=null?flags[CAP_PLANTA[p]]:1;
+  const flags=(DB.dcfProj||{}).flags||{}, fl=(flags[CAP_PLANTA[p]]!=null?flags[CAP_PLANTA[p]]:1)*(plantOn(p)?1:0);
+  if(!plantOn(p)) return out;   // planta desligada → sem capacidade (nem realizado)
   for(let k=0;k<n;k++){
     if(k<=cut){ out[k]= (typeof res[k]==="number")?res[k]:0; continue; }   // realizado exato
     let cap=0; for(const e of ph){ if(mo[k]>=e.ord) cap=e.cap; else break; } out[k]=cap*fl;  // projeção viva/editável
@@ -1589,7 +1621,7 @@ function utilizacaoSerie(reg, produto){ const vol=volAgg(reg,produto), cap=capac
 function utilizacaoTotalSerie(reg){ const vol=volTotalSerie(reg), cap=capacidadeTotalSerie(reg), n=DB.meses.length, out=new Array(n);
   for(let k=0;k<n;k++){ out[k]= (cap[k]>0) ? vol[k]/cap[k] : null; } return out; }
 function _cliVolSum(reg,pred){ const n=DB.meses.length, acc=new Array(n).fill(0);
-  for(const c of DB.clientes){ if(reg!==0&&+c.planta!==reg) continue; if(!pred(c)) continue; const s=volClienteSerie(c);
+  for(const c of DB.clientes){ if(reg!==0&&+c.planta!==reg) continue; if(!plantOn(c.planta)) continue; if(!pred(c)) continue; const s=volClienteSerie(c);
     for(let k=0;k<n;k++) acc[k]+=s[k]; } return acc; }
 function _cliVolPer(pred){ return p=>{ const n=DB.meses.length, acc=new Array(n).fill(0);
   for(const c of DB.clientes){ if(+c.planta!==p||!pred(c)) continue; const s=volClienteSerie(c);
@@ -1693,7 +1725,7 @@ function revdimbarHTML(){
 function setRevdim(d){ state.revdim=d; render(); }
 // receita GNL+GNC por cliente (as parcelas serviço/aluguel/outros são por planta, não por cliente)
 function _cliRevSum(reg, pred){ const n=DB.meses.length, acc=new Array(n).fill(0);
-  for(const c of DB.clientes){ if(reg!==0 && c.planta!==reg) continue; if(!pred(c)) continue;
+  for(const c of DB.clientes){ if(reg!==0 && c.planta!==reg) continue; if(!plantOn(c.planta)) continue; if(!pred(c)) continue;
     const s=revClienteSerie(c); for(let k=0;k<n;k++) acc[k]+=s[k]; } return acc; }
 function _cliRevPer(pred){ return p=>{ const n=DB.meses.length, acc=new Array(n).fill(0);
   for(const c of DB.clientes){ if(c.planta!==p||!pred(c)) continue; const s=revClienteSerie(c);
@@ -2166,7 +2198,8 @@ function capexEngine(){
     dep1[p]=dep1[p].map((v,k)=>v+d[k]); }
   const cap695=new Array(n), cap700=new Array(n), cap694=new Array(n), cap699=new Array(n);
   for(let k=0;k<n;k++){ let a=0,b=0,c=0,e=0;
-    for(let p=0;p<6;p++){ a+=dep1[p][k]; b+=dep2[p][k]; c+=num((C.inv1[p]||[])[k]); e+=num((C.inv2[p]||[])[k]); }
+    for(let p=0;p<6;p++){ if(!plantOn(p+1)) continue;   // planta desligada → sem capex/depreciação/imobilizado
+      a+=dep1[p][k]; b+=dep2[p][k]; c+=num((C.inv1[p]||[])[k]); e+=num((C.inv2[p]||[])[k]); }
     cap695[k]=a; cap700[k]=b; cap694[k]=c; cap699[k]=e; }
   // amortização do intangível da holding (pool 120m), semente do acumulado no corte
   const hd46=C.hd46||[], cum=new Array(n); let run=0;
@@ -2243,15 +2276,20 @@ function dividaEngine(){
     return o;
   }
   const R=insts.map(run);
-  const agg=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
+  // switch de planta: cada instrumento é de uma planta (1=PR,2=BA,3=RN) ou da holding (0). Desligar a
+  // planta zera seus instrumentos; a dívida da HOLDING fica fixa. saldoFull = sem gate (p/ ratio do balanço).
+  const gpr=DB.dividaGpr||[], instOn=i=>{ const pl=gpr[i]||0; return pl===0 || plantOn(pl); };
+  const agg=f=>{ const a=new Array(n).fill(0); for(let i=0;i<R.length;i++){ if(!instOn(i)) continue; for(let k=0;k<n;k++) a[k]+=R[i][f][k]; } return a; };
+  const aggFull=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
   const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof"),
         desemb=agg("desemb"), amort=agg("amort"), pagJ=agg("pagJuros");
+  const saldoFull=aggFull("saldoFim"), debtRatio=saldoFull.map((v,k)=> Math.abs(v)>1e-6 ? saldo[k]/v : 1);
   // SEGURO da dívida por bloco (Dívida r67/76/85…): TRIMESTRAL = −(principal do bloco em aberto)
   // × ((1+taxa)^(3/12)−1), meses múltiplos de 3, até a data-fim. Principal do bloco = Σ_i aloc[i]×
   // (desemb+amort). Só BA (col F) e RN (col G) têm taxa>0 e dívida; PR (taxa 0) e demais = 0.
   function blocoSeguro(gk, rate, end){
     const qr=Math.pow(1+(rate!=null?rate:0),3/12)-1, seg=new Array(n).fill(0); let cum=0;
-    for(let k=0;k<n;k++){ let flow=0; for(let i=0;i<insts.length;i++){ const g=insts[i][gk]||0; if(g) flow+=g*(R[i].desemb[k]+R[i].amort[k]); }
+    for(let k=0;k<n;k++){ let flow=0; for(let i=0;i<insts.length;i++){ if(!instOn(i)) continue; const g=insts[i][gk]||0; if(g) flow+=g*(R[i].desemb[k]+R[i].amort[k]); }
       cum+=flow; const mo=+DB.meses[k].ym.slice(5);
       if(k>cut && mo%3===0 && (!end || dates[k]<end)) seg[k]= -cum*qr; }   // negativo (despesa)
     return seg;
@@ -2262,13 +2300,13 @@ function dividaEngine(){
   // imp37 (Impostos!37 = reclass. RN do resultado financeiro) = −(juros_RN + IOF_RN + seguro_RN).
   // IOF/comissão/taxa = 0 no cenário; seguro_RN = −r85. Validado 1:1 vs Impostos!37.
   const imp37=new Array(n).fill(0);
-  for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g) continue;
+  for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g||!instOn(i)) continue;
     for(let k=0;k<n;k++) imp37[k]+= -(g*(R[i].despJuros[k]+R[i].iof[k])); }
   for(let k=0;k<n;k++) imp37[k]+= -segRN[k];   // −r85 (seguro negativo → soma +)
   // seguro total (BA+RN) — componente FÓRMULA do Div26; o resto do Div26 (comissão colada + IOF)
   // é montado no caixaBalancoEngine: Div26 = comissão(premissa) + seguros(vivo) + IOF(vivo). Validado 1:1.
   const seguros=new Array(n); for(let k=0;k<n;k++) seguros[k]=segBA[k]+segRN[k];
-  return (_dividaCache={juros, saldo, iof, imp37, seguros, desemb, amort, pagJ, R, insts});
+  return (_dividaCache={juros, saldo, iof, imp37, seguros, desemb, amort, pagJ, R, insts, debtRatio});
 }
 function jurosDividaSerie(){ return dividaEngine().juros; }         // Dívida!20 (despesa de juros, >0)
 function saldoDividaSerie(){ return dividaEngine().saldo; }         // saldo devedor (Passivo do balanço)
@@ -2335,8 +2373,9 @@ function caixaBalancoEngine(){
     ativoNC[k]=num(a140[k])+num(a141[k])+num(a142[k])+num(a143[k])+num(imob[k])+num(a148[k]);    // DFM149
     totAtivo[k]=ativoCirc[k]+ativoNC[k];                                                          // DFM151
     const pc156=forn[k]-num(pc157[k]), pc159=trab[k]+trib[k];
-    passCirc[k]=pc156+num(pc157[k])+num(pc158[k])+pc159+num(pc160[k])+num(div12[k]);              // DFM162
-    passNC[k]=num(pnc165[k])+num(div13[k]);                                                       // DFM167
+    const dr=(de.debtRatio&&typeof de.debtRatio[k]==="number")?de.debtRatio[k]:1;   // switch de planta: escala a dívida do balanço
+    passCirc[k]=pc156+num(pc157[k])+num(pc158[k])+pc159+num(pc160[k])+num(div12[k])*dr;            // DFM162
+    passNC[k]=num(pnc165[k])+num(div13[k])*dr;                                                     // DFM167
     totPass[k]=passCirc[k]+passNC[k];                                                             // DFM169
     pl[k]=capital[k]+lucroAcum[k]+resLegal[k];                                                    // DFM176
     ident[k]=pl[k]+totPass[k]-totAtivo[k];                                                        // ≈0
@@ -2371,7 +2410,8 @@ function dcfConsolidado(){
 function evParts(){
   const cut=DB.cutoffIdx, B=DB.balanco||{}, g=k=>B[k]||[], num=x=>typeof x==="number"?x:0;
   const equity=dcfConsolidado().vpl;
-  const grossDebt=num(g("div12")[cut])+num(g("div13")[cut]);
+  const dr=(()=>{ const d=dividaEngine().debtRatio; return (d&&typeof d[cut]==="number")?d[cut]:1; })();   // switch de planta
+  const grossDebt=(num(g("div12")[cut])+num(g("div13")[cut]))*dr;
   const cash=num(caixaBalancoEngine().caixa[cut]);
   return {equity, grossDebt, cash, ev:equity+grossDebt-cash, cut};
 }
@@ -2396,8 +2436,9 @@ function perProjEngine(){
   for(let k=0;k<n;k++) consIR[k]=num(dfm195[k]);
   const capex=DB.capex||{}, out={};
   for(const [name,pid] of PERPROJ){
-    const flag=dp.flags[name]!=null?dp.flags[name]:1;
-    const impFlag=(name==="SAL")?(dp.flags["AR"]!=null?dp.flags["AR"]:1):flag;   // quirk do modelo
+    const on=plantOn(pid)?1:0;   // switch de planta liga/desliga
+    const flag=(dp.flags[name]!=null?dp.flags[name]:1)*on;
+    const impFlag=((name==="SAL")?(dp.flags["AR"]!=null?dp.flags["AR"]:1):(dp.flags[name]!=null?dp.flags[name]:1))*on;   // quirk do modelo
     const RLp=receitaComp(pid).total, ro=roPlantaSerie(pid);                     // DFM415 / DFM465
     const inv1=(capex.inv1||[])[pid-1]||[], inv2=(capex.inv2||[])[pid-1]||[];
     const d=dp.debt[name]||{}, roReal=(dp.ro||{})[name]||[], wcReal=(dp.wc||{})[name]||[], impReal=(dp.imp||{})[name]||[];
@@ -2405,10 +2446,10 @@ function perProjEngine(){
     for(let k=0;k<n;k++){
       const share= consRL[k] ? RLp[k]/consRL[k] : 0;
       // EBITDA da planta: realizado = actual colado (DFM465); projeção = RO por planta (fórmula viva)
-      RO[k]= k<=cut ? num(roReal[k]) : num(ro[k])*flag;
+      RO[k]= k<=cut ? num(roReal[k])*on : num(ro[k])*flag;
       // WC/Impostos: realizado = actual colado (por planta); projeção = consol × participação na receita (vivo)
-      WC[k]=  k<=cut ? num(wcReal[k])  : num(consWC[k])*share*flag;
-      IMP[k]= k<=cut ? num(impReal[k]) : num(consIR[k])*share*impFlag;
+      WC[k]=  k<=cut ? num(wcReal[k])*on  : num(consWC[k])*share*flag;
+      IMP[k]= k<=cut ? num(impReal[k])*on : num(consIR[k])*share*impFlag;
       INV[k]=-(num(inv1[k])+num(inv2[k]))*flag;
       FC[k]=(num((d.desemb||[])[k])+num((d.amort||[])[k])+num((d.juros||[])[k])+num((d.outras||[])[k]))*flag;
       GER[k]=RO[k]+WC[k]+IMP[k]+INV[k]+FC[k];
@@ -3175,6 +3216,7 @@ function renderDashboard(){
   h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+='</div>';
+  h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   h+='<div class="cform"><div class="sec">Taxa de desconto'+help(MECH.wacc)+'</div>';
   h+=`<div class="frow"><label>WACC <b style="color:var(--accent3)" id="wacc_v">${Math.round(DASH.wacc*100)}%</b> a.a.</label>
       <input type="range" id="wacc" min="0.06" max="0.25" step="0.005" value="${DASH.wacc}"
@@ -3464,6 +3506,8 @@ function boot(){
   if(!window._escInit){ window._escInit=true; document.addEventListener("keydown", e=>{
     if(e.key==="Escape"){ if(state.volExp) toggleVolExp(); else if(state.cliSel) closeCli(); } }); }
   DB.clientesBase = JSON.parse(JSON.stringify(DB.clientes));   // baseline p/ reverter/marcar edições
+  // estado inicial dos switches de planta = cenário do modelo (flags do Painel; Terminal PE desligada)
+  { const fl=(DB.dcfProj||{}).flags||{}; for(let id=1;id<=6;id++){ const nm=CAP_PLANTA[id]; if(fl[nm]===0) state.plantOff[id]=true; } }
   snapshotPrem();                                              // snapshot dos defaults p/ reset de premissas
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   const hs=$("#hsubR"); if(hs) hs.textContent = "Realizado até "+(cut?fmtMesY(cut.ym):"—");

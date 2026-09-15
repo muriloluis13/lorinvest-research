@@ -1076,6 +1076,7 @@ def extract_divida(wb, div_formulas):
             "pg_period": pg_period, "pg_offset": pg_offset, "tranches": tr, "override": override,
             "g_rn": _num(cell(1518 + bi, 7)) or 0.0,   # % RN por instrumento (col G) — Imp37 + seguro RN
             "g_ba": _num(cell(1518 + bi, 6)) or 0.0,   # % BA por instrumento (col F) — seguro BA (Div26)
+            "g_pr": _num(cell(1518 + bi, 5)) or 0.0,   # % PR por instrumento (col E) — switch de planta
         }
         # sementes do realizado (resumo ini+0..+5) — realizado; para BA/RN também a projeção colada
         if ini:
@@ -1515,6 +1516,10 @@ def main():
             if d["override"]:            # BA/RN: amort/pagamento COLADOS (série completa = premissa)
                 ws_dv.append(["i%d_ovr_amort" % i] + d["seed_amort"])
                 ws_dv.append(["i%d_ovr_pagJ" % i] + d["seed_pagJ"])
+    # aba DividaGpr: planta de cada instrumento (1=PR,2=BA,3=RN,0=holding) — p/ o switch de planta gatear a dívida
+    ws_dg = out.create_sheet("DividaGpr")
+    ws_dg.append(["plant_by_instrument"] + [
+        (1 if d.get("g_pr") else 2 if d.get("g_ba") else 3 if d.get("g_rn") else 0) for d in divida])
 
     # aba Balanco: insumos do módulo caixa/balanço/DCF. Séries COLADAS/de outro módulo (imposto-caixa,
     # dividendos, override de ICMS, seguros/comissões da dívida, sementes, carries) + constantes de
