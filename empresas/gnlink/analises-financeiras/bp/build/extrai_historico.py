@@ -1187,8 +1187,23 @@ def extract_capacidade(wb):
         return [_num(ws.cell(row=r, column=COL_FIRST + k).value) for k in range(N_MONTHS)]
     gnl = {1: 9, 2: 10, 3: 11, 4: 12, 5: 13, 6: 14}
     gnc = {1: 18, 2: 19, 3: 20, 4: 21, 5: 22, 6: 23}
-    return {"GNL": {p: dser(r) for p, r in gnl.items()},
-            "GNC": {p: dser(r) for p, r in gnc.items()}}
+    resolved = {"GNL": {p: dser(r) for p, r in gnl.items()},
+                "GNC": {p: dser(r) for p, r in gnc.items()}}
+    # PREMISSA editável — curva de expansão (até 4 fases: capacidade m³/dia + data início) da aba
+    # Base Premissas ('DEMANDA - CURVA DE CAPACIDADE'). GNL rows 10-15, GNC 20-25; cap=cols 4/6/8/10,
+    # data=cols 5/7/9/11. O HTML monta a função-degrau ao vivo (editável).
+    bp = wb["Base Premissas"]
+    def phases(r):
+        out = []
+        for i in range(4):
+            cap = _num(bp.cell(row=r, column=4 + 2 * i).value)
+            dat = _num(bp.cell(row=r, column=5 + 2 * i).value)
+            if cap is not None and dat is not None:
+                out += [cap, dat]
+        return out
+    prem = {"GNL": {p: phases(9 + p) for p in range(1, 7)},
+            "GNC": {p: phases(19 + p) for p in range(1, 7)}}
+    return {"resolved": resolved, "prem": prem}
 
 
 def extract_dre_below(wb):
@@ -1529,12 +1544,18 @@ def main():
         ws_dp.append(["%s_wc" % p] + real_only(dcfproj["wc"][p], n_real))
         ws_dp.append(["%s_imp" % p] + real_only(dcfproj["imp"][p], n_real))
 
-    # aba Capacidade: curva de capacidade por planta × produto (m³/dia, série completa colada).
+    # aba Capacidade: curva RESOLVIDA por planta × produto (m³/dia) — usada p/ o realizado + validação.
     ws_cap = out.create_sheet("Capacidade")
     ws_cap.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
     for prod in ("GNL", "GNC"):
         for p in range(1, 7):
-            ws_cap.append(["%s_%d" % (prod, p)] + capacidade[prod][p])
+            ws_cap.append(["%s_%d" % (prod, p)] + capacidade["resolved"][prod][p])
+    # aba CapacidadePrem: PREMISSA editável — fases da curva de expansão (capacidade + data início).
+    ws_cpm = out.create_sheet("CapacidadePrem")
+    ws_cpm.append(["field", "cap1", "dat1", "cap2", "dat2", "cap3", "dat3", "cap4", "dat4"])
+    for prod in ("GNL", "GNC"):
+        for p in range(1, 7):
+            ws_cpm.append(["%s_%d" % (prod, p)] + capacidade["prem"][prod][p])
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula

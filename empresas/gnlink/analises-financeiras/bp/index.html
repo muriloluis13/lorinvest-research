@@ -544,10 +544,26 @@ function parseWorkbook(buf){
         if(m){ (dcfProj.debt[m[1]]=dcfProj.debt[m[1]]||{})[m[2]]=r.slice(1); continue; }
         m=key.match(/^(PR|BA|RN|PE|AR|SAL)_(ro|wc|imp)$/);
         if(m){ dcfProj[m[2]][m[1]]=r.slice(1); } } } }
-  // Capacidade: curva de capacidade por planta × produto (m³/dia) — colada; utilização = volume/capac. viva
+  // Capacidade: curva RESOLVIDA por planta × produto (m³/dia) — mantida só p/ validação da função-degrau
   const gcap = grid("Capacidade"); const capacidade={GNL:{}, GNC:{}};
   if(gcap){ for(let i=1;i<gcap.length;i++){ const r=gcap[i]; if(!r||r[0]==null) continue;
     const m=String(r[0]).match(/^(GNL|GNC)_(\d)$/); if(m) capacidade[m[1]][+m[2]]=r.slice(1); } }
+  // CapacidadePrem: PREMISSA editável — curva de expansão (até 4 fases: capacidade m³/dia + data início).
+  // A capacidade vira função-degrau ao vivo (capacidadeSerie); editar uma fase re-projeta a utilização.
+  const gcpm = grid("CapacidadePrem"); const capPrem={GNL:{}, GNC:{}};
+  if(gcpm){ for(let i=1;i<gcpm.length;i++){ const r=gcpm[i]; if(!r||r[0]==null) continue;
+    const m=String(r[0]).match(/^(GNL|GNC)_(\d)$/); if(!m) continue; const ph=[];
+    for(let j=1;j+1<r.length;j+=2){ const cap=r[j], dat=r[j+1]; if(cap!=null&&dat!=null){
+      const d=new Date(Date.UTC(1899,11,30)+Math.round(+dat)*86400000);
+      ph.push({cap:+cap, ord:d.getUTCFullYear()*12+d.getUTCMonth(), ym:d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")}); } }
+    capPrem[m[1]][+m[2]]=ph; } }
+  // desligamento de planta é de nível PLANTA: se um produto tem fase terminal cap=0 (encerramento),
+  // propaga o mesmo encerramento ao outro produto (ex.: PR encerra em 2036, GNL traz o 0 explícito, GNC não).
+  for(let p=1;p<=6;p++){ let end=null;
+    for(const prod of ["GNL","GNC"]){ const ph=capPrem[prod][p]||[]; const last=ph[ph.length-1];
+      if(last && last.cap===0){ if(end==null||last.ord<end.ord) end=last; } }
+    if(end){ for(const prod of ["GNL","GNC"]){ const ph=capPrem[prod][p]; if(!ph||!ph.length) continue;
+      const last=ph[ph.length-1]; if(last.cap!==0 && last.ord<end.ord) ph.push({cap:0, ord:end.ord, ym:end.ym}); } } }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -620,7 +636,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem};
 }
 
 async function tryFetch(){
@@ -1497,7 +1513,7 @@ let _grpN=0;
 function serieTableHTML(rows, corner){
   const B=periodBuckets();
   const cells=(serie,r)=>B.map(b=>{ const v=aggBucket(serie,b,r.how||"sum");
-    return `<td class="${b.proj?'o':''}">${r.pct?fmtPct(v):fmt(v==null?null:v/(r.div||1e6), r.d!=null?r.d:0)}</td>`; }).join('');
+    return `<td class="${b.proj?'o':''}">${r.pct?fmtPct(v, r.d!=null?r.d:2):fmt(v==null?null:v/(r.div||1e6), r.d!=null?r.d:0)}</td>`; }).join('');
   let cat=`<tr><th class="l">${help(MECH.tipo)}</th>`, i=0;
   while(i<B.length){ let j=i; while(j<B.length && B[j].tipo===B[i].tipo) j++;
     cat+=`<th colspan="${j-i}" class="tipo tipo-${B[i].tipo}">${TIPO_LBL[B[i].tipo]}</th>`; i=j; }
@@ -1544,10 +1560,23 @@ function renderReceita(){
 }
 /* ---------------------------------------------------- aba Volume (separada da Receita) */
 function volTotalSerie(reg){ const g=volAgg(reg,"GNL"), c=volAgg(reg,"GNC"); return g.map((v,i)=>v+(c[i]||0)); }
-// capacidade instalada (m³/dia) por planta × produto (colada); consolidado = Σ plantas
-function capacidadeSerie(reg, produto){ const n=DB.meses.length, C=(DB.capacidade||{})[produto]||{}, out=new Array(n).fill(0);
-  const add=p=>{ const s=C[p]; if(s) for(let k=0;k<n;k++){ const v=s[k]; if(typeof v==="number") out[k]+=v; } };
-  if(reg===0){ for(let p=1;p<=6;p++) add(p); } else add(reg);
+// capacidade instalada (m³/dia) por planta × produto — FUNÇÃO-DEGRAU VIVA da curva de expansão (premissa
+// editável): capacidade[k] = Cap da última fase cuja data de início ≤ mês k, × flag da planta.
+const CAP_PLANTA={1:"PR",2:"BA",3:"RN",4:"PE",5:"AR",6:"SAL"};
+function capacidadePlanta(produto, p){
+  const n=DB.meses.length, mo=DB.monthsOrd, cut=DB.cutoffIdx, out=new Array(n).fill(0);
+  const res=((DB.capacidade||{})[produto]||{})[p]||[];   // realizado = série resolvida (colada)
+  const ph=((DB.capPrem||{})[produto]||{})[p]||[];
+  const flags=(DB.dcfProj||{}).flags||{}, fl=flags[CAP_PLANTA[p]]!=null?flags[CAP_PLANTA[p]]:1;
+  for(let k=0;k<n;k++){
+    if(k<=cut){ out[k]= (typeof res[k]==="number")?res[k]:0; continue; }   // realizado exato
+    let cap=0; for(const e of ph){ if(mo[k]>=e.ord) cap=e.cap; else break; } out[k]=cap*fl;  // projeção viva/editável
+  }
+  return out;
+}
+function capacidadeSerie(reg, produto){ const n=DB.meses.length, out=new Array(n).fill(0);
+  if(reg===0){ for(let p=1;p<=6;p++){ const s=capacidadePlanta(produto,p); for(let k=0;k<n;k++) out[k]+=s[k]; } }
+  else { return capacidadePlanta(produto, reg); }
   return out; }
 function capacidadeTotalSerie(reg){ const g=capacidadeSerie(reg,"GNL"), c=capacidadeSerie(reg,"GNC"); return g.map((v,i)=>v+(c[i]||0)); }
 // utilização (%) = volume / capacidade — VIVA (reage ao volume). null quando capacidade=0.
@@ -1593,9 +1622,9 @@ function renderVolume(){
   h+='<div class="mkpis">';
   h+=kpi("Volume atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
   h+=kpi("Capacidade instalada (atual)", fmt(cap[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym));
-  h+=kpi("Utilização atual", util[cut]!=null?fmtPct(util[cut]):"—", "volume ÷ capacidade");
+  h+=kpi("Utilização atual", util[cut]!=null?fmtPct(util[cut],0):"—", "volume ÷ capacidade");
   h+=kpi("Pico de volume projetado", fmt(tot[kMax],0), "m³/dia · "+fmtMes(DB.meses[kMax].ym),null,MECH.volume);
-  h+=kpi("Utilização máx. projetada", util[kUtil]!=null?fmtPct(util[kUtil]):"—", "em "+fmtMes(DB.meses[kUtil].ym));
+  h+=kpi("Utilização máx. projetada", util[kUtil]!=null?fmtPct(util[kUtil],0):"—", "em "+fmtMes(DB.meses[kUtil].ym));
   h+='</div>';
   h+='<div class="card"><h4>Volume × capacidade mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
   const dim=state.voldim||"produto";
@@ -1608,11 +1637,36 @@ function renderVolume(){
     {lbl:"Capacidade GNC",serie:capacidadeSerie(reg,"GNC"),...A,perPlanta:p=>capacidadeSerie(p,"GNC")},
     {lbl:"Capacidade total",serie:cap,...A,bold:true,perPlanta:p=>capacidadeTotalSerie(p)},
     {lbl:"Volume total",serie:tot,...A,perPlanta:p=>volTotalSerie(p)},
-    {lbl:"Utilização",serie:util,how:"avg",pct:true,bold:true,perPlanta:p=>utilizacaoTotalSerie(p)},
+    {lbl:"Utilização",serie:util,how:"avg",pct:true,d:0,bold:true,perPlanta:p=>utilizacaoTotalSerie(p)},
   ];
   h+='<h3 class="msub">Capacidade &amp; utilização — '+regName(reg)+'</h3>'+serieTableHTML(capRows,"m³/dia · %")+
     '<div class="note">Capacidade = curva de expansão da planta (premissa, m³/dia médio no período). Utilização = volume médio ÷ capacidade média. '+(reg===0?'Clique numa linha para abrir por planta. ':'')+'Terminal PE sem capacidade neste cenário.</div>';
+  h+=premCapacidadePanel(reg);   // premissas editáveis da curva de capacidade (por fase)
   return {html:h, gnl, gnc, cap};
+}
+// painel de premissas EDITÁVEIS da capacidade (curva de expansão por fase), por planta
+function premCapacidadePanel(reg){
+  const pp=premPlanta(reg), nome=(DB.regioes.find(r=>r.id===pp)||{}).nome||("Planta "+pp);
+  const O=(_premOrig&&_premOrig.capPrem)||{};
+  let h='<div class="premcard"><div class="ph"><b>Premissas — Curva de capacidade</b>';
+  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<button class="btn-reset" onclick="premReset(\'capacidade\')">restaurar</button></div>';
+  h+='<div class="psub">Capacidade instalada por fase de expansão (m³/dia), com a data de início de cada fase. Alterar re-calcula a <b>utilização</b> ao vivo. Editando: <b>'+nome+'</b>.</div>';
+  if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
+      `<button class="${r.id===pp?'on':''}" onclick="state.premPlanta=${r.id};render()">${r.nome}</button>`).join('')+'</div>'; }
+  h+='<div class="premgrid">';
+  let any=false;
+  for(const prod of ["GNL","GNC"]){
+    const ph=((DB.capPrem||{})[prod]||{})[pp]||[]; if(!ph.length) continue; any=true;
+    h+='<div class="premgrp">'+prod+'</div>';
+    ph.forEach((e,i)=>{ const ob=(((O[prod]||{})[pp]||[])[i]||{}); const ed=premDif(e.cap, ob.cap);
+      h+=premCtrl("Capacidade fase "+(i+1)+" (desde "+fmtMes(e.ym)+")","m³/dia", +e.cap||0,
+                  v=>{ e.cap=+v; }, {dec:0, edited:ed, min:0, max:Math.max(e.cap*2, 10000)}); });
+  }
+  h+='</div>';
+  if(!any) h+='<div class="psub">Esta planta não tem curva de capacidade neste cenário.</div>';
+  h+='</div>';
+  return h;
 }
 const REVDIMS=[["produto","Produto"],["planta","Planta"],["cliente","Cliente"],["segmento","Segmento"],["modalidade","Modalidade (CIF/FOB)"]];
 function revdimbarHTML(){
@@ -2790,7 +2844,7 @@ function snapshotPrem(){
               logGlob:C(DB.logGlob), regasCli:C(DB.regasCli), regasGlob:C(DB.regasGlob), cryoMW:CRYO_MW.slice(),
               sgaCfg:C(DB.sgaCfg), sgaGlob:C(DB.sgaGlob), compTerm:C(DB.compTerm),
               molCompBase:C(DB.molCompBase), molCompBasePreco:C(DB.molCompBasePreco),
-              molPiso:C(DB.molPiso), molTeto:C(DB.molTeto), molPrem:C(DB.molPrem), holdingSga:C(DB.holdingSga) };
+              molPiso:C(DB.molPiso), molTeto:C(DB.molTeto), molPrem:C(DB.molPrem), holdingSga:C(DB.holdingSga), capPrem:C(DB.capPrem) };
 }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
@@ -2823,6 +2877,7 @@ function premReset(grupo){
   else if(grupo==="mol"){ DB.molCompBase=JSON.parse(JSON.stringify(O.molCompBase)); DB.molCompBasePreco=JSON.parse(JSON.stringify(O.molCompBasePreco));
     DB.molPiso=JSON.parse(JSON.stringify(O.molPiso)); DB.molTeto=JSON.parse(JSON.stringify(O.molTeto)); DB.molPrem=JSON.parse(JSON.stringify(O.molPrem)); }
   else if(grupo==="holding"){ DB.holdingSga=JSON.parse(JSON.stringify(O.holdingSga)); }
+  else if(grupo==="capacidade"){ DB.capPrem=JSON.parse(JSON.stringify(O.capPrem)); }
   clearAllCaches(); render();
 }
 // desloca (delta-shift) a projeção de uma série mensal p/ o novo nível, preservando a forma da curva
