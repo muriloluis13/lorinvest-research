@@ -32,7 +32,10 @@ header::before{content:'';display:block;height:3px;background:linear-gradient(90
 .hlogo{display:flex;align-items:center;flex:none;line-height:0}
 .hlogo img{height:30px;width:auto;display:block}
 .hsep{width:1px;height:26px;background:var(--line);flex:none;margin:0 2px}
-@media(max-width:640px){.hlogo img{height:24px}.hsep{display:none}}
+.hkpi{flex:none;border:1px solid var(--line);background:linear-gradient(160deg,#F8FAFC,#EEF2F7);border-radius:10px;padding:6px 14px;text-align:right;min-width:132px}
+.hkpi-cap{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.hkpi-val{font-size:17px;font-weight:800;color:var(--accent);line-height:1.15;font-variant-numeric:tabular-nums lining-nums;margin-top:1px}
+@media(max-width:640px){.hlogo img{height:24px}.hsep{display:none}.htitle{font-size:14px}.hsub{font-size:9px}.hkpi{min-width:0;padding:5px 9px}.hkpi-val{font-size:14px}}
 .hsub{font-size:10.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 .hspace{flex:1}
 .conf{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--accent);border:1px solid rgba(61,74,92,.4);border-radius:6px;padding:4px 9px;background:var(--chip)}
@@ -222,11 +225,13 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
     <span class="hsep"></span>
     <div>
       <div class="htitle">Business Plan</div>
-      <div class="hsub">Modelo financeiro mensal — motor ao vivo</div>
+      <div class="hsub" id="hsubR">—</div>
     </div>
     <div class="hspace"></div>
-    <span id="cutoffBadge" class="conf">—</span>
-    <span class="conf">CONFIDENCIAL</span>
+    <div class="hkpi" id="hkpiEV" title="Equity Value @Ke — valor presente do fluxo de caixa livre ao acionista descontado ao custo de capital próprio (Ke). Recalcula ao vivo com as premissas.">
+      <div class="hkpi-cap">Equity Value @Ke</div>
+      <div class="hkpi-val" id="hkpiEVval">—</div>
+    </div>
   </div>
 </header>
 
@@ -300,6 +305,33 @@ function fmtPct(v,d=2){
   return r<0 ? "("+s+")" : s;
 }
 const fmtNum = (v,d=1)=> v==null||isNaN(v) ? "—" : v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});  // simples (eixos de gráfico)
+// ---- caixas de texto numéricas formatadas (99.999,99 · negativos entre parênteses · zero = hífen) ----
+// pt-BR: ponto = milhar, vírgula = decimal. Aceita parênteses, R$, %, espaços.
+function parseBR(v){
+  if(v==null) return null;
+  if(typeof v==="number") return isNaN(v)?null:v;
+  let s=String(v).trim(); if(s===""||s==="-"||s==="–"||s==="—") return null;
+  let neg=false;
+  if(/^\(.*\)$/.test(s)){ neg=true; s=s.slice(1,-1); }
+  s=s.replace(/[\sR$%]/g,"");
+  if(s[0]==="-"){ neg=true; s=s.slice(1); }
+  s=s.replace(/\./g,"").replace(",",".");
+  const x=parseFloat(s); if(isNaN(x)) return null;
+  return neg?-x:x;
+}
+// display na caixa (não focada): reusa fmt() → 99.999,99 / (neg) / – ; null/"" → vazio
+function fmtIn(v,dec){ if(v==null||v==="") return ""; const n=(typeof v==="number")?v:parseBR(v); if(n==null||isNaN(n)) return ""; return fmt(n,dec); }
+// valor cru p/ edição (foco): pt-BR sem milhar (vírgula decimal), p/ o usuário digitar
+function rawIn(v){ if(v==null||v==="") return ""; const n=(typeof v==="number")?v:parseBR(v); if(n==null||isNaN(n)) return ""; return String(n).replace(".",","); }
+// emite uma caixa de texto numérica formatada (classe .numfmt); guarda o valor exato em data-raw
+function numBox(id,val,dec,extra,cls){ return `<input type="text" inputmode="decimal" class="numfmt ${cls||''}" id="${id}" data-dec="${dec}" data-raw="${val==null?'':val}" value="${fmtIn(val,dec)}" ${extra||''}>`; }
+// leitura robusta de uma caixa numérica: usa o valor exato (data-raw) quando existir
+function numVal(id){ const e=$("#"+id); if(!e) return null; if(e.hasAttribute&&e.hasAttribute("data-raw")){ const r=e.getAttribute("data-raw"); return r===""?null:parseBR(r); } return parseBR(e.value); }
+// delegação global: foco → mostra cru; blur → re-parseia e re-formata (uma vez só)
+function initNumFmt(){ if(window._numFmtInit) return; window._numFmtInit=true;
+  document.addEventListener("focusin", e=>{ const el=e.target; if(el&&el.classList&&el.classList.contains("numfmt")){ el.value=rawIn(el.getAttribute("data-raw")); try{el.select&&el.select();}catch(_){} } });
+  document.addEventListener("focusout", e=>{ const el=e.target; if(el&&el.classList&&el.classList.contains("numfmt")){ const nn=parseBR(el.value); el.setAttribute("data-raw", nn==null?"":nn); el.value=fmtIn(nn, +el.getAttribute("data-dec")||0); } });
+}
 // datas: "Jan/23", "Fev/23" ...
 const MES_ABBR=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function fmtMes(ym){ if(!ym) return ""; const p=String(ym).split("-"); return (MES_ABBR[(+p[1])-1]||"?")+"/"+String(p[0]).slice(2); }
@@ -640,9 +672,12 @@ function wireSubtabs(){
 }
 
 /* ------------------------------------------------------------- render ---- */
+function updateTopKpi(){ const el=$("#hkpiEVval"); if(!el) return;
+  try{ const ev=dcfConsolidado().vpl; el.textContent="R$ "+fmt(ev/1e6,0)+" MM"; }catch(_){ el.textContent="—"; } }
 function render(){
   destroyCharts();
   _premReg=[];                       // registradores de premissas reconstruídos a cada render
+  updateTopKpi();                    // Equity Value @Ke ao vivo no topbar
   const aba = abaById(state.aba);
   const m = $("#main");
   let html = `<div class="pgttl">${aba.nome}${aba.fase?`<span class="tag">Fase ${aba.fase}</span>`:''}</div>`;
@@ -1455,6 +1490,10 @@ function serieTableHTML(rows, corner){
       const gid="grp"+(_grpN++);
       body+=`<tr class="${r.bold?'tot':''} grp-parent" onclick="toggleGrp('${gid}',this)"><td class="l"><span class="caret">▸</span>${lblTip}</td>${cells(r.serie,r)}</tr>`;
       for(const rr of DB.regioes){ body+=`<tr class="grp-child ${gid}"><td class="l sub">↳ ${rr.nome}</td>${cells(r.perPlanta(rr.id),r)}</tr>`; }
+    } else if(r.children && r.children.length){
+      const gid="grp"+(_grpN++);
+      body+=`<tr class="${r.bold?'tot':''} grp-parent" onclick="toggleGrp('${gid}',this)"><td class="l"><span class="caret">▸</span>${lblTip}</td>${cells(r.serie,r)}</tr>`;
+      for(const ch of r.children){ body+=`<tr class="grp-child ${gid}"><td class="l sub">↳ ${ch.lbl+help(ch.tip)}</td>${cells(ch.serie,{how:ch.how||r.how,d:ch.d!=null?ch.d:r.d,div:ch.div||r.div,pct:ch.pct})}</tr>`; }
     } else {
       body+=`<tr class="${r.bold?'tot':''}"><td class="l">${lblTip}</td>${cells(r.serie,r)}</tr>`;
     }
@@ -1676,6 +1715,7 @@ function modalHTML(c){
 }
 function closeCli(){ state.cliSel=null; state.cliMsg=""; render(); }
 const _fr = (id,lbl,val,type)=>`<div class="frow"><label>${lbl}</label><input id="${id}" ${type||''} value="${val==null?'':val}"></div>`;
+const _frn = (id,lbl,val,dec)=>`<div class="frow"><label>${lbl}</label>${numBox(id,val,dec)}</div>`;   // campo numérico formatado
 // premissas de preço/volume do cliente — slider + caixa, aplica ao vivo (sem botão)
 function premClientePanel(c){
   const pz=DB.preco[c.id]||(DB.preco[c.id]={});
@@ -1706,14 +1746,14 @@ function editorHTML(c){
   h+='<div class="sec">Curva de volume (m³/dia) — re-projeta ao vivo</div>';
   h+='<div class="stagegrid"><div class="sh">Estágio</div><div class="sh">Volume</div><div class="sh">Início (Mmm/AAAA)</div><div class="sh">Fim (Mmm/AAAA)</div></div>';
   for(let s=1;s<=6;s++){ const st=c.stages[s-1];
-    h+=`<div class="stagegrid"><div class="st">S${s}</div><input id="e_s${s}v" type="number" step="any" value="${st.vol==null?'':st.vol}"><input id="e_s${s}i" value="${fmtMesY(st.iniYm)==='—'?'':fmtMesY(st.iniYm)}" placeholder="Mmm/AAAA"><input id="e_s${s}f" value="${fmtMesY(st.fimYm)==='—'?'':fmtMesY(st.fimYm)}" placeholder="Mmm/AAAA"></div>`; }
+    h+=`<div class="stagegrid"><div class="st">S${s}</div>${numBox('e_s'+s+'v', st.vol, 0)}<input id="e_s${s}i" value="${fmtMesY(st.iniYm)==='—'?'':fmtMesY(st.iniYm)}" placeholder="Mmm/AAAA"><input id="e_s${s}f" value="${fmtMesY(st.fimYm)==='—'?'':fmtMesY(st.fimYm)}" placeholder="Mmm/AAAA"></div>`; }
   h+=premClientePanel(c);   // premissas de preço/volume — slider + caixa, ao vivo (sem botão)
   h+='<div class="sec">Comercial — referência (aplica no botão)</div>';
   h+='<div class="psub" style="margin:-2px 0 8px">Dados de contrato que <b>não</b> entram na projeção deste motor (preço-vitrine e ToP são informativos; o preço que projeta está no bloco de premissas acima).</div>';
-  h+=_fr("e_preco","Preço de venda — vitrine (R$/m³)",c.preco!=null?(+c.preco).toFixed(2):null,"type=number step=0.01");
-  h+=`<div class="frow"><label>Take-or-Pay (%)</label><input id="e_top" type="number" step="any" value="${c.top!=null?+(c.top*100).toFixed(6):''}"></div>`;
+  h+=_frn("e_preco","Preço de venda — vitrine (R$/m³)", c.preco, 2);
+  h+=`<div class="frow"><label>Take-or-Pay (%)</label>${numBox("e_top", c.top!=null?c.top*100:null, 2)}</div>`;
   h+=_fr("e_regas","Tipo regás",c.tipo_regas||"","type=text");
-  h+=_fr("e_correcao","Correção molécula",c.correcao_mol,"type=number step=any");
+  h+=_frn("e_correcao","Correção molécula", c.correcao_mol, 4);
   h+='<div class="sec">Datas do contrato</div>';
   h+=`<div class="frow"><label>Início operação</label><input id="e_iniop" value="${fmtMesY(c.ini_op)==='—'?'':fmtMesY(c.ini_op)}" placeholder="Mmm/AAAA"></div>`;
   h+=`<div class="frow"><label>Fim do contrato</label><input id="e_fim" value="${fmtMesY(c.fim_contrato)==='—'?'':fmtMesY(c.fim_contrato)}" placeholder="Mmm/AAAA"></div>`;
@@ -1736,7 +1776,7 @@ function onCliSearch(v){
 }
 function selCli(id){ state.cliSel=id; state.cliMsg=""; render(); }
 const _v = id => { const e=$("#"+id); return e?e.value.trim():""; };
-const _n = id => { const s=_v(id); if(s==="") return null; const x=parseFloat(s.replace(",",".")); return isNaN(x)?null:x; };
+const _n = id => { const e=$("#"+id); if(!e) return null; if(e.hasAttribute&&e.hasAttribute("data-raw")){ const r=e.getAttribute("data-raw"); return r===""?null:parseBR(r); } const s=(e.value||"").trim(); return s===""?null:parseBR(s); };
 const ordOf = ym => { if(!ym) return null; const p=String(ym).split("-"); return p.length>=2?(+p[0])*12+(+p[1]-1):null; };
 const ymFromOrd = o => o==null?"":`${Math.floor(o/12)}-${String(o%12+1).padStart(2,"0")}`;
 // aceita "Mar/2026", "mar/26" ou "2026-03" -> "AAAA-MM" (dia descartado)
@@ -2103,7 +2143,8 @@ function caixaBalancoEngine(){
     ident[k]=pl[k]+totPass[k]-totAtivo[k];                                                        // ≈0
   }
   return (_cbCache={resfin, dfm385, caixa, cg364, dWC, ativoCirc, ativoNC, totAtivo,
-                    passCirc, passNC, totPass, pl, capital, lucroAcum, resLegal, ident});
+                    passCirc, passNC, totPass, pl, capital, lucroAcum, resLegal, ident,
+                    cr, est, forn, trab, trib});   // componentes p/ a abertura do balanço
 }
 // DCF consolidado (grade ANUAL): VPL = Σ geração/fator; fator=(1+F20)^t ancorado no último mês
 // realizado (F22); TIR = IRR(geração não-descontada). Geração e anos extraídos do DFA/DCF.
@@ -2123,6 +2164,15 @@ function dcfConsolidado(){
   let vpl=0; for(let j=4;j<20;j++){ const f=fac(anos[j]); if(f) vpl+=gen[j]/f; }
   const flows=[]; for(let j=0;j<16;j++){ if(anos[j]!=null) flows.push(gen[j]); }
   return {vpl, tir:_irr(flows), gen, anos};
+}
+// Enterprise Value = Equity Value (@Ke) + Dívida Bruta − Caixa, com dívida/caixa do ÚLTIMO mês realizado.
+// Dívida bruta = empréstimos CP (Balanço div12) + LP (div13); Caixa EoP = saldo de caixa (motor).
+function evParts(){
+  const cut=DB.cutoffIdx, B=DB.balanco||{}, g=k=>B[k]||[], num=x=>typeof x==="number"?x:0;
+  const equity=dcfConsolidado().vpl;
+  const grossDebt=num(g("div12")[cut])+num(g("div13")[cut]);
+  const cash=num(caixaBalancoEngine().caixa[cut]);
+  return {equity, grossDebt, cash, ev:equity+grossDebt-cash, cut};
 }
 // Resultado Financeiro VIVO: realizado da DRE (≤corte) + projeção do módulo caixa/dívida
 // (−juros da dívida + Div26 comissões/seguros + DFM385 rendimento do caixa). Ver caixaBalancoEngine.
@@ -2174,25 +2224,58 @@ function renderBalanco(){
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
   let h=`<div class="pglead"><b>Balanço Patrimonial & DCF</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando. VPL/TIR do fluxo de caixa livre.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
-  h+=kpi("VPL (DCF)", "R$ "+fmt(dcf.vpl/1e6,0)+" MM", "fluxo de caixa livre descontado", "", MECH.vpl);
+  const _ev=evParts();
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" MM", "FCF ao acionista descontado (Ke)", "", MECH.vpl);
+  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" MM", "Equity + Dívida Bruta − Caixa", "", MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "consolidado", "", MECH.tir);
   h+=kpi("Total de Ativos "+lastY+" (R$ MM)", fmt(e.totAtivo[lastK]/1e6,0), "saldo no fim do horizonte");
   h+=kpi("Caixa "+lastY+" (R$ MM)", fmt(e.caixa[lastK]/1e6,0), "saldo de caixa");
   h+='</div>';
   const L={how:"last",d:1,div:1e6};
+  const gb=k=>DB.balanco[k]||[], num=x=>typeof x==="number"?x:0, imob=imobilizadoSerie();
+  const pc157=gb("dfm157"), pc156=e.forn.map((v,k)=> v-num(pc157[k]));         // fornecedores = forn − partes rel.
+  const obrTrabTrib=e.trab.map((v,k)=> v+num(e.trib[k]));                       // obrigações trab.+tributárias
   const rows=[
-    {lbl:"Caixa e aplicações",serie:e.caixa,...L},
-    {lbl:"Ativo Circulante",serie:e.ativoCirc,...L,bold:true},
-    {lbl:"Ativo Imobilizado (líq.)",serie:imobilizadoSerie(),...L,tip:MECH.depreciacao},
-    {lbl:"Ativo Não Circulante",serie:e.ativoNC,...L,bold:true},
+    {lbl:"Ativo Circulante",serie:e.ativoCirc,...L,bold:true,children:[
+      {lbl:"Caixa e aplicações",serie:e.caixa},
+      {lbl:"Contas a receber (clientes)",serie:e.cr},
+      {lbl:"Estoques",serie:e.est},
+      {lbl:"Adiantamentos",serie:gb("dfm353")},
+      {lbl:"Impostos a recuperar",serie:gb("dfm354")},
+      {lbl:"Outros ativos circulantes",serie:gb("dfm135")},
+      {lbl:"Outros ativos circulantes (II)",serie:gb("dfm242")},
+    ]},
+    {lbl:"Ativo Não Circulante",serie:e.ativoNC,...L,bold:true,children:[
+      {lbl:"Realizável a longo prazo",serie:gb("dfm140")},
+      {lbl:"Investimentos",serie:gb("dfm141")},
+      {lbl:"IR/CSLL diferidos",serie:gb("dfm142")},
+      {lbl:"Intangível",serie:gb("dfm143")},
+      {lbl:"Ativo Imobilizado (líq.)",serie:imob,tip:MECH.depreciacao},
+      {lbl:"Outros ativos não circulantes",serie:gb("dfm148")},
+    ]},
     {lbl:"Total de Ativos",serie:e.totAtivo,...L,bold:true},
-    {lbl:"Passivo Circulante",serie:e.passCirc,...L,bold:true},
-    {lbl:"Passivo Não Circulante",serie:e.passNC,...L,bold:true},
+    {lbl:"Passivo Circulante",serie:e.passCirc,...L,bold:true,children:[
+      {lbl:"Fornecedores",serie:pc156},
+      {lbl:"Fornecedores (partes relacionadas)",serie:pc157},
+      {lbl:"Obrigações financeiras/outras",serie:gb("dfm158")},
+      {lbl:"Obrigações trab. e tributárias",serie:obrTrabTrib},
+      {lbl:"Outros passivos circulantes",serie:gb("dfm160")},
+      {lbl:"Dívida — curto prazo",serie:gb("div12")},
+    ]},
+    {lbl:"Passivo Não Circulante",serie:e.passNC,...L,bold:true,children:[
+      {lbl:"Dívida — longo prazo",serie:gb("div13")},
+      {lbl:"Outros passivos não circulantes",serie:gb("dfm165")},
+    ]},
     {lbl:"Total de Passivos",serie:e.totPass,...L,bold:true},
-    {lbl:"Patrimônio Líquido",serie:e.pl,...L,bold:true,tip:MECH.lucro_liquido},
+    {lbl:"Patrimônio Líquido",serie:e.pl,...L,bold:true,tip:MECH.lucro_liquido,children:[
+      {lbl:"Capital social",serie:e.capital},
+      {lbl:"Lucros/prejuízos acumulados",serie:e.lucroAcum},
+      {lbl:"Reserva legal",serie:e.resLegal},
+    ]},
   ];
-  h+='<h3 class="msub">Balanço Patrimonial (R$ MM, saldo no fim do período)</h3>'+serieTableHTML(rows,"R$ MM");
-  h+='<div class="note">Ativo Imobilizado do módulo de capex; Passivo inclui o saldo devedor da dívida (juros e amortização por fórmula); PL = capital + lucros acumulados + reserva legal (máquinas de estado sobre o Lucro Líquido). A identidade Ativo = Passivo + PL fecha a ~0,01% (arredondamento do imobilizado + override BA/RN).</div>';
+  h+='<h3 class="msub">Balanço Patrimonial (R$ MM, saldo no fim do período)</h3>';
+  h+='<div class="note" style="margin:0 0 8px">Clique numa linha em <b>negrito</b> (Ativo/Passivo Circulante, Não Circulante, Patrimônio Líquido) para <b>abrir/recolher</b> o detalhamento de cada conta. Ativo Imobilizado vem do módulo de capex; a dívida (CP+LP) traz o saldo devedor por fórmula; PL = capital + lucros acumulados + reserva legal. A identidade Ativo = Passivo + PL fecha a ~0,01%.</div>';
+  h+=serieTableHTML(rows,"R$ MM");
   return h;
 }
 function renderResumo(){
@@ -2490,7 +2573,7 @@ function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null;
 }
-function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(val); clearAllCaches(); render(); }
+function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
 function premCtrl(label, unit, disp, apply, o){
   o=o||{}; disp=+disp||0;
@@ -2501,10 +2584,10 @@ function premCtrl(label, unit, disp, apply, o){
   const vid="pv"+i, edited=o.edited?'<span class="prem-edited">alt</span>':'';
   return `<div class="prow"><label>${label}${unit?` <span class="pu">${unit}</span>`:''}${edited}</label>`
     +`<input type="range" class="pslider" min="${lo}" max="${hi}" step="${st}" value="${disp}" `
-    +`oninput="document.getElementById('${vid}').value=(+this.value).toFixed(${dec})" `
-    +`onchange="premApply(${i},this.value)">`
-    +`<input type="number" class="pnum" id="${vid}" value="${disp.toFixed(dec)}" step="${st}" `
-    +`onchange="premApply(${i},this.value)"></div>`;
+    +`oninput="var b=document.getElementById('${vid}'); b.setAttribute('data-raw',+this.value); b.value=fmtIn(+this.value,${dec})" `
+    +`onchange="premApply(${i}, +this.value)">`
+    +numBox(vid, disp, dec, `onchange="premApply(${i}, this.value)"`, "pnum")
+    +`</div>`;
 }
 // reset de um grupo de premissas ao default extraído
 function premReset(grupo){
@@ -2753,8 +2836,9 @@ function renderDashboard(){
   const vpl=vplOperacional(DASH.wacc);
   let h=`<div class="pglead"><b>Dashboard</b> — visão executiva: retorno, resultado e premissas editáveis. VPL/TIR completos dependem do módulo de <b>DCF</b> (capex, impostos, capital de giro, valor terminal), ainda a construir — abaixo, a <b>prévia operacional</b> (Receita − Custo, ambos já por fórmula).${gAtivo()?' <span class="okmsg" style="color:var(--orange)">• premissas what-if ativas</span>':''}</div>`;
   h+='<div class="mkpis">';
-  const _dcf=dcfConsolidado();
-  h+=kpi("VPL (DCF)", "R$ "+fmt(_dcf.vpl/1e6,0)+" MM", "fluxo de caixa livre descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (consolidado)",null,MECH.vpl);
+  const _dcf=dcfConsolidado(), _ev=evParts(), cutM=fmtMesY(DB.meses[_ev.cut].ym);
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" MM", "FCF ao acionista descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (Ke, consolidado)",null,MECH.vpl);
+  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" MM", "Equity + Dívida Bruta ("+fmt(_ev.grossDebt/1e6,0)+") − Caixa ("+fmt(_ev.cash/1e6,0)+"), em "+cutM,null,MECH.vpl);
   h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+=kpi("Resultado op. 2030 (R$ MM)", MM(yRO["2030"]), "receita − custo total",null,MECH.resultado_op);
@@ -3031,10 +3115,11 @@ async function validateMolecula(){
 function boot(){
   document.body.classList.remove("loading");
   $("#loader").hidden=true; $("#app").hidden=false;
+  initNumFmt();
   DB.clientesBase = JSON.parse(JSON.stringify(DB.clientes));   // baseline p/ reverter/marcar edições
   snapshotPrem();                                              // snapshot dos defaults p/ reset de premissas
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
-  $("#cutoffBadge").textContent = "Realizado até "+(cut?fmtMes(cut.ym):"—");
+  const hs=$("#hsubR"); if(hs) hs.textContent = "Realizado até "+(cut?fmtMesY(cut.ym):"—");
   buildSidebar(); render();
   if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateEbitda(); validateLucroLiquido(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
 }
