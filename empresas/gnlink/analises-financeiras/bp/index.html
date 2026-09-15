@@ -723,7 +723,7 @@ function render(){
     const r = renderVolume();
     m.innerHTML = html + r.html;
     wireSubtabs();
-    drawVol(r.gnl, r.gnc, r.cap);
+    drawVol();
     return;
   }
   if(aba.id==="receita"){
@@ -1626,9 +1626,10 @@ function renderVolume(){
   h+=kpi("Pico de volume projetado", fmt(tot[kMax],0), "m³/dia · "+fmtMes(DB.meses[kMax].ym),null,MECH.volume);
   h+=kpi("Utilização máx. projetada", util[kUtil]!=null?fmtPct(util[kUtil],0):"—", "em "+fmtMes(DB.meses[kUtil].ym));
   h+='</div>';
-  h+='<div class="card"><h4>Volume × capacidade mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
   const dim=state.voldim||"produto";
-  h+='<h3 class="msub">Volume — por '+(REVDIMS.find(d=>d[0]===dim)[1])+' (m³/dia médio)</h3>'+voldimbarHTML()+serieTableHTML(volDimRows(reg),"m³/dia")+
+  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 8px"><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Empilhar por</span>'+voldimbarHTML()+'</div>';
+  h+='<div class="card"><h4>Volume × capacidade — '+regName(reg)+' (mil m³/dia · empilhado por '+(REVDIMS.find(d=>d[0]===dim)[1])+')</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
+  h+='<h3 class="msub">Volume — por '+(REVDIMS.find(d=>d[0]===dim)[1])+' (m³/dia médio)</h3>'+serieTableHTML(volDimRows(reg),"m³/dia")+
     '<div class="note">Média de m³/dia no período. Cinza = período com meses projetados.'+(reg===0?' No consolidado, clique numa linha para abrir os projetos.':'')+' Nas visões por cliente/segmento/modalidade o volume vem da rampa do cliente (reage às premissas).</div>';
   // ---- Capacidade & Utilização ----
   const A={how:"avg",div:1,d:0};
@@ -1718,22 +1719,47 @@ function drawRev(rc){
 }
 function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
-function drawVol(gnl,gnc,cap){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym));
-  const dash = ctx => ctx.p0DataIndex>=cut ? [5,4] : undefined;
-  const ds=[
-    {label:"GNL",data:gnl,borderColor:PAL[0],backgroundColor:PAL[0]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash},order:3,stack:"vol"},
-    {label:"GNC",data:gnc,borderColor:PAL[1],backgroundColor:PAL[1]+"22",fill:true,tension:.2,pointRadius:0,segment:{borderDash:dash},order:2,stack:"vol"},
-  ];
-  if(cap && cap.some(v=>v>0)) ds.push({label:"Capacidade",data:cap.map(v=>v||null),borderColor:"#8C9BAB",borderWidth:1.5,borderDash:[6,4],fill:false,tension:0,pointRadius:0,order:1,stack:"cap"});
-  charts.vol = new Chart($("#cVol"),{ type:"line",
-    data:{labels, datasets:ds},
-    options:Object.assign(baseLineOpts(),{scales:{
-      x:{ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
-      y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"m³/dia"}}},
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
-        tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y,0)+" m³/dia ("+(c.dataIndex>cut?"Orçado":"Realizado")+")"}}}}
-    )});
+// cores por categoria de dimensão (projeto usa a cor da planta; senão cicla a paleta)
+const VOL_PROJCOL={"Paraná":"#16283C","Bahia":"#C55A17","Rio Grande do Norte":"#4880A8","Terminal PE":"#55677C","Argentina":"#2E7D4F","Projeto SAL":"#7FC6A2","Outro":"#8C9BAB"};
+// gráfico de volume: COLUNA EMPILHADA por dimensão (produto/projeto/cliente/segmento/modalidade),
+// no período selecionado, + LINHA PRETA TRACEJADA da capacidade das plantas (mil m³/dia).
+function drawVol(){
+  const reg=state.regiao, B=periodBuckets(), labels=B.map(b=>b.label);
+  const rows=volDimRows(reg).filter(r=>!r.bold);                 // categorias (sem a linha de total)
+  const barData=rows.map(r=>B.map(b=>(aggBucket(r.serie,b,"avg")||0)/1000));   // mil m³/dia
+  const totals=B.map((b,bi)=>barData.reduce((s,d)=>s+(d[bi]||0),0));
+  const dense=B.length>28;                                        // muitas barras → rótulos por barra poluem
+  const few=rows.length<=6 && !dense;
+  const ds=rows.map((r,i)=>({type:"bar",label:r.lbl,data:barData[i],stack:"vol",order:3,
+    backgroundColor:VOL_PROJCOL[r.lbl]||PAL[i%PAL.length],
+    datalabels: few?{color:"#fff",font:{size:9,weight:"bold"},display:c=>c.dataset.data[c.dataIndex]>=10,formatter:v=>fmt(v,0)}:{display:false}}));
+  // rótulo do TOTAL no topo de cada coluna (dataset invisível; só quando há poucas barras)
+  ds.push({type:"bar",label:"__tot",data:B.map(()=>0),stack:"vol",order:4,backgroundColor:"transparent",
+    datalabels:{align:"end",anchor:"end",color:"#33424F",font:{size:9.5,weight:"bold"},offset:-2,
+      display:c=>!dense && totals[c.dataIndex]>0,
+      formatter:(v,c)=>fmt(totals[c.dataIndex],0)}});
+  // capacidade — linha preta tracejada em degrau; rótulo (caixa) só em mudanças significativas de nível
+  const cap=B.map(b=>{ const v=aggBucket(capacidadeTotalSerie(reg),b,"avg"); return v!=null?v/1000:null; });
+  const capLbl=new Set(); { let last=null; for(let i=0;i<cap.length;i++){ const v=cap[i]; if(v==null||v<=0) continue;
+    if(last==null || Math.abs(v-last)>=Math.max(20, last*0.08)){ capLbl.add(i); last=v; } } }
+  if(cap.some(v=>v>0)) ds.push({type:"line",label:"Capacidade",data:cap,borderColor:"#13202E",borderWidth:1.6,borderDash:[7,5],
+    fill:false,stepped:"middle",pointRadius:0,order:1,stack:"cap",
+    datalabels:{align:"top",anchor:"end",color:"#fff",backgroundColor:"#13202E",borderRadius:3,padding:{top:2,bottom:2,left:5,right:5},font:{size:9.5,weight:"bold"},
+      display:c=>capLbl.has(c.dataIndex),
+      formatter:v=>fmt(v,0)}});
+  charts.vol = new Chart($("#cVol"),{ data:{labels, datasets:ds},
+    plugins: (window.ChartDataLabels?[window.ChartDataLabels]:[]),   // datalabels só neste gráfico (rótulos de capacidade/total)
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      layout:{padding:{top:18}},
+      scales:{
+        x:{stacked:true,ticks:{maxTicksLimit:B.length>28?18:B.length,color:"#5C6B7A",font:{size:9}},grid:{display:false}},
+        y:{stacked:true,beginAtZero:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"mil m³/dia"}}},
+      plugins:{
+        legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5},filter:it=>!String(it.text).startsWith("__")}},
+        datalabels:{display:false},
+        tooltip:{filter:it=>!String(it.dataset.label).startsWith("__"),
+          callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y,0)+" mil m³/dia"}}}}
+  });
 }
 
 /* ====================================================== aba Clientes ======
