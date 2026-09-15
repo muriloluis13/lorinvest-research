@@ -267,6 +267,7 @@ const ABAS = [
     {id:"balanco",   nome:"Balanço, DFC & DCF",   regiao:false, fase:null},
   ]},
   {grp:"Modelagem", items:[
+    {id:"volume",   nome:"Volume",          regiao:true,  fase:null},
     {id:"receita",  nome:"Receita",         regiao:true,  fase:null},
     {id:"opex",     nome:"OPEX",            regiao:true,  fase:null},
     {id:"holding",  nome:"Holding",         regiao:false, fase:"D"},
@@ -276,9 +277,9 @@ const ABAS = [
     {id:"macro",     nome:"Macro",     regiao:false, fase:null},
   ]},
 ];
-const MODELAGEM_ABAS = new Set(["resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
+const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", cliCollapsed:{}};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", cliCollapsed:{}};
 function toggleCliPlanta(id){ state.cliCollapsed[id]=!state.cliCollapsed[id]; render(); }
 // premissas globais (what-if) — multiplicadores aplicados só na PROJEÇÃO (>corte)
 let G = {volMult:1, precoMult:1, molMult:1};
@@ -698,12 +699,18 @@ function render(){
     drawMacro();
     return;
   }
+  if(aba.id==="volume"){
+    const r = renderVolume();
+    m.innerHTML = html + r.html;
+    wireSubtabs();
+    drawVol(r.gnl, r.gnc);
+    return;
+  }
   if(aba.id==="receita"){
     const r = renderReceita();
     m.innerHTML = html + r.html;
     wireSubtabs();
     drawRev(r.rc);
-    drawVol(r.gnl, r.gnc);
     return;
   }
   if(aba.id==="clientes"){
@@ -1516,23 +1523,67 @@ const REVCOMP = [["gnl","GNL","#3D4A5C"],["gnc","GNC","#E23A2E"],["servico","Ser
                  ["aluguel","Aluguel fixo","#C55A17"],["outros","Outros","#4880A8"]];
 function renderReceita(){
   const reg=state.regiao, cut=DB.cutoffIdx, n=DB.meses.length;
-  const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC"), tot=gnl.map((v,i)=>v+gnc[i]);
   const rc=receitaComp(reg);
   const MM = v => fmt(v/1e6,1);
   const yTot=anoSum(rc.total), ks=Object.keys(yTot).sort();
   let h = subtabsHTML();
-  h += `<div class="pglead"><b>Receita Líquida</b> = GNL + GNC + serviço + aluguel + outros (composição do modelo). <b>Volumes</b> por rampa de cliente.<span class="tag">Fase B+C</span></div>`;
+  h += `<div class="pglead"><b>Receita Líquida</b> = GNL + GNC + serviço + aluguel + outros (composição do modelo). Os <b>volumes</b> ficam na aba <b>Volume</b>.<span class="tag">Fase C</span></div>`;
   h += '<div class="mkpis">';
   h += kpi("Receita Líq. 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado",null,MECH.receita_liquida);
-  h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "",null,MECH.receita_liquida);
-  h += kpi("Vol. atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
-  h += kpi("Pico de volume projetado", fmt(Math.max(...tot),0), "m³/dia");
+  h += kpi("Receita Líq. 2030 (R$ MM)", MM(yTot["2030"]?.v||0), "projetado",null,MECH.receita_liquida);
+  h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "fim do horizonte",null,MECH.receita_liquida);
+  h += kpi("Receita atual (últ. realizado)", MM((rc.total[cut]||0)*12), "R$ MM anualizado · "+fmtMes(DB.meses[cut].ym),null,MECH.receita_liquida);
   h += '</div>';
   h += '<div class="card"><h4>Receita Líquida mensal — '+regName(reg)+' (R$ MM, por componente)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
   h += revTable(rc, reg);
-  h += '<div class="card"><h4>Volume mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
-  h += volTable(gnl,gnc,tot);
-  return {html:h, gnl, gnc, tot, rc};
+  return {html:h, rc};
+}
+/* ---------------------------------------------------- aba Volume (separada da Receita) */
+function volTotalSerie(reg){ const g=volAgg(reg,"GNL"), c=volAgg(reg,"GNC"); return g.map((v,i)=>v+(c[i]||0)); }
+function _cliVolSum(reg,pred){ const n=DB.meses.length, acc=new Array(n).fill(0);
+  for(const c of DB.clientes){ if(reg!==0&&+c.planta!==reg) continue; if(!pred(c)) continue; const s=volClienteSerie(c);
+    for(let k=0;k<n;k++) acc[k]+=s[k]; } return acc; }
+function _cliVolPer(pred){ return p=>{ const n=DB.meses.length, acc=new Array(n).fill(0);
+  for(const c of DB.clientes){ if(+c.planta!==p||!pred(c)) continue; const s=volClienteSerie(c);
+    for(let k=0;k<n;k++) acc[k]+=s[k]; } return acc; }; }
+const VOL0={how:"avg",div:1,d:0};   // volume: média m³/dia, sem divisor
+function volDimRows(reg){
+  const dim=state.voldim||"produto";
+  if(dim==="produto") return [
+    {lbl:"GNL",serie:volAgg(reg,"GNL"),...VOL0,perPlanta:p=>volAgg(p,"GNL")},
+    {lbl:"GNC",serie:volAgg(reg,"GNC"),...VOL0,perPlanta:p=>volAgg(p,"GNC")},
+    {lbl:"Total",serie:volTotalSerie(reg),...VOL0,bold:true,perPlanta:p=>volTotalSerie(p)}];
+  if(dim==="planta") return DB.regioes.map(r=>({lbl:r.nome,serie:volTotalSerie(r.id),...VOL0}))
+    .concat([{lbl:"Consolidado",serie:volTotalSerie(reg),...VOL0,bold:true}]);
+  if(dim==="cliente"){ const cs=DB.clientes.filter(c=>reg===0||+c.planta===reg);
+    return cs.map(c=>({lbl:(c.nome||c.id)+(reg===0?" · "+regName(c.planta):""),serie:volClienteSerie(c),...VOL0}))
+      .concat([{lbl:"Total",serie:_cliVolSum(reg,()=>true),...VOL0,bold:true}]); }
+  if(dim==="segmento"){ const segs=["Industrial","Distribuidora","Posto"];
+    return segs.map(s=>({lbl:s,serie:_cliVolSum(reg,c=>c.segmento===s),...VOL0,perPlanta:_cliVolPer(c=>c.segmento===s)}))
+      .concat([{lbl:"Total",serie:_cliVolSum(reg,()=>true),...VOL0,bold:true,perPlanta:_cliVolPer(()=>true)}]); }
+  const mods=["CIF","FOB"];
+  return mods.map(m=>({lbl:m,serie:_cliVolSum(reg,c=>c.entrega===m),...VOL0,perPlanta:_cliVolPer(c=>c.entrega===m)}))
+    .concat([{lbl:"Total",serie:_cliVolSum(reg,()=>true),...VOL0,bold:true,perPlanta:_cliVolPer(()=>true)}]);
+}
+function setVoldim(d){ state.voldim=d; render(); }
+function voldimbarHTML(){ return '<div class="perbar" style="margin-bottom:8px">'+REVDIMS.map(d=>`<button onclick="setVoldim('${d[0]}')" class="${(state.voldim||'produto')===d[0]?'on':''}">${d[1]}</button>`).join('')+'</div>'; }
+function renderVolume(){
+  const reg=state.regiao, cut=DB.cutoffIdx;
+  const gnl=volAgg(reg,"GNL"), gnc=volAgg(reg,"GNC"), tot=gnl.map((v,i)=>v+(gnc[i]||0));
+  const kMax=tot.reduce((bi,v,i,a)=>v>a[bi]?i:bi,0);
+  let h=subtabsHTML();
+  h+=`<div class="pglead"><b>Volume</b> (m³/dia) — GNL + GNC, pela rampa de cada cliente. Editar a curva de volume de um cliente (aba <b>Clientes</b>) re-projeta ao vivo. A <b>receita</b> fica na aba Receita.<span class="tag">Fase B</span></div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("Volume atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
+  h+=kpi("Pico de volume projetado", fmt(tot[kMax],0), "m³/dia · "+fmtMes(DB.meses[kMax].ym),null,MECH.volume);
+  h+=kpi("GNL no pico", fmt(gnl[kMax],0), "m³/dia ("+fmt(tot[kMax]?100*gnl[kMax]/tot[kMax]:0,0)+"%)");
+  h+=kpi("GNC no pico", fmt(gnc[kMax],0), "m³/dia ("+fmt(tot[kMax]?100*gnc[kMax]/tot[kMax]:0,0)+"%)");
+  h+='</div>';
+  h+='<div class="card"><h4>Volume mensal — '+regName(reg)+' (m³/dia)</h4><div class="chart-box"><canvas id="cVol"></canvas></div></div>';
+  const dim=state.voldim||"produto";
+  h+='<h3 class="msub">Volume — por '+(REVDIMS.find(d=>d[0]===dim)[1])+' (m³/dia médio)</h3>'+voldimbarHTML()+serieTableHTML(volDimRows(reg),"m³/dia")+
+    '<div class="note">Média de m³/dia no período. Cinza = período com meses projetados.'+(reg===0?' No consolidado, clique numa linha para abrir os projetos.':'')+' Nas visões por cliente/segmento/modalidade o volume vem da rampa do cliente (reage às premissas).</div>';
+  return {html:h, gnl, gnc};
 }
 const REVDIMS=[["produto","Produto"],["planta","Planta"],["cliente","Cliente"],["segmento","Segmento"],["modalidade","Modalidade (CIF/FOB)"]];
 function revdimbarHTML(){
@@ -1584,13 +1635,6 @@ function drawRev(rc){
 }
 function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
-function volTable(gnl,gnc,tot){
-  const rows=[{lbl:"GNL",serie:gnl,how:"avg",div:1,d:0},{lbl:"GNC",serie:gnc,how:"avg",div:1,d:0},
-              {lbl:"Total",serie:tot,how:"avg",div:1,d:0,bold:true}];
-  let h='<h3 class="msub">Volume médio (m³/dia)</h3>'+serieTableHTML(rows,"m³/dia")+
-    '<div class="note">Média de m³/dia no período. Cinza = período com meses projetados.</div>';
-  return h;
-}
 function drawVol(gnl,gnc){
   const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym));
   const dash = ctx => ctx.p0DataIndex>=cut ? [5,4] : undefined;
