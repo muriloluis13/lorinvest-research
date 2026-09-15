@@ -534,6 +534,15 @@ function parseWorkbook(buf){
       else if(key==="dcf_anos") balanco.dcf_anos=r.slice(1);
       else if(key==="dfa_gen_cons") balanco.dfa_gen_cons=r.slice(1);
       else balanco[key]=r.slice(1); } }
+  // DcfProj: DRE/DFC por projeto — flags de planta + FC financeiro por planta (bloco de dívida colado)
+  const gdp = grid("DcfProj"); const dcfProj={flags:{}, debt:{}, ro:{}, wc:{}, imp:{}};
+  if(gdp){ const PRJ=["PR","BA","RN","PE","AR","SAL"];
+    for(let i=1;i<gdp.length;i++){ const r=gdp[i]; if(!r||r[0]==null) continue; const key=String(r[0]);
+      if(key==="flags"){ PRJ.forEach((p,j)=>dcfProj.flags[p]=+r[j+1]||0); }
+      else { let m=key.match(/^(PR|BA|RN|PE|AR|SAL)_(desemb|amort|juros|outras)$/);
+        if(m){ (dcfProj.debt[m[1]]=dcfProj.debt[m[1]]||{})[m[2]]=r.slice(1); continue; }
+        m=key.match(/^(PR|BA|RN|PE|AR|SAL)_(ro|wc|imp)$/);
+        if(m){ dcfProj[m[2]][m[1]]=r.slice(1); } } } }
   // PrecoBrent: preço corrigido por cliente Brent [192]
   const gpb = grid("PrecoBrent"); const precoBrent={};
   for(let i=1;i<gpb.length;i++){ const r=gpb[i]; if(!r||r[0]==null) continue; precoBrent[String(r[0]).trim()]=r.slice(1); }
@@ -606,7 +615,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj};
 }
 
 async function tryFetch(){
@@ -2183,6 +2192,79 @@ function evParts(){
   const cash=num(caixaBalancoEngine().caixa[cut]);
   return {equity, grossDebt, cash, ev:equity+grossDebt-cash, cut};
 }
+/* ====== DRE / DFC POR PROJETO (DCF por Projeto) — validado 1:1 vs modelo (perproj_ref.py) ==========
+   EBITDA(p)=Resultado Operacional por planta (vivo); ΔCapital de Giro(p)=ΔWC consol × (RL_p/RL_consol);
+   Impostos(p)=IR/CSLL consol × (RL_p/RL_consol); Capex(p)=−(inv1_p+inv2_p) do módulo de capex;
+   FC Financeiro(p)=bloco de dívida por planta (Desemb+Amort+Juros+Outras, colado — plano de
+   financiamento). Geração(p)=EBITDA+ΔWC+Impostos+Capex+FCFin. Flag de planta ativa/inativa zera o bloco
+   (Terminal PE inativo). Quirk: Impostos do SAL usa o flag da Argentina. */
+const PERPROJ=[["PR",1],["BA",2],["RN",3],["PE",4],["AR",5],["SAL",6]];
+let _perProjCache=null;
+function perProjEngine(){
+  if(_perProjCache) return _perProjCache;
+  const n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0, dp=DB.dcfProj||{flags:{},debt:{}};
+  const consRL=receitaLiquidaSerie();                                    // DFM37
+  // consolWC = DFM196 (Δ capital de giro consolidado): realizado colado (dfm196) + projeção viva (waterfall)
+  const e=caixaBalancoEngine(), dfm196=(DB.balanco&&DB.balanco.dfm196)||[], consWC=new Array(n);
+  for(let k=0;k<n;k++) consWC[k]= k<=cut ? num(dfm196[k]) : (num(e.dWC[k])+num(e.r368[k])+num(e.r374[k]));
+  // consolIR = DFM195 (IR/CSLL de CAIXA = I378+I116), colado — é a linha que o modelo rateia por projeto.
+  // (≠ impostosSerie(), que é o imposto de COMPETÊNCIA da DRE, pela máquina de NOL de 2 entidades.)
+  const dfm195=(DB.balanco&&DB.balanco.dfm195)||[], consIR=new Array(n);
+  for(let k=0;k<n;k++) consIR[k]=num(dfm195[k]);
+  const capex=DB.capex||{}, out={};
+  for(const [name,pid] of PERPROJ){
+    const flag=dp.flags[name]!=null?dp.flags[name]:1;
+    const impFlag=(name==="SAL")?(dp.flags["AR"]!=null?dp.flags["AR"]:1):flag;   // quirk do modelo
+    const RLp=receitaComp(pid).total, ro=roPlantaSerie(pid);                     // DFM415 / DFM465
+    const inv1=(capex.inv1||[])[pid-1]||[], inv2=(capex.inv2||[])[pid-1]||[];
+    const d=dp.debt[name]||{}, roReal=(dp.ro||{})[name]||[], wcReal=(dp.wc||{})[name]||[], impReal=(dp.imp||{})[name]||[];
+    const RO=new Array(n),WC=new Array(n),IMP=new Array(n),INV=new Array(n),FC=new Array(n),GER=new Array(n);
+    for(let k=0;k<n;k++){
+      const share= consRL[k] ? RLp[k]/consRL[k] : 0;
+      // EBITDA da planta: realizado = actual colado (DFM465); projeção = RO por planta (fórmula viva)
+      RO[k]= k<=cut ? num(roReal[k]) : num(ro[k])*flag;
+      // WC/Impostos: realizado = actual colado (por planta); projeção = consol × participação na receita (vivo)
+      WC[k]=  k<=cut ? num(wcReal[k])  : num(consWC[k])*share*flag;
+      IMP[k]= k<=cut ? num(impReal[k]) : num(consIR[k])*share*impFlag;
+      INV[k]=-(num(inv1[k])+num(inv2[k]))*flag;
+      FC[k]=(num((d.desemb||[])[k])+num((d.amort||[])[k])+num((d.juros||[])[k])+num((d.outras||[])[k]))*flag;
+      GER[k]=RO[k]+WC[k]+IMP[k]+INV[k]+FC[k];
+    }
+    out[name]={pid, flag, ro:RO, wc:WC, imp:IMP, inv:INV, fc:FC, ger:GER};
+  }
+  return (_perProjCache=out);
+}
+// agregação anual [{year, ro, wc, imp, inv, fc, ger}] p/ um projeto
+function perProjAnnual(name){
+  const p=perProjEngine()[name], n=DB.meses.length, by={};
+  for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4); const o=by[y]||(by[y]={year:y,ro:0,wc:0,imp:0,inv:0,fc:0,ger:0});
+    o.ro+=p.ro[k]; o.wc+=p.wc[k]; o.imp+=p.imp[k]; o.inv+=p.inv[k]; o.fc+=p.fc[k]; o.ger+=p.ger[k]; }
+  return Object.keys(by).map(y=>+y).sort((a,b)=>a-b).map(y=>by[y]);
+}
+// VPL/TIR por projeto: fator=(1+Ke)^((12-m0)/12 + max(0,y-Y0)); FC_desc=GER/fator; VPL=Σ; TIR=IRR(GER anual)
+function perProjDCF(name){
+  const C=(DB.balanco&&DB.balanco.const)||{}, ke=C.F20||0, F22=C.F22||0;
+  const d=new Date(Date.UTC(1899,11,30)+Math.round(F22)*86400000), Y0=d.getUTCFullYear(), m0=d.getUTCMonth()+1;
+  const fac=y=> y<Y0?1 : Math.pow(1+ke,(12-m0)/12 + Math.max(0,y-Y0));
+  const ann=perProjAnnual(name); let vpl=0; for(const a of ann) vpl+=a.ger/fac(a.year);
+  const flows=ann.map(a=>a.ger), hasPos=flows.some(v=>v>1e-6), hasNeg=flows.some(v=>v<-1e-6);
+  let tir= (hasPos&&hasNeg) ? _irr(flows) : null;   // sem troca de sinal → TIR indefinida (n.a., como no modelo)
+  if(tir!=null && (tir<=-0.90 || tir>1e5)) tir=null; // raiz espúria (ex.: SAL) → n.a., como o Excel
+  return {vpl, tir, ann};
+}
+// resumo VPL/TIR/geração de todos os projetos (tabela compacta)
+function perProjSummaryHTML(){
+  let h='<h3 class="msub">VPL &amp; TIR por projeto (DCF)</h3>';
+  h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Projeto</th><th>VPL @Ke (R$ mi)</th><th>TIR (% a.a.)</th><th>Geração total (R$ mi)</th></tr></thead><tbody>';
+  for(const [name,pid] of PERPROJ){
+    const dcf=perProjDCF(name), pe=perProjEngine()[name], gtot=pe.ger.reduce((s,v)=>s+v,0);
+    const nm=(DB.regioes.find(r=>r.id===pid)||{}).nome||name;
+    h+=`<tr onclick="setRegiao(${pid})" style="cursor:pointer"><td class="l">${nm}${pe.flag?'':' <span style="color:var(--muted);font-size:10px">(inativo)</span>'}</td><td>${fmt(dcf.vpl/1e6,1)}</td><td>${dcf.tir!=null?fmt(dcf.tir*100,1)+'%':'n.a.'}</td><td>${fmt(gtot/1e6,1)}</td></tr>`;
+  }
+  h+='</tbody></table></div><div class="note">Clique num projeto para abrir a DRE e o fluxo de caixa completos (sub-aba da planta). VPL @Ke = geração descontada ao custo de capital próprio; TIR da geração de caixa anual. PE inativo neste cenário; Argentina/SAL sem troca de sinal na TIR.</div>';
+  return h;
+}
+function setRegiao(r){ state.aba="resumo"; state.regiao=r; render(); }
 // Resultado Financeiro VIVO: realizado da DRE (≤corte) + projeção do módulo caixa/dívida
 // (−juros da dívida + Div26 comissões/seguros + DFM385 rendimento do caixa). Ver caixaBalancoEngine.
 function resultadoFinanceiroSerie(){
@@ -2312,17 +2394,46 @@ function renderBalanco(){
   h+='<h3 class="msub">Demonstração do Fluxo de Caixa (R$ MM)</h3>';
   h+='<div class="note" style="margin:0 0 8px">Método indireto: <b>Operacional</b> (EBITDA − IR/CSLL ± capital de giro) + <b>Investimentos</b> (capex) + <b>Financiamento</b> (captações, amortização, juros, comissões/seguros e rendimento do caixa). Clique nos grupos em <b>negrito</b> para abrir o detalhamento. Fluxos somados no período; caixa início/fim são saldos. Realizado usa o caixa efetivo; a projeção é o waterfall vivo (reage às premissas). Fecha por construção: início + Operacional + Investimentos + Financiamento + Ajustes = fim.</div>';
   h+=serieTableHTML(dfcRows,"R$ MM");
+  h+=perProjSummaryHTML();   // DCF por projeto (VPL/TIR) — clique abre a DRE+DFC da planta na aba Resumo
   return h;
 }
 function renderResumo(){
   const reg=state.regiao, cut=DB.cutoffIdx;
   let h=subtabsHTML();
   if(reg!==0){
-    // DRE consolidada só existe consolidada; por região mostramos contribuição operacional (proxy)
+    const pn=PERPROJ.find(x=>x[1]===reg);
+    if(pn){   // ---- DRE & DFC POR PROJETO (planta com projeto próprio) ----
+      const name=pn[0], pe=perProjEngine()[name], dcf=perProjDCF(name), nm=regName(reg);
+      const ann=perProjAnnual(name), a30=ann.find(a=>a.year===2030), F={how:"sum",d:1,div:1e6};
+      h+=`<div class="pglead"><b>DRE & Fluxo de Caixa — Projeto ${nm}</b>. EBITDA da planta (fórmula viva) → geração de caixa (Δ capital de giro e impostos por rateio de receita; capex do plano da planta; financiamento pelo bloco de dívida) → <b>VPL @Ke e TIR</b> do projeto.${pe.flag?'':' <b style="color:var(--accent3)">• planta inativa neste cenário</b>'}<span class="tag">Fase F</span></div>`;
+      h+='<div class="mkpis">';
+      h+=kpi("VPL do projeto @Ke", "R$ "+fmt(dcf.vpl/1e6,0)+" mi", "geração descontada @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a.",null,MECH.vpl);
+      h+=kpi("TIR do projeto", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", dcf.tir!=null?"da geração de caixa":"sem troca de sinal",null,MECH.tir);
+      h+=kpi("EBITDA 2030 (R$ mi)", a30?fmt(a30.ro/1e6,1):"—", "resultado operacional da planta",null,MECH.ebitda);
+      h+='</div>';
+      const dreRows=[
+        {lbl:"Receita Líquida",serie:receitaComp(reg).total,...F,tip:MECH.receita_liquida},
+        {lbl:"Custo Total",serie:custoTotal(reg).map(v=>-(v||0)),...F,tip:MECH.custo_total},
+        {lbl:"Resultado Operacional (EBITDA da planta)",serie:pe.ro,...F,bold:true,tip:MECH.resultado_op},
+      ];
+      h+='<h3 class="msub">DRE operacional — '+nm+' (R$ MM/ano)</h3>'+serieTableHTML(dreRows,"R$ MM");
+      const cfRows=[
+        {lbl:"EBITDA da planta",serie:pe.ro,...F,bold:true},
+        {lbl:"(−) Δ Capital de Giro",serie:pe.wc,...F},
+        {lbl:"(−) Impostos (IR/CSLL)",serie:pe.imp,...F},
+        {lbl:"(−) CAPEX",serie:pe.inv,...F},
+        {lbl:"(−) Fluxo de Caixa Financeiro",serie:pe.fc,...F},
+        {lbl:"Geração de Caixa do Projeto",serie:pe.ger,...F,bold:true},
+      ];
+      h+='<h3 class="msub">Fluxo de Caixa do Projeto — '+nm+' (R$ MM/ano)</h3>'+serieTableHTML(cfRows,"R$ MM");
+      h+='<div class="note">EBITDA por planta = fórmula viva (receita − custos − G&amp;A). <b>Δ Capital de Giro</b> e <b>Impostos</b> são o consolidado rateado pela participação da planta na receita líquida (mecânica do modelo). <b>CAPEX</b> vem do plano de investimento da planta; o <b>Fluxo de Caixa Financeiro</b> é o bloco de dívida da planta (só PR/BA/RN têm dívida). VPL @Ke (custo de capital próprio) e TIR da geração — validados 1:1 vs o modelo.</div>';
+      return {html:h, draw:()=>{}};
+    }
+    // fallback (região sem projeto próprio, ex.: "Outro"): contribuição operacional
     const rev=revAgg(reg,"GNL").map((v,i)=>v+revAgg(reg,"GNC")[i]), ct=custoTotal(reg);
     const contrib=rev.map((v,i)=>v-ct[i]);
     const yr=anoSum(rev), yc=anoSum(ct), yk=anoSum(contrib), ks=Object.keys(yr).sort();
-    h+=`<div class="pglead"><b>Contribuição operacional (proxy)</b> de ${regName(reg)} = Receita GNL+GNC − custo total. A DRE/EBITDA completa é consolidada (aba Consolidado).<span class="tag">Fase E</span></div>`;
+    h+=`<div class="pglead"><b>Contribuição operacional</b> de ${regName(reg)} = Receita GNL+GNC − custo total.<span class="tag">Fase E</span></div>`;
     h+='<div class="mkpis">';
     h+=kpi("Receita 2030 (R$ MM)", fmt((yr["2030"]?.v||0)/1e6,1), "GNL+GNC");
     h+=kpi("Custo total 2030 (R$ MM)", fmt((yc["2030"]?.v||0)/1e6,1), "");
@@ -2368,6 +2479,7 @@ function renderResumo(){
     {lbl:"Impostos",serie:impostosSerie(),tip:MECH.impostos},
     {lbl:"Lucro Líquido",serie:lucroLiquidoSerie(),bold:true,tip:MECH.lucro_liquido}];
   h2+='<h3 class="msub">DRE (R$ MM)</h3>'+serieTableHTML(dreRows,"R$ MM");
+  h2+=perProjSummaryHTML();   // VPL/TIR por projeto (clique abre a DRE+DFC da planta)
   return {html:h+h2, draw:()=>drawResumo(ks,rl,eb,mg)};
 }
 function drawResumo(ks,rl,eb,mg){
@@ -2607,7 +2719,7 @@ function snapshotPrem(){
 }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
-  _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null;
+  _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
 }
 function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
@@ -3064,6 +3176,21 @@ async function validateSga(){
               `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
   return {ok, mism};
 }
+function validatePerProj(){
+  // VPL/TIR por projeto vs golden do modelo (perproj_ref.py). Tolerância: VPL 0,1% ou R$50k; TIR 0,2pp.
+  const G={ PR:[-79409762.96,0.9121], BA:[5175926.53,0.1474], RN:[28511240.69,0.1922],
+            PE:[0,null], AR:[162601032.78,2.5374], SAL:[152511383.25,null] };
+  let mism=0, worst="";
+  for(const [name] of PERPROJ){ const g=G[name]; if(!g) continue; const d=perProjDCF(name);
+    const dv=Math.abs(d.vpl-g[0]), rel=dv/Math.max(Math.abs(g[0]),1e6);
+    if(dv>50000 && rel>1e-3){ mism++; worst=`${name} VPL gold=${(g[0]/1e6).toFixed(1)} eng=${(d.vpl/1e6).toFixed(1)} MM`; }
+    if(g[1]!=null && d.tir!=null && Math.abs(d.tir-g[1])>0.002){ mism++; worst=`${name} TIR gold=${(g[1]*100).toFixed(1)}% eng=${(d.tir*100).toFixed(1)}%`; }
+  }
+  const ok=mism===0;
+  console.log(`%c[valida DCF por projeto] ${ok?"OK":"DIVERGÊNCIAS"} — VPL/TIR de 6 projetos vs modelo; ${mism} fora; ${worst||"—"}`,
+              `color:${ok?"#2E7D4F":"#E23A2E"};font-weight:700`);
+  return {ok, mism};
+}
 async function validateReceitaLiquida(){
   // composição completa (GNL+GNC+serviço+aluguel+outros) vs golden dre.csv, na PROJEÇÃO.
   // Identidade do modelo: receita_por_planta(GNL+GNC) + serviço + aluguel + outros == receita_líquida.
@@ -3155,7 +3282,7 @@ function boot(){
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   const hs=$("#hsubR"); if(hs) hs.textContent = "Realizado até "+(cut?fmtMesY(cut.ym):"—");
   buildSidebar(); render();
-  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateEbitda(); validateLucroLiquido(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); }
+  if(new URLSearchParams(location.search).has("validate")){ validateVolume(); validateReceita(); validateGas(); validateCustoTotal(); validateReceitaLiquida(); validateEbitda(); validateLucroLiquido(); validateLiquef(); validateMolecula(); validateLogistica(); validateRegas(); validateCompTerm(); validateSga(); validatePerProj(); }
 }
 $("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
 

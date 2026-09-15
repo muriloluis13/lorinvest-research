@@ -938,7 +938,7 @@ def extract_balanco(wb):
             if i in rowset:
                 keep[i] = r
         return keep
-    dfm_rows = {130, 135, 140, 141, 142, 143, 144, 148, 157, 158, 160, 165, 195, 208, 223,
+    dfm_rows = {130, 135, 140, 141, 142, 143, 144, 148, 157, 158, 160, 165, 195, 196, 208, 223,
                 242, 281, 292, 294, 299, 300, 302, 316, 319, 321, 344, 345, 352, 353, 354, 356,
                 360, 362, 363, 364, 368, 374, 383, 385, 349, 351, 355, 357, 359}
     dfmk = read(dfm, dfm_rows, 400)
@@ -1142,6 +1142,40 @@ def extract_capex(wb):
     }
 
 
+def extract_dcfproj(wb):
+    """DCF POR PROJETO — insumos que NÃO são reproduzíveis ao vivo pelo motor operacional:
+    (1) flags de planta ativa/inativa (Painel!B53..B58 → flag = 1 − B); (2) o Fluxo de Caixa
+    Financeiro por projeto (bloco de dívida por planta: Desembolso + Amortização + Juros + Outras),
+    que é PLANO DE FINANCIAMENTO (colado). No HTML: EBITDA(p)=RO por planta (vivo), ΔCapital de
+    Giro(p)=ΔWC consol × (RL_p/RL_consol) (vivo), Impostos(p)=IR/CSLL consol × (RL_p/RL_consol)
+    (vivo), Capex(p)=−(inv1_p+inv2_p) (do módulo de capex), FC Financeiro(p)=este bloco colado.
+    Bloco de dívida por planta (base row): PR=60, BA=69, RN=78, PE=87, AR=96, SAL=105;
+    +0 Desemb, +2 Amort, +3 Juros, +4 IOF, +5 Comissão, +6 Taxa, +7 Seguros → Outras=IOF+Com+Tx+Seg.
+    Só PR/BA/RN têm dívida (PE/AR/SAL = 0). Validado 1:1 (perproj_ref.py)."""
+    dfm = wb["Demonstrativo Financeiro Mensal"]; dv = wb["Dívida"]; pn = wb["Painel de Controle"]
+    def dser(ws, r):
+        return [_num(ws.cell(row=r, column=COL_FIRST + k).value) or 0.0 for k in range(N_MONTHS)]
+    flags = {}
+    for name, brow in [("PR", 53), ("BA", 54), ("RN", 55), ("PE", 56), ("AR", 57), ("SAL", 58)]:
+        flags[name] = 1.0 - (_num(pn.cell(row=brow, column=2).value) or 0.0)
+    base = {"PR": 60, "BA": 69, "RN": 78, "PE": 87, "AR": 96, "SAL": 105}
+    debt = {}
+    for name, b in base.items():
+        desemb, amort, juros = dser(dv, b), dser(dv, b + 2), dser(dv, b + 3)
+        iof, comis, taxa, seg = dser(dv, b + 4), dser(dv, b + 5), dser(dv, b + 6), dser(dv, b + 7)
+        outras = [iof[k] + comis[k] + taxa[k] + seg[k] for k in range(N_MONTHS)]
+        debt[name] = {"desemb": desemb, "amort": amort, "juros": juros, "outras": outras}
+    # Δ capital de giro (DFM468) e Impostos (DFM470) por planta — REALIZADO (k≤corte) como actual colado;
+    # a projeção é fórmula viva no HTML (consol × participação na receita). Só o realizado precisa colar.
+    ro_row = {"PR": 465, "BA": 540, "RN": 614, "PE": 688, "AR": 762, "SAL": 837}
+    wc_row = {"PR": 468, "BA": 543, "RN": 617, "PE": 691, "AR": 765, "SAL": 840}
+    imp_row = {"PR": 470, "BA": 545, "RN": 619, "PE": 693, "AR": 767, "SAL": 842}
+    ro = {name: dser(dfm, ro_row[name]) for name in ro_row}
+    wc = {name: dser(dfm, wc_row[name]) for name in wc_row}
+    imp = {name: dser(dfm, imp_row[name]) for name in imp_row}
+    return {"flags": flags, "debt": debt, "ro": ro, "wc": wc, "imp": imp}
+
+
 def extract_dre_below(wb):
     """Linhas da DRE ABAIXO do EBITDA. Depreciação e Resultado Financeiro são cronogramas dos
     módulos de CAPEX e DÍVIDA (premissas de plano de investimento/financiamento — fixas, não reagem
@@ -1258,6 +1292,7 @@ def main():
     seg_rate_rn, seg_end_rn = _segrate(85), _segend(85)   # bloco RN (Dívida r85)
     seg_rate_ba, seg_end_ba = _segrate(76), _segend(76)   # bloco BA (Dívida r76)
     balanco = extract_balanco(wb)                  # caixa/fluxo de caixa + balanço + DCF (insumos colados)
+    dcfproj = extract_dcfproj(wb)                  # flags de planta + FC financeiro por projeto (colado)
     liquef_prem = extract_liquef_prem(orows)
     liquef_gold = extract_liquef_golden(orows)
     corr556 = _opex_series(orows, 556)
@@ -1464,6 +1499,19 @@ def main():
     ws_bl.append(["const_vals"] + list(c.values()))
     ws_bl.append(["dcf_anos"] + balanco["dcf_anos"])
     ws_bl.append(["dfa_gen_cons"] + balanco["dfa_gen_cons"])
+
+    # aba DcfProj: DRE/DFC por projeto. Flags de planta (Painel B53..B58) + FC financeiro por planta
+    # (bloco de dívida = plano de financiamento colado). EBITDA/ΔWC/Impostos/Capex são fórmula viva no HTML.
+    ws_dp = out.create_sheet("DcfProj")
+    ws_dp.append(["field"] + ["%04d-%02d" % (y, mo) for (y, mo) in ym])
+    ws_dp.append(["flags"] + [dcfproj["flags"][p] for p in ("PR", "BA", "RN", "PE", "AR", "SAL")])
+    for p in ("PR", "BA", "RN", "PE", "AR", "SAL"):
+        for comp in ("desemb", "amort", "juros", "outras"):
+            ws_dp.append(["%s_%s" % (p, comp)] + dcfproj["debt"][p][comp])
+        # EBITDA/WC/Impostos por planta: só o REALIZADO (projeção é fórmula viva → None)
+        ws_dp.append(["%s_ro" % p] + real_only(dcfproj["ro"][p], n_real))
+        ws_dp.append(["%s_wc" % p] + real_only(dcfproj["wc"][p], n_real))
+        ws_dp.append(["%s_imp" % p] + real_only(dcfproj["imp"][p], n_real))
 
     # aba PrecoBrent: preço corrigido por cliente Brent — REALIZADO (k<n_real) + SEMENTE de
     # orçamento ago-dez/26 (k43..47). A banda de transição de 2026 é colada (literal + fórmula
