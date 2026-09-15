@@ -201,6 +201,11 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .clicard-body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:9px;flex:1}
 .clicard-name{font-size:12.8px;font-weight:700;color:var(--ink);line-height:1.28;min-height:2.55em;display:flex;align-items:flex-start}
 .clicard-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.cli-tag{display:inline-block;font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;letter-spacing:.03em;border:1px solid var(--line);background:#fff;text-transform:uppercase;white-space:nowrap}
+.cli-tag.t-liq{color:var(--accent);border-color:#CED8E4}
+.cli-tag.t-noliq{color:var(--muted)}
+.cli-tag.t-cif{color:#2E7D4F;border-color:#BFE0C8}
+.cli-tag.t-fob{color:#C55A17;border-color:#F0D3BE}
 .clicard-stats{margin-top:auto;border-top:1px solid var(--line);padding-top:9px;display:flex;flex-direction:column;gap:5px}
 .clicard-stat{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11.5px}
 .clicard-stat .k{color:var(--muted)}
@@ -1570,9 +1575,10 @@ const CLI_LOGOS=[
   [/lhoist/,'lhoist.svg'], [/stara/,'stara.svg'], [/perfileve/,'perfileve.png'],
   [/fevereiro/,'fevereiro.jpg'], [/vanadio/,'vanadio.png'], [/eurofarma/,'eurofarma.png'],
   [/\bcbl\b/,'cbl.png'], [/meri\s*pobo|meripobo/,'meripobo.png'], [/parelha/,'postoparelha.webp'],
-  [/\blider\b/,'postolider.jpg'], [/masterboi/,'masterboi.jpg'], [/magn[eé]sium/,'magnesiumdobrasil.jpg'],
+  [/\blider\b/,'postolider.jpg'], [/masterboi/,'masterboi.png'], [/magn[eé]sium/,'magnesiumdobrasil.jpg'],
   [/alcast/,'alcast.png'], [/bo\s*paper/,'bo-paper.avif'], [/klabin/,'klabin.webp'],
-  [/petyan/,'petyan.png'], [/parati/,'parati.jpg'],
+  [/petyan/,'petyan.png'], [/parati/,'parati.jpg'], [/sulgas/,'sulgas.png'],
+  [/petro\w*concavo/,'petroreconcavo.png'], [/reiterlog/,'reiterlog.jpg'],
 ];
 const _norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 function cliLogo(c){ const n=_norm(c.nome); for(const [re,f] of CLI_LOGOS){ if(re.test(n)) return 'logos/'+f; } return null; }
@@ -1587,19 +1593,25 @@ function cliCard(c){
   const logo=cliLogo(c);
   const prod=(c.produto||'').toUpperCase(), pcls=prod==='GNL'?'p-GNL':prod==='GNC'?'p-GNC':'p-none';
   const seg=c.segmento?`<span class="seg-badge seg-${c.segmento}">${c.segmento}</span>`:'';
+  // liquefação (custo_mol: 1 = serviço inclui molécula/liquefação; 0 = só serviço) e entrega CIF/FOB
+  const liq = c.custo_mol==1 ? '<span class="cli-tag t-liq">C/ liquef.</span>'
+            : c.custo_mol==0 ? '<span class="cli-tag t-noliq">S/ liquef.</span>' : '';
+  const ent = (c.entrega==='CIF') ? '<span class="cli-tag t-cif">CIF</span>'
+            : (c.entrega==='FOB') ? '<span class="cli-tag t-fob">FOB</span>' : '';
   const media = logo
     ? `<img src="${logo}" alt="Logo ${(c.nome||'').replace(/"/g,'')}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'clicard-ini\\'>${cliIni(c)}</div>'+this.parentNode.querySelector('.clicard-prod').outerHTML">`
     : `<div class="clicard-ini">${cliIni(c)}</div>`;
-  const vol=c.volmax!=null?fmt(c.volmax,0):'—', preco=c.preco!=null?('R$ '+fmt(c.preco,2)):'—', ini=fmtMesY(c.ini_op);
+  const vol=c.volmax!=null?fmt(c.volmax,0):'—', preco=c.preco!=null?('R$ '+fmt(c.preco,2)):'—', ini=fmtMesY(c.ini_op), fim=fmtMesY(c.fim_contrato);
   return `<article class="clicard${c.id===state.cliSel?' sel':''}" role="button" tabindex="0" onclick="selCli('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selCli('${c.id}')}" aria-label="Abrir ${(c.nome||c.id).replace(/"/g,'')}">
     <div class="clicard-logo">${media}${isEdited(c)?'<span class="clicard-edit" title="editado"></span>':''}<span class="clicard-prod ${pcls}">${prod||'—'}</span></div>
     <div class="clicard-body">
       <div class="clicard-name">${c.nome||c.id}</div>
-      <div class="clicard-meta">${seg}</div>
+      <div class="clicard-meta">${seg}${liq}${ent}</div>
       <dl class="clicard-stats">
         <div class="clicard-stat"><span class="k">Vol. máx</span><span class="v">${vol}<span style="font-weight:400;color:var(--muted);font-size:9.5px"> m³/d</span></span></div>
-        <div class="clicard-stat"><span class="k">Preço</span><span class="v hl">${preco}</span></div>
+        <div class="clicard-stat"><span class="k">Preço</span><span class="v">${preco}</span></div>
         <div class="clicard-stat"><span class="k">Início op.</span><span class="v">${ini}</span></div>
+        <div class="clicard-stat"><span class="k">Fim contrato</span><span class="v">${fim}</span></div>
       </dl>
     </div>
   </article>`;
