@@ -1604,6 +1604,17 @@ function cliCard(c){
     </div>
   </article>`;
 }
+// pico CONCOMITANTE: para cada mês soma o volume dos clientes ATIVOS (série do motor),
+// e retorna o mês de maior volume + quantos clientes/produtos estão ativos nesse mês.
+// Evita o erro de somar o pico de cada contrato (que nunca ocorre no mesmo mês).
+function concomPeak(list){
+  const n=DB.meses.length, series=list.map(c=>({c,s:volClienteSerie(c)}));
+  let best=-1, bestv=-Infinity;
+  for(let k=0;k<n;k++){ let s=0; for(const o of series) s+=(o.s[k]||0); if(s>bestv){bestv=s;best=k;} }
+  let nAt=0,nGNL=0,nGNC=0;
+  if(best>=0) for(const o of series){ if((o.s[best]||0)>1e-6){ nAt++; const p=(o.c.produto||'').toUpperCase(); if(p==='GNL')nGNL++; else if(p==='GNC')nGNC++; } }
+  return {vol:bestv>0?bestv:0, k:best, ym:best>=0?DB.meses[best].ym:null, nAt, nGNL, nGNC};
+}
 function renderClientes(){
   let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Clique num card para editar; a <b>curva de volume</b> re-projeta o BP ao vivo.<span class="tag">Fase B</span></div>`;
   h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome, planta ou segmento…" oninput="onCliSearch(this.value)"></div>`;
@@ -1612,23 +1623,24 @@ function renderClientes(){
   const filtered=DB.clientes.filter(match);
   // preço médio ponderado pelo volume máx
   const wavg=list=>{ let num=0,den=0; for(const c of list){ if(c.preco!=null && +c.volmax){ num+=(+c.preco)*(+c.volmax); den+=(+c.volmax); } } return den>0?num/den:null; };
-  const volTot=filtered.reduce((s,c)=>s+(+c.volmax||0),0), pmed=wavg(filtered);
+  const pmed=wavg(filtered);
   const nPl=DB.regioes.filter(rg=>filtered.some(c=>+c.planta===rg.id)).length;
-  const nGNL=filtered.filter(c=>(c.produto||'').toUpperCase()==='GNL').length, nGNC=filtered.filter(c=>(c.produto||'').toUpperCase()==='GNC').length;
+  const pk=concomPeak(filtered);
+  const pkMes=pk.ym?fmtMes(pk.ym):"—";
   h += '<div class="mkpis">';
-  h += kpi("Clientes / contratos", fmt(filtered.length,0), nGNL+" GNL · "+nGNC+" GNC · "+nPl+" planta(s)");
-  h += kpi("Volume máx total (m³/d)", fmt(volTot,0), "soma dos contratos");
-  h += kpi("Preço médio ponderado", pmed!=null?("R$ "+fmt(pmed,2)):"—", "R$/m³ · pond. pelo volume máx");
+  h += kpi("Clientes ativos no pico", fmt(pk.nAt,0), `${pk.nGNL} GNL · ${pk.nGNC} GNC · ${pkMes} · de ${filtered.length} no book`);
+  h += kpi("Volume máx concomitante (m³/d)", fmt(pk.vol,0), `pico em ${pkMes} · soma dos clientes ativos`);
+  h += kpi("Preço médio ponderado", pmed!=null?("R$ "+fmt(pmed,2)):"—", "R$/m³ · pond. pelo volume de pico");
   h += '</div>';
   let cnt=0;
   // um BLOCO POR PLANTA recolhível; dentro, grade de cards agrupada por produto (GNL/GNC)
   for(const rg of DB.regioes){
     const arr=filtered.filter(c=>+c.planta===rg.id); if(!arr.length) continue;
-    const volSum=arr.reduce((s,c)=>s+(+c.volmax||0),0), pAvg=wavg(arr);
+    const pkR=concomPeak(arr), pAvg=wavg(arr);
     const collapsed=!!state.cliCollapsed[rg.id];
     cnt+=arr.length;   // conta mesmo quando recolhido (p/ o rodapé)
     const pmedTxt=pAvg!=null?` · Preço méd: R$ ${fmt(pAvg,2)}`:'';
-    h += `<div class="cli-sec${collapsed?' collapsed':''}"><div class="cli-sec-h" onclick="toggleCliPlanta(${rg.id})" title="${collapsed?'Abrir':'Fechar'}"><span class="cli-chev">${collapsed?'▸':'▾'}</span><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx: ${fmt(volSum,0)} m³/d${pmedTxt}</span></div>`;
+    h += `<div class="cli-sec${collapsed?' collapsed':''}"><div class="cli-sec-h" onclick="toggleCliPlanta(${rg.id})" title="${collapsed?'Abrir':'Fechar'}"><span class="cli-chev">${collapsed?'▸':'▾'}</span><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx concomitante: ${fmt(pkR.vol,0)} m³/d${pkR.ym?' ('+fmtMes(pkR.ym)+')':''}${pmedTxt}</span></div>`;
     if(!collapsed){
       h += '<div class="cli-sec-body">';
       for(const [pr,lbl] of [["GNL","GNL"],["GNC","GNC"],["","Outros"]]){
