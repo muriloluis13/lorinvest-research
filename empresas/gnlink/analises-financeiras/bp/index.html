@@ -176,6 +176,33 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .clitbl tr.grp-prod:hover td{cursor:default}
 .clitbl tr.grp-total td{background:#EEF2F7;font-weight:700;color:var(--ink);border-top:2px solid var(--line)}
 .clitbl tr.grp-total:hover td{cursor:default}
+/* ===== Clientes — grade de cards (estilo painel das investidas) ===== */
+.cli-sec-body{padding:14px}
+.cli-prodlbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent2);margin:4px 2px 9px;display:flex;align-items:center;gap:7px}
+.cli-prodlbl:not(:first-child){margin-top:18px}
+.cli-prodlbl .cnt{font-size:9.5px;font-weight:700;color:var(--muted);background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:1px 8px;letter-spacing:0}
+.cligrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:14px}
+.clicard{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;transition:box-shadow .16s,transform .16s;position:relative}
+.clicard:hover{box-shadow:0 2px 6px rgba(19,32,46,.08),0 10px 24px rgba(19,32,46,.12);transform:translateY(-2px)}
+.clicard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.clicard.sel{outline:2px solid var(--accent3);outline-offset:-1px}
+.clicard-logo{height:92px;display:grid;place-items:center;background:linear-gradient(160deg,#F8FAFC,#EAEFF5);border-bottom:1px solid var(--line);padding:14px;position:relative}
+.clicard-logo img{max-width:100%;max-height:62px;object-fit:contain;display:block}
+.clicard-ini{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 2px 8px rgba(19,32,46,.18)}
+.clicard-prod{position:absolute;top:9px;right:9px;font-size:8.5px;font-weight:800;letter-spacing:.05em;padding:2px 8px;border-radius:999px;color:#fff}
+.clicard-prod.p-GNL{background:var(--accent)}
+.clicard-prod.p-GNC{background:var(--orange)}
+.clicard-prod.p-none{background:var(--muted)}
+.clicard-edit{position:absolute;top:9px;left:9px;width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px #fff}
+.clicard-body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:9px;flex:1}
+.clicard-name{font-size:12.8px;font-weight:700;color:var(--ink);line-height:1.28;min-height:2.55em;display:flex;align-items:flex-start}
+.clicard-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.clicard-stats{margin-top:auto;border-top:1px solid var(--line);padding-top:9px;display:flex;flex-direction:column;gap:5px}
+.clicard-stat{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11.5px}
+.clicard-stat .k{color:var(--muted)}
+.clicard-stat .v{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+.clicard-stat .v.hl{color:var(--accent3)}
+@media(max-width:640px){.cligrid{grid-template-columns:1fr 1fr;gap:10px}.cli-sec-body{padding:11px}.clicard-name{font-size:12px;min-height:2.4em}}
 </style>
 </head>
 <body class="loading">
@@ -1527,15 +1554,56 @@ function drawVol(gnl,gnc){
 const regShort = id => (DB.regioes.find(r=>r.id===id)||{}).codigo || "—";
 function isEdited(c){ const b=(DB.clientesBase||[]).find(x=>x.id===c.id); return b && JSON.stringify(b)!==JSON.stringify(c); }
 
+// mapeamento nome do cliente -> arquivo de logo (pasta logos/). Ordenado: específico antes de genérico.
+const CLI_LOGOS=[
+  [/petrobah/,'petrobahia.png'], [/bahiag/,'bahiagas.png'], [/coperg/,'copergas.png'],
+  [/compag/,'compagas.png'], [/cegas/,'cegas.png'], [/alg[aá]s/,'algas.png'],
+  [/potigas/,'potigas.jpg'], [/goias\s*gas/,'goiasgas.jpg'], [/grafite/,'grafitedobrasil.webp'],
+  [/rio\s*bonito/,'riobonitoembalagens.png'], [/scg[aá]s/,'scgas.png'], [/sk\s*metais/,'skmetais.png'],
+  [/dallon/,'dallon.png'], [/dalpare/,'dalpare.png'], [/gelita/,'gelita.webp'],
+  [/lhoist/,'lhoist.svg'], [/stara/,'stara.svg'], [/perfileve/,'perfileve.png'],
+  [/fevereiro/,'fevereiro.jpg'], [/vanadio/,'vanadio.png'], [/eurofarma/,'eurofarma.png'],
+  [/\bcbl\b/,'cbl.png'], [/meri\s*pobo|meripobo/,'meripobo.png'], [/parelha/,'postoparelha.webp'],
+  [/\blider\b/,'postolider.jpg'], [/masterboi/,'masterboi.jpg'], [/magn[eé]sium/,'magnesiumdobrasil.jpg'],
+  [/alcast/,'alcast.png'], [/bo\s*paper/,'bo-paper.avif'], [/klabin/,'klabin.webp'],
+  [/petyan/,'petyan.png'], [/parati/,'parati.jpg'],
+];
+const _norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function cliLogo(c){ const n=_norm(c.nome); for(const [re,f] of CLI_LOGOS){ if(re.test(n)) return 'logos/'+f; } return null; }
+function cliIni(c){ // iniciais p/ clientes sem logo (remove [Antigo], números, genéricos)
+  let n=String(c.nome||c.id).replace(/\[[^\]]*\]/g,' ').replace(/[-–—]/g,' ');
+  const skip=new Set(['de','do','da','dos','das','e','-','gnl','gnc','novo','nova','cliente','clientes']);
+  const w=n.split(/\s+/).filter(x=>x && !skip.has(x.toLowerCase()) && /[A-Za-zÀ-ú]/.test(x));
+  if(!w.length) return (c.nome||c.id||'?').slice(0,2).toUpperCase();
+  return (w.length>1 ? (w[0][0]+w[1][0]) : w[0].slice(0,2)).toUpperCase();
+}
+function cliCard(c){
+  const logo=cliLogo(c);
+  const prod=(c.produto||'').toUpperCase(), pcls=prod==='GNL'?'p-GNL':prod==='GNC'?'p-GNC':'p-none';
+  const seg=c.segmento?`<span class="seg-badge seg-${c.segmento}">${c.segmento}</span>`:'';
+  const media = logo
+    ? `<img src="${logo}" alt="Logo ${(c.nome||'').replace(/"/g,'')}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'clicard-ini\\'>${cliIni(c)}</div>'+this.parentNode.querySelector('.clicard-prod').outerHTML">`
+    : `<div class="clicard-ini">${cliIni(c)}</div>`;
+  const vol=c.volmax!=null?fmt(c.volmax,0):'—', preco=c.preco!=null?('R$ '+fmt(c.preco,2)):'—', ini=fmtMesY(c.ini_op);
+  return `<article class="clicard${c.id===state.cliSel?' sel':''}" role="button" tabindex="0" onclick="selCli('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selCli('${c.id}')}" aria-label="Abrir ${(c.nome||c.id).replace(/"/g,'')}">
+    <div class="clicard-logo">${media}${isEdited(c)?'<span class="clicard-edit" title="editado"></span>':''}<span class="clicard-prod ${pcls}">${prod||'—'}</span></div>
+    <div class="clicard-body">
+      <div class="clicard-name">${c.nome||c.id}</div>
+      <div class="clicard-meta">${seg}</div>
+      <dl class="clicard-stats">
+        <div class="clicard-stat"><span class="k">Vol. máx</span><span class="v">${vol}<span style="font-weight:400;color:var(--muted);font-size:9.5px"> m³/d</span></span></div>
+        <div class="clicard-stat"><span class="k">Preço</span><span class="v hl">${preco}</span></div>
+        <div class="clicard-stat"><span class="k">Início op.</span><span class="v">${ini}</span></div>
+      </dl>
+    </div>
+  </article>`;
+}
 function renderClientes(){
-  let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Editar a <b>curva de volume</b> re-projeta o BP ao vivo.<span class="tag">Fase B</span></div>`;
+  let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Clique num card para editar; a <b>curva de volume</b> re-projeta o BP ao vivo.<span class="tag">Fase B</span></div>`;
   h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome, planta ou segmento…" oninput="onCliSearch(this.value)"></div>`;
   const q=(state.cliQ||"").toLowerCase();
   const match=c=> !q || (c.nome||'').toLowerCase().includes(q) || (regShort(c.planta)||'').toLowerCase().includes(q) || (c.segmento||'').toLowerCase().includes(q) || (c.produto||'').toLowerCase().includes(q);
   const filtered=DB.clientes.filter(match);
-  const cliRow=c=>{ const seg=c.segmento?`<span class="seg-badge seg-${c.segmento}">${c.segmento}</span>`:'<span style="color:var(--muted)">—</span>';
-    return `<tr class="${c.id===state.cliSel?'sel':''}" onclick="selCli('${c.id}')"><td class="l">${isEdited(c)?'<span class="dot"></span>':''}${c.nome||c.id}</td><td class="l">${seg}</td><td>${c.volmax!=null?fmt(c.volmax,0):'—'}</td><td>${fmtMesY(c.ini_op)}</td><td>${fmtMesY(c.fim_contrato)}</td><td>${c.preco!=null?fmt(c.preco,2):'—'}</td></tr>`; };
-  const THEAD='<thead><tr><th class="l">Cliente</th><th class="l">Segmento</th><th>Vol. máx (m³/d)</th><th>Início op.</th><th>Fim contrato</th><th>Preço (R$/m³)</th></tr></thead>';
   // preço médio ponderado pelo volume máx
   const wavg=list=>{ let num=0,den=0; for(const c of list){ if(c.preco!=null && +c.volmax){ num+=(+c.preco)*(+c.volmax); den+=(+c.volmax); } } return den>0?num/den:null; };
   const volTot=filtered.reduce((s,c)=>s+(+c.volmax||0),0), pmed=wavg(filtered);
@@ -1547,29 +1615,28 @@ function renderClientes(){
   h += kpi("Preço médio ponderado", pmed!=null?("R$ "+fmt(pmed,2)):"—", "R$/m³ · pond. pelo volume máx");
   h += '</div>';
   let cnt=0;
-  // uma TABELA POR PLANTA (bloco independente, sem barra de rolagem única); GNL/GNC separados dentro
+  // um BLOCO POR PLANTA recolhível; dentro, grade de cards agrupada por produto (GNL/GNC)
   for(const rg of DB.regioes){
     const arr=filtered.filter(c=>+c.planta===rg.id); if(!arr.length) continue;
-    const volSum=arr.reduce((s,c)=>s+(+c.volmax||0),0);
+    const volSum=arr.reduce((s,c)=>s+(+c.volmax||0),0), pAvg=wavg(arr);
     const collapsed=!!state.cliCollapsed[rg.id];
     cnt+=arr.length;   // conta mesmo quando recolhido (p/ o rodapé)
-    h += `<div class="cli-sec${collapsed?' collapsed':''}"><div class="cli-sec-h" onclick="toggleCliPlanta(${rg.id})" title="${collapsed?'Abrir':'Fechar'}"><span class="cli-chev">${collapsed?'▸':'▾'}</span><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx: ${fmt(volSum,0)} m³/d</span></div>`;
+    const pmedTxt=pAvg!=null?` · Preço méd: R$ ${fmt(pAvg,2)}`:'';
+    h += `<div class="cli-sec${collapsed?' collapsed':''}"><div class="cli-sec-h" onclick="toggleCliPlanta(${rg.id})" title="${collapsed?'Abrir':'Fechar'}"><span class="cli-chev">${collapsed?'▸':'▾'}</span><b>${rg.nome}</b><span class="cli-sec-n">${arr.length} cliente(s)</span><span class="hspace"></span><span class="cli-sec-vol">Vol. máx: ${fmt(volSum,0)} m³/d${pmedTxt}</span></div>`;
     if(!collapsed){
-      h += '<div class="tblwrap"><table class="mtbl clitbl">'+THEAD+'<tbody>';
+      h += '<div class="cli-sec-body">';
       for(const [pr,lbl] of [["GNL","GNL"],["GNC","GNC"],["","Outros"]]){
         const sub=arr.filter(c=> pr ? (c.produto||"").toUpperCase()===pr : !["GNL","GNC"].includes((c.produto||"").toUpperCase()));
         if(!sub.length) continue;
-        h += `<tr class="grp-prod"><td class="l" colspan="6">${lbl} · ${sub.length}</td></tr>`;
-        for(const c of sub){ h += cliRow(c); }
+        h += `<div class="cli-prodlbl">${lbl}<span class="cnt">${sub.length}</span></div>`;
+        h += '<div class="cligrid">'+sub.map(cliCard).join('')+'</div>';
       }
-      const pAvg=wavg(arr);
-      h += `<tr class="grp-total"><td class="l">Total ${rg.nome}</td><td class="l">—</td><td><b>${fmt(volSum,0)}</b></td><td>—</td><td>—</td><td>${pAvg!=null?fmt(pAvg,2):'—'}</td></tr>`;
-      h += '</tbody></table></div>';
+      h += '</div>';
     }
     h += '</div>';
   }
   if(!cnt) h += '<div class="note">Nenhum cliente encontrado.</div>';
-  else h += `<div class="note">${cnt} cliente(s) em ${DB.regioes.filter(rg=>filtered.some(c=>+c.planta===rg.id)).length} planta(s). Cada planta é uma tabela separada; GNL e GNC agrupados dentro. Clique num cliente para abrir o card.</div>`;
+  else h += `<div class="note">${cnt} cliente(s) em ${DB.regioes.filter(rg=>filtered.some(c=>+c.planta===rg.id)).length} planta(s). Cada planta é um bloco recolhível; GNL e GNC agrupados dentro. Clique num card para abrir o editor.</div>`;
   if(state.cliSel){ const c=DB.clientes.find(x=>x.id===state.cliSel); if(c) h += modalHTML(c); }
   return h;
 }
