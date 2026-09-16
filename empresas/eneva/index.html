@@ -831,9 +831,19 @@ function renderOver(){
   ];
   const strip=`<div class="overview-strip"><div class="m"><div class="l">Últimos 12 meses</div><div class="v">fim ${Q[L]}</div></div>`+
     kpL.map(k=>`<div class="m"><div class="l">${esc(k[0])}</div><div class="v ${k[2]}">${k[1]}</div></div>`).join('')+`</div>`;
-  // números-chave da companhia — largura total
-  const nums=card(head('cic-over','A companhia em números','Escala e ativos-chave — data-base Mar/26 (mercado) e Dez/25 (operacional).')+
-    '<div class="big">'+p.numeros_chave.map(n=>`<div class="bigc"><div class="n">${esc(n[0])}</div><div class="l">${esc(n[1])}</div></div>`).join('')+'</div>','tinted');
+  // números-chave da companhia — largura total, segregados por tópico
+  const TOPICS=['Geração & capacidade','Upstream & reservas','Midstream & gás natural','Mercado & financeiro'];
+  const topicOf=s=>{s=s.toLowerCase();
+    if(/reserva|recurso|óleo|condensado|concess|onshore|e&p|bacia/.test(s))return TOPICS[1];
+    if(/liquefa|regaseifica|sslng|\bgnl\b|m³\/d|m3\/d|off-grid|on-grid|midstream/.test(s))return TOPICS[2];
+    if(/market|mercado|ebitda|\breceita|\bações?\b|\bdívida|r\$/.test(s))return TOPICS[3];
+    return TOPICS[0];};
+  const grp={};TOPICS.forEach(t=>grp[t]=[]);
+  p.numeros_chave.forEach(n=>grp[topicOf(n[1])].push(n));
+  const tile=n=>`<div class="bigc"><div class="n">${esc(n[0])}</div><div class="l">${esc(n[1])}</div></div>`;
+  let numsInner=head('cic-over','A companhia em números','Escala e ativos-chave por tópico — data-base Mar/26 (mercado) e Dez/25 (operacional).');
+  TOPICS.forEach(t=>{if(grp[t].length)numsInner+=`<h3 class="msub">${t}</h3><div class="big">${grp[t].map(tile).join('')}</div>`;});
+  const nums=card(numsInner,'tinted');
   // tese + risco-retorno (GS)
   const teseCard=card(head('cic-tese','Risco–retorno & tese',null,'Tese de investimento')+
     lead('A Eneva é a <b>maior geradora térmica do Brasil</b> e pioneira do modelo integrado <b>reservatório-a-fio (R2W)</b>: monetiza gás onshore próprio em usinas flexíveis, com <b>~82% do EBITDA em contratos de receita fixa</b> de longo prazo. Num sistema elétrico cada vez mais dependente de renováveis intermitentes, a <b>capacidade despachável</b> vira o gargalo — e o LRCAP 2026 destravou um ciclo de crescimento contratado (<b>+R$ 161 bi</b> de receita fixa).')+
