@@ -897,21 +897,23 @@ function renderEmp(){
 
 /* ---------- 3. Tese & Riscos ---------- */
 function renderTese(){
-  let h=card(head('cic-tese','Tese de investimento','Leitura do sell-side (Goldman Sachs · início de cobertura, '+esc(GS.data)+') combinada aos fundamentos.')+
-    `<p class="lead">${esc(GS.resumo_tese)}</p>`);
-  // bull points
-  h+=card(head('cic-growth','Por que investir','Pilares da tese ("flexibility is key").')+
-    `<div class="deals tone-market">`+GS.bull_points.map(b=>`<div class="deal"><div class="dt">✓ a favor</div><div class="dm" style="font-size:13.5px">${esc(b.t)}</div><div class="dd">${esc(b.d)}</div></div>`).join('')+`</div>`);
-  // drivers
-  h+=card(head('cic-market','Principais drivers de valor','')+
-    vectors(GS.drivers.map((d,i)=>({n:'Driver '+(i+1),v:'',d:esc(d),c:C.teal}))));
-  // riscos: GS bear + FR fatores de risco
-  let riskItems=GS.bear_points.map(b=>({t:b.t,d:b.d,cov:'GS',n:2,c:C.coral}));
+  // tese (moldura)
+  let h=card(head('cic-tese','Tese de investimento',null,'Goldman Sachs · início de cobertura ('+esc(GS.data)+')')+
+    lead(esc(GS.resumo_tese)));
+  // drivers de valor
+  h+=card(head('cic-market','Principais drivers de valor','O que move a tese, na leitura do Goldman Sachs.')+
+    blist(GS.drivers.map(esc)));
+  // row2: por que investir (bull) | riscos-chave (GS bear)
+  const bull=card(head('cic-growth','Por que investir','Pilares da tese — "flexibility is key".')+
+    vectors(GS.bull_points.map(b=>({n:esc(b.t),v:'✓',d:esc(b.d),c:C.green}))));
+  const bear=card(head('cic-tese','Riscos-chave (Goldman Sachs)','Principais preocupações apontadas pelo GS.')+
+    vectors(GS.bear_points.map(b=>({n:esc(b.t),v:'!',d:esc(b.d),c:C.coral}))));
+  h+=`<div class="row2">${bull}${bear}</div>`;
+  // fatores de risco do FR (empresa)
   if(GOV&&GOV.fatores_risco&&GOV.fatores_risco.length){
-    riskItems=riskItems.concat(GOV.fatores_risco.map(r=>({t:r.titulo,d:r.descricao,cov:'FR',n:4,c:C.oil})));
+    h+=card(head('cic-method','Fatores de risco — Formulário de Referência 2026','Riscos declarados pela própria companhia (itens 4.1–4.3 do FR).')+
+      `<div class="risks">`+GOV.fatores_risco.map(r=>`<div class="risk" style="--pc:${C.oil}"><div class="rh"><span class="rt">${esc(r.titulo)}</span><span class="rb some">FR</span></div><div class="rd">${esc(r.descricao)}</div></div>`).join('')+`</div>`);
   }
-  h+=card(head('cic-tese','Principais riscos','Riscos apontados pelo Goldman Sachs'+(GOV&&GOV.fatores_risco&&GOV.fatores_risco.length?' e fatores de risco do Formulário de Referência':'')+'.')+
-    `<div class="risks">`+riskItems.map(r=>`<div class="risk" style="--pc:${r.c}"><div class="rh"><span class="rt">${esc(r.t)}</span><span class="rb some">${esc(r.cov)}</span></div><div class="rd">${esc(r.d)}</div></div>`).join('')+`</div>`);
   $('p-tese').innerHTML=h;
 }
 
