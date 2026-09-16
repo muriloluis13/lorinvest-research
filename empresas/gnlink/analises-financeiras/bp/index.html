@@ -604,6 +604,12 @@ function parseWorkbook(buf){
   const gbnb=grid("BnbRetencao"); const bnbRetencao=new Array((grid("meses").length-1)).fill(0);
   if(gbnb){ const mi={}; grid("meses").slice(1).forEach((r,idx)=>mi[r[1]]=idx);
     for(let i=1;i<gbnb.length;i++){ const r=gbnb[i]; if(!r||r[0]==null) continue; const k=mi[String(r[0])]; if(k!=null) bnbRetencao[k]=+r[1]||0; } }
+  // Acionistas: aporte de capital ACUMULADO por acionista (R$mi), cronograma histórico exato da aba Exposição
+  // (Lorinvest/Hankoe e Copa Energia), alinhado ao eixo. Copa entrou em ago/25 (lump 100mi); Lorinvest antes.
+  const gaci=grid("Acionistas"); const acioHist={lorinvest:[], copa:[]};
+  if(gaci) for(let i=1;i<gaci.length;i++){ const r=gaci[i]; if(!r||r[0]==null) continue;
+    if(String(r[0])==="lorinvest_cum") acioHist.lorinvest=r.slice(1).map(x=>+x||0);
+    else if(String(r[0])==="copa_cum") acioHist.copa=r.slice(1).map(x=>+x||0); }
   // Balanco: insumos do módulo caixa/balanço/DCF (séries coladas/de outro módulo + constantes + geração anual)
   const gbl = grid("Balanco"); const balanco={const:{}};
   if(gbl){ let ckeys=[];
@@ -714,7 +720,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr, dcfConst, bnbRetencao};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr, dcfConst, bnbRetencao, acioHist};
 }
 
 async function tryFetch(){
@@ -3929,69 +3935,82 @@ function useOfProceedsHTML(){
     +`<div class="psub">Origem e aplicação do capital acumulado até a data-base (realizado). <b>Fontes</b> = capital próprio + dívida líquida = Capital Investido. <b>Usos</b> = CapEx planta (liquefação/compressão) + CapEx cliente (regás) + juros + SG&amp;A da holding + OpEx e outros (resultado operacional pré-SG&amp;A holding, capital de giro e impostos).</div>`
     +`<div class="uop"><div class="uop-col">${fontes}</div><div class="uop-col">${usos}</div></div></div>`;
 }
-// ===== ACIONISTAS: participação, fluxo de aportes por acionista, TIR/MOIC (via DCF e via saída de EBITDA) =====
-function resetAcio(){ if(DB.dcfConst){ DB.dcfConst.acio_hankoe=0.64; DB.dcfConst.acio_copa=0.36; } clearAllCaches(); render(); }
+// ===== ACIONISTAS: participação (FATO), cronograma real de aportes por acionista, TIR/MOIC (DCF e saída) =====
+// Participação (Exposição!D5/D6, FATO societário) e o cronograma histórico EXATO de aportes por acionista
+// (aba Acionistas, extraída da Exposição): Lorinvest/Hankoe aportou ~R$101mi ao longo de 2022-24; Copa entrou
+// em ago/25 com lump de R$100mi por 36%. Como entrada e valuation diferem, TIR/MOIC DIVERGEM entre os dois.
 function acionistasEngine(){
   const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx, n=DB.meses.length, C=DB.dcfConst||{};
   const hk=(C.acio_hankoe!=null?C.acio_hankoe:0.64), cp=(C.acio_copa!=null?C.acio_copa:0.36);
-  const ap=aporteMinimoEngine(), cb=caixaBalancoEngine(), dcf=dcfConsolidado();
-  let xv=null; try{ xv=exitValuation(); }catch(e){}
-  const capProprio=num(cb.capital[cut]);           // capital próprio já aportado (histórico, no corte)
-  const aporteFut=num(ap.cum[n-1]);                // aporte futuro (= Equity Needs)
+  const ap=aporteMinimoEngine(), dcf=dcfConsolidado(); let xv=null; try{ xv=exitValuation(); }catch(e){}
   const eqDCF=num(dcf.vpl), eqExit=(xv&&xv.ok)?num(xv.equityExit):null;
   const exitK=(xv&&xv.ok)?xv.exitK:-1, exitYm=(xv&&xv.ok)?xv.exitYm:null;
-  // IRR mensal robusto (bisseção com escala)
-  function irrM(flows){ const sc=Math.max.apply(null,flows.map(f=>Math.abs(f)))||1, g=flows.map(f=>f/sc),
-    f=r=>{let s=0;for(let i=0;i<g.length;i++)s+=g[i]/Math.pow(1+r,i);return s;}; let lo=-0.99,hi=3,flo=f(lo);
-    if(flo*f(hi)>0)return null; for(let it=0;it<200;it++){const m=(lo+hi)/2,fm=f(m); if(Math.abs(fm)<1e-7)return m; if(flo*fm<0)hi=m;else{lo=m;flo=fm;}} return (lo+hi)/2; }
-  const ann=r=>r!=null?Math.pow(1+r,12)-1:null;
-  // TIR/MOIC forward: investe os aportes futuros e recebe o Equity Value (pró-rata → igual p/ os 2 acionistas)
-  let tirExit=null, sumApExit=0;
-  if(exitK>0&&eqExit!=null){ const fe=[]; for(let k=cut+1;k<=exitK;k++){ let v=-num(ap.aporte[k]); sumApExit+=num(ap.aporte[k]); if(k===exitK)v+=eqExit; fe.push(v);} tirExit=ann(irrM(fe)); }
-  const moicDCF=aporteFut>0?eqDCF/aporteFut:null;
-  const moicExit=(eqExit!=null&&sumApExit>0)?eqExit/sumApExit:null;
-  return {hk,cp,capProprio,aporteFut,eqDCF,eqExit,exitYm,moicDCF,moicExit,tirDCF:dcf.tir,tirExit,aporte:ap.aporte,cut,n};
+  const H=DB.acioHist||{lorinvest:[],copa:[]};
+  // aporte MENSAL por acionista (R$): histórico (Δ do acumulado ×1e6) até o corte; futuro (aporteMínimo × part.)
+  const apH=new Array(n).fill(0), apC=new Array(n).fill(0); let pL=0,pC=0;
+  for(let k=0;k<=cut;k++){ const L=num(H.lorinvest[k])*1e6, Co=num(H.copa[k])*1e6; apH[k]=Math.max(0,L-pL); apC[k]=Math.max(0,Co-pC); pL=L; pC=Co; }
+  for(let k=cut+1;k<n;k++){ apH[k]=num(ap.aporte[k])*hk; apC[k]=num(ap.aporte[k])*cp; }
+  function irrM(flows){ let i0=0; while(i0<flows.length&&Math.abs(flows[i0])<1e-9)i0++;   // remove zeros iniciais (não altera a TIR, evita overflow do expoente)
+    const g0=flows.slice(i0); if(g0.length<2)return null;
+    const sc=Math.max.apply(null,g0.map(f=>Math.abs(f)))||1, g=g0.map(f=>f/sc),
+    f=r=>{let s=0;for(let i=0;i<g.length;i++)s+=g[i]/Math.pow(1+r,i);return s;}; let lo=-0.99,hi=1,flo=f(lo),fhi=f(hi);
+    if(flo*fhi>0)return null; for(let it=0;it<200;it++){const m=(lo+hi)/2,fm=f(m); if(Math.abs(fm)<1e-9)return m; if(flo*fm<0){hi=m;fhi=fm;}else{lo=m;flo=fm;}} return (lo+hi)/2; }
+  const ann=r=>r!=null?Math.pow(1+r,12)-1:null, sumR=(a,i,j)=>{let s=0;for(let k=i;k<=j;k++)s+=num(a[k]);return s;};
+  // retorno por acionista. @DCF: investe o histórico e marca a mercado ao Equity Value do DCF na data-base
+  // (não conta aporte futuro — realização "hoje"). @saída: investe histórico+futuro e vende no exit por EBITDA.
+  function ret(apS, share, firstK){
+    const histS=sumR(apS,0,cut), futToExit=(exitK>cut)?sumR(apS,cut+1,exitK):0, futAll=sumR(apS,cut+1,n-1);
+    const fD=[]; for(let k=0;k<=cut;k++){ let v=-apS[k]; if(k===cut) v+=eqDCF*share; fD.push(v); }
+    const tirD=ann(irrM(fD)), moicD=histS>0?(eqDCF*share)/histS:null;
+    let tirE=null, moicE=null;
+    if(exitK>cut&&eqExit!=null){ const fE=[]; for(let k=0;k<=exitK;k++){ let v=-apS[k]; if(k===exitK) v+=eqExit*share; fE.push(v);} tirE=ann(irrM(fE)); const invE=histS+futToExit; moicE=invE>0?(eqExit*share)/invE:null; }
+    const entryVal=(share>0&&histS>0)?histS/share:null;   // valuation implícito de entrada (aporte / participação)
+    return {share,histS,futAll,futToExit,tirD,moicD,tirE,moicE,entryK:firstK,entryVal,eqDCF:eqDCF*share,eqExit:eqExit!=null?eqExit*share:null};
+  }
+  const fkH=apH.findIndex(v=>v>1), fkC=apC.findIndex(v=>v>1);
+  return {hk,cp,eqDCF,eqExit,exitYm,exitK,cut,n,apH,apC,aporteFut:num(ap.cum[n-1]),
+    HK:ret(apH,hk,fkH), CP:ret(apC,cp,fkC)};
 }
 function renderAcionistas(){
   const a=acionistasEngine(), num=x=>typeof x==="number"?x:0, cut=a.cut, n=a.n;
-  const M=v=>fmt(v/1e6,0);
-  let h=`<div class="pglead"><b>Acionistas</b> — participação societária, fluxo de aportes de capital por acionista e retorno (TIR/MOIC) sobre o Equity Value, por <b>DCF</b> e por <b>saída de múltiplo de EBITDA</b>.<span class="tag">Fase F</span></div>`;
+  const M=v=>v==null?"—":fmt(v/1e6,0), X=v=>v==null?"—":fmt(v,2)+"x", PC=v=>v==null?"n.a.":fmtPct(v,1);
+  const emY=k=>(k>=0&&k<n)?fmtMesY(DB.meses[k].ym):"—";
+  let h=`<div class="pglead"><b>Acionistas</b> — participação societária, cronograma real de aportes por acionista e retorno (TIR/MOIC) sobre o Equity Value, por <b>DCF</b> e por <b>saída de múltiplo de EBITDA</b>. Como Hankoe e Copa entraram em <b>épocas e valuations diferentes</b>, TIR e MOIC <b>divergem</b>.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
   h+=kpi("Equity Value @DCF (R$ mi)", M(a.eqDCF), "fluxos futuros descontados ao Ke",null,MECH.vpl);
-  h+=kpi("Equity Value @saída (R$ mi)", a.eqExit!=null?M(a.eqExit):"—", a.exitYm?("múltiplo de EBITDA · "+fmtMesY(a.exitYm)):"",null,MECH.vpl);
+  h+=kpi("Equity Value @saída (R$ mi)", M(a.eqExit), a.exitYm?("múltiplo de EBITDA · "+fmtMesY(a.exitYm)):"",null,MECH.vpl);
   h+=kpi("Equity Needs (R$ mi)", M(a.aporteFut), "aporte de capital na projeção");
-  h+=kpi("TIR @DCF", a.tirDCF!=null?fmtPct(a.tirDCF,1):"n.a.", "geração descontada (consolidado)",null,MECH.tir);
-  h+=kpi("TIR @saída", a.tirExit!=null?fmtPct(a.tirExit,1):"n.a.", a.exitYm?("aporte → saída "+fmtMesY(a.exitYm)):"",null,MECH.tir);
-  h+=kpi("MOIC @DCF / @saída", (a.moicDCF!=null?fmt(a.moicDCF,2)+"x":"—")+" / "+(a.moicExit!=null?fmt(a.moicExit,2)+"x":"—"), "Equity Value ÷ aporte");
   h+='</div>';
-  h+='<h3 class="msub">Participação &amp; valor por acionista</h3>';
-  h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Acionista</th><th>Participação</th><th>Equity Value @DCF (R$ mi)</th><th>Equity Value @saída (R$ mi)</th><th>Aporte futuro (R$ mi)</th></tr></thead><tbody>';
-  for(const [nm,sh] of [["Hankoe",a.hk],["Copa Energia",a.cp]])
-    h+=`<tr><td class="l">${nm}</td><td>${fmtPct(sh,0)}</td><td>${M(a.eqDCF*sh)}</td><td>${a.eqExit!=null?M(a.eqExit*sh):"—"}</td><td>${M(a.aporteFut*sh)}</td></tr>`;
-  h+=`<tr class="tot"><td class="l">Total</td><td>${fmtPct(a.hk+a.cp,0)}</td><td>${M(a.eqDCF)}</td><td>${a.eqExit!=null?M(a.eqExit):"—"}</td><td>${M(a.aporteFut)}</td></tr>`;
+  // cap table (FATOS societários)
+  h+='<h3 class="msub">Cap table (fato societário)</h3>';
+  h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Acionista</th><th>Participação</th><th>Entrada</th><th>Valuation entrada (R$ mi)</th><th>Aporte histórico (R$ mi)</th><th>Aporte futuro (R$ mi)</th><th>Equity Value @DCF</th><th>Equity Value @saída</th></tr></thead><tbody>';
+  const rowCT=(nm,s)=>`<tr><td class="l">${nm}</td><td>${fmtPct(s.share,0)}</td><td>${emY(s.entryK)}</td><td>${M(s.entryVal)}</td><td>${M(s.histS)}</td><td>${M(s.futAll)}</td><td>${M(s.eqDCF)}</td><td>${M(s.eqExit)}</td></tr>`;
+  h+=rowCT("Hankoe",a.HK)+rowCT("Copa Energia",a.CP);
+  h+=`<tr class="tot"><td class="l">Total</td><td>${fmtPct(a.hk+a.cp,0)}</td><td>—</td><td>—</td><td>${M(a.HK.histS+a.CP.histS)}</td><td>${M(a.HK.futAll+a.CP.futAll)}</td><td>${M(a.eqDCF)}</td><td>${M(a.eqExit)}</td></tr>`;
   h+='</tbody></table></div>';
-  h+='<div class="note">TIR e MOIC são <b>iguais para os dois acionistas</b> — os fluxos são pró-rata (cada um aporta e recebe o Equity Value na proporção da participação). <b>@DCF</b>: Equity Value por fluxo descontado ao Ke; <b>@saída</b>: venda por múltiplo de EBITDA em '+(a.exitYm?fmtMesY(a.exitYm):'—')+'. MOIC = Equity Value ÷ aporte futuro; TIR forward (investe o aporte, recebe o Equity Value). Capital próprio já aportado (histórico) = <b>R$ '+M(a.capProprio)+' mi</b>.</div>';
-  // fluxo de aportes por acionista, por ano (projeção)
-  const byY={}; for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), v=num(a.aporte[k]); if(v>1){ (byY[y]=byY[y]||{h:0,c:0,t:0}); byY[y].h+=v*a.hk; byY[y].c+=v*a.cp; byY[y].t+=v; } }
+  // retorno por acionista (DIVERGENTE)
+  h+='<h3 class="msub">Retorno por acionista</h3>';
+  h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Acionista</th><th>MOIC @DCF</th><th>TIR @DCF</th><th>MOIC @saída</th><th>TIR @saída</th></tr></thead><tbody>';
+  const rowR=(nm,s)=>`<tr><td class="l">${nm}</td><td>${X(s.moicD)}</td><td>${PC(s.tirD)}</td><td>${X(s.moicE)}</td><td>${PC(s.tirE)}</td></tr>`;
+  h+=rowR("Hankoe",a.HK)+rowR("Copa Energia",a.CP);
+  h+='</tbody></table></div>';
+  h+='<div class="note">Participação é <b>fato societário</b> (não premissa). Retornos <b>divergem</b> pois cada acionista entrou em época e valuation diferentes. <b>@DCF</b>: marca o capital histórico a mercado pelo Equity Value do DCF na data-base ('+fmtMesY(DB.meses[cut].ym)+') — MOIC = Equity Value ÷ aporte histórico. <b>@saída</b>: investe o histórico <i>e</i> o aporte futuro (pró-rata) e vende por múltiplo de EBITDA em '+(a.exitYm?fmtMesY(a.exitYm):'—')+' — MOIC = Equity Value ÷ (aporte histórico + futuro até a saída). O rateio do Equity Value é pró-rata à participação (não modela preferências/liquidação).</div>';
+  // fluxo de aportes por acionista, por ano (histórico + projeção)
+  const byY={}; for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), vh=num(a.apH[k]), vc=num(a.apC[k]); if(vh>1||vc>1){ (byY[y]=byY[y]||{h:0,c:0}); byY[y].h+=vh; byY[y].c+=vc; } }
   const yrs=Object.keys(byY).map(Number).sort((x,y)=>x-y);
   if(yrs.length){
-    h+='<h3 class="msub">Fluxo de aportes por acionista (R$ mi/ano) — projeção</h3>';
-    h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ mi</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'<th>Total</th></tr></thead><tbody>';
-    const rw=(lbl,key,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`,tot=0; for(const y of yrs){ r+=`<td>${fmt(byY[y][key]/1e6,1)}</td>`; tot+=byY[y][key]; } return r+`<td>${fmt(tot/1e6,1)}</td></tr>`; };
-    h+=rw("Hankoe ("+fmtPct(a.hk,0)+")","h")+rw("Copa Energia ("+fmtPct(a.cp,0)+")","c")+rw("Total","t",true);
+    h+='<h3 class="msub">Fluxo de aportes por acionista (R$ mi/ano) — histórico + projeção</h3>';
+    h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ mi</th>'+yrs.map(y=>`<th class="${y>2026?'o':''}">${y}</th>`).join('')+'<th>Total</th></tr></thead><tbody>';
+    const rw=(lbl,fn,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`,tot=0; for(const y of yrs){ const v=fn(y); r+=`<td class="${y>2026?'o':''}">${fmt(v/1e6,1)}</td>`; tot+=v; } return r+`<td>${fmt(tot/1e6,1)}</td></tr>`; };
+    h+=rw("Hankoe",y=>byY[y].h||0)+rw("Copa Energia",y=>byY[y].c||0)+rw("Total",y=>(byY[y].h||0)+(byY[y].c||0),true);
     h+='</tbody></table></div>';
-    h+='<div class="card"><h4>Aportes por acionista (R$ mi/ano)</h4><div class="chart-box" style="max-width:760px"><canvas id="cAcio"></canvas></div></div>';
+    h+='<div class="note" style="margin-top:0">Colunas em <b>laranja</b> = projeção (&gt; '+fmtMesY(DB.meses[cut].ym)+'). Histórico: cronograma real da aba Exposição; projeção: aporte de caixa mínimo rateado pela participação.</div>';
+    h+='<div class="card"><h4>Aportes por acionista (R$ mi/ano)</h4><div class="chart-box" style="max-width:820px"><canvas id="cAcio"></canvas></div></div>';
   }
-  h+='<div class="premcard"><div class="ph"><b>Participação societária</b><span class="hspace"></span><button class="btn-reset" onclick="resetAcio()">restaurar</button></div>';
-  h+='<div class="psub">Percentual de cada acionista (soma 100%). Move o rateio de aportes e Equity Value por acionista; a TIR/MOIC não mudam (pró-rata).</div>';
-  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">'
-    +premCtrl("Hankoe","%", a.hk*100, v=>{ const x=Math.max(0,Math.min(100,+v))/100; DB.dcfConst.acio_hankoe=x; DB.dcfConst.acio_copa=1-x; }, {dec:0,min:0,max:100,step:1})
-    +premCtrl("Copa Energia","%", a.cp*100, v=>{ const x=Math.max(0,Math.min(100,+v))/100; DB.dcfConst.acio_copa=x; DB.dcfConst.acio_hankoe=1-x; }, {dec:0,min:0,max:100,step:1})
-    +'</div></div>';
   return {html:h, draw:()=>{ const el=document.getElementById('cAcio'); if(!el||typeof Chart==='undefined'||!yrs.length) return;
     charts.acio=new Chart(el,{type:"bar",data:{labels:yrs.map(String),datasets:[
-      {label:"Hankoe",data:yrs.map(y=>byY[y].h/1e6),backgroundColor:PAL[0],borderWidth:0,stack:"a"},
-      {label:"Copa Energia",data:yrs.map(y=>byY[y].c/1e6),backgroundColor:PAL[1],borderWidth:0,stack:"a"}]},
+      {label:"Hankoe",data:yrs.map(y=>(byY[y].h||0)/1e6),backgroundColor:PAL[0],borderWidth:0,stack:"a"},
+      {label:"Copa Energia",data:yrs.map(y=>(byY[y].c||0)/1e6),backgroundColor:PAL[1],borderWidth:0,stack:"a"}]},
       options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
         plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
           tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,1)+" mi"}}},
