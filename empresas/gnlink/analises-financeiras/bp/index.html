@@ -1321,7 +1321,7 @@ function logisticaCompAgg(regiao){   // {subkey:[192]} somado na região
   logisticaSerie();                  // garante cache
   const n=DB.meses.length, comp=_logCache.comp, plantas = _actP(regiao);
   const out={}; for(const s of LOG_SUB){ out[s]=new Array(n).fill(0);
-    for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
+    for(const p of plantas){ const cp=comp[p]; if(!cp) continue; const a=cp[s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }   // pula planta sem dados (ex.: "Outro" id 7)
   return out;
 }
 /* ===== port fiel: REGÁS (por cliente) =======================================
@@ -1388,7 +1388,7 @@ const REG_SUB=["aluguel","furui_prep","furui_leasing","assistencia"];
 function regasCompAgg(regiao){
   regasSerie(); const n=DB.meses.length, comp=_regCache.comp, plantas=_actP(regiao);
   const out={}; for(const s of REG_SUB){ out[s]=new Array(n).fill(0);
-    for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
+    for(const p of plantas){ const cp=comp[p]; if(!cp) continue; const a=cp[s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }   // pula planta sem dados (ex.: "Outro" id 7)
   return out;
 }
 /* ===== port fiel: COMPRESSÃO e TERMINAL (por planta, simples) ================
@@ -1455,7 +1455,7 @@ function sgaSerie(){
 function sgaCompAgg(regiao){
   sgaSerie(); const n=DB.meses.length, comp=_sgaCache.comp, plantas=_actP(regiao);
   const out={}; for(const s of SGA_SUB){ out[s]=new Array(n).fill(0);
-    for(const p of plantas){ const a=comp[p][s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }
+    for(const p of plantas){ const cp=comp[p]; if(!cp) continue; const a=cp[s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }   // pula planta sem dados (ex.: "Outro" id 7)
   return out;
 }
 function aggByRegiao(byPlanta, regiao){   // {planta:[192]} -> [192] somado na região
