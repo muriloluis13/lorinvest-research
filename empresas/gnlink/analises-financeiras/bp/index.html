@@ -176,6 +176,16 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .prow .pslider{width:100%;accent-color:var(--accent3);margin:0}
 .prow .pnum{font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%;text-align:right}
 .prow .pnum:focus{outline:none;border-color:var(--accent3)}
+/* premissa estilo "sidebar": rótulo à esq., valor vermelho clicável à dir., slider na linha inteira abaixo */
+.prow2{padding:7px 0 9px;border-bottom:1px solid #EEF1F5;min-width:0}
+.prow2-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:7px}
+.prow2-head>label{font-size:12px;color:var(--ink);font-weight:600;line-height:1.25}
+.prow2 .pval{font-size:12.5px;font-weight:700;color:var(--accent3);cursor:pointer;white-space:nowrap;border-radius:5px;padding:1px 3px;transition:color .12s ease,background .12s ease;text-underline-offset:2px}
+.prow2 .pval:hover{color:var(--accent);text-decoration:underline}
+.prow2 .pval:focus{outline:none;color:var(--accent);text-decoration:underline}
+.prow2 .pedit{font-family:inherit;font-size:12.5px;font-weight:700;padding:2px 6px;border:1px solid var(--accent3);border-radius:6px;background:#fff;color:var(--ink);text-align:right;width:112px}
+.prow2 .pedit:focus{outline:none}
+.prow2 .pslider{width:100%;accent-color:var(--accent3);margin:0;display:block}
 .premgrp{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin:12px 0 2px;grid-column:1/-1}
 .btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
@@ -767,7 +777,8 @@ function _liveThrottle(fn, el){
   _liveArgs={fn:fn, el:el};
   if(_liveRAF) return;
   _liveRAF=requestAnimationFrame(function(){
-    _liveRAF=0; const a=_liveArgs; if(!a) return;
+    _liveRAF=0; const a=_liveArgs; _liveArgs=null; if(!a) return;
+    if(a.el && !document.body.contains(a.el)) return;   // slider saiu do DOM (troca de aba) → não aplica valor obsoleto
     try{ a.fn(); }catch(e){}
     clearAllCaches(); render({preserve:a.el});
   });
@@ -3580,14 +3591,37 @@ function premCtrl(label, unit, disp, apply, o){
   const lo=o.min!=null?o.min:0;
   const hi=o.max!=null?o.max:+(disp>0?disp*2:1).toFixed(dec);
   const st=o.step!=null?o.step:+Math.max((hi-lo)/100, Math.pow(10,-dec)).toFixed(6);
-  const vid="pv"+i, edited=o.edited?'<span class="prem-edited">alt</span>':'';
-  return `<div class="prow"><label>${label}${unit?` <span class="pu">${unit}</span>`:''}${edited}</label>`
-    +`<input type="range" class="pslider" min="${lo}" max="${hi}" step="${st}" value="${disp}" `
-    +`oninput="var b=document.getElementById('${vid}'); b.setAttribute('data-raw',+this.value); b.value=fmtIn(+this.value,${dec}); premLive(${i}, this)" `
-    +`onchange="premApply(${i}, +this.value)">`
-    +numBox(vid, disp, dec, `onchange="premApply(${i}, this.value)"`, "pnum")
+  const vid="pv"+i, sid="ps"+i, edited=o.edited?'<span class="prem-edited">alt</span>':'';
+  const uAttr=(unit||'').replace(/"/g,'&quot;');
+  // layout: rótulo à esquerda, VALOR (vermelho, clicável tipo hyperlink) à direita, slider ocupando a linha
+  // inteira abaixo. A caixa de edição fica escondida e aparece ao clicar no valor (o handler global .numfmt
+  // troca formatado↔cru no foco). Durante o arraste, premSlide atualiza o texto do valor ao vivo.
+  return `<div class="prow2">`
+    +`<div class="prow2-head"><label>${label}${edited}</label>`
+    +`<span class="pval" id="${sid}" data-unit="${uAttr}" tabindex="0" role="button" title="clique para editar" `
+    +   `onclick="premEdit(${i})" onkeydown="if(event.key==='Enter'){event.preventDefault();premEdit(${i});}">${_pvalTxt(disp,dec,unit)}</span>`
+    +   `<input type="text" inputmode="decimal" class="numfmt pedit" id="${vid}" data-dec="${dec}" data-raw="${disp}" value="${fmtIn(disp,dec)}" style="display:none" `
+    +     `onchange="premApply(${i}, this.value)" onblur="premEditDone(${i})" onkeydown="if(event.key==='Enter')this.blur()"></div>`
+    +`<input type="range" class="pslider" data-dec="${dec}" min="${lo}" max="${hi}" step="${st}" value="${disp}" `
+    +   `oninput="premSlide(${i}, this)" onchange="premApply(${i}, +this.value)">`
     +`</div>`;
 }
+// texto do valor (vermelho) com unidade embutida
+function _pvalTxt(v,dec,unit){ const s=fmtIn(v,dec); if(s==='') return '—'; if(!unit) return s; if(unit==='%') return s+'%'; if(unit==='x') return s+'×'; return s+' '+unit; }
+// arraste do slider: atualiza o valor exibido + a caixa escondida ao vivo, e dispara o recompute throttled
+function premSlide(i, el){
+  const dec=+el.getAttribute('data-dec')||0, v=+el.value;
+  const sp=document.getElementById('ps'+i), inp=document.getElementById('pv'+i);
+  if(inp){ inp.setAttribute('data-raw', v); inp.value=fmtIn(v,dec); }
+  if(sp){ sp.textContent=_pvalTxt(v, dec, sp.getAttribute('data-unit')||''); }
+  premLive(i, el);
+}
+// clique no valor → vira caixa editável (o handler global .numfmt mostra o valor cru e seleciona)
+function premEdit(i){ const sp=document.getElementById('ps'+i), inp=document.getElementById('pv'+i);
+  if(!sp||!inp) return; sp.style.display='none'; inp.style.display=''; inp.focus(); }
+// saiu da edição sem confirmar (blur): volta a mostrar o valor como texto
+function premEditDone(i){ const sp=document.getElementById('ps'+i), inp=document.getElementById('pv'+i);
+  if(!sp||!inp) return; inp.style.display='none'; sp.style.display=''; }
 // reset de um grupo de premissas ao default extraído
 function premReset(grupo){
   if(!_premOrig) return; const O=_premOrig;
