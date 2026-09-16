@@ -168,10 +168,10 @@ var BASE={
   patrimonioInicial:180000,
   // carreira (comp = salário bruto mensal de entrada no nível; despesaPct = despesas ex-moradia como % da renda líquida)
   stages:[
-    {nome:"Analista", ate:29, comp:15000,  cresc:0.05, clt:true,  bonus:1, despesaPct:0.70},
-    {nome:"Gerente",  ate:32, comp:25000,  cresc:0.05, clt:true,  bonus:2, despesaPct:0.60},
-    {nome:"Diretor",  ate:37, comp:60000,  cresc:0.05, clt:false, bonus:4, despesaPct:0.45},
-    {nome:"Sócio",    ate:65, comp:120000, cresc:0.06, clt:false, bonus:6, despesaPct:0.35}
+    {nome:"Analista", ate:29, comp:15000,  cresc:0.05, clt:true,  bonus:6,  despesaPct:0.70},
+    {nome:"Gerente",  ate:32, comp:25000,  cresc:0.05, clt:true,  bonus:6,  despesaPct:0.60},
+    {nome:"Diretor",  ate:37, comp:60000,  cresc:0.05, clt:false, bonus:10, despesaPct:0.45},
+    {nome:"Sócio",    ate:65, comp:120000, cresc:0.06, clt:false, bonus:12, despesaPct:0.35}
   ]
 };
 var S=JSON.parse(JSON.stringify(BASE));
@@ -554,15 +554,14 @@ function renderAluguel(R){
 
 function renderCarreira(R){
   var h='';
-  h+='<div class="card"><h2>Escada de carreira</h2><p class="cap">Cada nível tem seu salário bruto de entrada e um crescimento anual próprio. O 1º nível começa na idade do proponente ('+S.idade+' anos); o último vai até os '+FIM_IDADE+'. CLT recebe 13º + férias (1 salário extra cada); PJ/sócio, não. O bônus é em número de salários por ano. As despesas (fora moradia) são um % da renda líquida do nível.</p>';
-  h+='<table class="careertbl"><thead><tr><th>Nível</th><th>Até a idade</th><th>Salário bruto (R$/mês)</th><th>Cresc. a.a.</th><th style="text-align:center">CLT</th><th>Bônus (nº sal.)</th><th>Despesas (% renda líq.)</th></tr></thead><tbody>';
+  h+='<div class="card"><h2>Escada de carreira</h2><p class="cap">Cada nível tem seu salário bruto de entrada e um crescimento anual próprio. O 1º nível começa na idade do proponente ('+S.idade+' anos); o último vai até os '+FIM_IDADE+'. CLT recebe 13º + férias (1 salário extra cada); PJ/sócio, não. O bônus é em número de salários por ano. As despesas (fora moradia) são um % da renda líquida do nível. Regime implícito: Analista e Gerente são CLT (recebem 13º + férias); Diretor e Sócio, PJ (sem 13º/férias).</p>';
+  h+='<table class="careertbl"><thead><tr><th>Nível</th><th>Até a idade</th><th>Salário bruto (R$/mês)</th><th>Cresc. a.a.</th><th>Bônus (nº sal.)</th><th>Despesas (% renda líq.)</th></tr></thead><tbody>';
   for(var i=0;i<S.stages.length;i++){ var st=S.stages[i]; var last=(i===S.stages.length-1);
     h+='<tr>'+
       '<td><input class="txt" value="'+st.nome+'" onchange="setStage('+i+',\'nome\',this.value)"></td>'+
       '<td>'+(last?('<span class="badge">'+FIM_IDADE+'</span>'):('<input value="'+st.ate+'" onchange="setStage('+i+',\'ate\',this.value)">'))+'</td>'+
       '<td><input value="'+num(st.comp)+'" onchange="setStage('+i+',\'comp\',this.value)"></td>'+
       '<td><input value="'+pct(st.cresc,1)+'" onchange="setStage('+i+',\'cresc\',this.value)"></td>'+
-      '<td style="text-align:center"><input type="checkbox" '+(st.clt?'checked':'')+' onchange="setStageCLT('+i+',this.checked)"></td>'+
       '<td><input value="'+num(st.bonus||0,1)+'" onchange="setStage('+i+',\'bonus\',this.value)"></td>'+
       '<td><input value="'+pct(st.despesaPct||0,0)+'" onchange="setStage('+i+',\'despesaPct\',this.value)"></td>'+
       '</tr>';
