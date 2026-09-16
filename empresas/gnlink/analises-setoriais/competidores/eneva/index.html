@@ -859,28 +859,40 @@ function renderOver(){
 /* ---------- 2. A Empresa ---------- */
 function renderEmp(){
   const p=CORP.perfil;
-  let h=card(head('cic-emp','Perfil','Empresa integrada de energia — do reservatório ao fio.')+`<p class="lead">${esc(p.descricao)}</p>`+
-    '<div class="big">'+p.numeros_chave.slice(0,8).map(n=>`<div class="bigc"><div class="n">${esc(n[0])}</div><div class="l">${esc(n[1])}</div></div>`).join('')+'</div>','tinted');
-  // histórico timeline
-  h+=card(head('cic-over','História e marcos','Do Re-IPO (2017) ao LRCAP 2026.')+
+  /* --- sub-aba 1: Perfil & história --- */
+  let s1=card(head('cic-emp','Perfil & modelo de negócio','A única integrada de energia do Brasil ligando E&P de gás onshore próprio à geração térmica.')+
+    lead(esc(p.descricao))+
+    steps([
+      {n:'R2W',t:'Reservoir-to-Wire',p:'E&P de gás onshore próprio conectado por gasodutos às UTEs (Parnaíba e Azulão) — menor custo, verticalização e captura da margem de gás e de energia.',c:C.petrol},
+      {n:'G2P',t:'Gas-to-Power',p:'Onde não há reserva local, GNL importado e regaseificado em FSRU abastece as térmicas (Hubs Sergipe, Ceará e Sudeste), integrando-se à malha de gás.',c:C.teal},
+      {n:'Trading',t:'Comercialização & Mesa de Gás',p:'Comercialização de energia (top 10 do Brasil) e mesa de gás on/off-grid, capturando margem comercial e arbitragens de preço.',c:C.amber}
+    ]));
+  s1+=card(head('cic-over','História e marcos','Do Re-IPO (2017) ao LRCAP 2026 — um ciclo de aquisições e projetos.')+
     timeline(CORP.historico.map((e,i)=>({y:e.ano,t:'',d:esc(e.evento),c:i===CORP.historico.length-1?C.coral:C.petrol}))));
-  // governança (se disponível)
-  if(GOV&&GOV.estrutura_acionaria&&GOV.estrutura_acionaria.length){
-    const rows=GOV.estrutura_acionaria.map(a=>[a.acionista+(a.obs?` · ${a.obs}`:''),a.pct_on]).filter(r=>typeof r[1]==='number');
-    let g=head('cic-method','Estrutura acionária & governança',esc(GOV.controle||''));
-    if(rows.length) g+=chHBars(rows,{fmt:v=>nf(v,1),unit:'%',color:C.teal,hiColor:C.petrol});
-    if(GOV.conselho_administracao&&GOV.conselho_administracao.length){
-      g+='<h3 class="msub">Conselho de Administração</h3>'+kv(GOV.conselho_administracao.map(m=>[m.nome,(m.cargo||'')+(m.independente?' · independente':'')]));
-    }
-    if(GOV.diretoria&&GOV.diretoria.length){
-      g+='<h3 class="msub">Diretoria executiva</h3>'+kv(GOV.diretoria.map(m=>[m.nome,m.cargo||'']));
-    }
-    if(GOV.capital){const c=GOV.capital;g+='<h3 class="msub">Capital & remuneração ao acionista</h3>'+kv([['Capital social',c.capital_social],['Ações',c.acoes_total],['Ações ON',c.acoes_on],['Tesouraria',c.tesouraria],['Dividendos',c.dividendos_politica]].filter(x=>x[1]));}
-    h+=card(g);
-  } else {
-    h+=card(head('cic-method','Estrutura acionária & governança','Extraindo do Formulário de Referência 2026…')+`<p class="warn">Seção em processamento a partir do Formulário de Referência 2026.</p>`);
-  }
-  $('p-emp').innerHTML=h;
+  /* --- sub-aba 2: Governança & capital --- */
+  let s2='';
+  const sh=(GOV.estrutura_acionaria||[]).filter(a=>a.acionista!=='Total'&&!/derivativ/i.test(a.acionista));
+  const shRows=sh.map(a=>[a.acionista.replace(' Fundo de Investimento em Participações Infraestrutura (RL)',' (FIP Infra)').replace(' S.A.','').replace(' Administração de Recursos Ltda.','').replace(' (free float pulverizado)',''),a.pct_on]);
+  s2+=card(head('cic-method','Estrutura acionária','Base acionária pulverizada — 98,6% em circulação, sem acionista controlador.')+
+    cap('Participação no capital votante (% das ações ON) · posição 22/05/2026')+
+    chHBars(shRows,{fmt:v=>nf(v,1),unit:'%',color:C.teal,hiColor:C.petrol,rh:34})+
+    `<div class="note"><b>Sem controlador.</b> Nenhum acionista detém &gt;50% do capital. As posições ligadas à órbita BTG (Banco BTG 25,6% + BPAC Infra 22,5% ≈ <b>48%</b>) não formam bloco de controle declarado, e não há acordo de acionistas vigente (o antigo Atmos/Dynamo/Velt foi distratado em mar/25). A Goldman Sachs comunicou 5,06% em <i>derivativos</i> (liquidação física), fora do quadro de ações.</div>`);
+  // conselho + diretoria em duas colunas
+  const cons=GOV.conselho_administracao||[];
+  const nInd=cons.filter(m=>m.independente).length;
+  const consTbl=`<div class="twrap"><table><thead><tr><th class="l">Conselheiro</th><th class="l">Cargo</th><th>Indep.</th></tr></thead><tbody>`+
+    cons.map(m=>`<tr><td class="l"><b>${esc(m.nome)}</b></td><td class="l" style="white-space:normal;font-size:11px;color:var(--muted)">${esc(m.cargo)}</td><td>${m.independente?`<span class="pill" style="background:#E4EEEC;color:${C.green}">Sim</span>`:'<span class="pill" style="background:var(--chip);color:var(--muted)">—</span>'}</td></tr>`).join('')+`</tbody></table></div>`;
+  const consCard=card(head('cic-emp','Conselho de Administração',`${cons.length} membros · ${nInd} independentes · maioria ligada ao BTG Pactual.`)+consTbl);
+  const dir=GOV.diretoria||[];
+  const dirCard=card(head('cic-emp','Diretoria executiva','Time executivo (estatutário).')+
+    dir.map(m=>`<div style="padding:10px 0;border-top:1px solid var(--line)"><div style="font-weight:700;color:var(--ink)">${esc(m.nome)}</div><div style="font-size:11.5px;color:var(--accent);font-weight:600;margin:1px 0 3px">${esc(m.cargo)}</div><div style="font-size:11px;color:var(--muted);line-height:1.45">${esc(m.obs||'')}</div></div>`).join(''));
+  s2+=`<div class="row2">${consCard}${dirCard}</div>`;
+  // capital & dividendos
+  const c=GOV.capital||{};
+  s2+=card(head('cic-tp','Capital & remuneração ao acionista','Composição do capital e política de dividendos.')+
+    kv([['Capital social',c.capital_social],['Ações (ON, sem valor nominal)',c.acoes_on],['Ações preferenciais',c.acoes_pref],['Capital autorizado',c.capital_autorizado],['Tesouraria',c.tesouraria]].filter(x=>x[1]))+
+    `<div class="note"><b>Dividendos:</b> ${esc(c.dividendos_politica||'')}</div>`);
+  $('p-emp').innerHTML=subBar('emp',['Perfil & história','Governança & capital'])+subpane('emp',0,s1)+subpane('emp',1,s2);
 }
 
 /* ---------- 3. Tese & Riscos ---------- */
