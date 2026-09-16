@@ -2358,9 +2358,12 @@ function saldoDividaSerie(){ return dividaEngine().saldo; }         // saldo dev
    = driver×prazo/30), DFM385 (=Caixa[k-1]×G383×CDI), resultado financeiro completo, máquinas de
    estado do PL, somas do balanço (Ativo=Passivo+PL), VPL/TIR — tudo POR FÓRMULA a partir dos meus
    módulos vivos + os insumos colados (aba Balanco). Validado 1:1 (caixa_balanco_ref.py). ======= */
-let _cbCache=null;
-function caixaBalancoEngine(){
-  if(_cbCache) return _cbCache;
+let _cbCache=null, _cbCacheColado=null;
+// colado=true → usa o IR de caixa COLADO (versão que alimenta o resfin da máquina fiscal, sem realimentar);
+// colado=false (default) → IR de caixa VIVO (colado + Δ), usado por Balanço/DFC/geração. Quebra a
+// circularidade caixa↔imposto: a máquina fiscal chama a versão colada; o resto usa a viva.
+function caixaBalancoEngine(colado){
+  if(colado){ if(_cbCacheColado) return _cbCacheColado; } else if(_cbCache) return _cbCache;
   const n=DB.meses.length, cut=DB.cutoffIdx, B=DB.balanco||{}, C=(B.const||{}), num=x=>typeof x==="number"?x:0;
   const g=k=>B[k]||[], CDI=DB.idx.cdi||[], G383=C.G383||0, de=dividaEngine();
   // capital de giro (níveis = driver × prazo/30). Drivers vivos: RecLiq (composição), deduções.
@@ -2374,7 +2377,18 @@ function caixaBalancoEngine(){
     cg364[k]=(cr[k]+est[k]+num(d353[k])+num(d354[k])+num(d362[k])) - (forn[k]+trab[k]+trib[k]+num(d363[k])); }
   const dWC=new Array(n); for(let k=0;k<n;k++) dWC[k]=-(cg364[k]-(k>0?cg364[k-1]:0));
   // waterfall de caixa (recursivo) + DFM385 + PL
-  const ebitda=ebitdaSerie(), irccsll=g("dfm195"), r368=g("dfm368"), r374=g("dfm374"), fci=g("dfm208"),
+  // IR de caixa: colado (baseline) na versão colada; colado + Δ vivo na versão viva (default). O Δ vem da
+  // máquina fiscal, que usa o resfin da versão COLADA → sem circularidade.
+  const irColado=g("dfm195"), irDelta=colado?null:cashIRDelta();
+  const irccsll= colado ? irColado : irColado.map((v,k)=>num(v)+num(irDelta[k]));
+  const llDelta=colado?null:netIncDelta();   // Δ do lucro líquido → PL (fecha a identidade com o Δ do caixa)
+  // IR a pagar vivo: o Δ do IR de caixa (moveu o caixa/ativo) menos o Δ do IR de competência (embutido no
+  // lucro líquido que moveu o PL) é a defasagem que sobra → vira passivo (IR a pagar) e fecha a identidade
+  // exatamente. Fora do IR (ex.: volume), Δcaixa e Δlucro batem por construção e taxPay≈0.
+  const taxPay=new Array(n).fill(0);
+  if(!colado&&_cashIRBaseArr&&_accrualBaseArr){ const accr=_taxPieces().accrual, accrB=_accrualBaseArr;
+    let c=0; for(let k=0;k<n;k++){ if(k>cut) c+= num(irDelta[k]) - (num(accr[k])-num(accrB[k])); taxPay[k]=c; } }
+  const ebitda=ebitdaSerie(), r368=g("dfm368"), r374=g("dfm374"), fci=g("dfm208"),
         fca=g("dfm223"), caixaC=g("dfm130"),
         ll299=g("dfm299"), div281=g("dfm281"), r292=g("dfm292"), r300=g("dfm300"), r319=g("dfm319"), r316=g("dfm316"),
         d302c=g("dfm302"), d321c=g("dfm321"), d294c=g("dfm294");
@@ -2398,7 +2412,8 @@ function caixaBalancoEngine(){
     fcoA[k]=fco; fciA[k]=num(fci[k]); fcfA[k]=fcd;
     if(k<=cut){ caixa[k]=num(caixaC[k]); lucroAcum[k]=num(d302c[k]); capital[k]=num(d321c[k]); resLegal[k]=num(d294c[k]); }
     else{ caixa[k]=cxPrev+fcApos+num(fca[k]);                                            // DFM229
-      lucroAcum[k]=lucroAcum[k-1]+num(ll299[k])-num(div281[k])-num(r292[k])+num(r300[k]);// DFM302
+      const llEff=num(ll299[k])+(llDelta?num(llDelta[k]):0);   // lucro líq. vivo → PL acompanha o caixa
+      lucroAcum[k]=lucroAcum[k-1]+llEff-num(div281[k])-num(r292[k])+num(r300[k]);        // DFM302
       capital[k]=capital[k-1]+num(r319[k])-num(r316[k]);                                 // DFM321
       resLegal[k]=resLegal[k-1]+num(r292[k]); }                                          // DFM294
   }
@@ -2418,17 +2433,18 @@ function caixaBalancoEngine(){
     totAtivo[k]=ativoCirc[k]+ativoNC[k];                                                          // DFM151
     const pc156=forn[k]-num(pc157[k]), pc159=trab[k]+trib[k];
     const dr=(de.debtRatio&&typeof de.debtRatio[k]==="number")?de.debtRatio[k]:1;   // switch de planta: escala a dívida do balanço
-    passCirc[k]=pc156+num(pc157[k])+num(pc158[k])+pc159+num(pc160[k])+num(div12[k])*dr;            // DFM162
+    passCirc[k]=pc156+num(pc157[k])+num(pc158[k])+pc159+num(pc160[k])+num(div12[k])*dr+num(taxPay[k]);  // DFM162 (+IR a pagar vivo)
     passNC[k]=num(pnc165[k])+num(div13[k])*dr;                                                     // DFM167
     totPass[k]=passCirc[k]+passNC[k];                                                             // DFM169
     pl[k]=capital[k]+lucroAcum[k]+resLegal[k];                                                    // DFM176
     ident[k]=pl[k]+totPass[k]-totAtivo[k];                                                        // ≈0
   }
-  return (_cbCache={resfin, dfm385, caixa, cg364, dWC, ativoCirc, ativoNC, totAtivo,
-                    passCirc, passNC, totPass, pl, capital, lucroAcum, resLegal, ident,
-                    cr, est, forn, trab, trib,                       // componentes p/ a abertura do balanço
-                    fco:fcoA, fci:fciA, fcf:fcfA, ajuste:ajusteA, caixaIni, varCaixa, div26,
-                    r368:g("dfm368"), r374:g("dfm374"), irccsll:g("dfm195")});   // DFC
+  const res={resfin, dfm385, caixa, cg364, dWC, ativoCirc, ativoNC, totAtivo,
+             passCirc, passNC, totPass, pl, capital, lucroAcum, resLegal, ident,
+             cr, est, forn, trab, trib,                       // componentes p/ a abertura do balanço
+             fco:fcoA, fci:fciA, fcf:fcfA, ajuste:ajusteA, caixaIni, varCaixa, div26,
+             r368:g("dfm368"), r374:g("dfm374"), irccsll};   // DFC (irccsll = colado, ou colado+Δ na versão viva)
+  return colado ? (_cbCacheColado=res) : (_cbCache=res);
 }
 // DCF consolidado (grade ANUAL): VPL = Σ geração/fator; fator=(1+F20)^t ancorado no último mês
 // realizado (F22); TIR = IRR(geração não-descontada). Geração e anos extraídos do DFA/DCF.
@@ -2467,9 +2483,9 @@ function fatorDescMensal(){
 }
 function vplMensal(gen){ const n=DB.meses.length, cut=DB.cutoffIdx, f=fatorDescMensal(), num=x=>typeof x==="number"?x:0;
   let v=0; for(let k=cut+1;k<n;k++) v+=num(gen[k])*f[k]; return v; }
-function genConsRaw(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n), dIR=cashIRDelta();
-  // + Δ do IR de CAIXA vivo: a geração usa o IR colado (em fco) mais a reação viva às premissas/alíquotas.
-  for(let k=0;k<n;k++) g[k]=num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k])+num(dIR[k]); return g; }
+function genConsRaw(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n);
+  // caixaBalancoEngine (versão viva) já traz o IR de caixa vivo no fco → a geração reage às alíquotas.
+  for(let k=0;k<n;k++) g[k]=num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k]); return g; }
 // Plantas desligadas por PADRÃO do modelo (flag=0, ex.: Terminal PE). O switch do usuário são as
 // plantas desligadas ALÉM dessas.
 function _modelOffSet(){ const fl=(DB.dcfProj||{}).flags||{}, s={}; for(let id=1;id<=6;id++){ if(fl[CAP_PLANTA[id]]===0) s[id]=true; } return s; }
@@ -2555,7 +2571,7 @@ function genConsMensal(){
     // caixa ≈ accrual (defasagem 1 mês + diferido), então escalamos o IR caixa pela RAZÃO da accrual viva
     // (agora/base) mês a mês — captura o benefício fiscal cruzado das plantas restantes. Valida vs o modelo
     // recalculado (COM): AR+SAL off ⇒ ~−117M (alvo −116,9M).
-    const impNow=impostosSerie(), cash=caixaBalancoEngine().irccsll; g=new Array(n);
+    const impNow=impostosSerie(), cash=caixaBalancoEngine(true).irccsll; g=new Array(n);   // IR COLADO (a razão escala o baseline)
     for(let k=0;k<n;k++){ let rem=0; for(const nm of extra) rem+=num(base.preTax[nm][k]);
       const iD=num(base.impDef[k]), iN=num(impNow[k]);
       const taxReact = (Math.abs(iD)>1) ? num(cash[k])*(iN/iD - 1) : 0;   // Δ do IR caixa via razão da accrual
@@ -2776,7 +2792,9 @@ function setRegiao(r){ state.aba="resumo"; state.regiao=r; render(); }
 // Resultado Financeiro VIVO: realizado da DRE (≤corte) + projeção do módulo caixa/dívida
 // (−juros da dívida + Div26 comissões/seguros + DFM385 rendimento do caixa). Ver caixaBalancoEngine.
 function resultadoFinanceiroSerie(){
-  const cut=DB.cutoffIdx, d=DB.dre.resultado_financeiro||[], eng=caixaBalancoEngine().resfin, n=DB.meses.length, out=new Array(n);
+  // usa a versão COLADA do caixa (resfin com IR colado) — evita a circularidade caixa→resfin→imposto→IR→caixa
+  // (a máquina fiscal consome este resfin; a versão viva do caixa usaria o IR que depende desta máquina).
+  const cut=DB.cutoffIdx, d=DB.dre.resultado_financeiro||[], eng=caixaBalancoEngine(true).resfin, n=DB.meses.length, out=new Array(n);
   for(let k=0;k<n;k++) out[k]= k<=cut ? ((typeof d[k]==="number")?d[k]:null) : eng[k];
   return out;
 }
@@ -2824,10 +2842,18 @@ function cashIRLive(){
 }
 // IR de caixa EFETIVO do DCF: colado (baseline 1:1) + Δ da derivação viva (agora − baseline congelado no
 // boot). No default o Δ é 0 (preserva o colado, validações 1:1). Ao mudar alíquota/premissa, reage.
-let _cashIRBaseArr=null;
+let _cashIRBaseArr=null, _netIncBaseArr=null, _accrualBaseArr=null;
 function cashIRDelta(){
   const n=DB.meses.length, live=cashIRLive(), base=_cashIRBaseArr, num=x=>typeof x==="number"?x:0, out=new Array(n).fill(0);
   if(!base) return out;                                   // antes do boot: sem delta
+  for(let k=0;k<n;k++) out[k]=num(live[k])-num(base[k]);
+  return out;
+}
+// Δ do lucro líquido (competência) vs baseline → move o PL do balanço junto com o caixa (fecha a identidade).
+function netIncDelta(){
+  const n=DB.meses.length, base=_netIncBaseArr, num=x=>typeof x==="number"?x:0, out=new Array(n).fill(0);
+  if(!base) return out;
+  const live=lucroLiquidoSerie();
   for(let k=0;k<n;k++) out[k]=num(live[k])-num(base[k]);
   return out;
 }
@@ -3421,7 +3447,7 @@ function snapshotPrem(){
 }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
-  _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
+  _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _cbCacheColado=null; _perProjCache=null;
   _dcfBaseCache=null;   // referências do cenário-base do DCF (re-capturadas por dcfSwitchBase)
   _minCashCache=null;   // motor da dívida rolling de caixa mínimo
 }
@@ -3998,6 +4024,8 @@ function boot(){
   { const fl=(DB.dcfProj||{}).flags||{}; for(let id=1;id<=6;id++){ const nm=CAP_PLANTA[id]; if(fl[nm]===0) state.plantOff[id]=true; } }
   snapshotPrem();                                              // snapshot dos defaults p/ reset de premissas
   _cashIRBaseArr=cashIRLive();                                 // baseline congelado do IR de caixa vivo (default) → Δ=0 no default
+  _netIncBaseArr=lucroLiquidoSerie().slice();                  // baseline do lucro líquido → PL do balanço reage ao IR (identidade fecha)
+  _accrualBaseArr=impostosSerie().slice();                     // baseline do IR de competência → IR a pagar (defasagem caixa×competência)
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   const hs=$("#hsubR"); if(hs) hs.textContent = "Realizado até "+(cut?fmtMesY(cut.ym):"—");
   buildSidebar(); render();
