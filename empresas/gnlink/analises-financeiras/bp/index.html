@@ -2616,24 +2616,27 @@ function _taxMachine(pre, seed, k0){
     close=S-u+a; const b=Math.max(pre[k]-u,0); usage[k]=u; tax[k]=b*(E30+E31)+Math.max(b-E33,0)*E32; }
   return {tax, usage};
 }
-// Impostos (IR/CSLL) AO VIVO: 2 entidades (A=planta RN; B=demais+holding+deprec+resfin), NOL própria,
+// Peças da máquina fiscal: 2 entidades (A=planta RN; B=demais+holding+deprec+resfin), NOL própria,
 // + diferido DFM142. Semente do estoque de prejuízo em dez/26 (k47); máquina roda de jan/27 (k48).
-function impostosSerie(){
+// Retorna taxTotal (=Impostos!81 de competência), d142 (saldo do ativo fiscal diferido, DFM142) e
+// accrual (=DFM116 = imposto de competência COM diferido = −taxTotal + Δd142).
+function _taxPieces(){
   const n=DB.meses.length, K0=48, DBb=DB.dreBelow||{}, entA=new Set(DBb.entityA||[3]),
         H23=holdingSgaSerie(), dep=depreciacaoSerie(), rf=resultadoFinanceiroSerie(),
-        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=dividaEngine().imp37;   // imp37 VIVO (juros+IOF+seguros RN, do módulo de dívida); imp36 (deprec RN) segue extraído
-  // RO da entidade A = Σ plantas da entidade A; B = RO total − A
+        roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=dividaEngine().imp37;   // imp37 VIVO
   let roA=new Array(n).fill(0); for(const p of entA){ const s=roPlantaSerie(p); for(let k=0;k<n;k++) roA[k]+=s[k]; }
   const preA=new Array(n), preB=new Array(n);
   for(let k=0;k<n;k++){ const a=(typeof im36[k]==="number"?im36[k]:0)+(typeof im37[k]==="number"?im37[k]:0);
     preA[k]= roA[k] + a;
     preB[k]= (H23[k]||0) + (roT[k]-roA[k]) + (dep[k]||0) + (rf[k]||0) - a; }
   const A=_taxMachine(preA, DBb.seedA||0, K0), B=_taxMachine(preB, DBb.seedB||0, K0);
-  const out=new Array(n).fill(null); let d142=DBb.seedD||0;
-  for(let k=K0;k<n;k++){ const prev=d142; d142=Math.max(prev-B.usage[k],0);
-    out[k]= -(A.tax[k]+B.tax[k]) + (d142-prev); }
-  return out;   // NEGATIVO (despesa); k43-47 e realizado ficam null (imposto ~0 no ramp de 2026)
+  const taxTotal=new Array(n).fill(0), d142arr=new Array(n).fill(0), accr=new Array(n).fill(null);
+  let d142=DBb.seedD||0;
+  for(let k=0;k<n;k++){ if(k<K0){ d142arr[k]=d142; continue; } const prev=d142; d142=Math.max(prev-B.usage[k],0);
+    taxTotal[k]=A.tax[k]+B.tax[k]; d142arr[k]=d142; accr[k]= -taxTotal[k] + (d142-prev); }
+  return {taxTotal, d142:d142arr, accrual:accr, K0};
 }
+function impostosSerie(){ return _taxPieces().accrual; }   // DFM116 (competência, c/ diferido); NEG (despesa)
 // Lucro Líquido: realizado da DRE (≤corte); projeção = EBT + Impostos (identidade DFM118).
 function lucroLiquidoSerie(){
   const cut=DB.cutoffIdx, ll=DB.dre.lucro_liquido||[], ebt=ebtSerie(), im=impostosSerie(), n=DB.meses.length, out=new Array(n);
