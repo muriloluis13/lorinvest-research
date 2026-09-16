@@ -3329,6 +3329,11 @@ function renderDashboard(){
   h+=kpi("Dívida Líquida", "R$ "+fmt(_netDebt/1e6,0)+" mi", "Dívida Bruta ("+fmt(_ev.grossDebt/1e6,0)+") − Caixa ("+fmt(_ev.cash/1e6,0)+") · base "+cutM,null,MECH.vpl);
   h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "FCF ao acionista descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (Ke, consolidado)",null,MECH.vpl);
   h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
+  const _xv=exitValuation();
+  if(_xv.ok){
+    h+=kpi("Implied EV/EBITDA "+(_xv.exitYear||''), fmt(_xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída "+fmtMesY(_xv.exitYm)+")");
+    h+=kpi("Equity Value — saída", "R$ "+fmt(_xv.equityExit/1e6,0)+" mi", "EV "+fmt(_xv.evExit/1e6,0)+" mi ("+fmt(_xv.mult,1)+"× EBITDA, saída "+fmtMesY(_xv.exitYm)+") − Dív. Líq.");
+  }
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+='</div>';
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
