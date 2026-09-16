@@ -2160,6 +2160,30 @@ function renderHolding(){
     .concat([{lbl:"Total SG&A holding", serie:tot, bold:true, d:1}]);
   h+='<h3 class="msub">Componentes (R$ MM)</h3>'+serieTableHTML(rows,"R$ MM");
   h+='<div class="note">Projeção por fórmula (validada 1:1 no EBITDA). Realizado vem da DRE histórica; ago-dez/26 é semente de orçamento (só o total).</div>';
+  // --- estrutura de capital da holding: intangível + dívida (editável) ---
+  const de=dividaEngine(), num=x=>typeof x==="number"?x:0;
+  const holdInst=[]; de.insts.forEach((b,i)=>{ if(((DB.dividaGpr&&DB.dividaGpr[i])||0)===0) holdInst.push(i); });
+  const hSaldo=new Array(n).fill(0), hJuros=new Array(n).fill(0);
+  for(const i of holdInst){ const r=de.R[i]; for(let k=0;k<n;k++){ hSaldo[k]+=num(r.saldoFim[k]); hJuros[k]+=num(r.despJuros[k]); } }
+  const hPeak=Math.max(...hSaldo.map(num)), hJurosTot=hJuros.slice(cut+1).reduce((s,v)=>s+num(v),0);
+  h+='<h3 class="msub">Estrutura de capital da holding</h3>';
+  h+='<div class="mkpis">';
+  h+=kpi("Dívida da holding — pico","R$ "+fmt(hPeak/1e6,0)+" mi","saldo máximo dos instrumentos da holding",null,MECH.vpl);
+  h+=kpi("Juros da holding (projeção)","R$ "+fmt(hJurosTot/1e6,0)+" mi","despesa de juros acumulada (competência)",null,MECH.vpl);
+  h+=kpi("Amortização intangível holding","≈ "+Math.round(((DB.capex&&DB.capex.holdlife)||120)/12)+" anos","vida do pool de intangível",null,MECH.depreciacao);
+  h+='</div>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas de estrutura de capital da holding</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="psub">Vida de amortização do intangível da holding e as taxas dos instrumentos de <b>dívida da holding</b> (as dívidas de planta ficam na aba Dívida). Editar re-projeta o resultado financeiro e o DCF ao vivo.</div>';
+  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
+  h+='<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">Vida do intangível holding (anos)</label>'+numBox("hd_hl", ((DB.capex&&DB.capex.holdlife)||120)/12, 0, 'onchange="setCapexHoldLife(this.value)"')+'</div>';
+  h+='</div></div>';
+  let pt='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Instrumento (holding)</th><th>Tipo</th><th style="text-align:right">Spread (% a.a.)</th><th>Indexador</th></tr></thead><tbody>';
+  for(const i of holdInst){ const b=de.insts[i];
+    pt+=`<tr><td class="l">${b.name||('Instrumento '+(i+1))}${b.override?' <span style="color:var(--muted);font-size:10px">(amort. colada)</span>':''}</td><td>${b.tipo===2?'SAC':'PRICE'}</td>`
+      +`<td style="width:120px">${numBox('hd_s'+i,(b.spread||0)*100,2,'onchange="setDivSpread('+i+',this.value)"')}</td>`
+      +`<td style="width:130px">${_mcSel('hd_i'+i, b.indice, [[1,'IPCA'],[2,'CDI']], "setDivIndex("+i+",this.value)")}</td></tr>`; }
+  pt+='</tbody></table></div>';
+  h+='<div class="psub" style="margin:8px 0 4px">Dívida da holding — spread e indexador por instrumento (editável ao vivo):</div>'+pt;
   return {html:h, draw:()=>drawHoldStack(HC)};
 }
 function drawHoldStack(HC){
@@ -3329,8 +3353,8 @@ function gslider(key,gk,lbl,min,max,step){
       oninput="document.getElementById('${key}_v').textContent=Math.round(this.value*100)+'%'"
       onchange="applyG('${gk}',this.value)" style="accent-color:var(--accent3)"></div>`;
 }
-function applyG(gk,val){ G[gk]=+val; render(); }
-function resetG(){ G={volMult:1,precoMult:1,molMult:1}; render(); }
+function applyG(gk,val){ G[gk]=+val; clearAllCaches(); render(); }   // clearAllCaches: alavanca cascateia no caixa/DCF (não só no EBITDA)
+function resetG(){ G={volMult:1,precoMult:1,molMult:1}; clearAllCaches(); render(); }
 
 /* ============================================================ PREMISSAS ====
    Edição das premissas LITERAIS (em unidade real: R$/MWh, R$/km, MW, km …).
@@ -3599,6 +3623,7 @@ const PREM_OPEX = {
 };
 let DASH={wacc:0.12};
 function onWacc(v){ DASH.wacc=+v; render(); }
+function onKeReal(v){ const x=+v; if(x>0){ DB.dcfConst.ke_real=x; clearAllCaches(); render(); } }   // Ke real → desconto do DCF (move o Equity Value)
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
 function resultadoOperacionalSerie(){
   const rec=receitaComp(0).total, ct=custoTotal(0), n=DB.meses.length, out=new Array(n);
@@ -3630,10 +3655,11 @@ function renderDashboard(){
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+='</div>';
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
-  h+='<div class="cform"><div class="sec">Taxa de desconto'+help(MECH.wacc)+'</div>';
-  h+=`<div class="frow"><label>WACC <b style="color:var(--accent3)" id="wacc_v">${Math.round(DASH.wacc*100)}%</b> a.a.</label>
-      <input type="range" id="wacc" min="0.06" max="0.25" step="0.005" value="${DASH.wacc}"
-        oninput="document.getElementById('wacc_v').textContent=Math.round(this.value*100)+'%'" onchange="onWacc(this.value)" style="accent-color:var(--accent3)"></div>`;
+  h+='<div class="cform"><div class="sec">Taxa de desconto — Ke real (custo de capital próprio)'+help(MECH.vpl)+'</div>';
+  const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
+  h+=`<div class="frow"><label>Ke real <b style="color:var(--accent3)" id="kereal_v">${fmtPct(_keR,1)}</b> a.a. <span class="pu">desconto do DCF (nominal mês a mês, grosseado pelo IPCA) — <b>move o Equity Value</b></span></label>
+      <input type="range" id="kereal" min="0.06" max="0.25" step="0.0025" value="${_keR}"
+        oninput="document.getElementById('kereal_v').textContent=(this.value*100).toFixed(1).replace('.',',')+'%'" onchange="onKeReal(this.value)" style="accent-color:var(--accent3)"></div>`;
   h+='<div class="sec">Premissas globais (what-if) — sobre a projeção (> jul/26)</div>';
   h+=gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01);
   h+=gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005);
