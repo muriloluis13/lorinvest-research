@@ -991,6 +991,17 @@ def extract_balanco(wb):
         "growth": kc(dcfk, 15, 6), "kd_pre": kc(dcfk, 19, 6), "ir": kc(dcfk, 19, 7),
         "ke": kc(dcfk, 20, 6), "wacc": kc(dcfk, 21, 6),
     }
+    # DCF MENSAL (modelo atualizado): Ke real anual (Painel!F43) + toggle Real/Nominal (Painel!C42).
+    # r890: Ke_mensal = ((1+ke_real)^(1/12))·(1+IPCA_mês) − 1  se "Nominal" (grosseia p/ inflação mensal).
+    try:
+        pn = wb["Painel de Controle"]
+        ke_real = pn.cell(43, 6).value            # F43
+        modo = str(pn.cell(42, 3).value or "")    # C42: "1 - Real" / "2 - Nominal"
+        out["dcf_const"]["ke_real"] = float(ke_real) if ke_real is not None else 0.12
+        out["dcf_const"]["ke_real_nominal"] = 0 if modo.strip().startswith("1") else 1
+    except Exception:
+        out["dcf_const"]["ke_real"] = 0.12
+        out["dcf_const"]["ke_real_nominal"] = 1
     return out
 
 

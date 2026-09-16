@@ -2411,16 +2411,40 @@ function dcfConsGenLive(){
   for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4); by[y]=(by[y]||0)+num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k]); }
   return by;
 }
+// ---- DCF MENSAL (modelo atualizado) — desconto MENSAL, só sobre fluxos FUTUROS (Orçado). Espelha o bloco
+// "DCF Mensal" da aba Demonstrativo Financeiro Mensal (linhas 890-909):
+//   • r890 Custo de capital nominal mensal = ((1+Ke_real)^(1/12))·(1+IPCA_mês) − 1  (Ke_real=Painel!F43;
+//     toggle "Nominal" → grosseia pela inflação mensal, Macro linha 8 = IPCA a.m.).
+//   • r891 Fator de desconto = 1/∏_{i=corte+1}^{k}(1+r_i) para k>corte (mês>data-base); 1 no corte.
+//   • VPL = Σ_{k>corte} geração_k · fator_k  (apenas fluxos futuros, mensal).
+function keMensalSerie(){
+  const C=DB.dcfConst||{}, keReal=(C.ke_real!=null?C.ke_real:0.12), nom=(C.ke_real_nominal==null?1:C.ke_real_nominal);
+  const ipca=(DB.idx&&DB.idx.ipca_m)||[], n=DB.meses.length, base=Math.pow(1+keReal,1/12), out=new Array(n);
+  for(let k=0;k<n;k++){ const ip=nom?(typeof ipca[k]==="number"?ipca[k]:0):0; out[k]=base*(1+ip)-1; }
+  return out;
+}
+function fatorDescMensal(){
+  const n=DB.meses.length, cut=DB.cutoffIdx, r=keMensalSerie(), f=new Array(n).fill(0);
+  let prod=1; for(let k=cut+1;k<n;k++){ prod*=(1+r[k]); f[k]=1/prod; } if(cut>=0&&cut<n) f[cut]=1;
+  return f;
+}
+function vplMensal(gen){ const n=DB.meses.length, cut=DB.cutoffIdx, f=fatorDescMensal(), num=x=>typeof x==="number"?x:0;
+  let v=0; for(let k=cut+1;k<n;k++) v+=num(gen[k])*f[k]; return v; }
+function genConsMensal(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n);
+  for(let k=0;k<n;k++) g[k]=num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k]); return g; }
 function dcfConsolidado(){
-  const B=DB.balanco||{}, C=B.const||{}, F20=C.F20||0, F22=C.F22||0;
+  const B=DB.balanco||{}, C=B.const||{}, F20=C.F20||0, F22=C.F22||0, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
   const anos=(B.dcf_anos||[]).map(x=>x==null?null:Math.round(x)), gy=dcfConsGenLive();
-  const gen=anos.map(y=> y==null?0:(gy[y]||0));   // geração anual VIVA alinhada ao eixo de anos do DCF
+  const gen=anos.map(y=> y==null?0:(gy[y]||0));   // geração anual VIVA (só p/ exibição/TIR)
   const d=new Date(Date.UTC(1899,11,30)+Math.round(F22)*86400000), YF22=d.getUTCFullYear(), MF22=d.getUTCMonth()+1;
-  const fac=y=> y==null?null : (y<YF22?1 : (y===YF22?Math.pow(1+F20,(12-MF22)/12) : Math.pow(1+F20,(12-MF22)/12+(y-YF22))));
-  const fcd=anos.map((y,j)=>{ const f=fac(y); return (f&&y!=null)? gen[j]/f : 0; });
-  let vpl=0; for(let j=4;j<20;j++){ if(anos[j]!=null) vpl+=fcd[j]; }   // mesmo intervalo do modelo (a partir da projeção)
+  // VPL: MENSAL e só sobre fluxos futuros (novo modelo)
+  const fM=fatorDescMensal(), genM=genConsMensal(), vpl=vplMensal(genM);
+  // FC descontado por ano (buckets do desconto mensal — reconcilia com o VPL) + fator de fim de ano (informativo)
+  const fcdBy={}, facYE={};
+  for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4); fcdBy[y]=(fcdBy[y]||0)+num(genM[k])*fM[k]; facYE[y]=fM[k]; }
+  // TIR: mantida ANUAL e desde o início (inalterada)
   const flows=[]; for(let j=0;j<16;j++){ if(anos[j]!=null) flows.push(gen[j]); }
-  return {vpl, tir:_irr(flows), gen, anos, fcd, fac, Ke:F20, anchorY:YF22, anchorM:MF22, j0:4, j1:20};
+  return {vpl, tir:_irr(flows), gen, anos, fcdBy, facYE, Ke:F20, keReal:(DB.dcfConst&&DB.dcfConst.ke_real)||0.12, anchorY:YF22, anchorM:MF22};
 }
 // Enterprise Value = Equity Value (@Ke) + Dívida Bruta − Caixa, com dívida/caixa do ÚLTIMO mês realizado.
 // Dívida bruta = empréstimos CP (Balanço div12) + LP (div13); Caixa EoP = saldo de caixa (motor).
@@ -2503,12 +2527,12 @@ function perProjAnnual(name){
     o.ro+=p.ro[k]; o.wc+=p.wc[k]; o.imp+=p.imp[k]; o.inv+=p.inv[k]; o.fc+=p.fc[k]; o.ger+=p.ger[k]; }
   return Object.keys(by).map(y=>+y).sort((a,b)=>a-b).map(y=>by[y]);
 }
-// VPL/TIR por projeto: fator=(1+Ke)^((12-m0)/12 + max(0,y-Y0)); FC_desc=GER/fator; VPL=Σ; TIR=IRR(GER anual)
+// VPL/TIR por projeto: VPL agora MENSAL e só sobre fluxos futuros (Σ_{k>corte} GER_k·fator_k), como o
+// consolidado. TIR mantida ANUAL e desde o início (inalterada — IRR da geração anual da planta).
 function perProjDCF(name){
-  const C=(DB.balanco&&DB.balanco.const)||{}, ke=C.F20||0, F22=C.F22||0;
-  const d=new Date(Date.UTC(1899,11,30)+Math.round(F22)*86400000), Y0=d.getUTCFullYear(), m0=d.getUTCMonth()+1;
-  const fac=y=> y<Y0?1 : Math.pow(1+ke,(12-m0)/12 + Math.max(0,y-Y0));
-  const ann=perProjAnnual(name); let vpl=0; for(const a of ann) vpl+=a.ger/fac(a.year);
+  const pe=perProjEngine()[name];
+  const vpl=vplMensal(pe.ger);                       // desconto mensal sobre a geração da planta (só Orçado)
+  const ann=perProjAnnual(name);
   const flows=ann.map(a=>a.ger), hasPos=flows.some(v=>v>1e-6), hasNeg=flows.some(v=>v<-1e-6);
   let tir= (hasPos&&hasNeg) ? _irr(flows) : null;   // sem troca de sinal → TIR indefinida (n.a., como no modelo)
   if(tir!=null && (tir<=-0.90 || tir>1e5)) tir=null; // raiz espúria (ex.: SAL) → n.a., como o Excel
@@ -2523,7 +2547,7 @@ function perProjSummaryHTML(){
     const nm=(DB.regioes.find(r=>r.id===pid)||{}).nome||name;
     h+=`<tr onclick="setRegiao(${pid})" style="cursor:pointer"><td class="l">${nm}${pe.flag?'':' <span style="color:var(--muted);font-size:10px">(inativo)</span>'}</td><td>${fmt(dcf.vpl/1e6,1)}</td><td>${dcf.tir!=null?fmt(dcf.tir*100,1)+'%':'n.a.'}</td><td>${fmt(gtot/1e6,1)}</td></tr>`;
   }
-  h+='</tbody></table></div><div class="note">Clique num projeto para abrir a DRE e o fluxo de caixa completos (sub-aba da planta). VPL @Ke = geração descontada ao custo de capital próprio; TIR da geração de caixa anual. PE inativo neste cenário; Argentina/SAL sem troca de sinal na TIR.</div>';
+  h+='</tbody></table></div><div class="note">Clique num projeto para abrir a DRE e o fluxo de caixa completos (sub-aba da planta). <b>VPL @Ke</b> = geração da planta descontada <b>mês a mês</b> (Ke mensal), somando só os fluxos futuros (a partir de ago/26). <b>TIR</b> mantida anual e desde o início. PE inativo neste cenário; Argentina/SAL sem troca de sinal na TIR.</div>';
   return h;
 }
 function setRegiao(r){ state.aba="resumo"; state.regiao=r; render(); }
@@ -2668,7 +2692,7 @@ function renderDCF(){
   const kdPos=(C.kd_pre||0)*(1-(C.ir||0)), ke=C.ke||dcf.Ke||0;
   let h=`<div class="pglead"><b>DCF — Fluxo de Caixa Descontado</b>. A geração de caixa consolidada (viva, reage às premissas e ao switch de plantas) é descontada ao <b>custo de capital próprio (Ke)</b> → <b>Equity Value</b>; a ponte pela dívida líquida leva ao <b>Enterprise Value</b>. Espelha a aba <b>DCF</b> do modelo.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
-  h+=kpi("Equity Value @Ke", "R$ "+fmt(dcf.vpl/1e6,0)+" mi", "FCF ao acionista descontado @ "+fmtPct(ke,1),null,MECH.vpl);
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(dcf.vpl/1e6,0)+" mi", "fluxos futuros descontados ao mês · Ke real "+fmtPct(dcf.keReal,1),null,MECH.vpl);
   h+=kpi("Enterprise Value", "R$ "+fmt(ev.ev/1e6,0)+" mi", "Equity + Dívida Líquida",null,MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
   const xv=exitValuation();
@@ -2677,14 +2701,15 @@ function renderDCF(){
   // custo de capital
   const cc=(lbl,val)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:2px">${lbl}</label><div style="font-size:16px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums">${val}</div></div>`;
   h+='<div class="premcard"><div class="ph"><b>Custo de capital &amp; premissas do desconto</b></div><div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';
-  h+=cc("Custo de capital próprio (Ke)", fmtPct(ke,1));
+  h+=cc("Ke real (a.a.)", fmtPct(dcf.keReal,1));
+  h+=cc("Ke mensal (nominal, 1º mês proj.)", fmtPct(keMensalSerie()[cut+1]||0,2));
   h+=cc("Custo da dívida (pré-imposto)", fmtPct(C.kd_pre||0,1));
   h+=cc("Custo da dívida (pós-imposto)", fmtPct(kdPos,1));
   h+=cc("IR sobre a dívida", fmtPct(C.ir||0,0));
   h+=cc("WACC (média)", fmtPct(C.wacc||0,1));
   h+=cc("Crescimento na perpetuidade", fmtPct(C.growth||0,0));
   h+=cc("Âncora (último mês realizado)", fmtMesY(DB.meses[cut].ym));
-  h+='</div><div class="psub" style="margin-top:6px">O modelo desconta a geração de caixa ao <b>Ke</b> (fluxo ao acionista, já líquido de dívida). WACC e custo da dívida pós-imposto são informativos. <b>Sem valor terminal</b> — crescimento na perpetuidade = 0 e horizonte explícito até dez/38.</div></div>';
+  h+='</div><div class="psub" style="margin-top:6px">O modelo desconta a geração de caixa (fluxo ao acionista, já líquido de dívida) <b>mês a mês</b> ao <b>Ke mensal</b> = ((1+Ke real)^(1/12))·(1+IPCA do mês) − 1, e soma <b>apenas os fluxos futuros</b> (a partir de ago/26). WACC e custo da dívida pós-imposto são informativos. <b>Sem valor terminal</b> — horizonte explícito até dez/38.</div></div>';
   // tabela anual
   const yr=anos.filter(y=>y!=null);
   const rowB=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`;
@@ -2696,12 +2721,12 @@ function renderDCF(){
   t+=rowB("(−) CAPEX",A.CAPEX);
   t+=rowB("(−) Fluxo de Caixa Financeiro",A.FCFin);
   t+=rowB("Geração de Caixa",gy,true);
-  { let r='<tr><td class="l">Fator de desconto</td>'; for(const y of yr){ const f=dcf.fac(y); r+=`<td class="${y>=dcf.anchorY?'o':''}">${f!=null?fmt(f,2):'—'}</td>`; } t+=r+'</tr>'; }
-  { let r='<tr class="tot"><td class="l">FC Descontado @Ke</td>'; anos.forEach((y,j)=>{ if(y==null) return; const inSum=j>=dcf.j0&&j<dcf.j1;
-      r+=`<td class="${y>=dcf.anchorY?'o':''}" title="${inSum?'entra no VPL':'fora do VPL (pré-projeção)'}" style="${inSum?'':'color:var(--muted)'}">${fmt((dcf.fcd[j]||0)/1e6,0)}</td>`; }); t+=r+'</tr>'; }
+  { let r='<tr><td class="l">Fator de desconto (fim do ano)</td>'; for(const y of yr){ const f=dcf.facYE[y]; r+=`<td class="${y>=dcf.anchorY?'o':''}">${(f!=null)?fmt(f,2):'—'}</td>`; } t+=r+'</tr>'; }
+  { let r='<tr class="tot"><td class="l">FC Descontado @Ke</td>'; for(const y of yr){ const has=dcf.fcdBy[y]!=null;
+      r+=`<td class="${y>=dcf.anchorY?'o':''}" title="${has?'entra no VPL':'sem fluxo futuro (não soma)'}" style="${has?'':'color:var(--muted)'}">${has?fmt(dcf.fcdBy[y]/1e6,0):'—'}</td>`; } t+=r+'</tr>'; }
   t+='</tbody></table></div>';
   h+='<h3 class="msub">Fluxo de caixa consolidado &amp; desconto (R$ MM/ano)</h3>'+t;
-  h+='<div class="note">Geração = EBITDA ± capital de giro − impostos − capex − fluxo financeiro (reage às premissas e ao switch de plantas). FC Descontado = geração ÷ (1+Ke)^t, t ancorado no último mês realizado. Cinza claro = anos anteriores à projeção (não somam no VPL). <b>Σ FC Descontado (projeção) = Equity Value</b>.</div>';
+  h+='<div class="note"><b>Desconto mensal sobre fluxos futuros</b> (novo modelo): o fator de cada mês k é 1/∏(1+Ke_mensal) da data-base (jul/26) até k, e o VPL soma só os meses de projeção (Orçado). O <b>Ke mensal</b> parte do Ke real ('+fmtPct(dcf.keReal,1)+' a.a.) convertido a mês e grosseado pela inflação mensal (nominal). A tabela agrega o desconto mensal em anos; o "—" marca anos sem fluxo futuro. <b>Σ FC Descontado = Equity Value</b>.</div>';
   // ponte
   h+='<h3 class="msub">Ponte Equity Value → Enterprise Value</h3>';
   const br=(lbl,val,bold)=>`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td><td style="text-align:right">${val}</td></tr>`;
@@ -3327,7 +3352,7 @@ function renderDashboard(){
   const _dcf=dcfConsolidado(), _ev=evParts(), cutM=fmtMesY(DB.meses[_ev.cut].ym), _netDebt=_ev.grossDebt-_ev.cash;
   h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" mi", "Equity Value + Dívida Líquida · base "+cutM,null,MECH.vpl);
   h+=kpi("Dívida Líquida", "R$ "+fmt(_netDebt/1e6,0)+" mi", "Dívida Bruta ("+fmt(_ev.grossDebt/1e6,0)+") − Caixa ("+fmt(_ev.cash/1e6,0)+") · base "+cutM,null,MECH.vpl);
-  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "FCF ao acionista descontado @ "+Math.round((DB.balanco.const.F20||0)*100)+"% a.a. (Ke, consolidado)",null,MECH.vpl);
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "fluxos futuros descontados ao mês · Ke real "+fmtPct((DB.dcfConst&&DB.dcfConst.ke_real)||0.12,1),null,MECH.vpl);
   h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   const _xv=exitValuation();
   if(_xv.ok){
@@ -3523,9 +3548,10 @@ async function validateSga(){
   return {ok, mism};
 }
 function validatePerProj(){
-  // VPL/TIR por projeto vs golden do modelo (perproj_ref.py). Tolerância: VPL 0,1% ou R$50k; TIR 0,2pp.
-  const G={ PR:[-79409762.96,0.9121], BA:[5175926.53,0.1474], RN:[28511240.69,0.1922],
-            PE:[0,null], AR:[162601032.78,2.5374], SAL:[152511383.25,null] };
+  // VPL/TIR por projeto vs golden do modelo. VPL agora MENSAL/só futuro (DFM r902-907 do modelo
+  // atualizado); TIR mantida ANUAL/desde o início. Tolerância: VPL 0,1% ou R$50k; TIR 0,2pp.
+  const G={ PR:[-42657632.47,0.9121], BA:[68386187.84,0.1474], RN:[73420415.55,0.1922],
+            PE:[0,null], AR:[166744209.11,2.5374], SAL:[157499370.37,null] };
   let mism=0, worst="";
   for(const [name] of PERPROJ){ const g=G[name]; if(!g) continue; const d=perProjDCF(name);
     const dv=Math.abs(d.vpl-g[0]), rel=dv/Math.max(Math.abs(g[0]),1e6);
