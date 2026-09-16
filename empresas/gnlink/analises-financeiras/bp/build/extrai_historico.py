@@ -983,6 +983,11 @@ def extract_balanco(wb):
         "F349": kc(dfmk, 349, 6), "F357": kc(dfmk, 357, 6), "F359": kc(dfmk, 359, 6),
         "H355": kc(dfmk, 355, 8), "G383": kc(dfmk, 383, 7),
         "F20": kc(dcfk, 20, 6), "F22": kdate(dcfk, 22, 6),
+        # rates fiscais/PL das mecânicas vivas: reserva legal (G289=5%), teto (G286=20%·capital) e
+        # ICMS a recuperar no mês (DFM360 = RecLiq × 1,85%; literal na fórmula, sem célula própria).
+        "resLegalRate": kc(dfmk, 289, 7) or 0.05,
+        "resLegalCap": kc(dfmk, 286, 7) or 0.20,
+        "icmsRec": 0.0185,
     }
     out["dcf_anos"] = [kc(dcfk, 5, COL_FIRST + j) for j in range(20)]
     out["dfa_gen_cons"] = [kc(dfak, 227, COL_FIRST + j) for j in range(20)]

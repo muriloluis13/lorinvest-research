@@ -2262,7 +2262,9 @@ function capexEngine(){
   for(let k=0;k<n;k++) net[k]=gross[k]+dfm146[k]+num(dfm147[k]);
   // saída de caixa de CapEx (DFC, DFM208) = −(investimento do mês), gated pelo switch e escalado → VIVO
   const fciInvest=new Array(n); for(let k=0;k<n;k++) fciInvest[k]= -(cap694[k]+cap699[k]);
-  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net, fciInvest});
+  // depreciação por planta (gated pelo switch) — p0 0-based; RN=2. Alimenta imp36 (Impostos!36 = Capex 1386+1391).
+  const depP=[]; for(let p=0;p<6;p++){ const on=plantOn(p+1); depP.push(dep1[p].map((v,k)=> on ? v+dep2[p][k] : 0)); }
+  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net, fciInvest, depP});
 }
 function depreciacaoSerie(){                             // DFM103: realizado da DRE + projeção viva
   const cut=DB.cutoffIdx, d=DB.dre.depreciacao||[], eng=capexEngine().dfm103, n=DB.meses.length, out=new Array(n);
@@ -2370,6 +2372,9 @@ function caixaBalancoEngine(baseMode){
   if(!baseMode && _cbCache) return _cbCache;
   const n=DB.meses.length, cut=DB.cutoffIdx, B=DB.balanco||{}, C=(B.const||{}), num=x=>typeof x==="number"?x:0;
   const g=k=>B[k]||[], CDI=DB.idx.cdi||[], G383=C.G383||0, de=dividaEngine();
+  // constantes fiscais/PL sourcadas do const store (não magic-number): ICMS a recuperar (DFM360=RecLiq×1,85%),
+  // reserva legal (G289=5%) e teto da reserva (G286=20% do capital social). Fallback = valor do modelo/estatutário.
+  const icmsRec=(C.icmsRec!=null?C.icmsRec:0.0185), resLegalRate=(C.resLegalRate!=null?C.resLegalRate:0.05), resLegalCap=(C.resLegalCap!=null?C.resLegalCap:0.20);
   // capital de giro (níveis = driver × prazo/30). Drivers VIVOS: RecLiq (composição), deduções e CMV.
   // CMV (DFM344, custo dos produtos vendidos = custo total − SG&A planta) agora VIVO — reage aos custos
   // (molécula, gás, liquefação…); no default = colado (validado, erro 0). Realizado usa o actual da planilha.
@@ -2382,7 +2387,10 @@ function caixaBalancoEngine(baseMode){
   { const cmp=(_sgaCache&&_sgaCache.comp)||{}; const salP=new Array(n).fill(0);
     for(const p of [1,2,3,4,5,6]){ const s=cmp[p]&&cmp[p].salarios; if(s) for(let k=0;k<n;k++) salP[k]+=num(s[k]); }
     for(let k=0;k<n;k++) pess[k]= k<49 ? num(pessColado[k]) : (-salP[k]+num(_hpess[k])); }
-  const F349=C.F349||0, F357=C.F357||0, F359=C.F359||0, H355=C.H355||0, dias351=g("dfm352"), dias355=g("dfm356"), r360=g("dfm360");
+  const F349=C.F349||0, F357=C.F357||0, F359=C.F359||0, H355=C.H355||0, dias351=g("dfm352"), dias355=g("dfm356"), r360c=g("dfm360");
+  // r360 "Recuperação ICMS no mês (override)" VIVO = 1,85% da Receita Líquida a partir de jan/27 (DFM360=BF343*1,85%);
+  // banda orçada 2026 (k<48) fica colada (override pasted no modelo). Reage a volume/preço via recliq.
+  const r360=new Array(n); for(let k=0;k<n;k++) r360[k]= k<48 ? num(r360c[k]) : icmsRec*num(recliq[k]);
   const cr=[],est=[],forn=[],trab=[],trib=[];
   for(let k=0;k<n;k++){ cr[k]=num(recliq[k])*F349/30; est[k]=-num(cmv[k])*num(dias351[k])/30;
     forn[k]=-num(cmv[k])*num(dias355[k])/30+H355; trab[k]=-num(pess[k])*F357/30; trib[k]=-(num(deduc[k])*F359+num(r360[k])); }
@@ -2394,7 +2402,10 @@ function caixaBalancoEngine(baseMode){
   // mês entra no loop (preB usa resfin, que veio do caixa do mês anterior).
   const DBb=DB.dreBelow||{}, E30=+DBb.E30||0, E31=+DBb.E31||0, E32=+DBb.E32||0, E33=+DBb.E33||0, E34=+DBb.E34||0;
   const K0=48, entA=new Set(DBb.entityA||[3]);
-  const H23=holdingSgaSerie(), dep=depreciacaoSerie(), roT=resultadoOperacionalSerie(), im36=DBb.imp36||[], im37=de.imp37, ebitda=ebitdaSerie();
+  const H23=holdingSgaSerie(), dep=depreciacaoSerie(), roT=resultadoOperacionalSerie(), im37=de.imp37, ebitda=ebitdaSerie();
+  // imp36 (Impostos!36 = Capex!1386+1391) VIVO na projeção = depreciação da planta RN (p0=2, entidade A); realizado colado.
+  const im36c=DBb.imp36||[], _depRN=capexEngine().depP, im36=new Array(n);
+  for(let k=0;k<n;k++) im36[k]= k<=cut ? num(im36c[k]) : num((_depRN[2]||[])[k]);
   let roA=new Array(n).fill(0); for(const p of entA){ const s=roPlantaSerie(p); for(let k=0;k<n;k++) roA[k]+=s[k]; }
   const preA=new Array(n), preBex=new Array(n);
   for(let k=0;k<n;k++){ const a=num(im36[k])+num(im37[k]); preA[k]=roA[k]+a; preBex[k]=num(H23[k])+(roT[k]-roA[k])+num(dep[k])-a; }
@@ -2442,9 +2453,11 @@ function caixaBalancoEngine(baseMode){
     fcoA[k]=fco; fciA[k]=num(fci[k]); fcfA[k]=fcd;
     if(k<=cut){ caixa[k]=num(caixaC[k]); lucroAcum[k]=num(d302c[k]); capital[k]=num(d321c[k]); resLegal[k]=num(d294c[k]); }
     else{ caixa[k]=cxPrev+fcApos+num(fca[k]);                                            // DFM229
-      lucroAcum[k]=lucroAcum[k-1]+llEff-num(div281[k])-num(r292[k])+num(r300[k]);        // DFM302 (PL acompanha o lucro líq. vivo)
       capital[k]=capital[k-1]+num(r319[k])-num(r316[k]);                                 // DFM321
-      resLegal[k]=resLegal[k-1]+num(r292[k]); }                                          // DFM294
+      // Reserva legal VIVA (jan/27+): adição = MAX(0, MIN(5%·LucroLíq, 20%·Capital − saldo)); realizado/2026 colado.
+      const add292= k>=K0 ? Math.max(0, Math.min(resLegalRate*num(liveNIArr[k]), resLegalCap*capital[k]-resLegal[k-1])) : num(r292[k]);
+      lucroAcum[k]=lucroAcum[k-1]+llEff-num(div281[k])-add292+num(r300[k]);              // DFM302 (PL acompanha o lucro líq. vivo)
+      resLegal[k]=resLegal[k-1]+add292; }                                                // DFM294
   }
   // DFC: caixa início/variação e "ajustes" (fca DFM223 + resíduo que fecha a variação real no realizado)
   const caixaIni=new Array(n), varCaixa=new Array(n), ajusteA=new Array(n);
@@ -2634,7 +2647,7 @@ function fiscalWcPanelHTML(){
   const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
   const grid='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(175px,1fr))">';
   let h='<div class="premcard"><div class="ph"><b>Premissas fiscais &amp; de capital de giro</b><span class="badge-ok">editável · ao vivo</span></div>';
-  h+='<div class="psub">Editar re-projeta ao vivo. <b>Capital de giro</b> move o caixa e o DCF diretamente. <b>Impostos sobre a receita</b> (ICMS/PIS/COFINS) ajustam a receita bruta/deduções e os tributos a pagar — a receita <i>líquida</i> é a primitiva do modelo (vem dos contratos), então o EBITDA não muda. <b>IR/CSLL</b> ajustam o lucro líquido (competência); o IR de <i>caixa</i> do DCF é colado, então o Equity Value reage pouco à alíquota.</div>';
+  h+='<div class="psub">Editar re-projeta ao vivo. <b>Capital de giro</b> move o caixa e o DCF diretamente. <b>Impostos sobre a receita</b> (ICMS/PIS/COFINS) ajustam a receita bruta/deduções e os tributos a pagar — a receita <i>líquida</i> é a primitiva do modelo (vem dos contratos), então o EBITDA não muda. <b>IR/CSLL</b> ajustam o lucro líquido e o IR de <i>caixa</i> (agora vivo, defasado 1 mês pela máquina de prejuízo fiscal), movendo o Equity Value pelo DCF.</div>';
   h+='<div class="premgrp">Impostos sobre a receita</div>'+grid;
   h+=rowE("PIS (%)", numBox("fx_pis",num((D.pis_cofins||[])[0])*100,2,'onchange="setDreBArr(\'pis_cofins\',0,this.value,true)"'));
   h+=rowE("COFINS (%)", numBox("fx_cofins",num((D.pis_cofins||[])[1])*100,2,'onchange="setDreBArr(\'pis_cofins\',1,this.value,true)"'));
@@ -2649,7 +2662,11 @@ function fiscalWcPanelHTML(){
   h+=rowE("Prazo de recebíveis (dias)", numBox("wc_rec",num(B.F349),1,'onchange="setBalConst(\'F349\',this.value)"'));
   h+=rowE("Prazo de pessoal (dias)", numBox("wc_pes",num(B.F357),1,'onchange="setBalConst(\'F357\',this.value)"'));
   h+=rowE("Fator de tributos a pagar", numBox("wc_trib",num(B.F359),2,'onchange="setBalConst(\'F359\',this.value)"'));
+  h+=rowE("ICMS a recuperar (% da receita líq.)", numBox("wc_icmsrec",(B.icmsRec!=null?B.icmsRec:0.0185)*100,2,'onchange="setBalConst(\'icmsRec\',this.value,true)"'));
   h+=rowE("Rendimento do caixa (coef. × CDI)", numBox("wc_rend",num(B.G383),4,'onchange="setBalConst(\'G383\',this.value)"'));
+  h+='</div><div class="premgrp">Reserva legal (patrimônio líquido)</div>'+grid;
+  h+=rowE("Alíquota da reserva legal (% do lucro)", numBox("pl_rlrate",(B.resLegalRate!=null?B.resLegalRate:0.05)*100,1,'onchange="setBalConst(\'resLegalRate\',this.value,true)"'));
+  h+=rowE("Teto da reserva (% do capital social)", numBox("pl_rlcap",(B.resLegalCap!=null?B.resLegalCap:0.20)*100,0,'onchange="setBalConst(\'resLegalCap\',this.value,true)"'));
   h+='</div></div>';
   return h;
 }
