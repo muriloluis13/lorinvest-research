@@ -2368,8 +2368,12 @@ function caixaBalancoEngine(baseMode){
   if(!baseMode && _cbCache) return _cbCache;
   const n=DB.meses.length, cut=DB.cutoffIdx, B=DB.balanco||{}, C=(B.const||{}), num=x=>typeof x==="number"?x:0;
   const g=k=>B[k]||[], CDI=DB.idx.cdi||[], G383=C.G383||0, de=dividaEngine();
-  // capital de giro (níveis = driver × prazo/30). Drivers vivos: RecLiq (composição), deduções.
-  const recliq=receitaLiquidaSerie(), deduc=deducoesSerie(), cmv=g("dfm344"), pess=g("dfm345");
+  // capital de giro (níveis = driver × prazo/30). Drivers VIVOS: RecLiq (composição), deduções e CMV.
+  // CMV (DFM344, custo dos produtos vendidos = custo total − SG&A planta) agora VIVO — reage aos custos
+  // (molécula, gás, liquefação…); no default = colado (validado, erro 0). Realizado usa o actual da planilha.
+  const recliq=receitaLiquidaSerie(), deduc=deducoesSerie(), pess=g("dfm345");
+  const cmvColado=g("dfm344"), _custoT=custoTotal(0), _sgaPl=aggByRegiao(sgaSerie(),0), cmv=new Array(n);
+  for(let k=0;k<n;k++) cmv[k]= k<=cut ? num(cmvColado[k]) : -(num(_custoT[k])-num(_sgaPl[k]));
   const F349=C.F349||0, F357=C.F357||0, F359=C.F359||0, H355=C.H355||0, dias351=g("dfm352"), dias355=g("dfm356"), r360=g("dfm360");
   const cr=[],est=[],forn=[],trab=[],trib=[];
   for(let k=0;k<n;k++){ cr[k]=num(recliq[k])*F349/30; est[k]=-num(cmv[k])*num(dias351[k])/30;
