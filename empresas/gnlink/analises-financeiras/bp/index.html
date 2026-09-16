@@ -873,7 +873,7 @@ function drawMacro(){
   });
 }
 function baseLineOpts(){
-  return {responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+  return {responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
     plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
       tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y,2)}}},
     scales:{x:{ticks:{maxTicksLimit:12,color:"#5C6B7A"},grid:{display:false}},
@@ -1765,7 +1765,7 @@ function drawRev(rc){
   const ds=REVCOMP.map(([k,lbl,col])=>({label:lbl, data:rc[k].map(v=>v/1e6),
     backgroundColor:col, borderColor:col, borderWidth:0, stack:"r"}));
   charts.rev=new Chart($("#cRev"),{type:"bar", data:{labels,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
@@ -1814,7 +1814,7 @@ function drawVol(canvasId){
       formatter:v=>fmt(v,0)}});
   charts[big?"volBig":"vol"] = new Chart($("#"+canvasId),{ data:{labels, datasets:ds},
     plugins: (window.ChartDataLabels?[window.ChartDataLabels]:[]),   // datalabels só neste gráfico (rótulos de capacidade/total)
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       layout:{padding:{top:18}},
       scales:{
         x:{stacked:true,ticks:{maxTicksLimit:B.length>28?18:B.length,color:"#5C6B7A",font:{size:9}},grid:{display:false}},
@@ -2156,7 +2156,7 @@ function drawHoldStack(HC){
   const labels=DB.meses.map(m=>fmtMes(m.ym));
   const ds=HOLD_SUB.map((s,i)=>({label:HOLD_LABEL[s], data:HC.comp[s].map(v=>v/1e6), backgroundColor:SUBPAL[i%SUBPAL.length], borderWidth:0, stack:"h"}));
   charts.hold=new Chart($("#cHold"),{type:"bar",data:{labels,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
@@ -2784,7 +2784,7 @@ function drawResumo(ks,rl,eb,mg){
       {type:"bar",label:"EBITDA (R$ MM)",data:ks.map(y=>vv(eb,y)),backgroundColor:PAL[2],yAxisID:"y",order:2},
       {type:"line",label:"Margem EBITDA (%)",data:marg,borderColor:PAL[1],borderWidth:2,pointRadius:2,spanGaps:true,yAxisID:"y1",order:1,tension:.2},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": "+(c.dataset.yAxisID==="y1"?(c.parsed.y==null?"—":fmt(c.parsed.y,1)+"%"):"R$ "+fmt(c.parsed.y,0)+" MM")}}},
       scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},
@@ -2798,7 +2798,7 @@ function drawContrib(ks,yr,yc,yk){
       {label:"Custo total (R$ MM)",data:ks.map(y=>-(yc[y]?.v||0)/1e6),backgroundColor:PAL[1]+"cc"},
       {type:"line",label:"Contribuição (R$ MM)",data:ks.map(y=>(yk[y]?.v||0)/1e6),borderColor:PAL[2],borderWidth:2,pointRadius:2,tension:.2},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false}},
       scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},y:{title:{display:true,text:"R$ MM/ano"},grid:{color:"#EEF1F5"}}}}});
 }
@@ -2929,7 +2929,7 @@ function drawOpexStack(s){
   const labels=DB.meses.map(m=>fmtMes(m.ym));
   const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:s[c].map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
   charts.opex=new Chart($("#cOpex"),{type:"bar",data:{labels,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
@@ -2941,7 +2941,7 @@ function drawOcatStack(comps, M){
   const ds=keys.map((k,i)=>({label:(M.sub.find(s=>s.k===k)||{nome:k}).nome, data:comps[k].map(v=>v/1e6),
     backgroundColor:SUBPAL[i%SUBPAL.length],borderWidth:0,stack:"o"}));
   charts.ocat=new Chart($("#cOcat"),{type:"bar",data:{labels,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
