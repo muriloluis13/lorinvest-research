@@ -1,0 +1,259 @@
+{
+  "_meta": {
+    "empresa": "Eneva S.A.",
+    "documento": "Formulário de Referência 2026 (versão 4), data-base 31/12/2025",
+    "observacao": "Extração complementar ao pd_gov.json (governança/estrutura de capital/riscos já capturados). Todos os valores em R$ salvo indicação; ponto como separador decimal. As DFs de referência são as consolidadas auditadas dos exercícios de 2025 e 2024.",
+    "data_extracao": "2026-09-16"
+  },
+
+  "endividamento": {
+    "resumo_31_12_2025": {
+      "divida_bruta": {"valor_milhoes_BRL": 19790.5, "definicao": "Endividamento Bruto = empréstimos + financiamentos + debêntures + instrumentos financeiros derivativos (ativo e passivo, circulante e não circulante)", "fonte": "2.5"},
+      "divida_liquida": {"valor_milhoes_BRL": 17139.6, "definicao": "Endividamento Bruto menos caixa e equivalentes (R$ 2.148,3 mi) e títulos e valores mobiliários (R$ 502,6 mi)", "fonte": "2.5"},
+      "emprestimos_financiamentos_debentures_saldo_contabil": {"valor_milhoes_BRL": 19605.6, "variacao_vs_2024_milhoes_BRL": 2219.2, "saldo_2024_milhoes_BRL": 17386.4, "fonte": "2.1(a)"},
+      "caixa_e_equivalentes_mais_TVM": {"valor_milhoes_BRL": 2650.9, "saldo_2024_milhoes_BRL": 3866.3, "fonte": "2.1(c)"},
+      "divida_liquida_ebitda_x": {"valor": 2.63, "obs": "Calculado 17139.6/6506.8; consistente com o covenant apurado de 2,61x na Eneva S.A. consolidado", "fonte": "derivado de 2.5 e tabela de covenants"},
+      "estrutura_capital": {"capital_terceiros_pct": 62.3, "capital_proprio_pct": 37.7, "capital_terceiros_milhoes_BRL": 35434.1, "patrimonio_liquido_milhoes_BRL": 21406.3, "capital_total_milhoes_BRL": 56840.5, "obs": "2024: 60,8% terceiros / 39,2% próprio", "fonte": "2.1(b)"}
+    },
+    "composicao_por_instrumento_31_12_2025": {
+      "emprestimos_financiamentos_total_bruto_milhoes_BRL": 6225.663,
+      "emprestimos_financiamentos_liquido_deposito_vinculado_milhoes_BRL": 5816.615,
+      "debentures_total_milhoes_BRL": 13789.181,
+      "obs": "Soma ~R$ 20,0 bi bruto; líquido de depósitos vinculados (R$ 409,0 mi) ~R$ 19,6 bi. Debêntures são o principal instrumento (~70% da dívida). Predomínio de dívida incentivada e Project Finance com bancos de fomento (BNB, BASA, FDA/BB, FDNE/BB, FINEP).",
+      "fonte": "2.1(f)(i)"
+    },
+    "indexadores_31_12_2025": {
+      "pos_fixado_pct": 99.9,
+      "IPCA_milhoes_BRL": 16714.8,
+      "CDI_DI_milhoes_BRL": 3169.5,
+      "EURIBOR_milhoes_BRL": 117.0,
+      "TJLP_milhoes_BRL": 12.3,
+      "obs": "Fortíssima concentração em IPCA (~85% do total). A linha em EURIBOR (LBBW) foi pré-paga em janeiro/2026. Depósitos vinculados: R$ 409,0 mi.",
+      "fonte": "4.3"
+    },
+    "custo_e_taxas": {
+      "obs": "Taxas efetivas (custo all-in) das debêntures da Eneva S.A. variam de ~8,2% a ~16,3% a.a.; spreads sobre IPCA de +4,13% a +7,49% e sobre CDI de +0,90% a +2,50%. Financiamentos de fomento têm taxas efetivas menores (ex.: Azulão BASA IPCA+1,50% ef. 6,81%; Parnaíba II FDNE IPCA+3,38% ef. 6,59%; SPE Futura BNB IPCA+2,04% ef. 6,46%). Ratings corporativos: Fitch AAA(bra) (elevado de AA+ em out/2024, reafirmado out/2025) e S&P brAAA (reafirmado jul/2025).",
+      "debentures_recentes_exemplos": [
+        {"emissao": "9ª emissão 3ª série", "indexador": "IPCA + 7,15%", "taxa_efetiva_pct": 12.60, "vencimento": "15/09/2042"},
+        {"emissao": "11ª emissão 3ª série", "indexador": "IPCA + 7,49%", "taxa_efetiva_pct": 12.62, "vencimento": "15/09/2030", "principal_milhoes_BRL": 1986.911},
+        {"emissao": "13ª emissão série única", "indexador": "CDI + 0,90%", "taxa_efetiva_pct": 13.79, "vencimento": "15/12/2029", "principal_milhoes_BRL": 838.072}
+      ],
+      "fonte": "2.1(f)(i)"
+    },
+    "cronograma_amortizacao_saldo_contabil": {
+      "unidade": "R$ milhões (saldo contábil, não circulante, líquido de depósitos vinculados; posição 31/12/2025)",
+      "2027": 864.0,
+      "2028": 1303.1,
+      "2029": 3833.0,
+      "2030": 2663.2,
+      "2031_ate_ultimo_vencimento": 10062.8,
+      "depositos_vinculados": -409.0,
+      "total_nao_circulante": 18367.1,
+      "circulante_12m": {"total_milhoes_BRL": 1243.1, "ate_3m": 598.1, "3_a_6m": 57.4, "6_a_9m": 37.3, "9_a_12m": 550.3},
+      "obs": "Parede de refinanciamento concentrada em 2029 (R$ 3,8 bi) e no bloco 2031+ (R$ 10,1 bi). Curto prazo (12m) relativamente baixo (~R$ 1,24 bi) vs. dívida total.",
+      "fonte": "2.1(c)"
+    },
+    "fluxos_contratuais_nao_descontados": {
+      "unidade": "R$ milhões (principal + juros futuros até o vencimento; tabela de risco de liquidez)",
+      "emprestimos_financiamentos": {"ate_6m": 247.775, "6_a_12m": 271.077, "1_a_2a": 565.020, "2_a_5a": 2885.270, "mais_5a": 7304.537, "total": 11273.679},
+      "debentures": {"ate_6m": 587.056, "6_a_12m": 985.141, "1_a_2a": 1894.360, "2_a_5a": 10383.663, "mais_5a": 12249.898, "total": 26100.118},
+      "arrendamento": {"total": 6505.081, "mais_5a": 4316.026},
+      "antecipacao_recebiveis_futuros": {"total": 4600.360},
+      "fornecedores": {"total": 2543.856},
+      "obs": "IMPORTANTE p/ conciliação: os R$ 26,1 bi (debêntures) e R$ 11,3 bi (empréstimos) citados em fatores de risco são fluxos contratuais NÃO descontados (principal + juros futuros), não o saldo contábil (~R$ 13,8 bi e ~R$ 6,2 bi).",
+      "fonte": "4.3 (tabela de risco de liquidez)"
+    },
+    "covenants": [
+      {"sociedade": "Eneva S.A. (consolidado)", "covenant": "Dívida Líquida / EBITDA <= 4,5x", "periodicidade": "Trimestral", "posicao_31_12_2025": "2,61x", "status": "Atendido", "fonte": "2.1(f)(iv)"},
+      {"sociedade": "Parnaíba II", "covenant": "Dívida Líquida / EBITDA <= 3,0x", "periodicidade": "Anual", "posicao_31_12_2025": "0,37x", "status": "Atendido", "fonte": "2.1(f)(iv)"},
+      {"sociedade": "Azulão Geração", "covenant": "ICSD (cobertura do serviço da dívida) >= 1,3x", "periodicidade": "Anual", "posicao_31_12_2025": "2,60x", "status": "Atendido", "fonte": "2.1(f)(iv)"},
+      {"sociedade": "Azulão I", "covenant": "ICSD >= 1,3x", "periodicidade": "Anual", "posicao_31_12_2025": "Cálculo a partir de 15/02/2028", "status": "N/A ainda", "fonte": "2.1(f)(iv)"},
+      {"sociedade": "Sparta 300", "covenant": "ICSD >= 1,2x", "periodicidade": "Anual", "posicao_31_12_2025": "Cálculo a partir de 01/01/2029", "status": "N/A ainda", "fonte": "2.1(f)(iv)"},
+      {"sociedade": "Eneva S.A.", "covenant": "Capacidade de pagamento <= 70% (amortização total / capacidade de pagamento ajustada) ou incremento de 25% do fundo de liquidez", "periodicidade": "Anual", "posicao_31_12_2025": "Cálculo a partir de 15/02/2031", "status": "N/A ainda", "fonte": "2.1(f)(iv)"}
+    ],
+    "covenant_waiver_historico": "Em 2022, a Companhia e controladas obtiveram perdão temporário (waiver) dos credores para flexibilizar o indicador de alavancagem; desde então (inclusive 31/12/2025) não há descumprimento de covenant. Sinaliza que o balanço já esteve pressionado contra os limites. Fonte: 2.1(f)(iv).",
+    "cross_default": "Todos os contratos de financiamento, títulos de crédito e emissões de valores mobiliários, bem como contratos de garantia, possuem cláusula de vencimento antecipado cruzado (cross-default / cross-acceleration) por inadimplemento de obrigações pecuniárias com instituições financeiras. Fonte: 2.1(f).",
+    "garantias_e_restricoes": {
+      "senioridade": "Em concurso de credores prevalecem créditos trabalhistas, previdenciários e fiscais sobre garantia real, flutuante e quirografária. As debêntures da Eneva S.A. são quirografárias.",
+      "restricoes_dividendos": "Vários financiamentos de projeto vedam distribuição de dividendos acima do mínimo obrigatório, salvo anuência prévia ou atingimento de covenants. Restrições adicionais a novas dívidas nas subsidiárias, alienação de ativos fora do curso normal, mudança de controle e reestruturações societárias fora do grupo.",
+      "garantia_controladora": "A Eneva, como garantidora, obriga-se a manter o controle acionário das controladas e a não reduzir capital/amortizar ações sem anuência dos credores.",
+      "fonte": "2.1(f)(iii) e 2.1(f)(iv)"
+    },
+    "eventos_pos_data_base": [
+      {"evento": "14ª emissão de debêntures", "data": "22/01/2026", "montante_milhoes_BRL": 2400.0, "destinacao": "Reembolso de gastos com o Projeto UTE Azulão II (Azulão 950)", "fonte": "2.6"},
+      {"evento": "Pré-pagamento do financiamento indexado à EURIBOR (LBBW)", "data": "janeiro/2026", "fonte": "4.3"},
+      {"evento": "Pré-pagamento parcial (financiamento com redução de juros p/ IPCA+3,7617%)", "data": "29/01/2026", "obs": "Amortizou ~15% de contrato, reduzindo juros", "fonte": "2.1(f)(i)"}
+    ]
+  },
+
+  "contingencias": {
+    "valor_provisionado_processos_relevantes": {"valor_BRL": 0, "fonte": "4.5", "obs": "Não havia valor provisionado em 31/12/2025 para NENHUM dos processos relevantes descritos no item 4.4. Critério de relevância do FR: montante > R$ 50 milhões ou matéria com impacto relevante em operações/imagem."},
+    "processos_trabalhistas": {"obs": "A Companhia informa que NÃO era parte em processos trabalhistas relevantes conforme o critério do FR.", "fonte": "4.4(iv)"},
+    "processos_relevantes_perda_possivel_ou_remota": [
+      {"tipo": "Tributário", "processo": "PA 10380.730259/2018-42 (CARF)", "parte": "Itaqui Geração", "valor_BRL": 195261180.72, "chance_perda": "Possível", "impacto": "Glosa de prejuízo fiscal/base negativa CSLL; SEM desembolso/impacto de caixa (não há crédito tributário constituído). CARF negou provimento ao recurso voluntário em fev/2026.", "fonte": "4.4(i)"},
+      {"tipo": "Tributário", "processo": "Embargos à Execução Fiscal 0805143-07.2020.4.05.8100", "parte": "CGTF", "valor_BRL": 113753437.72, "chance_perda": "Possível", "impacto": "PIS/COFINS regime cumulativo sobre receitas.", "fonte": "4.4(i)"},
+      {"tipo": "Tributário/Regulatório (ICMS)", "processo": "Ação Popular 0659761-24.2020.8.04.0001", "parte": "Eneva (AM)", "valor_BRL": 10000.00, "chance_perda": "Possível", "impacto": "Questiona regime diferenciado de ICMS do gás da bacia do Amazonas (Decreto AM 40.704/2019). Valor de causa nominal, mas impacto operacional relevante caso a Eneva tenha de reavaliar incidência de ICMS no AM.", "fonte": "4.4(i)"},
+      {"tipo": "Cível", "processo": "Ação Ordinária 1078755-27.2014.8.26.0100 (Montcalm/MABE)", "valor_BRL": 186583277.70, "chance_perda": "Possível", "fonte": "4.4"},
+      {"tipo": "Cível", "processo": "Ação Ordinária 1109675-81.2014.8.26.0100 (Montcalm)", "valor_BRL": 83205434.82, "chance_perda": "Possível", "fonte": "4.4"},
+      {"tipo": "Cível", "processo": "Ação Ordinária 0077327-79.2016.4.01.3400", "valor_BRL": 49453507.93, "chance_perda": "Possível", "fonte": "4.4"},
+      {"tipo": "Cível/Arbitral", "processo": "Arbitragem Canabrava (0805670-25.2017.4.05.8500 relacionado)", "valor_BRL": 137047698.41, "chance_perda": "Remota", "obs": "Multa contratual reduzida de R$ 30,25 mi para R$ 7,0 mi em revisão.", "fonte": "4.4"},
+      {"tipo": "Cível", "processo": "Ação Popular ICMS/valor de causa 0805670 (atribuído)", "valor_BRL": 227385804.55, "chance_perda": "ver processo", "fonte": "4.4"},
+      {"tipo": "Cível (perdas e danos)", "processo": "0600018-49.2022.8.04.7200 (terreno/matrícula)", "valor_BRL": 121237554.13, "chance_perda": "Possível", "fonte": "4.4"},
+      {"tipo": "Ambiental", "processo": "PA 0013183/2015 / Auto de Infração 970 (SEMA)", "valor_BRL": 22903526.73, "chance_perda": "Possível", "obs": "Multa histórica R$ 10 mi por qualidade do ar; atualizada.", "fonte": "4.4(iii)"},
+      {"tipo": "Ambiental", "processo": "ACP 2008.37.00.003564-6 (licenciamento UTE Porto do Itaqui)", "valor_BRL": null, "chance_perda": "Provável", "obs": "Único processo relevante classificado como perda PROVÁVEL; discute validade do licenciamento (já transferido ao IBAMA, licenças emitidas). Sem valor monetário direto atribuído.", "fonte": "4.4(iii)"},
+      {"tipo": "Regulatório", "processo": "PA ANEEL 48500.001375/2023-87 (CELSE / ressarcimento indisponibilidade Porto de Sergipe I)", "valor_BRL": 119000000.00, "chance_perda": "Possível", "fonte": "4.4(v)"},
+      {"tipo": "Regulatório", "processo": "PA ANEEL 48513.015375/2024-00 (Eneva / encargos rescisórios UTE Fortaleza)", "valor_BRL": 98398399.38, "chance_perda": "Possível", "fonte": "4.4(v)"}
+    ],
+    "processos_sigilosos": [
+      {"processo": "Ação anulatória de sentença arbitral (Eneva Comercializadora)", "valor_BRL": 72809505.93, "obs": "Valor já desembolsado pela Companhia em virtude de liminar; risco de perda definitiva do valor.", "fonte": "4.6"},
+      {"processo": "Arbitragem (construção termelétrico, sentença parcial 14/01/2026)", "pleitos_requerente_BRL": 577920835.72, "reconvencao_companhia_BRL": 416486528.18, "obs": "Direitos e deveres permaneceram com os ex-acionistas da subsidiária; risco mitigado.", "fonte": "4.6"}
+    ],
+    "outras_contingencias": [
+      {"processo": "59 ações indenizatórias (1.428 autores) vs. CELSE (pesca/manguezais, Porto de Sergipe I)", "valor_BRL": 280679103.74, "chance_perda": "Possível", "obs": "Danos materiais e morais a pescadores; maioria em estágio inicial.", "fonte": "4.7"}
+    ],
+    "leitura_investimento": "Somatório de contingências relevantes de perda 'possível' supera R$ 1,3 bilhão (cível/tributário/regulatório/ambiental), com PROVISÃO ZERO. Nenhuma classificada como perda provável com valor monetário material (a única 'provável' é o licenciamento do Itaqui, sem valor direto). Vários itens têm mitigantes fortes (glosa fiscal sem caixa, risco retido por ex-acionistas, indenizações já recebidas via acordo)."
+  },
+
+  "partes_relacionadas": {
+    "politica": "Política de Transações com Partes Relacionadas aprovada em 15/06/2012, atualizada em 31/01/2019, aderente ao Código Brasileiro de Governança Corporativa. Operações em bases comutativas/de mercado; administrador em conflito deve declarar-se impedido e ausentar-se. Fonte: 11.1 e 11.2 itens n/o.",
+    "transacoes_relevantes": [
+      {"contraparte": "Banco BTG Pactual S.A. (acionista relevante ~25,6%)", "objeto": "Venda de energia elétrica no ACL", "data": "02/05/2024", "montante_BRL": 1349401914.00, "saldo_BRL": 37475000, "posicao_emissor": "Credor", "duracao": "até 31/12/2036", "precificacao": "PLD (sem prêmio/desconto)", "fonte": "11.2"},
+      {"contraparte": "Banco BTG Pactual S.A.", "objeto": "Compra de energia elétrica no ACL", "data": "30/04/2024", "montante_BRL": 1242489139.00, "saldo_BRL": 19818000, "posicao_emissor": "Devedor", "duracao": "até 31/12/2036", "precificacao": "PLD", "fonte": "11.2"},
+      {"contraparte": "BTG Pactual Commodities (BR) S.A. (controlada do BTG)", "objeto": "Compra de gás natural", "data": "27/04/2025", "montante_BRL": 5135400.00, "posicao_emissor": "Devedor", "correcao": "IGP-M", "fonte": "11.2"},
+      {"contraparte": "BTG Pactual Commodities (BR) S.A.", "objeto": "Venda de gás natural", "data": "05/07/2025", "montante_BRL": 3667500.00, "posicao_emissor": "Credor", "correcao": "IGP-M", "fonte": "11.2"}
+    ],
+    "leitura_investimento": "Todas as transações com partes relacionadas reportadas são com o BTG Pactual (acionista relevante) e suas controladas. Os dois maiores são contratos de compra e venda de energia de longo prazo (até 2036) de notional elevado (~R$ 1,35 bi venda e ~R$ 1,24 bi compra), precificados a PLD. Vinculação comercial relevante com a órbita do maior acionista — ponto de atenção de governança, ainda que declarados a mercado."
+  },
+
+  "indicadores_financeiros": {
+    "receita_liquida_2025_milhoes_BRL": 18416.1,
+    "receita_liquida_2024_milhoes_BRL": 11387.5,
+    "crescimento_receita_pct": 61.7,
+    "custo_operacional_2025_milhoes_BRL": 13011.5,
+    "custo_operacional_2024_milhoes_BRL": 7434.0,
+    "crescimento_custo_pct": 75.0,
+    "ebitda_2025_milhoes_BRL": 6506.8,
+    "margem_ebitda_2025_pct": 35.3,
+    "depreciacao_amortizacao_2025_milhoes_BRL": 2793.6,
+    "resultado_financeiro_liquido_2025_milhoes_BRL": 1281.2,
+    "irpj_csll_2025_milhoes_BRL": 740.4,
+    "lucro_liquido_consolidado_2025_milhoes_BRL": 1691.6,
+    "lucro_liquido_atribuivel_eneva_2025_milhoes_BRL": 1157.6,
+    "indice_liquidez_geral_2025": 0.36,
+    "obs_liquidez": "Liquidez geral = (ativo circulante + ativo não circulante realizável) / (passivo circulante + passivo não circulante) = 0,36 (indica dependência de refinanciamento; típico de infraestrutura intensiva em capital).",
+    "prejuizos_acumulados_31_12_2025_milhoes_BRL": 20.1,
+    "prejuizos_acumulados_31_12_2024_milhoes_BRL": 677.2,
+    "dividendos": {
+      "2025": {"valor_BRL": 0, "motivo": "Resultado positivo, mas após absorção de prejuízos acumulados e destinações legais não houve saldo de lucro líquido distribuível. Sem política formal de dividendos (segue Estatuto/Lei S.A.; mínimo obrigatório 25%).", "destinacao_lucro_2025": {"absorcao_prejuizos_BRL": 677235633.41, "reserva_legal_BRL": 24016950.80, "reserva_incentivos_fiscais_BRL": 456322065.39, "pct_lucro_retido": 100}}
+    },
+    "auditor": "Relatório dos auditores independentes SEM ênfase ou ressalva no exercício de 2025.",
+    "ratings": {"Fitch": "AAA(bra) (elevado de AA+(bra) em out/2024, reafirmado out/2025)", "SP": "brAAA (reafirmado jul/2025)"},
+    "fonte": "2.1, 2.2, 2.3, 2.5, 2.7"
+  },
+
+  "mda": {
+    "liquidez_e_fontes_de_capital": "Modelo de financiamento: dívida incentivada no mercado de capitais local (pode financiar até 100% dos projetos) + bancos de fomento (BNB, BASA, FDA/BB, FDNE/BB, FINEP) em Project Finance + geração de caixa de projetos maduros (receita fixa de CCEAR de até 25 anos + receita variável por despacho). Caixa+TVM R$ 2.650,9 mi em 31/12/2025 (vs R$ 3.866,3 mi em 2024). Fonte: 2.1(b)(c)(d)(e).",
+    "itens_fora_do_balanco": "A Diretoria declara NÃO haver itens off-balance relevantes (carteiras de recebíveis baixadas com risco retido, contratos futuros de compra/venda não evidenciados, construções não terminadas, ou recebimentos futuros de financiamentos). Fonte: 2.8/2.9.",
+    "estimativas_contabeis_criticas": "Não há item dedicado no FR CVM 80; destacam-se por relevância: (i) valor justo de contratos de comercialização de energia por fluxo de caixa descontado com preço projetado de energia (input não observável); ativos R$ 4.026,7 mi (±10% => R$ 5.148,2 / R$ 2.905,2 mi) e passivos R$ (3.026,6) mi; (ii) estimativas de reservas de gás (2P); (iii) impairment de ativos. Fonte: 4.3.",
+    "principais_variacoes_destacadas": "Receita +61,7% puxada por: térmicas do ES (Linhares/Viana/Povoação, 1º ano integral pós-aquisição de out/2024 + antecipação de CRCAP 2021), início de Parnaíba VI (jan/2025) e Parnaíba IV (out/2025), consolidação da comercialização de gás On-Grid (Hub Sergipe), e novo segmento off-grid/SSLNG (contratos com take-or-pay, indexados a Brent e dólar). Custos +75% por combustíveis (maior despacho da Porto de Sergipe I, boil-off/armazenagem/transporte de GNL no FSRU) e 1º ano integral de custos fixos das térmicas do ES. Fonte: 2.2.",
+    "metricas_operacionais_2025": {
+      "despacho_medio_portfolio_termico_pct": 27,
+      "despacho_medio_gas_proprio_pct": 51,
+      "despacho_medio_combustiveis_terceiros_pct": 12,
+      "geracao_termica_bruta_GWh": 12009,
+      "crescimento_geracao_termica_pct": 27,
+      "geracao_solar_bruta_GWh": 1321,
+      "disponibilidade_solar_pct": 98,
+      "producao_gas_upstream_bcm": 1.96,
+      "producao_gas_parnaiba_bcm": 1.73,
+      "producao_gas_amazonas_azulao_bcm": 0.23,
+      "crescimento_producao_gas_pct": 17.5,
+      "fonte": "2.2"
+    },
+    "cinco_alavancas_de_valor": ["Energia para o grid", "Monetização do gás", "Soluções integradas de energia", "Acesso a reservas de gás competitivas", "Disciplina na alocação de capital"],
+    "reforma_tributaria": "CBS+IBS podem alcançar carga combinada de até 28%; Imposto Seletivo com alíquota máxima de 0,25% para carvão mineral e gás natural (exceto quando insumo industrial/matéria-prima). Transição 2026-2033. Fonte: 2.3.",
+    "novas_normas": "IFRS S2 (clima): 1ª divulgação referente a 2026, publicada em 2027; IFRS S1 completo no ano seguinte. IFRS 18 obrigatório a partir de 01/01/2027 (sem impacto de reconhecimento/mensuração, mas muda apresentação e pode afetar cláusulas atreladas a indicadores financeiros). Fonte: 2.3."
+  },
+
+  "capital_humano": {
+    "empregados_total": 2054,
+    "por_lideranca": {"lideranca": 422, "nao_lideranca": 1632},
+    "por_genero": {"feminino": 467, "masculino": 1587},
+    "por_regiao": {"norte": 385, "nordeste": 869, "sudeste": 800},
+    "terceirizados_total": 7344,
+    "terceirizados_detalhe": {"administrativo": 168, "operacional": 7176, "norte_operacional": 5911, "nordeste_operacional": 1265, "sudeste_administrativo": 168},
+    "obs_terceirizados": "Grande concentração de terceirizados operacionais no Norte (5.911), refletindo a mobilização de construção do Projeto Azulão 950 (AM).",
+    "rotatividade_pct": 16.82,
+    "razao_maior_remuneracao_sobre_mediana": 40.92,
+    "maior_remuneracao_individual_BRL": 11148589.05,
+    "mediana_remuneracao_BRL": 272448.55,
+    "sindicatos": "Sem paralisação ou greve nos últimos 3 exercícios nem no corrente.",
+    "remuneracao": "Política atualizada em 20/03/2025: fixa + incentivo de curto prazo (bônus/PLR por metas) + incentivo de longo prazo (planos de ações/opções, item 8.4), com discurso de 'comportamento de dono'.",
+    "fonte": "10.1A, 10.1, 10.3, 10.4"
+  },
+
+  "controladas": {
+    "criterio": "Item 6.4 lista apenas subsidiárias que a Companhia entende relevantes; demais participações constam no organograma (6.5).",
+    "principais_participacoes": [
+      {"sociedade": "Parnaíba Geração e Comercialização de Energia S.A.", "pct": 82.92},
+      {"sociedade": "Parnaíba II Geração de Energia S.A.", "pct": 82.92},
+      {"sociedade": "Eneva Participações III S.A.", "pct": 82.92},
+      {"sociedade": "Itaqui Geração de Energia S.A. (carvão)", "pct": 100},
+      {"sociedade": "Pecém II Geração de Energia S.A. (carvão)", "pct": 100, "obs": "Reclassificada como ativo mantido para venda (26/03/2026), ver eventos societários."},
+      {"sociedade": "Azulão Geração de Energia S.A.", "pct": 99.9},
+      {"sociedade": "Azulão I Geração de Energia S.A.", "pct": 99.91},
+      {"sociedade": "Sparta 300 SPE S.A. (Azulão II/IV)", "pct": 100},
+      {"sociedade": "Gera Maranhão – Geradora de Energia do Maranhão S.A.", "pct": 100},
+      {"sociedade": "Eneva Comercializadora de Energia Ltda.", "pct": 100},
+      {"sociedade": "GNL Brasil Logística S.A.", "pct": 51, "obs": "JV com Virtu GNL (51%/49%) para logística criogênica do SSLNG."},
+      {"sociedade": "Focus Futura Holding Participações S.A.", "pct": 100},
+      {"sociedade": "Focus Futura Geração 1 S.A.", "pct": 100},
+      {"sociedade": "SPE Futura 1/3/4 (solar)", "pct": 10.9, "obs": "SPE Futura 1, 3 e 4 com ~10,9%."},
+      {"sociedade": "SPE Futura 2 (solar)", "pct": 100},
+      {"sociedade": "SPE Futura 5 (solar)", "pct": 10},
+      {"sociedade": "SPE Futura 6 (solar)", "pct": 12.47},
+      {"sociedade": "Parnaíba VII Geração de Energia S.A.", "pct": 100},
+      {"sociedade": "Tauá Geração de Energia Ltda", "pct": 100},
+      {"sociedade": "CEBARRA – Centrais Elétricas Barra dos Coqueiros S.A.", "pct": 100},
+      {"sociedade": "Eneva Participações S.A.", "pct": 100}
+    ],
+    "obs": "Complexo Parnaíba detido a 82,92% (há sócios minoritários relevantes nas principais geradoras de gás/térmica). Ativos solares (Complexo Futura) com participações fracionadas (~10-12%) em várias SPEs. Fonte: 6.4/6.5/6.6.",
+    "fonte": "6.4"
+  },
+
+  "eventos_societarios": [
+    {"evento": "Incorporação das térmicas do ES", "data": "concluída 25/01/2025 (AGE 09/01/2025)", "descricao": "Incorporação de Linhares Brasil Energia Participações, Linhares Geração, Termelétrica Viana e Povoação Energia (todas 100% Eneva); sem aumento de capital nem troca de ações.", "fonte": "1.12"},
+    {"evento": "Aquisições de 2024 que consolidaram no resultado de 2025", "descricao": "Aquisição das UTEs Linhares/Tevisa/Povoação/Viana (out/2024, aumento de capital de R$ 1,67 bi em ações ao BTG via incorporação de Povoação e Tevisa; Oferta Restrita de R$ 3,2 bi a R$14,00/ação em out/2024) e Gera Maranhão (50% em 14/11/2024, 100% em 11/12/2024).", "fonte": "2.1(a), 2.2"},
+    {"evento": "Venda da Pecém II (carvão)", "data": "26/03/2026", "descricao": "SPA para venda de 100% da Pecém II à Diamante Geração de Energia; earnout contingente de até R$ 149,0 mil (nota: unidade em milhares no FR) condicionado à antecipação de CRCAP LRCAP 2026; participação reclassificada para ativos mantidos para venda (saldo R$ 862,3 mi em 31/03/2026). Movimento consistente com a estratégia de descarbonização (saída de carvão).", "fonte": "2.6"},
+    {"evento": "LRCAP 2026 (Leilão de Reserva de Capacidade)", "data": "18/03/2026", "descricao": "Eneva vencedora com venda total de 5,4 GW (ativos novos + recontratação de existentes), contratos CRCAP de 10 a 15 anos, faturamento fixo bruto total de R$ 161,1 BILHÕES a valores de set/2025, além de receita variável por despacho. Também firmou contratos de fornecimento de gás flexível a terceiros vencedores: 4,2 MM m3/dia por 15 anos (a partir de 01/10/2028) e 1,3 MM m3/dia por 10 anos (a partir de 01/08/2031). Evento estruturalmente transformacional para o backlog contratado.", "fonte": "2.6"},
+    {"evento": "Acordo consensual (arbitragens de construção)", "data": "11/02/2026", "descricao": "Recebimento de R$ 293,05 mi de fornecedores de construção/montagem de UTEs em transação terminativa (encerrou 2 arbitragens — CAM-CCBC e CCI).", "fonte": "2.6, 4.6"},
+    {"evento": "Certificação de reservas de gás (Parnaíba)", "data": "05/03/2026", "descricao": "Gaffney, Cline & Associates: reservas 2P de 37,93 Bm³ em 31/12/2025 (vs 34,4 Bm³ em 2024) + 1,56 milhão de barris de condensado; incorporação de 3,5 Bm³ vs 2023; índice de reposição de reservas de 111%.", "fonte": "2.6"},
+    {"evento": "Aumentos de capital 2025-2026", "descricao": "21/07/2025: emissão de 4.381.891 ações ao BTG (bônus de subscrição, earn-out Viana); capital passou a R$ 18.134.264.034,68 / 1.936.973.658 ações. 20/05/2026: +55.859 ações (opções, 5º Plano), capital R$ 18.135.775.177,04 / 1.937.029.517 ações.", "fonte": "1.12"},
+    {"evento": "Comunicado Goldman Sachs", "data": "04/02/2026", "descricao": "Entidades Goldman informaram posição de derivativos com liquidação física equivalente a 98.046.600 ações (5,06%); NÃO caracteriza participação acionária efetiva (não somar ao capital).", "fonte": "6.6"}
+  ],
+
+  "capex": {
+    "resumo_2025": "Investimentos de crescimento e sustaining relevantes ao longo de 2025.",
+    "itens": [
+      {"projeto": "Azulão 950 (E&P + UTEs Azulão I/II/IV, AM)", "valor_2025_milhoes_BRL": 2700.0, "descricao": "Complexo termelétrico ~950 MW modelo R2W; Azulão I (360 MW, ciclo simples, potência a partir de ago/2026 por 15 anos); Azulão II (ciclo combinado 360 MW gás + 230 MW vapor, inflexibilidade 70%, a partir de jul/2027 por 15 anos)."},
+      {"projeto": "Upstream (ex-Azulão 950)", "valor_2025_milhoes_BRL": 706.6, "descricao": "Desenvolvimento de Gavião Belo/Gavião Mateiro, poços na Bacia do Maranhão, sísmica na Bacia do Amazonas, nova sonda de perfuração."},
+      {"projeto": "Holding e Outros", "valor_2025_milhoes_BRL": 1727.1, "descricao": "Aquisição de equipamentos críticos de geração de longo prazo para o pipeline térmico visando o LRCAP 2026."},
+      {"projeto": "Plantas de Liquefação de GNL (Maranhão)", "valor_2025_milhoes_BRL": 340.3, "descricao": "R$ 154,7 mi nos 2 primeiros trens (600.000 m3/dia, 100% operacional desde fev/2025) + R$ 185,6 mi no 3º Trem (mais 300.000 m3/dia, total 900.000 m3/dia, previsto 2S2027)."},
+      {"projeto": "Hub Sergipe (sustaining)", "valor_2025_milhoes_BRL": 165.0},
+      {"projeto": "Sistema Integrado Azulão-Jaguatirica (sustaining)", "valor_2025_milhoes_BRL": 115.6},
+      {"projeto": "Parnaíba VI (92 MW, CCEAR 25 anos desde jan/2025)", "valor_2025_milhoes_BRL": 50.2, "obs": "Em operação comercial desde março/2025 (potência limitada a 87 MW)."}
+    ],
+    "licencas_expansao": "Subsidiárias detêm licenças ambientais para adicionar capacidade no Hub Sergipe (texto do FR cita '3,4 MW', provável erro de digitação para 3,4 GW; 1,1 GW já contratado no LRCAP 2026).",
+    "fonte": "2.10"
+  },
+
+  "_lacunas": {
+    "indicadores_financeiros_historico_multianual": "O FR (CVM 80) traz apenas 2025 vs 2024 no item 2; NÃO há tabela de 'indicadores selecionados' de 3 exercícios nem série histórica de índices (liquidez corrente/seca, endividamento geral) por ano. Para série histórica, usar releases trimestrais/anuais.",
+    "dividendos_historico_por_ano": "O item 2.7 detalha apenas o exercício de 2025 (dividendo zero). Não há tabela plurianual de dividendos/JCP por ação por ano no FR. (pd_gov já registra ausência de distribuição em 2025.)",
+    "duration_e_prazo_medio": "O FR NÃO informa explicitamente duration nem prazo médio ponderado da dívida em anos; há apenas o cronograma por faixa de vencimento e os vencimentos contratuais individuais (2026-2046). Estimar a partir do cronograma.",
+    "custo_medio_ponderado_da_divida": "Não há um número único de custo médio all-in da dívida no FR; há as taxas por instrumento (efetivas de ~6% em fomento a ~16% em algumas debêntures CDI). Calcular ponderado a partir da tabela 2.1(f)(i).",
+    "provisoes_contabeis_totais": "O item 4.5 declara provisão ZERO apenas para os processos RELEVANTES do 4.4; o saldo total de provisões para contingências das DFs (todas as naturezas) está nas notas explicativas das DFs (nota 6.4 citada), não no FR.",
+    "wacc_e_valuation": "FR não traz WACC, custo de capital próprio, nem qualquer valuation — esperado (não é escopo do FR).",
+    "detalhamento_reservas_1P_3P": "O evento subsequente cita apenas reservas 2P (37,93 Bm³) e condensado (1,56 MM bbl); não há abertura 1P/3P nem por campo no FR."
+  }
+}
