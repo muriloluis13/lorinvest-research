@@ -270,6 +270,127 @@ footer b{letter-spacing:.1em;color:var(--accent)}
 .board-conn{z-index:2;display:flex;align-items:center;justify-content:center}
 .board-conn i{display:block;flex:none;border-radius:50%;background:var(--accent)}
 .board-conn u{display:block;flex:1;text-decoration:none;background:var(--accent)}
+
+/* ===== Redesign editorial inspirado nos mockups da Visão Geral e Edge ===== */
+:root{
+  --bg:#F3F7FC;--ink:#071A49;--muted:#55709B;--accent:#173F7A;
+  --accent2:#2E63A7;--line:#DCE6F2;--chip:#EDF3FA;
+  --shadow:0 8px 24px rgba(18,54,102,.075),0 1px 2px rgba(18,54,102,.04)
+}
+body{background:
+  radial-gradient(circle at 78% 6%,rgba(92,151,217,.12),transparent 28rem),
+  linear-gradient(180deg,#F8FBFF 0,#F3F7FC 34rem,#F6F9FD 100%);color:var(--ink)}
+header{background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-color:#DCE7F3;box-shadow:0 3px 18px rgba(18,54,102,.07)}
+header::before{display:none}
+.hwrap{max-width:1680px;min-height:0;padding:11px 22px;gap:13px;flex-wrap:wrap}
+#navToggle{width:38px;height:36px;padding:0;border-color:#D7E4F1;border-radius:9px;color:#234E88;font-size:0;display:grid;place-items:center;box-shadow:0 2px 7px rgba(18,54,102,.04)}
+#navToggle::before{content:'';width:15px;height:12px;background:linear-gradient(to bottom,currentColor 0 2px,transparent 2px 5px,currentColor 5px 7px,transparent 7px 10px,currentColor 10px 12px);border-radius:2px}
+.logo img{height:34px;max-width:none;object-fit:contain}
+.hsep{height:26px;background:#DDE7F1}
+.htitle{font-size:15px;line-height:1.16;letter-spacing:-.2px;color:#071A49}
+.hsub{margin-top:5px;font-size:10.5px;letter-spacing:.15em;color:#6078A0}
+.pxbadge{height:auto;justify-content:initial;background:#F5F8FC;border-color:#DFE8F3;border-radius:10px;padding:6px 12px}
+.pxbadge .pxb-top{color:#071A49}.pxbadge .pxb-tkr{color:#274D85}.pxbadge .pxb-sub{color:#6A7F9F}
+
+.layout{max-width:none;min-height:calc(100vh - var(--hh,72px))}
+#sidebar{width:216px;top:var(--hh,66px);max-height:calc(100vh - var(--hh,66px));padding:8px 8px 26px;background:linear-gradient(180deg,rgba(249,252,255,.94),rgba(241,247,253,.94));border-color:#DCE7F2;display:flex;flex-direction:column}
+#navlist .grp{font-size:9px;letter-spacing:.09em;color:#58729A;padding:13px 10px 5px}
+#navlist .grp i{width:7px;height:7px}
+#navlist button{min-height:0;gap:9px;padding:7px 11px;font-size:12.5px;font-weight:600;color:#42618F;border-left-width:2.5px;border-radius:0 7px 7px 0}
+#navlist .nav-ic{width:17px;height:17px;stroke-width:1.7}
+#navlist button:hover{background:#EAF2FC;color:#113D7D}
+#navlist button.on{background:linear-gradient(90deg,#EDF4FD,#DDEBFB);color:#0D3777;font-weight:700;border-left-color:#E53028}
+main{padding:17px 24px 54px;max-width:1440px;margin:0 auto}
+.panel>.breadcrumb{margin:0 2px 16px;font-size:12px;color:#617CA5;display:flex;align-items:center;gap:9px}
+.breadcrumb i{width:7px;height:7px;border-right:1.5px solid #5475A2;border-top:1.5px solid #5475A2;transform:rotate(45deg)}
+.breadcrumb b{color:#173C72}
+.card{border-color:#DCE6F2;border-radius:13px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-size:14.5px;line-height:1.2;letter-spacing:-.2px;color:#071A49}
+.card .cap{font-size:12.5px;color:#55709B}.card .lead{font-size:14px;line-height:1.55;color:#405E8A}
+.section-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:4px}
+.section-head .title-icon{width:44px;height:44px;display:grid;place-items:center;flex:none;border-radius:10px;background:#F0F5FB;color:#194A8F}
+.section-head .title-icon svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.section-head .head-copy{min-width:0;flex:1}.section-head .cap{margin:5px 0 0}.section-head .tag{font-size:10px;font-weight:600;color:#5A7397;background:#EEF3F9;padding:5px 11px;border-radius:999px;white-space:nowrap}
+
+.overview-hero{min-height:112px;margin-bottom:15px;padding:20px 22px;border:1px solid #DCE6F2;border-radius:13px;background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 52%,rgba(230,240,250,.62) 100%);box-shadow:var(--shadow);display:flex;align-items:center;gap:22px;position:relative;overflow:hidden}
+.overview-hero::before{content:'';position:absolute;right:-45px;bottom:-78px;width:490px;height:165px;border:20px solid rgba(91,128,164,.16);border-left-width:40px;border-radius:48% 0 0 0;transform:skewX(-15deg)}
+.hero-logo{width:128px;height:84px;display:grid;place-items:center;flex:none;border:1px solid #DDE6F0;border-radius:11px;background:#fff;box-shadow:0 5px 16px rgba(25,56,96,.07)}
+.hero-logo img{max-width:104px;max-height:54px;object-fit:contain}
+.hero-copy{position:relative;z-index:1;max-width:760px}.hero-copy h1{font-size:24px;line-height:1.15;letter-spacing:-.6px}.hero-copy p{margin-top:8px;font-size:12.5px;line-height:1.5;color:#46638E}
+.overview-strip{display:grid;grid-template-columns:1.25fr repeat(6,1fr);padding:8px 10px;background:#fff;border:1px solid #DCE6F2;border-radius:13px;box-shadow:var(--shadow);margin-bottom:16px}
+.overview-strip .m{padding:9px 16px;border-left:1px solid #DDE6F0;min-width:0}
+.overview-strip .m:first-child{border-left:0;background:linear-gradient(135deg,#EDF9F5,#E2F5EE);border-radius:9px}
+.overview-strip .l{font-size:10px;color:#55709B;white-space:nowrap}.overview-strip .v{margin-top:4px;font-size:16.5px;font-weight:700;line-height:1.12;letter-spacing:-.2px;color:#071A49;white-space:nowrap}.overview-strip .v.up,.overview-strip .m:first-child .v{color:#08734F}.overview-strip .m:first-child .v::before{content:'▲';font-size:11px;margin-right:7px;color:#19A46D}.overview-strip .pxlive{display:block;margin:4px 0 0}
+#p-over .row31{grid-template-columns:1.5fr 1fr;gap:16px}
+#p-over .row31>.card{min-height:318px}
+#p-over .blist{margin-top:15px}.blist li{font-size:12.8px;color:#405D88;padding-left:28px;margin-bottom:13px}.blist li::before{left:3px;top:6px;width:11px;height:11px;background:#17A46D;box-shadow:0 0 0 4px #E5F5EE}.blist li:last-child::before{background:#F0B400;box-shadow:0 0 0 4px #FFF5D2}
+#p-over .ptleg{justify-content:center;gap:28px}.recbar{height:19px;border-radius:999px;background:#E8F0F8}.reclegend .r{padding-right:6px}.reclegend .r::after{margin-left:auto;color:#24497F}.reclegend .r:nth-child(1)::after{content:'10'}.reclegend .r:nth-child(2)::after,.reclegend .r:nth-child(3)::after{content:'0'}
+#p-over table th,#p-over table td{padding-top:9px;padding-bottom:9px}
+
+.edge-chain.card{padding:18px 20px 12px}.edge-chain .chain-wrap{margin-top:10px}.edge-chain .warn{font-size:11.5px;color:#5A76A0;margin-top:5px}
+#p-edge .card.tinted{background:#fff}
+.edge-kpis.big{grid-template-columns:repeat(5,1fr);gap:14px;margin-top:8px}
+.edge-kpis .bigc{min-height:138px;padding:17px 18px;border-radius:11px;box-shadow:none;position:relative;overflow:hidden;background:#F4F8FD}
+.edge-kpis .bigc::before{content:'◈';display:grid;place-items:center;width:28px;height:28px;margin-bottom:13px;border-radius:8px;background:color-mix(in srgb,var(--tile-icon,#2E63A7) 12%,#fff);color:var(--tile-icon,#2E63A7);font-size:19px;font-weight:800;line-height:1}
+.edge-kpis .bigc:nth-child(2)::before{content:'↗'}.edge-kpis .bigc:nth-child(3)::before{content:'▣'}.edge-kpis .bigc:nth-child(4)::before{content:'◔'}.edge-kpis .bigc:nth-child(5)::before{content:'◉'}
+.edge-kpis .bigc:nth-child(1){background:#EFF7FF;border-color:#CFE2F5;--tile-icon:#2561A5}
+.edge-kpis .bigc:nth-child(2){background:#F0F9F3;border-color:#CFE8D5;--tile-icon:#1B9B66}
+.edge-kpis .bigc:nth-child(3){background:#FFF3F3;border-color:#F4D4D4;--tile-icon:#F02E2E}
+.edge-kpis .bigc:nth-child(4){background:#FFF8E9;border-color:#F1E0BB;--tile-icon:#E9A928}
+.edge-kpis .bigc:nth-child(5){background:#F3F3FF;border-color:#DADAF7;--tile-icon:#6258DD}
+.edge-kpis .bigc .n{font-size:23px;color:#071A49;line-height:1.12}.edge-kpis .bigc .l{font-size:11px;color:#55709B;margin-top:7px}
+.edge-subintro{padding-bottom:20px}
+
+/* Sistema visual compartilhado pelas demais abas */
+.panel-skin{--panel-accent:#2E63A7}
+.panel-skin .panel-card{position:relative;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.panel-skin .panel-card:hover{border-color:color-mix(in srgb,var(--panel-accent) 25%,#DCE6F2);box-shadow:0 12px 30px rgba(18,54,102,.095),0 1px 2px rgba(18,54,102,.04)}
+.panel-skin .auto-section-head{margin-bottom:10px}
+.panel-skin .auto-section-head .title-icon{background:color-mix(in srgb,var(--panel-accent) 10%,#fff);color:var(--panel-accent)}
+.panel-skin .auto-section-head .title-icon svg{stroke-width:1.7}
+.panel-skin .auto-section-head h2{margin:0}
+.panel-skin .card>.cap:first-of-type{margin-top:-5px;padding-left:58px}
+.panel-skin .subtabs{display:flex;width:max-content;max-width:100%;gap:5px;margin-bottom:17px;padding:5px;border-color:#D8E4F0;border-radius:12px;background:#EAF1F9;box-shadow:inset 0 1px 2px rgba(31,72,121,.05)}
+.panel-skin .subtabs button{padding:8px 19px;color:#59749B;border-radius:8px;font-size:13px}
+.panel-skin .subtabs button:hover{color:var(--panel-accent);background:rgba(255,255,255,.48)}
+.panel-skin .subtabs button.on{color:var(--panel-accent);background:#fff;box-shadow:0 3px 10px rgba(18,54,102,.09)}
+.panel-skin .msbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:0;padding:8px 9px;border-color:#DCE6F2;border-radius:13px;overflow:hidden}
+.panel-skin .msbar .m{padding:10px 15px;border-left:1px solid #DFE8F2}
+.panel-skin .msbar .m:first-child{border-left:0;border-radius:9px;background:color-mix(in srgb,var(--panel-accent) 8%,#fff)}
+.panel-skin .msbar .m .l{font-size:10px;letter-spacing:.03em;color:#627CA2}
+.panel-skin .msbar .m .v{font-size:16.5px;color:#0A2455}.panel-skin .msbar .sep{display:none}
+.panel-skin .steps{gap:14px}.panel-skin .step{min-height:122px;padding:16px 17px;border-color:#DCE6F1;background:linear-gradient(145deg,#fff,#F7FAFE)}
+.panel-skin .step .n{font-size:10px}.panel-skin .step b{font-size:13.5px;color:#0A2455}.panel-skin .step p{font-size:11.8px;color:#577196}
+.panel-skin .big{gap:14px}.panel-skin .bigc{padding:16px 17px;border-color:#DCE6F1;border-radius:11px;box-shadow:none;background:linear-gradient(145deg,#fff,#F6F9FD)}
+.panel-skin .bigc .n{font-size:23px;color:var(--panel-accent)}.panel-skin .bigc .l{font-size:11px;color:#5C769C}
+.panel-skin .deals{gap:14px}.panel-skin .deal{padding:15px 16px;border-color:#DCE6F1;box-shadow:none;transition:transform .15s ease,border-color .15s ease}
+.panel-skin .deal:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--panel-accent) 30%,#DCE6F1)}
+.panel-skin .deal .dt{color:#617A9F}.panel-skin .deal .dm{color:#0A2455}.panel-skin .deal .dd{color:#5B7498}
+.panel-skin .risk{border-color:#DCE6F1;border-left-color:var(--pc,var(--panel-accent));box-shadow:none;background:linear-gradient(145deg,#fff,#F8FAFD)}
+.panel-skin .vrow,.panel-skin .rkr{padding:14px 2px}.panel-skin .vrow .vn,.panel-skin .rkr .rkn{color:#0A2455}
+.panel-skin .tml::before{background:#D7E3EF}.panel-skin .tmn .ty{color:#0A2455}
+.panel-skin .note{border-left-color:var(--panel-accent);background:color-mix(in srgb,var(--panel-accent) 6%,#fff);color:#48658E}
+.panel-skin .note b{color:var(--panel-accent)}
+.panel-skin .warn{color:#6A82A4}
+.panel-skin .twrap{border:1px solid #E0E8F2;border-radius:10px;overflow:auto}
+.panel-skin .twrap table{background:#fff}.panel-skin .twrap thead{background:#F2F6FB}.panel-skin .twrap th{color:#5E769A;border-bottom-color:#D8E3EF}
+.panel-skin .twrap td{border-bottom-color:#E5ECF4}.panel-skin .twrap tbody tr:nth-child(even){background:#F8FAFD}.panel-skin .twrap tbody tr:hover{background:#EEF5FC}
+.panel-skin .legend{padding-top:3px}.panel-skin .legend span{color:#60799D}
+.panel-skin h3.msub{color:var(--panel-accent);border-bottom-color:#DDE7F1}
+.panel-skin .tirbox{border-left-color:var(--panel-accent);background:color-mix(in srgb,var(--panel-accent) 5%,#fff)}
+.panel-skin .mkpi{border:1px solid #DCE6F1}.panel-skin .mkpi .val{color:#0A2455}
+.panel-skin .mprem{background:linear-gradient(180deg,#fff,#F8FAFD)}
+
+@media(max-width:1180px){
+  .overview-strip{grid-template-columns:repeat(4,1fr)}.overview-strip .m:nth-child(5){border-left:0}.edge-kpis.big{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:980px){#p-over .row31{grid-template-columns:1fr}.overview-strip{grid-template-columns:repeat(2,1fr)}.overview-strip .m:nth-child(odd){border-left:0}.edge-kpis.big{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:860px){
+  .hwrap{min-height:0;padding:11px 22px;gap:13px}.pxbadge{display:none!important}#navToggle{width:36px;height:34px}.logo img{height:26px}
+  #sidebar{top:var(--hh,66px);height:calc(100vh - var(--hh,66px));max-height:none;width:216px}
+  main{padding:14px 12px 42px}.overview-hero{padding:16px;gap:14px}.hero-logo{width:94px;height:70px}.hero-logo img{max-width:80px}.hero-copy h1{font-size:23px}.hero-copy p{font-size:12px}.overview-hero::before{opacity:.45}
+}
+@media(max-width:620px){.overview-strip{grid-template-columns:1fr 1fr}.overview-strip .m{padding:9px 10px}.overview-strip .v{font-size:18px}.edge-kpis.big{grid-template-columns:1fr}.section-head .tag{display:none}}
 </style>
 </head>
 <body>
@@ -618,7 +739,9 @@ footer b{letter-spacing:.1em;color:var(--accent)}
   </div>
 </header>
 <div class="layout">
-  <aside id="sidebar"><div id="navlist"></div></aside>
+  <aside id="sidebar">
+    <div id="navlist"></div>
+  </aside>
   <div class="maincol">
   <main>
   <section class="panel on" id="p-over"></section>
@@ -1109,22 +1232,20 @@ function ownershipSVG(){
 }
 
 function valueChainSVG(){
-  let s='<svg viewBox="0 0 900 292" xmlns="http://www.w3.org/2000/svg">';
+  let s='<svg viewBox="0 0 1040 340" xmlns="http://www.w3.org/2000/svg">';
   const orig=[['LNG importado','via TRSP (Total)'],['Pré-sal','gás nacional'],['Bolívia / Argentina','importação'],['Biometano','OneBio']];
   const dem=[['LDCs','Comgás e outras'],['Mercado livre','indústrias'],['LNG B2B','off-grid / SSLNG'],['Térmicas','LRCAP'],['Bunkering','Santos']];
-  s+=`<text x="120" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#5C6B7A">ORIGINAÇÃO</text>`;
-  s+=`<text x="450" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#5C6B7A">PLATAFORMA</text>`;
-  s+=`<text x="780" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#5C6B7A">DEMANDA</text>`;
-  const oy=[36,98,160,222];
-  orig.forEach((o,i)=>{s+=elbow(220,oy[i]+22,360,146,'#9AA7B5',290);});
-  const dyv=[30,84,138,192,246];
-  dem.forEach((d,i)=>{s+=elbow(540,146,680,dyv[i]+20,'#9AA7B5',612);});
-  orig.forEach((o,i)=>{s+=dbox(20,oy[i],200,44,o[0],o[1],{fill:'#4E8385'});});
-  s+=`<rect x="360" y="90" width="180" height="112" rx="7" fill="#E23A2E"/>`;
-  s+=`<text x="450" y="128" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">EDGE</text>`;
-  s+=`<text x="450" y="152" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.92)">comercialização · trading</text>`;
-  s+=`<text x="450" y="169" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.92)">TRSP · otimização</text>`;
-  dem.forEach((d,i)=>{s+=dbox(680,dyv[i],200,40,d[0],d[1],{fill:'#3D4A5C'});});
+  s+=`<defs><linearGradient id="vcTeal" x1="0" x2="1"><stop stop-color="#317F83"/><stop offset="1" stop-color="#397B7E"/></linearGradient><linearGradient id="vcRed" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FA5848"/><stop offset="1" stop-color="#E92E27"/></linearGradient><linearGradient id="vcNavy" x1="0" x2="1"><stop stop-color="#405779"/><stop offset="1" stop-color="#243B5B"/></linearGradient><filter id="vcShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#173B70" flood-opacity=".14"/></filter></defs>`;
+  [['#EAF5F6',20,300],['#FFF0F0',370,300],['#EEF3F9',720,300]].forEach(a=>s+=`<rect x="${a[1]}" y="4" width="${a[2]}" height="30" rx="10" fill="${a[0]}"/>`);
+  s+=`<text x="170" y="24" text-anchor="middle" font-size="12" font-weight="700" letter-spacing=".8" fill="#285D70">ORIGINAÇÃO</text>`;
+  s+=`<text x="520" y="24" text-anchor="middle" font-size="12" font-weight="700" letter-spacing=".8" fill="#356398">PLATAFORMA</text>`;
+  s+=`<text x="870" y="24" text-anchor="middle" font-size="12" font-weight="700" letter-spacing=".8" fill="#173B70">DEMANDA</text>`;
+  const oy=[44,111,178,245],dyv=[40,99,158,217,276];
+  orig.forEach((o,i)=>{const y=oy[i]+27;s+=`<path d="M300 ${y} H360 Q370 ${y} 370 ${y+10} V170 H405" fill="none" stroke="#4E79AE" stroke-width="1.45"/><path d="M405 166 l8 4 -8 4z" fill="#4E79AE"/>`;});
+  dem.forEach((d,i)=>{const y=dyv[i]+24;s+=`<path d="M627 170 H670 Q680 170 680 ${y} H720" fill="none" stroke="#4E79AE" stroke-width="1.45"/><path d="M720 ${y-4} l8 4 -8 4z" fill="#4E79AE"/>`;});
+  orig.forEach((o,i)=>{const y=oy[i];s+=`<g><rect x="34" y="${y}" width="266" height="54" rx="11" fill="url(#vcTeal)"/><circle cx="72" cy="${y+27}" r="18" fill="rgba(255,255,255,.10)"/><path d="M61 ${y+31}h22M64 ${y+31}v-9h16v9M68 ${y+22}v-5m8 5v-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><text x="105" y="${y+24}" font-size="15" font-weight="700" fill="#fff">${esc(o[0])}</text><text x="105" y="${y+41}" font-size="11.5" fill="rgba(255,255,255,.88)">${esc(o[1])}</text></g>`;});
+  s+=`<g filter="url(#vcShadow)"><rect x="413" y="98" width="214" height="144" rx="13" fill="url(#vcRed)"/><path d="M506 142v-12h5v12m7 0v-22h5v22m7 0v-31h5v31" stroke="#fff" stroke-width="2" fill="none"/><text x="520" y="176" text-anchor="middle" font-size="25" font-weight="800" fill="#fff">EDGE</text><text x="520" y="202" text-anchor="middle" font-size="13" fill="#fff">comercialização · trading</text><text x="520" y="222" text-anchor="middle" font-size="13" fill="#fff">TRSP + otimização</text></g>`;
+  dem.forEach((d,i)=>{const y=dyv[i];s+=`<g><rect x="728" y="${y}" width="278" height="48" rx="10" fill="url(#vcNavy)"/><circle cx="763" cy="${y+24}" r="16" fill="rgba(255,255,255,.09)"/><path d="M753 ${y+29}h20M757 ${y+29}v-11h12v11M760 ${y+18}v-5m6 5v-5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="794" y="${y+21}" font-size="14.5" font-weight="700" fill="#fff">${esc(d[0])}</text><text x="794" y="${y+37}" font-size="11" fill="rgba(255,255,255,.84)">${esc(d[1])}</text></g>`;});
   return s+'</svg>';
 }
 
@@ -1199,14 +1320,18 @@ function renderOver(){
     <td><b>R$${b.tp.toFixed(2).replace('.',',')}</b></td><td>${b.base}</td><td>${fPct(b.upside,0)}</td><td>${b.irrTxt}</td><td>${fBn(b.equity)}</td></tr>`).join('');
   const bars=CONS.map(b=>({name:b.name,v:b.tp,color:b.color}));
   const M=(l,v,cls)=>`<div class="m"><div class="l">${l}</div><div class="v${cls||''}">${v}</div></div>`;
-  const strip=`<div class="msbar">${M('Recomendação','Compra')}${M('Preço-alvo (mediano)','R$'+med.toFixed(2).replace('.',','))}${M('Preço atual'+(PRICE_LIVE?' <span class="pxlive" title="Cotação ao vivo · Yahoo Finance (PASS3.SA)">● ao vivo</span>':''),'R$'+PRICE.toFixed(2).replace('.',','))}${M('Upside','+'+up+'%',' up')}<div class="sep"></div>${M('PA piso','R$'+mn+',00')}${M('PA teto','R$'+mx+',00')}<div class="sep"></div>${M('Bancos cobrindo','10')}</div>`;
+  const strip=`<div class="overview-strip">${M('Recomendação','Compra')}${M('Preço-alvo (mediano)','R$'+med.toFixed(2).replace('.',','))}${M('Preço atual','R$'+PRICE.toFixed(2).replace('.',',')+(PRICE_LIVE?' <span class="pxlive" title="Cotação ao vivo · Yahoo Finance (PASS3.SA)">● AO VIVO</span>':''))}${M('Upside','+'+up+'%',' up')}${M('PA piso','R$'+mn+',00')}${M('PA teto','R$'+mx+',00')}${M('Bancos cobrindo','10')}</div>`;
   $('p-over').innerHTML=`
-  <div class="cap" style="margin:0 2px 12px">Compass (PASS3) — maior plataforma de gás natural do Brasil, controlada pela Cosan. Consenso de 6 bancos (BofA, Bradesco BBI, Itaú BBA, BTG Pactual, Citi e J.P. Morgan), início de cobertura em 17-jun-2026.</div>
+  <div class="breadcrumb"><span>Home</span><i></i><span>Empresas</span><i></i><b>PASS3</b></div>
+  <div class="overview-hero">
+    <div class="hero-logo"><img src="2%20-%20Public%20Input%20Docs/logos/logo_compass.png" alt="Compass"></div>
+    <div class="hero-copy"><h1>Compass (PASS3)</h1><p>Compass (PASS3) — maior plataforma de gás natural do Brasil, controlada pela Cosan. Consenso de 6 bancos (BofA, Bradesco BBI, Itaú BBA, BTG Pactual, Citi e J.P. Morgan), início de cobertura em 17-jun-2026.</p></div>
+  </div>
   ${strip}
   <div class="row31">
-   <div class="card"><h2>Risco-Retorno</h2>
+   <div class="card"><div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 12 20 4M16 4h4v4"/></svg></span><div class="head-copy"><h2>Risco-Retorno</h2></div><span class="tag">Tese de investimento</span></div>
      <div class="lead">Uma combinação de fluxo de caixa regulado resiliente (distribuição) e opcionalidade de crescimento (Edge).</div>
-     <b style="font-size:13px">Tese de consenso · preço-alvo mediano R$${med}</b>
+     <b style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#55709B">Tese de consenso · preço-alvo mediano R$${med}</b>
      <ul class="blist">
        <li><b>Plataforma líder e regulada.</b> Maior distribuidora de gás do Brasil; fluxo previsível e protegido da inflação via expansão do RAB.</li>
        <li><b>Comgás compõe valor.</b> EBITDA cresceu ~10%/ano desde 2012 mesmo com volume estável — mix mais rico e eficiência de custos.</li>
@@ -1214,8 +1339,7 @@ function renderOver(){
        <li><b>Dividendos + valuation atrativo.</b> Yield ~8–10% em 2027e; ~5,5x EV/EBITDA 26e e TIR real de 12,5–18,3%, entre as maiores do setor de utilities.</li>
      </ul>
    </div>
-   <div class="card"><h2>Distribuição do consenso</h2>
-     <div class="cap">Preços-alvo (R$/ação)</div>
+   <div class="card"><div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M5 20V13h3v7M11 20V7h3v13M17 20V3h3v17"/></svg></span><div class="head-copy"><h2>Distribuição do consenso</h2><div class="cap">Preços-alvo (R$/ação)</div></div></div>
      ${ptRangeSVG(mn,med,avg,mx)}
      <div class="ptleg"><span style="color:#8A6D00;font-weight:700">▼ Média R$${avg.toFixed(1).replace('.',',')}</span><span style="color:#2E5496;font-weight:700">▲ Mediana R$${med}</span></div>
      <div class="cap" style="margin-top:16px">Recomendações</div>
@@ -1227,7 +1351,7 @@ function renderOver(){
      </div>
    </div>
   </div>
-  <div class="card"><h2>Consenso sell-side</h2>
+  <div class="card"><div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 18V9h14v9M7 9V6l5-3 5 3v3M8 12h2m2 0h2m2 0h1"/></svg></span><div class="head-copy"><h2>Consenso sell-side</h2></div><span class="cap" style="margin:3px 0 0">6 bancos · início de cobertura em 17-jun-2026</span></div>
     <div class="twrap"><table><thead><tr><th class="l">Banco</th><th>Rating</th><th>Preço-alvo</th><th>Base</th><th>Upside</th><th>TIR real</th><th>Equity value</th></tr></thead><tbody>${rows}</tbody></table></div>  </div>`;
 }
 
@@ -1538,16 +1662,16 @@ function subTab(pfx,i,n){for(var k=0;k<n;k++){var p=$(pfx+'p'+k),b=$(pfx+'b'+k);
 function subBar(pfx,labels){return '<div class="subtabs">'+labels.map(function(l,k){return '<button id="'+pfx+'b'+k+'"'+(k===0?' class="on"':'')+' onclick="subTab(\''+pfx+'\','+k+','+labels.length+')">'+l+'</button>';}).join('')+'</div>';}
 function renderEdge(){
   $('p-edge').innerHTML=`
-  <div class="card"><h2>Cadeia de valor da Edge — do gás à demanda</h2>
-    <div class="cap">A Edge conecta várias fontes de gás a vários mercados, com o TRSP no centro (baseado no slide 17 do Itaú BBA)</div>
-    ${valueChainSVG()}
+  <div class="breadcrumb"><span>Home</span><i></i><span>Empresas</span><i></i><span>PASS3</span><i></i><b>Edge</b></div>
+  <div class="card edge-chain"><div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2.3"/><circle cx="5" cy="18" r="2.3"/><circle cx="19" cy="18" r="2.3"/><path d="m10.7 6-4.4 9.7M13.3 6l4.4 9.7M7.3 18h9.4"/></svg></span><div class="head-copy"><h2>Cadeia de valor da Edge — do gás à demanda</h2><div class="cap">A Edge conecta várias fontes de gás a vários mercados, com o TRSP no centro (baseado no slide 17 do Itaú BBA).</div></div></div>
+    <div class="chain-wrap">${valueChainSVG()}</div>
     <div class="warn">Originação: LNG (via TRSP/Total), pré-sal, gás boliviano/argentino e biometano. Demanda: LDCs, mercado livre, LNG off-grid (B2B), térmicas e bunkering.</div>
   </div>
-  <div class="card tinted"><h2>Edge — o motor de crescimento e a maior divergência</h2>
+  <div class="card tinted"><div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M5 20V13h3v7M11 20V7h3v13M17 20V3h3v17"/></svg></span><div class="head-copy"><h2>Edge — o motor de crescimento e a maior divergência</h2></div></div>
     <div class="lead">A Edge é a plataforma de comercialização e infraestrutura da Compass: reúne originação e trading de gás, o terminal de LNG <b>TRSP</b> (14 MMm³/d, em Santos — o único independente do país, não atrelado a uma térmica), LNG off-grid (caminhões) e o biometano (<b>OneBio</b>, JV com a Orizon). É a parte menos madura do negócio — e por isso a de maior discórdia entre os bancos.</div>
-    ${bignums([['14 MMm³/d','capacidade do TRSP'],['~6→22 MMm³/d','volume Edge 2026→2030'],['2033','fim do contrato Total'],['96 / 168 MMm³/d','TAM on-grid / off-grid'],['~0,32 → 0,38','Margem média (R$/m³)']])}
+    ${bignums([['14 MMm³/d','capacidade do TRSP'],['~6 → 22 MMm³/d','volume Edge 2026–2030'],['2033','fim do contrato Total'],['96 / 168 MMm³/d','TAM on-grid / off-grid'],['~0,32 → 0,38','Margem média (R$/m³)']]).replace('class="big"','class="big edge-kpis"')}
   </div>
-  <div class="card"><h2>A Edge aberta por sub-segmento (modelo Itaú BBA)</h2>
+  <div class="card edge-subintro"><div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 12V3a9 9 0 1 1-9 9h9Z"/><path d="M14 3.2A9 9 0 0 1 20.8 10H14Z"/></svg></span><div class="head-copy"><h2>A Edge aberta por sub-segmento (modelo Itaú BBA)</h2></div></div>
     <div class="lead">A Edge não é um negócio só — são cinco frentes com volumes e margens bem diferentes. O <b>Small Scale LNG (off-grid)</b> é o motor de valor: começa minúsculo mas escala para 3,8 MMm³/d na maior margem (~R$0,80/m³) e vira <b>~metade do lucro bruto até 2030</b>. O <b>mercado livre</b> é o líder de volume (6,3 MMm³/d), porém de baixa margem (~R$0,20/m³). O <b>contrato com a Comgás</b> é a base estável (2 MMm³/d take-or-pay).</div>
     ${chStackCat(EDGE_SUB_YRS, EDGE_SUB.map(s=>({n:s.n,c:s.c,v:s.gp})), {h:340,fmt:v=>fMn(v),tip:v=>'R$'+fMn(v)+' mn',unit:'',yTitle:'Lucro bruto (R$ mn)',segLbl:true,segFmt:v=>fMn(v)})}
     ${legend(EDGE_SUB.map(s=>({name:s.n,color:s.c})))}
@@ -1813,7 +1937,38 @@ function renderMethod(){
 }
 
 const RENDER=[renderOver,renderEmp,renderTese,renderDist,renderComgas,renderEdge,renderMarket,renderTP,renderSOTP,renderProj,renderMult,renderModel,renderGrowth,renderMethod];
-function renderAll(){RENDER.forEach(f=>f());}
+function enhancePanels(){
+  const accents={g1:'#2E63A7',g2:'#278786',g3:'#D93A32',g4:'#6A6FB2'};
+  TABS.forEach(t=>{
+    const panel=$(t[0]);
+    if(!panel)return;
+    panel.classList.add('panel-skin');
+    panel.style.setProperty('--panel-accent',accents[t[2]]||'#2E63A7');
+    if(!panel.querySelector(':scope > .breadcrumb')){
+      const trail=document.createElement('div');
+      trail.className='breadcrumb';
+      trail.innerHTML=`<span>Home</span><i></i><span>Empresas</span><i></i><span>PASS3</span><i></i><b>${esc(t[1])}</b>`;
+      panel.prepend(trail);
+    }
+    panel.querySelectorAll('.card').forEach((card,idx)=>{
+      card.classList.add('panel-card','panel-tone-'+(idx%4));
+      const heading=Array.from(card.children).find(el=>el.tagName==='H2');
+      if(!heading)return;
+      const head=document.createElement('div');
+      head.className='section-head auto-section-head';
+      const icon=document.createElement('span');
+      icon.className='title-icon';
+      icon.setAttribute('aria-hidden','true');
+      icon.innerHTML=`<svg viewBox="0 0 24 24"><use href="#${t[3]}"></use></svg>`;
+      const copy=document.createElement('div');
+      copy.className='head-copy';
+      card.insertBefore(head,heading);
+      head.append(icon,copy);
+      copy.appendChild(heading);
+    });
+  });
+}
+function renderAll(){RENDER.forEach(f=>f());enhancePanels();}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t)setTab(+t.dataset.tab);});
 const tip=$('tip');
 document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(t){tip.textContent=t.getAttribute('data-tip');tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth-8)x=e.clientX-w-12;if(y+h>innerHeight-8)y=e.clientY-h-12;tip.style.left=x+'px';tip.style.top=y+'px';}else tip.style.display='none';});
