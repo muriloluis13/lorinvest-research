@@ -1815,7 +1815,9 @@
             <button class="emp-tab" data-emp-target="aportes">Aportes e Exposição</button>
             <button class="emp-tab" data-emp-target="governanca">Governança</button>
             <button class="emp-tab" data-emp-target="projetos">Projetos</button>
-            <button class="emp-tab" data-emp-target="operacional">Operacional</button>
+            <button class="emp-tab" data-emp-target="novos-negocios">Novos Negócios</button>
+            <button class="emp-tab" data-emp-target="oferta">Oferta</button>
+            <button class="emp-tab" data-emp-target="opex">OpEx</button>
             <button class="emp-tab" data-emp-target="comercial">Comercial</button>
             <button class="emp-tab" data-emp-target="resultados">Resultados</button>
             <button class="emp-tab" data-emp-target="alavancagem">Alavancagem</button>
@@ -2941,8 +2943,10 @@
             })();
             </script>
 
+          </div>
+          <div class="emp-panel" data-emp="novos-negocios">
             <!-- ===== Novos negócios ===== -->
-            <div class="section-title" style="margin: 24px 0 14px;">Novos negócios</div>
+            <div class="section-title" style="margin: 2px 0 14px;">Novos negócios</div>
             <div class="row-2">
               <div class="card">
                 <div class="card-header">
@@ -2976,7 +2980,7 @@
             </div>
 
           </div>
-          <div class="emp-panel" data-emp="operacional">
+          <div class="emp-panel" data-emp="oferta">
             <!-- ===== Oferta GNL — capacidade por planta (CI GNLink Dez/25 — slide 5) ===== -->
             <style>
               .op-plants{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:2px 0 4px}
@@ -3025,11 +3029,9 @@
 
             <div class="comm-src">
               <span class="lbl">Base de dados</span>
-              <!-- Botões gerados de EMP['GNLink'].operacional.baseOrder/baseLabels: este
-                   seletor comanda DUAS seções (oferta e molécula), e mantê-lo estático já
-                   deixou a molécula sumir em bases sem card. Agora as três coisas saem da
-                   mesma lista. -->
-              <div class="comm-seg" role="tablist" aria-label="Base de dados operacional" id="opBaseSeg"></div>
+              <!-- Botões gerados de EMP['GNLink'].operacional.baseOrder/baseLabels para
+                   manter as bases da oferta alinhadas à fonte única. -->
+              <div class="comm-seg" role="tablist" aria-label="Base de dados da oferta" id="opBaseSeg"></div>
               <span class="src-cap" id="opSrcCap">Comitê de Investimentos Lorinvest · 15/dez/2025 (slide 5)</span>
             </div>
 
@@ -3039,9 +3041,9 @@
             // Operacional (plantas + ramp-up + tabela mensal): gerado de
             // window.EMP['GNLink'].operacional. O ramp-up e os totais da tabela são
             // DERIVADOS da matriz mensal (supply) — sem números duplicados no markup.
-            // Seletor, views de oferta e views de molécula saem todos de baseOrder.
+            // Seletor e views da oferta saem da mesma baseOrder.
             (function(){
-              var panel=document.querySelector('.emp-panel[data-emp="operacional"]');
+              var panel=document.querySelector('.emp-panel[data-emp="oferta"]');
               if(!panel) return;
               var g=(window.EMP||{})['GNLink'], O=g&&g.operacional;
               var mount=document.getElementById('gnlOpViews');
@@ -3096,7 +3098,7 @@
                   return '<div class="comm-view'+(i===0?' active':'')+'" data-view="'+key+'"><div class="card" style="margin-bottom:14px">'
                     + '<div class="card-header"><div class="card-title">Oferta GNL — capacidade por planta</div></div>'
                     + '<div class="card-body"><p class="card-note" style="margin:0">O deck do <b>'+esc(label)+'</b> não abre a capacidade por planta — publica apenas a capacidade <b>consolidada</b> '
-                    + '(GNL e GNC purga) nos quadros de evolutivo de volume. O custo de molécula deste mesmo deck está no card abaixo.</p></div></div></div>';
+                    + '(GNL e GNC purga) nos quadros de evolutivo de volume. O custo de molécula deste mesmo deck pode ser consultado na aba <b>OpEx</b>.</p></div></div></div>';
                 }
                 function view(key,i){
                   var v=O.views[key];
@@ -3124,6 +3126,15 @@
               });});
             })();
             </script>
+
+          </div>
+          <div class="emp-panel" data-emp="opex">
+            <div class="section-title" style="margin:2px 0 6px;">OpEx &mdash; suprimento de molécula</div>
+            <div class="comm-src">
+              <span class="lbl">Base de dados</span>
+              <div class="comm-seg" role="tablist" aria-label="Base de dados de OpEx" id="opexBaseSeg"></div>
+              <span class="src-cap" id="opexSrcCap"></span>
+            </div>
 
             <!-- ===== Custos atuais de compra de molécula (CI GNLink Dez/25 — slide 18) ===== -->
             <style>
@@ -3164,16 +3175,14 @@
             </style>
 
             <!-- Tabela de custo da molécula: gerada de EMP['GNLink'].operacional.moleculaBases.
-                 IMPORTANTE: estes .comm-view moram no mesmo painel que os de oferta e são
-                 alternados pelo MESMO seletor (o handler acima faz panel.querySelectorAll
-                 ('.comm-view'), sem escopo). Por isso a molécula precisa ter uma view para
-                 CADA chave de operacional.views — senão a seção some ao trocar de base.
-                 O loop abaixo garante isso: itera as bases do seletor, não chaves fixas. -->
+                 A aba OpEx tem seletor próprio, mas conserva a mesma baseOrder da Oferta
+                 para que as referências mensais permaneçam comparáveis. -->
             <div id="gnlMolView"></div>
             <script>
             (function(){
+              var panel=document.querySelector('.emp-panel[data-emp="opex"]');
               var g=(window.EMP||{})['GNLink'], O=g&&g.operacional;
-              var mount=document.getElementById('gnlMolView'); if(!O||!O.views||!mount) return;
+              var mount=document.getElementById('gnlMolView'); if(!panel||!O||!O.views||!mount) return;
               function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
               // molCard(): mesma tabela para todas as bases — só mudam dados e título.
               function molCard(D,titulo,view,ativo){
@@ -3206,10 +3215,25 @@
                   + 'Use a base anterior para a referência de custo de suprimento.</p></div></div></div>';
               }
               var MB=O.moleculaBases||{}, LBL=O.baseLabels||{};
-              mount.innerHTML = (O.baseOrder||Object.keys(O.views)).map(function(k,i){
+              var ORDER=O.baseOrder||Object.keys(O.views);
+              mount.innerHTML = ORDER.map(function(k,i){
                 return MB[k] ? molCard(MB[k],'Custos atuais de compra de molécula',k,i===0)
                              : molVazio(k,LBL[k]||k);
               }).join('');
+              var seg=panel.querySelector('#opexBaseSeg');
+              if(seg) seg.innerHTML=ORDER.map(function(k,i){
+                return '<button type="button"'+(i===0?' class="active"':'')+' data-view="'+k+'">'+esc(LBL[k]||k)+'</button>';
+              }).join('');
+              var cap=panel.querySelector('#opexSrcCap');
+              var btns=panel.querySelectorAll('#opexBaseSeg button');
+              btns.forEach(function(b){ b.addEventListener('click',function(){
+                var key=b.getAttribute('data-view');
+                btns.forEach(function(x){ x.classList.toggle('active',x===b); });
+                mount.querySelectorAll(':scope > .comm-view').forEach(function(view){
+                  view.classList.toggle('active',view.getAttribute('data-view')===key);
+                });
+                if(cap) cap.textContent=(MB[key]&&MB[key].srcCap)||(O.views[key]&&O.views[key].srcCap)||'';
+              }); });
             })();
             </script>
 
@@ -4335,12 +4359,14 @@
             // Carrega o Chart.js (mesma CDN das subpáginas) sob demanda.
             function loadChartJs(){
               if(window.Chart) return Promise.resolve();
-              return new Promise(function(resolve,reject){
+              if(window.__chartJsPromise) return window.__chartJsPromise;
+              window.__chartJsPromise=new Promise(function(resolve,reject){
                 var s=document.createElement('script');
                 s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
                 s.onload=resolve; s.onerror=function(){reject(new Error('Chart.js indisponível'));};
                 document.head.appendChild(s);
               });
+              return window.__chartJsPromise;
             }
 
             function serie(curve,k){
@@ -4411,6 +4437,20 @@
               </div>
               <div class="card-body">
                 <div id="focusMsg" class="focus-msg">Carregando expectativas&hellip;</div>
+                <div id="focusCharts" class="focus-charts" hidden>
+                  <div class="focus-chart-panel focus-chart-wide">
+                    <div class="focus-chart-title">Inflação e atividade</div>
+                    <div class="focus-chart-canvas"><canvas id="focusMacroCanvas" role="img" aria-label="Expectativas do Focus para IPCA, PIB e IGP-M nos quatro anos projetados"></canvas></div>
+                  </div>
+                  <div class="focus-chart-panel">
+                    <div class="focus-chart-title">Taxa Selic</div>
+                    <div class="focus-chart-canvas"><canvas id="focusSelicCanvas" role="img" aria-label="Expectativas do Focus para a taxa Selic nos quatro anos projetados"></canvas></div>
+                  </div>
+                  <div class="focus-chart-panel">
+                    <div class="focus-chart-title">Câmbio</div>
+                    <div class="focus-chart-canvas"><canvas id="focusCambioCanvas" role="img" aria-label="Expectativas do Focus para o câmbio nos quatro anos projetados"></canvas></div>
+                  </div>
+                </div>
                 <div id="focusWrap" class="focus-tablewrap" hidden>
                   <table class="focus-table">
                     <thead><tr><th>Indicador</th><th id="fy0"></th><th id="fy1"></th><th id="fy2"></th><th id="fy3"></th></tr></thead>
@@ -4424,6 +4464,12 @@
           <style>
             .focus-sub{font-size:11px;color:var(--muted);margin-top:2px;}
             .focus-msg{font-size:12px;color:var(--muted);padding:8px 0;}
+            .focus-charts{display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:12px;margin:4px 0 16px;}
+            .focus-charts[hidden]{display:none;}
+            .focus-chart-panel{min-width:0;padding:12px 13px 10px;border:1px solid var(--line);border-radius:11px;background:var(--bg-card-soft);}
+            .focus-chart-title{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+            .focus-chart-canvas{position:relative;height:210px;}
+            .focus-chart-canvas canvas{width:100%!important;height:100%!important;}
             .focus-tablewrap{overflow-x:auto;}
             .focus-table{width:100%;border-collapse:collapse;font-size:12.5px;}
             .focus-table th,.focus-table td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
@@ -4433,14 +4479,35 @@
             .focus-table td b{font-weight:700;color:var(--ink);}
             .focus-arw{font-size:9px;margin-left:5px;color:var(--muted);vertical-align:1px;}
             .focus-foot{font-size:10.5px;color:var(--muted);margin-top:10px;}
+            @media(max-width:980px){.focus-charts{grid-template-columns:1fr 1fr}.focus-chart-wide{grid-column:1/-1}}
+            @media(max-width:620px){.focus-charts{grid-template-columns:1fr}.focus-chart-wide{grid-column:auto}.focus-chart-canvas{height:220px}}
           </style>
           <script>
           (function(){
             var msg=document.getElementById('focusMsg');
             if(!msg) return;
+            var CHARTS=[];
+            var SERIES={
+              ipca:{label:'IPCA',color:'#2E63A7'},
+              pib:{label:'PIB',color:'#169B68'},
+              igpm:{label:'IGP-M',color:'#D97828'},
+              selic:{label:'Selic',color:'#6A6FB2'},
+              cambio:{label:'Câmbio',color:'#D93A32'}
+            };
 
             function fmt(v){ return v==null?'&mdash;':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
             function brDate(iso){ if(!iso) return '—'; var p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+            function loadChartJs(){
+              if(window.Chart) return Promise.resolve();
+              if(window.__chartJsPromise) return window.__chartJsPromise;
+              window.__chartJsPromise=new Promise(function(resolve,reject){
+                var s=document.createElement('script');
+                s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+                s.onload=resolve; s.onerror=function(){reject(new Error('Chart.js indisponível'));};
+                document.head.appendChild(s);
+              });
+              return window.__chartJsPromise;
+            }
             // Seta de direção vs. semana anterior, colorida pelo sentido econômico:
             // PIB melhora ao subir; IPCA/Câmbio/Selic/IGP-M melhoram ao cair.
             function arrow(cell,key){
@@ -4468,9 +4535,74 @@
               document.getElementById('focusWrap').hidden=false;
             }
 
-            fetch('/api/bcb-focus')
-              .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-              .then(render)
+            function indicator(data,key){
+              return (data.indicators||[]).filter(function(ind){ return ind.key===key; })[0]||null;
+            }
+
+            function buildChart(canvasId,data,keys,unit){
+              var canvas=document.getElementById(canvasId);
+              if(!canvas) return;
+              var years=data.years||[];
+              var datasets=keys.map(function(key){
+                var ind=indicator(data,key), spec=SERIES[key];
+                return {
+                  _key:key,
+                  label:spec.label,
+                  data:years.map(function(y){ var c=ind&&ind.values&&ind.values[y]; return c?c.hoje:null; }),
+                  borderColor:spec.color,
+                  backgroundColor:keys.length===1?spec.color+'1A':spec.color,
+                  pointBackgroundColor:'#FFFFFF',
+                  pointBorderColor:spec.color,
+                  pointBorderWidth:2,
+                  pointRadius:3,
+                  pointHoverRadius:5,
+                  borderWidth:2,
+                  tension:.25,
+                  fill:keys.length===1,
+                  spanGaps:true
+                };
+              });
+              CHARTS.push(new Chart(canvas.getContext('2d'),{
+                type:'line',
+                data:{labels:years,datasets:datasets},
+                options:{
+                  responsive:true,
+                  maintainAspectRatio:false,
+                  interaction:{mode:'index',intersect:false},
+                  scales:{
+                    x:{grid:{display:false},ticks:{font:{size:10},color:'#617CA5'},title:{display:true,text:'Ano de referência',color:'#617CA5',font:{size:10,weight:'600'}}},
+                    y:{beginAtZero:false,grid:{color:'rgba(220,230,242,.85)'},ticks:{font:{size:10},color:'#617CA5',callback:function(v){return Number(v).toLocaleString('pt-BR',{maximumFractionDigits:2})+(unit==='%'?'%':'');}},title:{display:true,text:unit==='%'?'Mediana (%)':'Mediana (R$/US$)',color:'#617CA5',font:{size:10,weight:'600'}}}
+                  },
+                  plugins:{
+                    legend:{display:keys.length>1,position:'bottom',labels:{usePointStyle:true,boxWidth:7,boxHeight:7,padding:12,color:'#496789',font:{size:10,weight:'600'}}},
+                    tooltip:{callbacks:{
+                      label:function(ctx){
+                        var key=ctx.dataset._key, ind=indicator(data,key), y=years[ctx.dataIndex];
+                        var cell=ind&&ind.values&&ind.values[y], suffix=unit==='%'?'%':'';
+                        var lines=[ctx.dataset.label+': '+fmt(cell&&cell.hoje).replace('&mdash;','—')+suffix];
+                        if(cell&&cell.ant!=null) lines.push('Semana anterior: '+fmt(cell.ant)+suffix);
+                        return lines;
+                      }
+                    }}
+                  }
+                }
+              }));
+            }
+
+            function renderCharts(data){
+              CHARTS.forEach(function(chart){ chart.destroy(); });
+              CHARTS=[];
+              document.getElementById('focusCharts').hidden=false;
+              buildChart('focusMacroCanvas',data,['ipca','pib','igpm'],'%');
+              buildChart('focusSelicCanvas',data,['selic'],'%');
+              buildChart('focusCambioCanvas',data,['cambio'],'R$/US$');
+            }
+
+            Promise.all([
+              fetch('/api/bcb-focus').then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+              loadChartJs()
+            ])
+              .then(function(res){ render(res[0]); renderCharts(res[0]); })
               .catch(function(e){ msg.textContent='Não foi possível carregar o Focus ('+e.message+').'; });
           })();
           </script>
@@ -4630,7 +4762,16 @@
             <div class="card">
               <div class="card-header"><div class="card-title">Ferramentas Interativas</div></div>
               <div class="card-body">
-                <p class="card-note">➜ Seção reconstruída após perda de dados. Reinsira aqui os links e embeds das ferramentas interativas.</p>
+                <p class="card-note">Simuladores e calculadoras interativas de apoio à decisão.</p>
+                <div class="analise-list">
+                  <a class="analise-item" href="ferramentas/comprar-vs-alugar/index.html" target="_blank" rel="noopener">
+                    <div class="analise-info">
+                      <span class="analise-title">Comprar vs. Alugar — Simulador Pessoal</span>
+                      <span class="analise-meta">Trade-off patrimonial pessoa física: financiamento imobiliário (linhas reais de mercado) vs. alugar e investir a diferença, com escada de carreira, custos, FGTS e sensibilidade</span>
+                    </div>
+                    <span class="analise-date">Set 2026</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -4882,7 +5023,7 @@
     };
     var EMP = window.EMP;  // dados movidos para data/empresas.js (fonte única)
 
-    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["operacional","Operacional"],["comercial","Comercial"],["resultados","Resultados"],["alavancagem","Alavancagem"],["valuation","Valuation"],["competidores","Competidores"]];
+    var SUB = [["panorama","Panorama"],["aportes","Aportes e Exposição"],["governanca","Governança"],["projetos","Projetos"],["novos-negocios","Novos Negócios"],["oferta","Oferta"],["opex","OpEx"],["comercial","Comercial"],["resultados","Resultados"],["alavancagem","Alavancagem"],["valuation","Valuation"],["competidores","Competidores"]];
 
     function pctTxt(n){ return String(n).replace('.',','); }
     function fmtPhone(p){ var d=String(p).replace(/\D/g,''); return d.length>=13 ? '+'+d.slice(0,2)+' '+d.slice(2,4)+' '+d.slice(4,9)+'.'+d.slice(9,13) : p; }
@@ -4999,9 +5140,9 @@
       return '<div class="alloc-bar">'+bar+'</div><div class="alloc-legend">'+leg+'</div>';
     }
 
-    // Operacional — por enquanto só o bloco "Seguros e Garantias" (CI Dez/25 · slide 3)
+    // OpEx — reaproveita os blocos operacionais já disponíveis por empresa.
     function renderOperacional(name,d){
-      var o=d.operacional; if(!o) return renderDev(name,'Operacional');
+      var o=d.operacional; if(!o) return renderDev(name,'OpEx');
       var html='';
       if(o.segurosGarantias){
         var sg=o.segurosGarantias;
@@ -5051,7 +5192,7 @@
           + (u.source?'<p class="card-note" style="margin-top:6px;">Fonte: '+esc(u.source)+'</p>':'')
           + '</div></div></div>';
       }
-      return html || renderDev(name,'Operacional');
+      return html || renderDev(name,'OpEx');
     }
     // Resultados — por enquanto o bloco "Acompanhamento do Orçamento 2025" (CI Dez/25 · slide 5).
     function renderResultados(name,d){
@@ -5153,7 +5294,7 @@
       var d=EMP[e2co], main='';
       if(e2tab==='aportes' && d) main=renderAportes(e2co,d);
       else if(e2tab==='governanca' && d) main=renderGov(e2co,d);
-      else if(e2tab==='operacional' && d && d.operacional) main=renderOperacional(e2co,d);
+      else if(e2tab==='opex' && d && d.operacional) main=renderOperacional(e2co,d);
       else if(e2tab==='resultados' && d && d.financeiro) main=renderResultados(e2co,d);
       var extra=renderAnalises(d,e2tab);
       if(!main) main = extra ? '' : renderDev(e2co, labelOf(e2tab));
@@ -6127,6 +6268,377 @@
       var alvo = fixo ? seg.querySelector('button[data-view="' + fixo + '"]') : null;
       (alvo || bs[bs.length - 1]).click();
     });
+  })();
+  </script>
+
+  <!-- Camada visual compartilhada, inspirada no guia da Compass. -->
+  <style id="research-visual-refresh">
+    :root {
+      --bg-main: #F3F7FC;
+      --bg-card: #FFFFFF;
+      --bg-card-soft: #F7FAFE;
+      --ink: #071A49;
+      --muted: #55709B;
+      --accent-1: #173F7A;
+      --accent-1-soft: #EAF2FC;
+      --accent-2: #2E63A7;
+      --accent-3: #169B68;
+      --border-soft: #DCE6F2;
+      --line: #DCE6F2;
+      --chip: #EDF3FA;
+      --radius-lg: 13px;
+      --radius-xl: 13px;
+      --shadow-soft: 0 8px 24px rgba(18, 54, 102, .075), 0 1px 2px rgba(18, 54, 102, .04);
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 78% 6%, rgba(92, 151, 217, .12), transparent 28rem),
+        linear-gradient(180deg, #F8FBFF 0, #F3F7FC 34rem, #F6F9FD 100%);
+    }
+
+    .app-header {
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(16px);
+      border-color: #DCE7F3;
+      box-shadow: 0 3px 18px rgba(18, 54, 102, .07);
+    }
+
+    .app-header::before { display: none; }
+
+    /* Mantém as dimensões originais da topbar e compacta apenas o acionador. */
+    #navToggle {
+      width: 38px;
+      height: 36px;
+      padding: 0;
+      border-color: #D7E4F1;
+      border-radius: 9px;
+      color: #234E88;
+      font-size: 0;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 7px rgba(18, 54, 102, .04);
+    }
+
+    #navToggle::before {
+      content: '';
+      width: 15px;
+      height: 12px;
+      border-radius: 2px;
+      background: linear-gradient(
+        to bottom,
+        currentColor 0 2px,
+        transparent 2px 5px,
+        currentColor 5px 7px,
+        transparent 7px 10px,
+        currentColor 10px 12px
+      );
+    }
+
+    .hsep { background: #DDE7F1; }
+    .htitle { color: #071A49; }
+
+    /* A largura, os espaçamentos e a tipografia da sidebar permanecem os originais. */
+    .sidebar {
+      background: linear-gradient(180deg, rgba(249, 252, 255, .96), rgba(241, 247, 253, .96));
+      border-color: #DCE7F2;
+    }
+
+    .grp { color: #58729A; }
+    .sidebar-link { color: #42618F; }
+    .sidebar-link:hover:not(.active) { color: #113D7D; background: #EAF2FC; }
+    .sidebar-link.active {
+      color: #0D3777;
+      background: linear-gradient(90deg, #EDF4FD, #DDEBFB);
+      border-left-color: #E53028;
+    }
+
+    .main { max-width: 1440px; margin-left: auto; margin-right: auto; }
+
+    .research-breadcrumb {
+      margin: 0 2px 13px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #617CA5;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .research-breadcrumb i {
+      width: 7px;
+      height: 7px;
+      flex: none;
+      border-top: 1.5px solid #5475A2;
+      border-right: 1.5px solid #5475A2;
+      transform: rotate(45deg);
+    }
+
+    .research-breadcrumb b { color: #173C72; }
+
+    .research-section-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .research-section-icon,
+    .research-card-icon {
+      display: grid;
+      place-items: center;
+      flex: none;
+      color: var(--section-accent, #2E63A7);
+      background: color-mix(in srgb, var(--section-accent, #2E63A7) 10%, #FFFFFF);
+      border: 1px solid color-mix(in srgb, var(--section-accent, #2E63A7) 15%, #DCE6F2);
+    }
+
+    .research-section-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+    }
+
+    .research-card-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+    }
+
+    .research-section-icon svg { width: 20px; height: 20px; }
+    .research-card-icon svg { width: 17px; height: 17px; }
+    .research-section-icon svg,
+    .research-card-icon svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .section-title-row { align-items: flex-start; }
+    .section-title {
+      color: #173F7A;
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .card,
+    .e2-card,
+    .e2-header,
+    .toolbar,
+    .an-card,
+    .pan-card {
+      border-color: #DCE6F2;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card,
+    .e2-card,
+    .an-card,
+    .pan-card {
+      background-color: rgba(255, 255, 255, .98);
+      background-image: none;
+    }
+
+    .card {
+      border-radius: 13px;
+      transition: box-shadow .16s ease, border-color .16s ease;
+    }
+
+    .card:hover,
+    .e2-card:hover,
+    .an-card:hover,
+    .pan-card:hover {
+      border-color: color-mix(in srgb, var(--section-accent, #2E63A7) 25%, #DCE6F2);
+      box-shadow: 0 12px 30px rgba(18, 54, 102, .095), 0 1px 2px rgba(18, 54, 102, .04);
+    }
+
+    /* Sem filetes ou barras coloridas no topo dos cards. */
+    .card,
+    .e2-card,
+    .an-card,
+    .pan-card { border-top-color: #DCE6F2; }
+
+    .card-header { justify-content: flex-start; gap: 10px; }
+    .card-header > .card-title { margin-right: auto; color: #071A49; }
+    .card-body, .card-note { color: #506B94; }
+
+    .card-chip,
+    .badge-stack {
+      color: #385D8D;
+      background: #EEF3F9;
+      border-color: #DCE6F2;
+    }
+
+    .pill {
+      color: #56739A;
+      background: #F5F8FC;
+      border-color: #DCE6F2;
+    }
+
+    .metric-chip,
+    .tag {
+      background: #EAF7F1;
+      color: #08734F;
+      border-color: #CDE9DC;
+    }
+
+    .tag-soft { background: #FFF5E8; color: #B8641B; border-color: #F1D9B9; }
+    .tag-risk, .metric-chip.neg { background: #FFF0F0; color: #D9322C; border-color: #F2D1D1; }
+
+    .kpi-tile,
+    .e2-kpi {
+      border-color: #DCE6F1;
+      box-shadow: none;
+    }
+
+    .kpi-tile.k-slate, .e2-kpi:nth-child(5n + 1) { background: #EFF7FF; border-color: #CFE2F5; }
+    .kpi-tile.k-teal,  .e2-kpi:nth-child(5n + 2) { background: #EDF8F8; border-color: #CEE7E6; }
+    .kpi-tile.k-sage,  .e2-kpi:nth-child(5n + 3) { background: #F0F9F3; border-color: #CFE8D5; }
+    .kpi-tile.k-stone, .e2-kpi:nth-child(5n + 4) { background: #FFF8E9; border-color: #F1E0BB; }
+    .kpi-tile.k-red,   .e2-kpi:nth-child(5n + 5) { background: #FFF3F3; border-color: #F4D4D4; }
+
+    .placeholder-table,
+    .kpi-mini { border-color: #E0E8F2; }
+    .placeholder-table thead,
+    .kpi-mini th { background: #F2F6FB; }
+    .placeholder-table th { color: #5E769A; border-bottom-color: #D8E3EF; }
+    .placeholder-table td { border-bottom-color: #E5ECF4; }
+    .placeholder-table tbody tr:nth-child(even) { background: #F8FAFD; }
+    .placeholder-table tbody tr:hover td { background: #EEF5FC; }
+
+    .company-selector,
+    .ov-tabs,
+    .emp-tabs,
+    .e2-tabs {
+      max-width: 100%;
+      padding: 4px;
+      gap: 4px;
+      background: #EAF1F9;
+      border: 1px solid #D8E4F0;
+      border-radius: 10px;
+      box-shadow: inset 0 1px 2px rgba(31, 72, 121, .05);
+    }
+
+    .ov-tabs,
+    .emp-tabs,
+    .e2-tabs { width: max-content; }
+
+    .ov-tab,
+    .emp-tab,
+    .e2-tab {
+      margin: 0;
+      border: 0;
+      border-radius: 7px;
+      color: #59749B;
+      background: transparent;
+    }
+
+    .ov-tab:hover,
+    .emp-tab:hover,
+    .e2-tab:hover {
+      color: var(--section-accent, #2E63A7);
+      background: rgba(255, 255, 255, .48);
+    }
+
+    .ov-tab.active,
+    .emp-tab.active,
+    .e2-tab.active {
+      color: var(--section-accent, #2E63A7);
+      background: #FFFFFF;
+      border: 0;
+      box-shadow: 0 3px 10px rgba(18, 54, 102, .09);
+    }
+
+    .e2-header {
+      background: linear-gradient(135deg, rgba(255,255,255,.99), rgba(241,247,253,.98));
+    }
+
+    .e2-title,
+    .emp-title,
+    .metric-value,
+    .kpi-tile .v,
+    .e2-kpi .v { color: #071A49; }
+
+    .blk-sub { color: var(--section-accent, #2E63A7); border-bottom-color: #DDE7F1; }
+
+    @media (max-width: 860px) {
+      #navToggle { width: 36px; height: 34px; }
+      .main { max-width: none; }
+      .research-breadcrumb { margin-bottom: 11px; }
+    }
+  </style>
+
+  <script>
+  (function(){
+    var config = {
+      'section-overview':  { label: 'Panorama',                 icon: 'ic-nav-overview',  accent: '#2E63A7' },
+      'section-portfolio': { label: 'Portfólio',                icon: 'ic-nav-portfolio', accent: '#278786' },
+      'section-company':   { label: 'Empresas',                 icon: 'ic-nav-company',   accent: '#19724E' },
+      'section-sectors':   { label: 'Setores & Macro',          icon: 'ic-nav-sectors',   accent: '#D93A32' },
+      'section-projects':  { label: 'Análises & Projetos',      icon: 'ic-nav-projects',  accent: '#6A6FB2' },
+      'section-thesis':    { label: 'Teses & Exits',            icon: 'ic-nav-thesis',    accent: '#D97828' },
+      'section-knowledge': { label: 'Base de Conhecimento',     icon: 'ic-nav-knowledge', accent: '#48688B' },
+      'section-tools':     { label: 'Ferramentas Interativas',  icon: 'ic-nav-tools',     accent: '#5B64C5' }
+    };
+
+    function iconNode(className, symbol){
+      var box = document.createElement('span');
+      box.className = className;
+      box.setAttribute('aria-hidden', 'true');
+      box.innerHTML = '<svg><use href="#' + symbol + '"></use></svg>';
+      return box;
+    }
+
+    function enhance(){
+      Object.keys(config).forEach(function(id){
+        var section = document.getElementById(id);
+        if (!section) return;
+        var item = config[id];
+        section.style.setProperty('--section-accent', item.accent);
+
+        if (!section.querySelector(':scope > .research-breadcrumb')) {
+          var crumb = document.createElement('div');
+          crumb.className = 'research-breadcrumb';
+          crumb.innerHTML = '<span>Home</span><i></i><span>Research</span><i></i><b>' + item.label + '</b>';
+          section.prepend(crumb);
+        }
+
+        var title = section.querySelector(':scope > .section-title-row .section-title');
+        if (title && !title.parentElement.classList.contains('research-section-heading')) {
+          var heading = document.createElement('div');
+          heading.className = 'research-section-heading';
+          title.parentNode.insertBefore(heading, title);
+          heading.appendChild(iconNode('research-section-icon', item.icon));
+          heading.appendChild(title);
+        }
+
+        section.querySelectorAll('.card-header').forEach(function(header){
+          if (!header.querySelector(':scope > .card-title') || header.querySelector(':scope > .research-card-icon')) return;
+          header.prepend(iconNode('research-card-icon', item.icon));
+        });
+      });
+    }
+
+    var queued = false;
+    function scheduleEnhance(){
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(function(){ queued = false; enhance(); });
+    }
+
+    function syncChromeHeight(){
+      var header = document.querySelector('.app-header');
+      if (header) document.documentElement.style.setProperty('--hh', header.offsetHeight + 'px');
+    }
+
+    enhance();
+    syncChromeHeight();
+    window.addEventListener('resize', syncChromeHeight);
+    var appHeader = document.querySelector('.app-header');
+    if (appHeader && window.ResizeObserver) new ResizeObserver(syncChromeHeight).observe(appHeader);
+    var content = document.querySelector('.content');
+    if (content) new MutationObserver(scheduleEnhance).observe(content, { childList: true, subtree: true });
   })();
   </script>
 </body>
