@@ -2195,6 +2195,11 @@ function capexEngine(){
   if(_capexCache) return _capexCache;
   const C=DB.capex||{}, n=DB.meses.length, cut=DB.cutoffIdx, LIFE=C.life||240, HL=C.holdlife||120;
   const dates=C.dates||[], op=C.op_dates||[], num=x=>typeof x==="number"?x:0;
+  // premissa editável: escala do CapEx de PROJEÇÃO por planta (scale[p0], default 1). Só k>corte (realizado
+  // intacto). Aplica a inv1 (equipamentos) e inv2 (infraestrutura).
+  const _sc=(DB.capex&&DB.capex.scale)||[], sc=p0=>{ const v=_sc[p0]; return (typeof v==="number"&&v>0)?v:1; };
+  const invS=src=>(src||[]).map((s,p)=>(s||[]).map((v,k)=> num(v)*(k>cut?sc(p):1)));
+  const CI1=invS(C.inv1), CI2=invS(C.inv2);
   const ymd=s=>{ const d=new Date(Date.UTC(1899,11,30)+Math.round(s)*86400000); return [d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate()]; };
   const datedifM=(sS,dS)=>{ if(dS<sS) return null; const a=ymd(sS),b=ymd(dS); let m=(b[0]-a[0])*12+(b[1]-a[1]); if(b[2]<a[2]) m--; return m; };
   function depreciate(inv, opDate, dropK42){
@@ -2207,14 +2212,14 @@ function capexEngine(){
     return dep;
   }
   const dep1=[], dep2=[];
-  for(let p=0;p<6;p++){ dep1.push(depreciate(C.inv1[p]||[], op[p], p!==0)); dep2.push(depreciate(C.inv2[p]||[], op[p], p!==0)); }
+  for(let p=0;p<6;p++){ dep1.push(depreciate(CI1[p]||[], op[p], p!==0)); dep2.push(depreciate(CI2[p]||[], op[p], p!==0)); }
   for(const pk in (C.extra1||{})){ const p=+pk, seeds=C.extra1[pk], ex=new Array(n).fill(0);
     for(const k in seeds) ex[+k]=seeds[k]; const d=depreciate(ex, op[p], false);
     dep1[p]=dep1[p].map((v,k)=>v+d[k]); }
   const cap695=new Array(n), cap700=new Array(n), cap694=new Array(n), cap699=new Array(n);
   for(let k=0;k<n;k++){ let a=0,b=0,c=0,e=0;
     for(let p=0;p<6;p++){ if(!plantOn(p+1)) continue;   // planta desligada → sem capex/depreciação/imobilizado
-      a+=dep1[p][k]; b+=dep2[p][k]; c+=num((C.inv1[p]||[])[k]); e+=num((C.inv2[p]||[])[k]); }
+      a+=dep1[p][k]; b+=dep2[p][k]; c+=num((CI1[p]||[])[k]); e+=num((CI2[p]||[])[k]); }
     cap695[k]=a; cap700[k]=b; cap694[k]=c; cap699[k]=e; }
   // amortização do intangível da holding (pool 120m), semente do acumulado no corte
   const hd46=C.hd46||[], cum=new Array(n); let run=0;
@@ -2538,6 +2543,15 @@ function genConsMensal(){
 function toggleMinCash(){ state.minCashDebt=!state.minCashDebt; clearAllCaches(); render(); }
 function setMinCash(key, raw, pct){ const v=parseBR(raw); if(v==null) return; DB.dcfConst[key]= pct? v/100 : v; clearAllCaches(); render(); }
 function setMinCashSel(key, val){ DB.dcfConst[key]=+val; clearAllCaches(); render(); }
+// --- premissas de CapEx editáveis ---
+function setCapexLife(raw){ const v=parseBR(raw); if(v==null||v<=0) return; DB.capex.life=Math.round(v*12); clearAllCaches(); render(); }     // input em anos
+function setCapexHoldLife(raw){ const v=parseBR(raw); if(v==null||v<=0) return; DB.capex.holdlife=Math.round(v*12); clearAllCaches(); render(); }
+function setCapexTotal(p, raw){ const v=parseBR(raw); if(v==null||v<0) return; const base=capexProjBase(p);
+  if(!DB.capex.scale) DB.capex.scale=[1,1,1,1,1,1]; DB.capex.scale[p-1]= base>0 ? (v*1e6)/base : 1; clearAllCaches(); render(); }   // input em R$ MM
+// --- premissas de Dívida editáveis ---
+function setDivSpread(i, raw){ const v=parseBR(raw); if(v==null) return; if(DB.divida[i]) DB.divida[i].spread=v/100; clearAllCaches(); render(); }
+function setDivIndex(i, val){ if(DB.divida[i]) DB.divida[i].indice=+val; clearAllCaches(); render(); }
+function setDivSeg(key, raw){ const v=parseBR(raw); if(v==null) return; if(DB.divida.cfg) DB.divida.cfg[key]=v/100; clearAllCaches(); render(); }
 function _mcSel(id, val, opts, onch){
   return `<select id="${id}" onchange="${onch}" style="font-family:inherit;font-size:12px;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%">`
     + opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`).join('') + '</select>';
@@ -2923,9 +2937,13 @@ function renderDCF(){
   return h;
 }
 /* --------------------------------------------------- aba CapEx & Imobilizado */
-function capexInvestPlanta(p){ const C=DB.capex||{}, n=DB.meses.length, num=x=>typeof x==="number"?x:0,
-  i1=(C.inv1&&C.inv1[p-1])||[], i2=(C.inv2&&C.inv2[p-1])||[], out=new Array(n);
-  for(let k=0;k<n;k++) out[k]=num(i1[k])+num(i2[k]); return out; }
+function capexInvestPlanta(p){ const C=DB.capex||{}, n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0,
+  i1=(C.inv1&&C.inv1[p-1])||[], i2=(C.inv2&&C.inv2[p-1])||[], out=new Array(n),
+  scv=((C.scale||[])[p-1]), sc=(typeof scv==="number"&&scv>0)?scv:1;
+  for(let k=0;k<n;k++){ const f=(k>cut?sc:1); out[k]=(num(i1[k])+num(i2[k]))*f; } return out; }
+// total de CapEx de PROJEÇÃO por planta (base, escala=1) — usado no input editável
+function capexProjBase(p){ const C=DB.capex||{}, n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0,
+  i1=(C.inv1&&C.inv1[p-1])||[], i2=(C.inv2&&C.inv2[p-1])||[]; let t=0; for(let k=cut+1;k<n;k++) t+=num(i1[k])+num(i2[k]); return t; }
 function renderCapex(){
   const cut=DB.cutoffIdx, n=DB.meses.length, ce=capexEngine(), num=x=>typeof x==="number"?x:0, LIFE=(DB.capex&&DB.capex.life)||240;
   const invP={}, invCons=new Array(n).fill(0);
@@ -2939,6 +2957,17 @@ function renderCapex(){
   h+=kpi("Depreciação "+lastY+" (R$ MM)", yrMM(yDep[lastY],0), "vintages de "+LIFE+" meses",null,MECH.depreciacao);
   h+=kpi("Imobilizado líquido "+lastY+" (R$ MM)", fmt(imob[lastK]/1e6,0), "saldo no fim do horizonte",null,MECH.depreciacao);
   h+='</div>';
+  // premissas editáveis
+  const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
+  h+='<div class="premcard"><div class="ph"><b>Premissas de CapEx</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="psub">Vida útil (depreciação linear), vida do intangível da holding e o <b>CapEx de projeção por planta</b> (escala o plano futuro preservando o cronograma; o realizado fica intacto). Editar re-projeta na hora.</div>';
+  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
+  h+=rowE("Vida útil dos ativos (anos)", numBox("cx_life", LIFE/12, 0, 'onchange="setCapexLife(this.value)"'));
+  h+=rowE("Vida do intangível holding (anos)", numBox("cx_hl", ((DB.capex&&DB.capex.holdlife)||120)/12, 0, 'onchange="setCapexHoldLife(this.value)"'));
+  for(let p=1;p<=6;p++){ const base=capexProjBase(p); if(base<=0) continue; const scv=((DB.capex.scale||[])[p-1]), sc=(typeof scv==="number"&&scv>0)?scv:1;
+    const nm=(DB.regioes.find(r=>r.id===p)||{}).nome||CAP_PLANTA[p];
+    h+=rowE("CapEx projeção — "+nm+" (R$ MM)", numBox("cx_p"+p, base*sc/1e6, 1, 'onchange="setCapexTotal('+p+',this.value)"')); }
+  h+='</div></div>';
   const L={how:"sum",d:1,div:1e6}, P={how:"last",d:1,div:1e6};
   const rows=[
     {lbl:"CapEx (investimento)",serie:invCons,...L,bold:true,perPlanta:pid=>invP[pid]||new Array(n).fill(0),tip:MECH.depreciacao},
@@ -2977,6 +3006,23 @@ function renderDivida(){
   h+='<h3 class="msub">Dívida — saldo &amp; serviço (R$ MM)</h3>';
   h+=serieTableHTML(rows,"R$ MM");
   h+='<div class="note">Clique em <b>Saldo devedor</b> p/ abrir por instrumento. Cada instrumento: desembolso (tranches), <b>SAC</b> ou <b>PRICE</b>, indexação (IPCA Macro / CDI) + spread, gate de amortização (período + carência). BA e RN têm amortização/pagamento colados (override do plano de financiamento). Juros de competência (despesa da DRE) ≠ juros pagos (caixa).</div>';
+  // premissas editáveis por instrumento (spread + indexador) + seguros
+  const cfg=de.insts.cfg||{};
+  h+='<h3 class="msub">Premissas por instrumento (editável)</h3>';
+  let pt='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Instrumento</th><th>Planta</th><th>Tipo</th><th style="text-align:right">Spread (% a.a.)</th><th>Indexador</th></tr></thead><tbody>';
+  de.insts.forEach((b,i)=>{ const pl=(DB.dividaGpr&&DB.dividaGpr[i])||0;
+    pt+=`<tr><td class="l">${b.name||('Instrumento '+(i+1))}${b.override?' <span style="color:var(--muted);font-size:10px">(amort. colada)</span>':''}</td>`
+      +`<td>${pl?(CAP_PLANTA[pl]||'?'):'Holding'}</td><td>${b.tipo===2?'SAC':'PRICE'}</td>`
+      +`<td style="width:120px">${numBox('dv_s'+i,(b.spread||0)*100,2,'onchange="setDivSpread('+i+',this.value)"')}</td>`
+      +`<td style="width:130px">${_mcSel('dv_i'+i, b.indice, [[1,'IPCA'],[2,'CDI']], "setDivIndex("+i+",this.value)")}</td></tr>`; });
+  pt+='</tbody></table></div>';
+  h+='<div class="psub" style="margin:0 0 6px">Spread (a.a. sobre o indexador) e indexador (IPCA Macro / CDI) de cada instrumento — editável ao vivo. BA/RN têm amortização/pagamento colados (o spread ainda afeta os juros de competência).</div>'+pt;
+  h+='<div class="premcard" style="margin-top:12px"><div class="ph"><b>Seguros da dívida (trimestral)</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="psub">Taxa do seguro sobre o principal em aberto (blocos BA e RN) — alimenta o resultado financeiro e o imp37.</div><div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
+  const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
+  h+=rowE("Seguro RN (% a.a.)", numBox("dv_segrn",(cfg.seg_rate_rn||0)*100,3,'onchange="setDivSeg(\'seg_rate_rn\',this.value)"'));
+  h+=rowE("Seguro BA (% a.a.)", numBox("dv_segba",(cfg.seg_rate_ba||0)*100,3,'onchange="setDivSeg(\'seg_rate_ba\',this.value)"'));
+  h+='</div></div>';
   h+='<h3 class="msub">Dívida rolling p/ caixa mínimo (mecânica 09.07)</h3>';
   h+=minCashDebtPanelHTML();
   return {html:h};
