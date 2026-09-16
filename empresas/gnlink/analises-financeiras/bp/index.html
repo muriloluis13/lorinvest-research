@@ -745,7 +745,39 @@ function wireSubtabs(){
 /* ------------------------------------------------------------- render ---- */
 function updateTopKpi(){ const el=$("#hkpiEVval"); if(!el) return;
   try{ const ev=evParts().ev; el.textContent="R$ "+fmt(ev/1e6,0)+" mi"; }catch(_){ el.textContent="—"; } }
-function render(){
+// Recompute AO VIVO durante o arraste do slider: um render() normal recria o #main inteiro, o que
+// desconecta o slider arrastado e mata a captura do ponteiro (o arraste para). Aqui, quando há um elemento
+// a "preservar", trocamos só os nós de SAÍDA do #main e mantemos intacto o sub-nó que contém o slider ativo
+// — a captura sobrevive e o arraste continua disparando. Fallback: innerHTML cheio (se a estrutura mudou).
+let _preserveEl=null;
+function _setMain(fullHTML){
+  const m=$("#main"), preserve=_preserveEl;
+  if(preserve && m.contains(preserve)){
+    const tmp=document.createElement('div'); tmp.innerHTML=fullHTML;
+    const nn=[...tmp.childNodes], on=[...m.childNodes];
+    let keep=-1; for(let j=0;j<on.length;j++){ if(on[j].nodeType===1 && on[j].contains(preserve)){ keep=j; break; } }
+    if(keep>=0 && nn.length===on.length){ for(let j=0;j<on.length;j++) if(j!==keep) m.replaceChild(nn[j], on[j]); return; }
+  }
+  m.innerHTML=fullHTML;
+}
+// throttle por requestAnimationFrame: no máx. 1 recompute por frame durante o arraste. `fn` aplica a
+// premissa (lê o valor atual do slider no disparo); `el` é preservado no re-render p/ o arraste continuar.
+let _liveRAF=0, _liveArgs=null;
+function _liveThrottle(fn, el){
+  _liveArgs={fn:fn, el:el};
+  if(_liveRAF) return;
+  _liveRAF=requestAnimationFrame(function(){
+    _liveRAF=0; const a=_liveArgs; if(!a) return;
+    try{ a.fn(); }catch(e){}
+    clearAllCaches(); render({preserve:a.el});
+  });
+}
+function _liveCancel(){ if(_liveRAF){ cancelAnimationFrame(_liveRAF); _liveRAF=0; } _liveArgs=null; }
+function premLive(i, el){ _liveThrottle(function(){ const f=_premReg[i]; if(f) f(parseBR(+el.value)); }, el); }
+function liveG(gk, el){ _liveThrottle(function(){ G[gk]=+el.value; }, el); }
+function liveKe(el){ _liveThrottle(function(){ const x=+el.value; if(x>0) DB.dcfConst.ke_real=x; }, el); }
+function render(opts){
+  _preserveEl=(opts&&opts.preserve)||null;   // quando setado, _setMain preserva o slider arrastado
   destroyCharts();
   _premReg=[];                       // registradores de premissas reconstruídos a cada render
   updateTopKpi();                    // Equity Value @Ke ao vivo no topbar
@@ -756,13 +788,13 @@ function render(){
   if(aba.id==="macro"){
     html += `<div class="pglead">Indicadores macro (SELIC/IPCA/CDI/Brent/Henry Hub/Dólar/CPI) — <b>realizado + projeção</b>. A projeção é <b>premissa</b> colada na base <code>gnlink-bp-historico.xlsx</code> (não é fórmula) e dirige toda a indexação (preço, molécula, dívida).</div>`;
     html += renderMacro();
-    m.innerHTML = html;
+    _setMain(html);
     drawMacro();
     return;
   }
   if(aba.id==="volume"){
     const r = renderVolume();
-    m.innerHTML = html + r.html;
+    _setMain(html + r.html);
     wireSubtabs();
     drawVol();
     if(state.volExp) drawVol("cVolBig");
@@ -770,37 +802,37 @@ function render(){
   }
   if(aba.id==="receita"){
     const r = renderReceita();
-    m.innerHTML = html + r.html;
+    _setMain(html + r.html);
     wireSubtabs();
     drawRev(r.rc);
     return;
   }
   if(aba.id==="clientes"){
-    m.innerHTML = html + renderClientes();
+    _setMain(html + renderClientes());
     return;
   }
   if(aba.id==="dashboard"){
-    m.innerHTML = html + renderDashboard();
+    _setMain(html + renderDashboard());
     return;
   }
   if(aba.id==="resumo"){
-    const r=renderResumo(); m.innerHTML=html+r.html; wireSubtabs(); if(r.draw) r.draw(); return;
+    const r=renderResumo(); _setMain(html+r.html); wireSubtabs(); if(r.draw) r.draw(); return;
   }
-  if(aba.id==="balanco"){ m.innerHTML = html + renderBalanco(); return; }
-  if(aba.id==="dcf"){ m.innerHTML = html + renderDCF(); return; }
-  if(aba.id==="capex"){ const r=renderCapex(); m.innerHTML=html+r.html; if(r.draw) r.draw(); return; }
-  if(aba.id==="divida"){ const r=renderDivida(); m.innerHTML=html+r.html; if(r.draw) r.draw(); return; }
+  if(aba.id==="balanco"){ _setMain(html + renderBalanco()); return; }
+  if(aba.id==="dcf"){ _setMain(html + renderDCF()); return; }
+  if(aba.id==="capex"){ const r=renderCapex(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
+  if(aba.id==="divida"){ const r=renderDivida(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
   if(aba.id==="opex"){
-    const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); wireOcat(); if(r.draw) r.draw(); return;
+    const r=renderOpex(); _setMain(html+r.html); wireSubtabs(); wireOcat(); if(r.draw) r.draw(); return;
   }
   if(aba.id==="holding"){
-    const r=renderHolding(); m.innerHTML=html+r.html; if(r.draw) r.draw(); return;
+    const r=renderHolding(); _setMain(html+r.html); if(r.draw) r.draw(); return;
   }
   // demais abas: placeholder com sub-abas de região já operantes
   html += `<div class="pglead">Região selecionada: <b>${regName(state.regiao)}</b>.</div>`;
   html += subtabsHTML();
   html += `<div class="note">Aba em construção (Fase ${aba.fase}). A navegação (sidebar + sub-abas por região) e a base histórica já estão operantes; o motor de cálculo desta aba entra na fase indicada.</div>`;
-  m.innerHTML = html;
+  _setMain(html);
   wireSubtabs();
 }
 const regName = id => id===0 ? "Consolidado" : (DB.regioes.find(r=>r.id===id)||{}).nome || "—";
@@ -3514,10 +3546,10 @@ function gslider(key,gk,lbl,min,max,step){
   const v=G[gk];
   return `<div class="frow"><label>${lbl} <b style="color:var(--accent3)" id="${key}_v">${Math.round(v*100)}%</b></label>
     <input type="range" id="${key}" min="${min}" max="${max}" step="${step}" value="${v}"
-      oninput="document.getElementById('${key}_v').textContent=Math.round(this.value*100)+'%'"
+      oninput="document.getElementById('${key}_v').textContent=Math.round(this.value*100)+'%'; liveG('${gk}', this)"
       onchange="applyG('${gk}',this.value)" style="accent-color:var(--accent3)"></div>`;
 }
-function applyG(gk,val){ G[gk]=+val; clearAllCaches(); render(); }   // clearAllCaches: alavanca cascateia no caixa/DCF (não só no EBITDA)
+function applyG(gk,val){ _liveCancel(); G[gk]=+val; clearAllCaches(); render(); }   // clearAllCaches: alavanca cascateia no caixa/DCF (não só no EBITDA)
 function resetG(){ G={volMult:1,precoMult:1,molMult:1}; clearAllCaches(); render(); }
 
 /* ============================================================ PREMISSAS ====
@@ -3542,7 +3574,7 @@ function clearAllCaches(){
   _minCashCache=null;   // motor da dívida rolling de caixa mínimo
   _aporteCache=null;    // motor do aporte de capital p/ caixa mínimo
 }
-function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
+function premApply(i,val){ _liveCancel(); const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
 function premCtrl(label, unit, disp, apply, o){
   o=o||{}; disp=+disp||0;
@@ -3553,7 +3585,7 @@ function premCtrl(label, unit, disp, apply, o){
   const vid="pv"+i, edited=o.edited?'<span class="prem-edited">alt</span>':'';
   return `<div class="prow"><label>${label}${unit?` <span class="pu">${unit}</span>`:''}${edited}</label>`
     +`<input type="range" class="pslider" min="${lo}" max="${hi}" step="${st}" value="${disp}" `
-    +`oninput="var b=document.getElementById('${vid}'); b.setAttribute('data-raw',+this.value); b.value=fmtIn(+this.value,${dec})" `
+    +`oninput="var b=document.getElementById('${vid}'); b.setAttribute('data-raw',+this.value); b.value=fmtIn(+this.value,${dec}); premLive(${i}, this)" `
     +`onchange="premApply(${i}, +this.value)">`
     +numBox(vid, disp, dec, `onchange="premApply(${i}, this.value)"`, "pnum")
     +`</div>`;
@@ -3788,7 +3820,7 @@ const PREM_OPEX = {
 };
 let DASH={wacc:0.12};
 function onWacc(v){ DASH.wacc=+v; render(); }
-function onKeReal(v){ const x=+v; if(x>0){ DB.dcfConst.ke_real=x; clearAllCaches(); render(); } }   // Ke real → desconto do DCF (move o Equity Value)
+function onKeReal(v){ _liveCancel(); const x=+v; if(x>0){ DB.dcfConst.ke_real=x; clearAllCaches(); render(); } }   // Ke real → desconto do DCF (move o Equity Value)
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
 function resultadoOperacionalSerie(){
   const rec=receitaComp(0).total, ct=custoTotal(0), n=DB.meses.length, out=new Array(n);
@@ -3824,7 +3856,7 @@ function renderDashboard(){
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
   h+=`<div class="frow"><label>Ke real <b style="color:var(--accent3)" id="kereal_v">${fmtPct(_keR,1)}</b> a.a. <span class="pu">desconto do DCF (nominal mês a mês, grosseado pelo IPCA) — <b>move o Equity Value</b></span></label>
       <input type="range" id="kereal" min="0.06" max="0.25" step="0.0025" value="${_keR}"
-        oninput="document.getElementById('kereal_v').textContent=(this.value*100).toFixed(1).replace('.',',')+'%'" onchange="onKeReal(this.value)" style="accent-color:var(--accent3)"></div>`;
+        oninput="document.getElementById('kereal_v').textContent=(this.value*100).toFixed(1).replace('.',',')+'%'; liveKe(this)" onchange="onKeReal(this.value)" style="accent-color:var(--accent3)"></div>`;
   h+='<div class="sec">Premissas globais (what-if) — sobre a projeção (> jul/26)</div>';
   h+=gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01);
   h+=gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005);
