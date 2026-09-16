@@ -2260,7 +2260,9 @@ function capexEngine(){
   for(let k=cut+1;k<n;k++) dfm146[k]=dfm146[k-1]+dfm103[k];
   const dfm147=C.dfm147||[], net=new Array(n);
   for(let k=0;k<n;k++) net[k]=gross[k]+dfm146[k]+num(dfm147[k]);
-  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net});
+  // saída de caixa de CapEx (DFC, DFM208) = −(investimento do mês), gated pelo switch e escalado → VIVO
+  const fciInvest=new Array(n); for(let k=0;k<n;k++) fciInvest[k]= -(cap694[k]+cap699[k]);
+  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net, fciInvest});
 }
 function depreciacaoSerie(){                             // DFM103: realizado da DRE + projeção viva
   const cut=DB.cutoffIdx, d=DB.dre.depreciacao||[], eng=capexEngine().dfm103, n=DB.meses.length, out=new Array(n);
@@ -2371,9 +2373,15 @@ function caixaBalancoEngine(baseMode){
   // capital de giro (níveis = driver × prazo/30). Drivers VIVOS: RecLiq (composição), deduções e CMV.
   // CMV (DFM344, custo dos produtos vendidos = custo total − SG&A planta) agora VIVO — reage aos custos
   // (molécula, gás, liquefação…); no default = colado (validado, erro 0). Realizado usa o actual da planilha.
-  const recliq=receitaLiquidaSerie(), deduc=deducoesSerie(), pess=g("dfm345");
+  const recliq=receitaLiquidaSerie(), deduc=deducoesSerie();
   const cmvColado=g("dfm344"), _custoT=custoTotal(0), _sgaPl=aggByRegiao(sgaSerie(),0), cmv=new Array(n);
   for(let k=0;k<n;k++) cmv[k]= k<=cut ? num(cmvColado[k]) : -(num(_custoT[k])-num(_sgaPl[k]));
+  // Pessoal (DFM345) do capital de giro VIVO a partir de jan/27 (k≥49): = −(salários SG&A planta) +
+  // pessoal da holding. Erro 0 vs colado; a banda de orçamento 2026 (k≤48) fica com o seed colado.
+  const pessColado=g("dfm345"), _hpess=holdingSgaComp().comp.pessoal, pess=new Array(n);
+  { const cmp=(_sgaCache&&_sgaCache.comp)||{}; const salP=new Array(n).fill(0);
+    for(const p of [1,2,3,4,5,6]){ const s=cmp[p]&&cmp[p].salarios; if(s) for(let k=0;k<n;k++) salP[k]+=num(s[k]); }
+    for(let k=0;k<n;k++) pess[k]= k<49 ? num(pessColado[k]) : (-salP[k]+num(_hpess[k])); }
   const F349=C.F349||0, F357=C.F357||0, F359=C.F359||0, H355=C.H355||0, dias351=g("dfm352"), dias355=g("dfm356"), r360=g("dfm360");
   const cr=[],est=[],forn=[],trab=[],trib=[];
   for(let k=0;k<n;k++){ cr[k]=num(recliq[k])*F349/30; est[k]=-num(cmv[k])*num(dias351[k])/30;
@@ -2394,7 +2402,11 @@ function caixaBalancoEngine(baseMode){
   // Div26 (resultado financeiro "Outros"): seguro vivo (BA/RN) + comissão/IOF colado. No default Δ=0.
   const div26frozen=g("div26"), segModel=g("div26_seg"), div26=new Array(n);
   for(let k=0;k<n;k++) div26[k]= k<=cut ? num(div26frozen[k]) : (num(div26frozen[k]) + (num(de.seguros[k])-num(segModel[k])));
-  const r368=g("dfm368"), r374=g("dfm374"), fci=g("dfm208"), fca=g("dfm223"), caixaC=g("dfm130"),
+  // CapEx da DFC (DFM208) VIVO na projeção = saída de caixa do investimento (reage à escala de capex e ao
+  // switch); realizado colado. Corrige o cascateamento da premissa de capex ao caixa/DCF.
+  const fciColado=g("dfm208"), _fciLive=capexEngine().fciInvest, fci=new Array(n);
+  for(let k=0;k<n;k++) fci[k]= k<=cut ? num(fciColado[k]) : num(_fciLive[k]);
+  const r368=g("dfm368"), r374=g("dfm374"), fca=g("dfm223"), caixaC=g("dfm130"),
         div281=g("dfm281"), r292=g("dfm292"), r300=g("dfm300"), r319=g("dfm319"), r316=g("dfm316"),
         d302c=g("dfm302"), d321c=g("dfm321"), d294c=g("dfm294");
   const caixa=new Array(n).fill(0), dfm385=new Array(n).fill(0), resfin=new Array(n).fill(0),
@@ -2439,9 +2451,11 @@ function caixaBalancoEngine(baseMode){
   for(let k=0;k<n;k++){ caixaIni[k]=k>0?caixa[k-1]:0; varCaixa[k]=caixa[k]-caixaIni[k];
     ajusteA[k]=varCaixa[k]-fcoA[k]-fciA[k]-fcfA[k]; }                                    // fecha a DFC em todo período
   // balanço
-  const ac135=g("dfm135"),ac136=g("dfm242"),a140=g("dfm140"),a141=g("dfm141"),a142=g("dfm142"),
+  const ac135=g("dfm135"),ac136=g("dfm242"),a140=g("dfm140"),a141=g("dfm141"),a142c=g("dfm142"),
         a143=g("dfm143"),a148=g("dfm148"),imob=imobilizadoSerie(),
         pc157=g("dfm157"),pc158=g("dfm158"),pc160=g("dfm160"),pnc165=g("dfm165"),div12=g("div12"),div13=g("div13");
+  // ativo fiscal diferido VIVO na projeção = d142 da máquina fiscal (reage às alíquotas); realizado colado
+  const a142=new Array(n); for(let k=0;k<n;k++) a142[k]= k<=cut ? num(a142c[k]) : num(d142Arr[k]);
   const ativoCirc=new Array(n),ativoNC=new Array(n),totAtivo=new Array(n),
         passCirc=new Array(n),passNC=new Array(n),totPass=new Array(n),pl=new Array(n),ident=new Array(n);
   for(let k=0;k<n;k++){
