@@ -189,10 +189,12 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .pslider{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;margin:0;display:block;cursor:pointer}
 .pslider:focus{outline:none}
 .pslider::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:linear-gradient(90deg,var(--accent3) 0 var(--pct,50%),#DCE1E8 var(--pct,50%) 100%)}
-.pslider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;margin-top:-5px;border-radius:50%;background:var(--accent3);border:2px solid #fff;box-shadow:0 1px 2.5px rgba(0,0,0,.28)}
+.pslider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;margin-top:-5px;border-radius:50%;background:var(--accent3);border:none;box-shadow:0 1px 2.5px rgba(0,0,0,.28)}
 .pslider::-moz-range-track{height:3px;border-radius:3px;background:#DCE1E8}
 .pslider::-moz-range-progress{height:3px;border-radius:3px;background:var(--accent3)}
-.pslider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent3);border:2px solid #fff;box-shadow:0 1px 2.5px rgba(0,0,0,.28)}
+.pslider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent3);border:none;box-shadow:0 1px 2.5px rgba(0,0,0,.28)}
+.pslider:focus::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(226,58,46,.22)}
+.pslider:focus::-moz-range-thumb{box-shadow:0 0 0 4px rgba(226,58,46,.22)}
 .premgrp{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin:12px 0 2px;grid-column:1/-1}
 .btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
@@ -1764,7 +1766,7 @@ function premCapacidadePanel(reg){
   const pp=premPlanta(reg), nome=(DB.regioes.find(r=>r.id===pp)||{}).nome||("Planta "+pp);
   const O=(_premOrig&&_premOrig.capPrem)||{};
   let h='<div class="premcard"><div class="ph"><b>Premissas — Curva de capacidade</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'capacidade\')">restaurar</button></div>';
   h+='<div class="psub">Capacidade instalada por fase de expansão (m³/dia), com a data de início de cada fase. Alterar re-calcula a <b>utilização</b> ao vivo. Editando: <b>'+nome+'</b>.</div>';
   if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
@@ -2011,7 +2013,7 @@ function premClientePanel(c){
   const O=(DB.clientesBase||[]).find(x=>x.id===c.id)||{};
   const brent=isBrentInd(pz.indicador);
   let h='<div class="premcard" style="margin:2px 0 12px"><div class="ph"><b>Premissas de preço &amp; contrato</b>';
-  h+='<span class="badge-ok">valores reais · ao vivo</span></div>';
+  h+='</div>';
   h+='<div class="psub">Só as premissas que <b>re-projetam</b>: slider ou caixa aplica na hora (sem botão). '
     +(brent?'Cliente <b>Brent</b> — preço = resíduo × fator IPCA + molécula da planta.':'Cliente <b>IPCA</b> — preço = base × fator IPCA.')+'</div>';
   h+='<div class="premgrid">';
@@ -2173,7 +2175,7 @@ function premHoldingPanel(){
   const N=(lbl,k,unit,o)=>premCtrl(lbl,unit, S[k]==null?0:+S[k], (x=>v=>{ (DB.holdingSga.scalars)[k]=+v; })(0), Object.assign({edited:edN(k)},o||{}));
   const P=(lbl,k,o)=>premCtrl(lbl,"%", (S[k]==null?0:+S[k])*100, v=>{ DB.holdingSga.scalars[k]=(+v)/100; }, Object.assign({edited:edN(k)},o||{}));
   let h='<div class="premcard"><div class="ph"><b>Premissas — SG&A da holding</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'holding\')">restaurar</button></div>';
   h+='<div class="psub">Overhead da matriz — headcount, viagens (elasticidade ao volume) e Opex ERP. Alterar re-projeta o EBITDA ao vivo.</div>';
   h+='<div class="premgrid">';
@@ -2222,7 +2224,7 @@ function renderHolding(){
   h+=kpi("Juros da holding (projeção)","R$ "+fmt(hJurosTot/1e6,0)+" mi","despesa de juros acumulada (competência)",null,MECH.vpl);
   h+=kpi("Amortização intangível holding","≈ "+Math.round(((DB.capex&&DB.capex.holdlife)||120)/12)+" anos","vida do pool de intangível",null,MECH.depreciacao);
   h+='</div>';
-  h+='<div class="premcard"><div class="ph"><b>Premissas de estrutura de capital da holding</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas de estrutura de capital da holding</b></div>';
   h+='<div class="psub">Vida de amortização do intangível da holding e as taxas dos instrumentos de <b>dívida da holding</b> (as dívidas de planta ficam na aba Dívida). Editar re-projeta o resultado financeiro e o DCF ao vivo.</div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">';
   h+=premCtrl("Vida do intangível holding","anos", ((DB.capex&&DB.capex.holdlife)||120)/12, v=>{ if(+v>0) DB.capex.holdlife=Math.round((+v)*12); }, {dec:0,min:1,max:30,step:1});
@@ -2718,7 +2720,7 @@ function setBalConst(key, raw, pct){ const v=parseBR(raw); if(v==null) return; D
 function fiscalWcPanelHTML(){
   const D=DB.dreBelow||{}, B=(DB.balanco&&DB.balanco.const)||{}, num=x=>typeof x==="number"?x:0;
   const grid='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">';
-  let h='<div class="premcard"><div class="ph"><b>Premissas fiscais &amp; de capital de giro</b><span class="badge-ok">editável · ao vivo</span></div>';
+  let h='<div class="premcard"><div class="ph"><b>Premissas fiscais &amp; de capital de giro</b></div>';
   h+='<div class="psub">Editar re-projeta ao vivo. <b>Capital de giro</b> move o caixa e o DCF diretamente. <b>Impostos sobre a receita</b> (ICMS/PIS/COFINS) ajustam a receita bruta/deduções e os tributos a pagar — a receita <i>líquida</i> é a primitiva do modelo (vem dos contratos), então o EBITDA não muda. <b>IR/CSLL</b> ajustam o lucro líquido e o IR de <i>caixa</i> (agora vivo, defasado 1 mês pela máquina de prejuízo fiscal), movendo o Equity Value pelo DCF.</div>';
   h+='<div class="premgrp">Impostos sobre a receita</div>'+grid;
   h+=premCtrl("PIS","%", num((D.pis_cofins||[])[0])*100, v=>{ DB.dreBelow.pis_cofins[0]=(+v)/100; }, {dec:2,min:0,max:10,step:0.05});
@@ -3147,7 +3149,7 @@ function renderDCF(){
   h+='</tbody></table></div>';
   // ---- Saída por múltiplo de EBITDA (exit) ----
   h+='<h3 class="msub">Valuation por múltiplo de EBITDA (saída)</h3>';
-  h+='<div class="premcard"><div class="ph"><b>Premissas de saída</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas de saída</b></div>';
   h+='<div class="psub">Valuation alternativo: EBITDA dos 12 meses anteriores ao <b>mês de saída</b> × <b>múltiplo de EBITDA</b>, trazido a valor presente (Ke) da data-base ao mês de saída = Enterprise Value; menos a dívida líquida da data-base = Equity Value. Também gera o <b>Implied EV/EBITDA</b> do DCF.</div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">';
   h+=`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">Mês de saída (Mmm/AAAA)</label><input id="exitYm" value="${fmtMesY(state.exitYm)}" placeholder="Mmm/AAAA" onchange="setExitYm(this.value)" style="max-width:140px"></div>`;
@@ -3196,7 +3198,7 @@ function renderCapex(){
   h+='</div>';
   // premissas editáveis
   const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
-  h+='<div class="premcard"><div class="ph"><b>Premissas de CapEx</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas de CapEx</b></div>';
   h+='<div class="psub">Vida útil (depreciação linear), vida do intangível da holding e o <b>CapEx de projeção por planta</b> (escala o plano futuro preservando o cronograma; o realizado fica intacto). Editar re-projeta na hora.</div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
   h+=premCtrl("Vida útil dos ativos","anos", LIFE/12, v=>{ if(+v>0) DB.capex.life=Math.round((+v)*12); }, {dec:0,min:1,max:40,step:1});
@@ -3254,7 +3256,7 @@ function renderDivida(){
       +`<td style="width:130px">${_mcSel('dv_i'+i, b.indice, [[1,'IPCA'],[2,'CDI']], "setDivIndex("+i+",this.value)")}</td></tr>`; });
   pt+='</tbody></table></div>';
   h+='<div class="psub" style="margin:0 0 6px">Spread (a.a. sobre o indexador) e indexador (IPCA Macro / CDI) de cada instrumento — editável ao vivo. BA/RN têm amortização/pagamento colados (o spread ainda afeta os juros de competência).</div>'+pt;
-  h+='<div class="premcard" style="margin-top:12px"><div class="ph"><b>Seguros da dívida (trimestral)</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="premcard" style="margin-top:12px"><div class="ph"><b>Seguros da dívida (trimestral)</b></div>';
   h+='<div class="psub">Taxa do seguro sobre o principal em aberto (blocos BA e RN) — alimenta o resultado financeiro e o imp37.</div><div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
   const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
   h+=premCtrl("Seguro RN","% a.a.", (cfg.seg_rate_rn||0)*100, v=>{ if(DB.divida.cfg) DB.divida.cfg.seg_rate_rn=(+v)/100; }, {dec:3,min:0,max:5,step:0.05});
@@ -3579,8 +3581,10 @@ function snapshotPrem(){
               logGlob:C(DB.logGlob), regasCli:C(DB.regasCli), regasGlob:C(DB.regasGlob), cryoMW:CRYO_MW.slice(),
               sgaCfg:C(DB.sgaCfg), sgaGlob:C(DB.sgaGlob), compTerm:C(DB.compTerm),
               molCompBase:C(DB.molCompBase), molCompBasePreco:C(DB.molCompBasePreco),
-              molPiso:C(DB.molPiso), molTeto:C(DB.molTeto), molPrem:C(DB.molPrem), holdingSga:C(DB.holdingSga), capPrem:C(DB.capPrem) };
+              molPiso:C(DB.molPiso), molTeto:C(DB.molTeto), molPrem:C(DB.molPrem), holdingSga:C(DB.holdingSga), capPrem:C(DB.capPrem),
+              keReal:(DB.dcfConst&&DB.dcfConst.ke_real) };
 }
+function resetKe(){ if(_premOrig&&_premOrig.keReal!=null) DB.dcfConst.ke_real=_premOrig.keReal; clearAllCaches(); render(); }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
@@ -3588,7 +3592,10 @@ function clearAllCaches(){
   _minCashCache=null;   // motor da dívida rolling de caixa mínimo
   _aporteCache=null;    // motor do aporte de capital p/ caixa mínimo
 }
-function premApply(i,val){ _liveCancel(); const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
+function premApply(i,val){ _liveCancel(); const f=_premReg[i]; if(!f) return;
+  const keep=document.activeElement && document.activeElement.id==='pr'+i;   // mantém foco → setas ←/→ do teclado seguem funcionando
+  f(parseBR(val)); clearAllCaches(); render();
+  if(keep){ const el=document.getElementById('pr'+i); if(el) el.focus(); } }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
 function premCtrl(label, unit, disp, apply, o){
   o=o||{}; disp=+disp||0;
@@ -3607,7 +3614,7 @@ function premCtrl(label, unit, disp, apply, o){
     +   `onclick="premEdit(${i})" onkeydown="if(event.key==='Enter'){event.preventDefault();premEdit(${i});}">${_pvalTxt(disp,dec,unit)}</span>`
     +   `<input type="text" inputmode="decimal" class="numfmt pedit" id="${vid}" data-dec="${dec}" data-raw="${disp}" value="${fmtIn(disp,dec)}" style="display:none" `
     +     `onchange="premApply(${i}, this.value)" onblur="premEditDone(${i})" onkeydown="if(event.key==='Enter')this.blur()"></div>`
-    +`<input type="range" class="pslider" data-dec="${dec}" min="${lo}" max="${hi}" step="${st}" value="${disp}" style="--pct:${hi>lo?Math.min(100,Math.max(0,(disp-lo)/(hi-lo)*100)):0}%" `
+    +`<input type="range" class="pslider" id="pr${i}" data-dec="${dec}" min="${lo}" max="${hi}" step="${st}" value="${disp}" style="--pct:${hi>lo?Math.min(100,Math.max(0,(disp-lo)/(hi-lo)*100)):0}%" `
     +   `oninput="premSlide(${i}, this)" onchange="premApply(${i}, +this.value)">`
     +`</div>`;
 }
@@ -3657,7 +3664,7 @@ function premLiquefPanel(reg){
   const arr=(label,key,unit,o)=> premCtrl(label,unit, PL[key]?+PL[key][i]:0,
                 v=>{ (PL[key]=PL[key]||[])[i]=+v; }, Object.assign({edited:ed(key)},o));
   let h='<div class="premcard"><div class="ph"><b>Premissas — Liquefação</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'liquef\')">restaurar</button></div>';
   h+='<div class="psub">Valores literais do modelo, na unidade real. Alterar re-projeta ao vivo (energia, insumos, O&M…). Editando: <b>'+nome+'</b>.</div>';
   if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
@@ -3701,7 +3708,7 @@ function premLogPanel(reg){
   const O=_premOrig, plantas = reg>0?[reg]:[1,2,3,4,5,6];
   const modals=_grpBy(DB.logCli, logModal), modals0=O?_grpBy(O.logCli, logModal):{};
   let h='<div class="premcard"><div class="ph"><b>Premissas — Logística</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'log\')">restaurar</button></div>';
   h+='<div class="psub">Custos por <b>modal de distribuição</b> (gerais, da Base Premissas) — editar aplica a todos os clientes ativos daquele modal. A <b>distância média</b> é específica do cliente (aba Clientes, no card). Cavalo mecânico é por planta.</div>';
   h+='<div class="premgrid">';
@@ -3734,7 +3741,7 @@ function premLogPanel(reg){
 function premCompTermPanel(reg, field, titulo, sub){
   const CT=DB.compTerm, O=_premOrig?_premOrig.compTerm:null, plantas=reg>0?[reg]:[1,2,3,4,5,6];
   let h='<div class="premcard"><div class="ph"><b>Premissas — '+titulo+'</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'comp\')">restaurar</button></div>';
   h+='<div class="psub">'+sub+'</div><div class="premgrid">';
   for(const p of plantas){ const c=CT[String(p)]; if(!c) continue;
@@ -3750,7 +3757,7 @@ function premSgaPanel(reg){
   const S=DB.sgaCfg, O=_premOrig?_premOrig.sgaCfg:null, pp=premPlanta(reg), key=String(pp), c=S[key];
   const nome=(DB.regioes.find(r=>r.id===pp)||{}).nome||("Planta "+pp);
   let h='<div class="premcard"><div class="ph"><b>Premissas — SG&A da planta</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'sga\')">restaurar</button></div>';
   h+='<div class="psub">Salários, seguros, serviços, segurança, frota… na unidade real. Editando: <b>'+nome+'</b>.</div>';
   if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
@@ -3784,7 +3791,7 @@ function premRegasPanel(reg){
   const cliById={}; if(O) O.regasCli.forEach(c=>cliById[String(c.id)+"|"+c.planta]=c);
   const cls=DB.regasCli.filter(rc=>plantas.includes(+rc.planta));
   let h='<div class="premcard"><div class="ph"><b>Premissas — Regás</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'regas\')">restaurar</button></div>';
   h+='<div class="psub">Estocagem por <b>modal</b> (geral, da Base Premissas: ISO 8 bar / 18 bar / Carreta GNC) — editar aplica a todos os clientes ativos do modal. Globais Furui abaixo.</div>';
   h+='<div class="premgrid">';
@@ -3815,7 +3822,7 @@ function premMoleculaPanel(reg){
   const ind=(DB.molPrem.indicador||[])[i]||"—";
   const cb=DB.molCompBase[pp];
   let h='<div class="premcard"><div class="ph"><b>Premissas — Molécula</b>';
-  h+='<span class="badge-ok">valores reais · editável</span><span class="hspace"></span>';
+  h+='<span class="hspace"></span>';
   h+='<button class="btn-reset" onclick="premReset(\'mol\')">restaurar</button></div>';
   h+='<div class="psub">Custo-base do gás/molécula por planta (R$/m³), piso/teto e parâmetros do reajuste. O nível editado desloca a projeção preservando a forma da curva; o motor de reajuste (IPCA/Brent/Dólar) continua vivo. Reajuste: <b>'+ind+'</b>. Editando: <b>'+nome+'</b>.</div>';
   if(reg===0){ h+='<div class="premchips">'+DB.regioes.filter(r=>r.id<=6).map(r=>
@@ -3890,18 +3897,17 @@ function renderDashboard(){
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+='</div>';
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
-  h+='<div class="cform"><div class="sec">Taxa de desconto — Ke real (custo de capital próprio)'+help(MECH.vpl)+'</div>';
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
-  h+='<div class="premgrid" style="grid-template-columns:1fr">'+premCtrl("Ke real (a.a.)","%", _keR*100, v=>{ const x=(+v)/100; if(x>0) DB.dcfConst.ke_real=x; }, {dec:1,min:6,max:25,step:0.25})+'</div>';
-  h+='<div class="psub" style="margin:2px 0 0">Desconto do DCF (nominal mês a mês, grosseado pelo IPCA) — <b>move o Equity Value</b>.</div>';
-  h+='<div class="sec">Premissas globais (what-if) — sobre a projeção (> jul/26)</div>';
+  h+='<div class="premcard"><div class="ph"><b>Taxa de desconto — Ke real</b>'+help(MECH.vpl)+'<span class="hspace"></span><button class="btn-reset" onclick="resetKe()">restaurar</button></div>';
+  h+='<div class="psub">Custo de capital próprio. Desconto do DCF (nominal mês a mês, grosseado pelo IPCA) — <b>move o Equity Value</b>.</div>';
+  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">'+premCtrl("Ke real (a.a.)","%", _keR*100, v=>{ const x=(+v)/100; if(x>0) DB.dcfConst.ke_real=x; }, {dec:1,min:6,max:25,step:0.25})+'</div></div>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas globais (what-if)</b><span class="hspace"></span><button class="btn-reset" onclick="resetG()">restaurar</button></div>';
+  h+='<div class="psub">Multiplicadores sobre a projeção (&gt; jul/26) — cascateiam por Receita/OPEX/Resumo e pelo VPL.'+(gAtivo()?' <b style="color:var(--orange)">• ativas</b>':'')+'</div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">'
     +gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01)
     +gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005)
     +gslider("g_mol","molMult","Custo da molécula (× base)",0.8,1.2,0.005)
-    +'</div>';
-  h+=`<div class="formbtns"><button class="btn-ghost" onclick="resetG()">Resetar (100%)</button><span class="okmsg">${gAtivo()?"premissas ativas — cascateiam por Receita/OPEX/Resumo e pelo VPL acima":""}</span></div>`;
-  h+='</div>';
+    +'</div></div>';
   // resumo operacional por ano
   const ks=Object.keys(yRO).sort();
   let t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM/ano</th>';
