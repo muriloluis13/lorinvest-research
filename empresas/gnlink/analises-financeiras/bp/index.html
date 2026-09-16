@@ -2576,6 +2576,34 @@ function setCapexTotal(p, raw){ const v=parseBR(raw); if(v==null||v<0) return; c
 function setDivSpread(i, raw){ const v=parseBR(raw); if(v==null) return; if(DB.divida[i]) DB.divida[i].spread=v/100; clearAllCaches(); render(); }
 function setDivIndex(i, val){ if(DB.divida[i]) DB.divida[i].indice=+val; clearAllCaches(); render(); }
 function setDivSeg(key, raw){ const v=parseBR(raw); if(v==null) return; if(DB.divida.cfg) DB.divida.cfg[key]=v/100; clearAllCaches(); render(); }
+// --- premissas fiscais (DreBelow) e de capital de giro (Balanco.const) editáveis ---
+function setDreB(key, raw, pct){ const v=parseBR(raw); if(v==null) return; DB.dreBelow[key]= pct? v/100 : v; clearAllCaches(); render(); }
+function setDreBArr(key, i, raw, pct){ const v=parseBR(raw); if(v==null) return; const a=DB.dreBelow[key]; if(Array.isArray(a)){ a[i]= pct? v/100 : v; clearAllCaches(); render(); } }
+function setBalConst(key, raw, pct){ const v=parseBR(raw); if(v==null) return; DB.balanco.const[key]= pct? v/100 : v; clearAllCaches(); render(); }
+function fiscalWcPanelHTML(){
+  const D=DB.dreBelow||{}, B=(DB.balanco&&DB.balanco.const)||{}, num=x=>typeof x==="number"?x:0;
+  const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
+  const grid='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(175px,1fr))">';
+  let h='<div class="premcard"><div class="ph"><b>Premissas fiscais &amp; de capital de giro</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="psub">Editar re-projeta ao vivo. <b>Capital de giro</b> move o caixa e o DCF diretamente. <b>Impostos sobre a receita</b> (ICMS/PIS/COFINS) ajustam a receita bruta/deduções e os tributos a pagar — a receita <i>líquida</i> é a primitiva do modelo (vem dos contratos), então o EBITDA não muda. <b>IR/CSLL</b> ajustam o lucro líquido (competência); o IR de <i>caixa</i> do DCF é colado, então o Equity Value reage pouco à alíquota.</div>';
+  h+='<div class="premgrp">Impostos sobre a receita</div>'+grid;
+  h+=rowE("PIS (%)", numBox("fx_pis",num((D.pis_cofins||[])[0])*100,2,'onchange="setDreBArr(\'pis_cofins\',0,this.value,true)"'));
+  h+=rowE("COFINS (%)", numBox("fx_cofins",num((D.pis_cofins||[])[1])*100,2,'onchange="setDreBArr(\'pis_cofins\',1,this.value,true)"'));
+  for(let p=0;p<6;p++){ const nm=CAP_PLANTA[p+1]; h+=rowE("ICMS "+nm+" (%)", numBox("fx_icms"+p,num((D.icms||[])[p])*100,1,'onchange="setDreBArr(\'icms\','+p+',this.value,true)"')); }
+  h+='</div><div class="premgrp">IR/CSLL (máquina de prejuízo fiscal)</div>'+grid;
+  h+=rowE("CSLL (%)", numBox("fx_csll",num(D.E30)*100,1,'onchange="setDreB(\'E30\',this.value,true)"'));
+  h+=rowE("IRPJ (%)", numBox("fx_irpj",num(D.E31)*100,1,'onchange="setDreB(\'E31\',this.value,true)"'));
+  h+=rowE("IRPJ adicional (%)", numBox("fx_adic",num(D.E32)*100,1,'onchange="setDreB(\'E32\',this.value,true)"'));
+  h+=rowE("Limite do adicional (R$/mês)", numBox("fx_lim",num(D.E33),0,'onchange="setDreB(\'E33\',this.value)"'));
+  h+=rowE("Uso de prejuízo fiscal (% do lucro)", numBox("fx_nol",num(D.E34)*100,0,'onchange="setDreB(\'E34\',this.value,true)"'));
+  h+='</div><div class="premgrp">Capital de giro</div>'+grid;
+  h+=rowE("Prazo de recebíveis (dias)", numBox("wc_rec",num(B.F349),1,'onchange="setBalConst(\'F349\',this.value)"'));
+  h+=rowE("Prazo de pessoal (dias)", numBox("wc_pes",num(B.F357),1,'onchange="setBalConst(\'F357\',this.value)"'));
+  h+=rowE("Fator de tributos a pagar", numBox("wc_trib",num(B.F359),2,'onchange="setBalConst(\'F359\',this.value)"'));
+  h+=rowE("Rendimento do caixa (coef. × CDI)", numBox("wc_rend",num(B.G383),4,'onchange="setBalConst(\'G383\',this.value)"'));
+  h+='</div></div>';
+  return h;
+}
 function _mcSel(id, val, opts, onch){
   return `<select id="${id}" onchange="${onch}" style="font-family:inherit;font-size:12px;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%">`
     + opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`).join('') + '</select>';
@@ -2847,6 +2875,7 @@ function renderBalanco(){
       {lbl:"Reserva legal",serie:e.resLegal},
     ]},
   ];
+  h+=fiscalWcPanelHTML();   // premissas fiscais (impostos) + capital de giro editáveis
   h+='<h3 class="msub">Balanço Patrimonial (R$ MM, saldo no fim do período)</h3>';
   h+='<div class="note" style="margin:0 0 8px">Clique numa linha em <b>negrito</b> (Ativo/Passivo Circulante, Não Circulante, Patrimônio Líquido) para <b>abrir/recolher</b> o detalhamento de cada conta. Ativo Imobilizado vem do módulo de capex; a dívida (CP+LP) traz o saldo devedor por fórmula; PL = capital + lucros acumulados + reserva legal. A identidade Ativo = Passivo + PL fecha a ~0,01%.</div>';
   h+=serieTableHTML(rows,"R$ MM");
