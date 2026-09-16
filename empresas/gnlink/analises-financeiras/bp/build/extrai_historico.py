@@ -1011,6 +1011,7 @@ def extract_balanco(wb):
     out["dcf_const"]["mincash_index"] = 0        # 0=IPCA, 1=DI
     out["dcf_const"]["mincash_freq_m"] = 3       # 3=trimestral, 6=semestral, 1=mensal
     out["dcf_const"]["mincash_flatfee"] = 0.0
+    out["dcf_const"]["mincash_tenor_m"] = 12     # prazo da dívida rolling (12m = 1 ano)
     return out
 
 
