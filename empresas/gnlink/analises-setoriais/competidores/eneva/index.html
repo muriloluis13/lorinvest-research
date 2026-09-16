@@ -395,6 +395,8 @@ main{padding:17px 24px 54px;max-width:1440px;margin:0 auto}
 
 
 /* --- extras Eneva --- */
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.ichip{font-size:11.5px;font-weight:700;color:var(--accent);background:#E7F2F1;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 .hbtns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .hbtn{font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);background:#E7F1F0;border:1px solid var(--line);border-radius:7px;padding:5px 11px;cursor:pointer}
 .hbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -1327,18 +1329,22 @@ function renderMarket(){
 /* ---------- 7. Crescimento & LRCAP ---------- */
 function renderGrowth(){
   const g=CORP.crescimento, lr=CORP.lrcap2026;
-  // LRCAP destaque
-  let h=card(head('cic-tp','LRCAP 2026 — o marco transformacional',esc(lr.resumo))+
+  /* --- sub-aba 1: LRCAP 2026 --- */
+  const s1=card(head('cic-tp','LRCAP 2026 — o marco transformacional',null,'Leilão de Reserva de Capacidade')+
+    lead(esc(lr.resumo))+
     '<div class="big">'+lr.capacidade_contratada.map(k=>`<div class="bigc"><div class="n">${esc(k[0])}</div><div class="l">${esc(k[1])}</div></div>`).join('')+'</div>'+
-    `<div class="note"><b>Receita fixa:</b> ${esc(lr.receita_fixa_total)}</div>`,'tinted');
-  // pipeline
-  h+=card(head('cic-growth','Pipeline de crescimento','Projetos contratados e em desenvolvimento.')+
-    `<div class="deals">`+g.pipeline.map(p=>`<div class="deal"><div class="dt">${esc([p.capacidade_mw?fMn(p.capacidade_mw)+' MW':'',p.cod&&p.cod!=='N/A'?'COD '+p.cod:''].filter(Boolean).join(' · ')||'projeto')}</div><div class="dm" style="font-size:14px">${esc(p.projeto)}</div><div class="dd">${esc(p.descricao)}${p.receita_fixa?`<br><b style="color:var(--accent)">Receita fixa:</b> ${esc(p.receita_fixa)}`:''}${p.capex?` · <b>Capex:</b> ${esc(p.capex)}`:''}</div></div>`).join('')+`</div>`);
-  // crescimento contratado 12m (dos destaques 2T26 que falam de receita fixa a entrar)
-  h+=card(head('cic-proj','Crescimento contratado — próximos passos','Destaques do 2T26 e receita fixa a entrar.')+blist(CORP.destaques_2t26.map(esc)));
-  // estratégia
-  h+=card(head('cic-emp','Pilares estratégicos','')+blist(g.estrategia.map(esc)));
-  $('p-growth').innerHTML=h;
+    `<div class="note"><b>Receita fixa contratada:</b> ${esc(lr.receita_fixa_total)}</div>`+
+    ((lr.novos_hubs&&lr.novos_hubs.length)?`<div class="chiprow">${lr.novos_hubs.map(x=>`<span class="ichip">${esc(x)}</span>`).join('')}</div>`:''),'tinted');
+  /* --- sub-aba 2: Pipeline --- */
+  const dealCard=p=>`<div class="deal"><div class="dt">${esc([p.capacidade_mw?fMn(p.capacidade_mw)+' MW':'',p.cod&&p.cod!=='N/A'?'COD '+p.cod:''].filter(Boolean).join(' · ')||'projeto')}</div><div class="dm" style="font-size:14px">${esc(p.projeto)}</div><div class="dd">${esc(p.descricao)}${p.receita_fixa?`<br><b style="color:var(--accent)">Receita fixa:</b> ${esc(p.receita_fixa)}`:''}${p.capex?` · <b>Capex:</b> ${esc(p.capex)}`:''}</div></div>`;
+  let s2=card(head('cic-growth','Pipeline de crescimento','Projetos contratados e em desenvolvimento — geração e E&P.')+
+    lead('O ciclo de crescimento contratado adiciona <b>+R$ 161 bi</b> de receita fixa e <b>+3,65 GW</b> de nova capacidade, viabilizando dois novos hubs de gás (Ceará e Sudeste) e a expansão de Sergipe — sobre terminais já custeados pelas térmicas.')+
+    `<div class="deals">`+g.pipeline.map(dealCard).join('')+`</div>`);
+  s2+=card(head('cic-proj','Crescimento contratado e execução — '+Q[L],'Receita fixa a entrar e status de obras (release do trimestre).')+blist(CORP.destaques_2t26.map(esc)));
+  /* --- sub-aba 3: Estratégia --- */
+  const s3=card(head('cic-emp','Pilares estratégicos','Como a Eneva pretende sustentar o crescimento com disciplina de capital.')+
+    vectors(g.estrategia.map((e,i)=>({n:'Pilar '+(i+1),v:'',d:esc(e),c:C.teal}))));
+  $('p-growth').innerHTML=subBar('gro',['LRCAP 2026','Pipeline','Estratégia'])+subpane('gro',0,s1)+subpane('gro',1,s2)+subpane('gro',2,s3);
 }
 
 /* ---------- 8. Valuation (stub) ---------- */
