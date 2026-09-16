@@ -2430,8 +2430,46 @@ function fatorDescMensal(){
 }
 function vplMensal(gen){ const n=DB.meses.length, cut=DB.cutoffIdx, f=fatorDescMensal(), num=x=>typeof x==="number"?x:0;
   let v=0; for(let k=cut+1;k<n;k++) v+=num(gen[k])*f[k]; return v; }
-function genConsMensal(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n);
+function genConsRaw(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n);
   for(let k=0;k<n;k++) g[k]=num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k]); return g; }
+// Plantas desligadas por PADRÃO do modelo (flag=0, ex.: Terminal PE). O switch do usuário são as
+// plantas desligadas ALÉM dessas.
+function _modelOffSet(){ const fl=(DB.dcfProj||{}).flags||{}, s={}; for(let id=1;id<=6;id++){ if(fl[CAP_PLANTA[id]]===0) s[id]=true; } return s; }
+// Referências no CENÁRIO-BASE do modelo (só as plantas de padrão-off desligadas): geração consolidada
+// bruta, IR consolidado VIVO e geração pré-imposto por planta. Congeladas até mudar premissa (cache).
+let _dcfBaseCache=null, _capturingBase=false;
+function dcfSwitchBase(){
+  if(_dcfBaseCache) return _dcfBaseCache;
+  const n=DB.meses.length, num=x=>typeof x==="number"?x:0, saved=state.plantOff;
+  _capturingBase=true;                        // evita recursão: perProjEngine não aplica a reação de IR aqui
+  state.plantOff=_modelOffSet(); clearAllCaches();
+  const genDef=genConsRaw(), impDef=impostosSerie().slice(), preTax={};
+  for(const [nm] of PERPROJ){ const pe=perProjEngine()[nm];
+    preTax[nm]=pe.ger.map((v,k)=> num(v)-num(pe.imp[k])); }   // ger inclui imposto (neg.) → pré-imposto = ger − imp
+  state.plantOff=saved; clearAllCaches(); _capturingBase=false;
+  return (_dcfBaseCache={genDef, impDef, preTax});
+}
+// Geração consolidada MENSAL com o switch de plantas cascateando por TODO o consolidado (capex/IR/dívida
+// inclusive). Reconstrução: base − Σ(geração pré-imposto das plantas desligadas pelo usuário) + Δ do IR
+// consolidado VIVO (máquina de prejuízo fiscal). No cenário-base ⇒ = geração bruta (nada muda). Valida
+// contra o modelo recalculado: default 184,85M; PR+BA+RN (AR+SAL off) = −116,9M.
+function genConsMensal(){
+  const base=dcfSwitchBase(), off=_modelOffSet(), n=DB.meses.length, num=x=>typeof x==="number"?x:0;
+  // plantas desligadas pelo usuário (além do padrão-off do modelo)
+  const extra=[]; for(const [nm,pid] of PERPROJ){ if(!plantOn(pid) && !off[pid]) extra.push(nm); }
+  if(!extra.length) return base.genDef.slice();                    // cenário-base: nada a cascatear
+  // Reconstrução: base − Σ(geração PRÉ-IMPOSTO das plantas desligadas) + reação do IR de CAIXA.
+  // O IR de caixa (dfm195, colado) não reage ao switch; a máquina de IR accrual VIVA reage (lucro). O IR de
+  // caixa ≈ accrual (defasagem 1 mês + diferido), então escalamos o IR caixa pela RAZÃO da accrual viva
+  // (agora/base) mês a mês — captura o benefício fiscal cruzado das plantas restantes. Valida vs o modelo
+  // recalculado (COM): AR+SAL off ⇒ ~−117M (alvo −116,9M).
+  const impNow=impostosSerie(), cash=caixaBalancoEngine().irccsll, g=new Array(n);
+  for(let k=0;k<n;k++){ let rem=0; for(const nm of extra) rem+=num(base.preTax[nm][k]);
+    const iD=num(base.impDef[k]), iN=num(impNow[k]);
+    const taxReact = (Math.abs(iD)>1) ? num(cash[k])*(iN/iD - 1) : 0;   // Δ do IR caixa via razão da accrual
+    g[k]=num(base.genDef[k]) - rem + taxReact; }
+  return g;
+}
 function dcfConsolidado(){
   const B=DB.balanco||{}, C=B.const||{}, F20=C.F20||0, F22=C.F22||0, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
   const anos=(B.dcf_anos||[]).map(x=>x==null?null:Math.round(x)), gy=dcfConsGenLive();
@@ -2487,6 +2525,7 @@ const PERPROJ=[["PR",1],["BA",2],["RN",3],["PE",4],["AR",5],["SAL",6]];
 let _perProjCache=null;
 function perProjEngine(){
   if(_perProjCache) return _perProjCache;
+  if(!_capturingBase) dcfSwitchBase();   // garante a base pronta (e caches limpos) antes de computar ao vivo
   const n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0, dp=DB.dcfProj||{flags:{},debt:{}};
   const consRL=receitaLiquidaSerie();                                    // DFM37
   // consolWC = DFM196 (Δ capital de giro consolidado): realizado colado (dfm196) + projeção viva (waterfall)
@@ -2496,6 +2535,13 @@ function perProjEngine(){
   // (≠ impostosSerie(), que é o imposto de COMPETÊNCIA da DRE, pela máquina de NOL de 2 entidades.)
   const dfm195=(DB.balanco&&DB.balanco.dfm195)||[], consIR=new Array(n);
   for(let k=0;k<n;k++) consIR[k]=num(dfm195[k]);
+  // Reação do IR de caixa ao switch (mesma lógica do consolidado): escala o IR caixa (colado, não reage)
+  // pela razão da máquina de IR accrual VIVA (agora/base). Só quando o usuário desligou alguma planta.
+  if(!_capturingBase){
+    const offm=_modelOffSet(); let hasExtra=false; for(let id=1;id<=6;id++){ if(!plantOn(id)&&!offm[id]){ hasExtra=true; break; } }
+    if(hasExtra){ const base=dcfSwitchBase(), impNow=impostosSerie();
+      for(let k=0;k<n;k++){ const iD=num(base.impDef[k]); if(Math.abs(iD)>1) consIR[k]*=num(impNow[k])/iD; } }
+  }
   const capex=DB.capex||{}, out={};
   for(const [name,pid] of PERPROJ){
     const on=plantOn(pid)?1:0;   // switch de planta liga/desliga
@@ -2547,7 +2593,7 @@ function perProjSummaryHTML(){
     const nm=(DB.regioes.find(r=>r.id===pid)||{}).nome||name;
     h+=`<tr onclick="setRegiao(${pid})" style="cursor:pointer"><td class="l">${nm}${pe.flag?'':' <span style="color:var(--muted);font-size:10px">(inativo)</span>'}</td><td>${fmt(dcf.vpl/1e6,1)}</td><td>${dcf.tir!=null?fmt(dcf.tir*100,1)+'%':'n.a.'}</td><td>${fmt(gtot/1e6,1)}</td></tr>`;
   }
-  h+='</tbody></table></div><div class="note">Clique num projeto para abrir a DRE e o fluxo de caixa completos (sub-aba da planta). <b>VPL @Ke</b> = geração da planta descontada <b>mês a mês</b> (Ke mensal), somando só os fluxos futuros (a partir de ago/26). <b>TIR</b> mantida anual e desde o início. PE inativo neste cenário; Argentina/SAL sem troca de sinal na TIR.</div>';
+  h+='</tbody></table></div><div class="note">Clique num projeto para abrir a DRE e o fluxo de caixa completos (sub-aba da planta). <b>VPL @Ke</b> = geração da planta descontada <b>mês a mês</b> (Ke mensal), somando só os fluxos futuros (a partir de ago/26). <b>TIR</b> mantida anual e desde o início. Ao desligar plantas no switch, o IR reage (benefício fiscal cruzado). PE inativo neste cenário; Argentina/SAL sem troca de sinal na TIR.</div>';
   return h;
 }
 function setRegiao(r){ state.aba="resumo"; state.regiao=r; render(); }
@@ -3084,6 +3130,7 @@ function snapshotPrem(){
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
+  _dcfBaseCache=null;   // referências do cenário-base do DCF (re-capturadas por dcfSwitchBase)
 }
 function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
