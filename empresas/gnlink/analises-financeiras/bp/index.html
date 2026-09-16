@@ -3901,6 +3901,14 @@ function useOfProceeds(){
   const opexOutros=investido-(capPlanta+capCliente+juros+sgaHold);         // plug → Fontes = Usos
   return {baseYm:DB.meses[cut].ym, capProprio, dividaLiq, investido, capPlanta, capCliente, juros, sgaHold, opexOutros, utilizado:investido};
 }
+// Equity Needs (Dashboard!D22/D23 do modelo 09.07): aporte de capital acumulado na PROJEÇÃO (forecast) e a
+// data do 1º aporte. Vem do motor de aporte-ao-mínimo (independe do modo de cobertura); reage às premissas.
+function equityNeeds(){
+  const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx, n=DB.meses.length;
+  const ap=aporteMinimoEngine(), total=num(ap.cum[n-1]);
+  let firstK=-1; for(let k=cut+1;k<n;k++){ if(num(ap.aporte[k])>1e5){ firstK=k; break; } }   // 1º aporte material (>R$100 mil)
+  return {total, firstYm: firstK>=0?DB.meses[firstK].ym:null};
+}
 function _uopTile(cls,val,lbl){ return `<div class="uop-tile ${cls}"><div class="uop-v">R$ ${fmt(val/1e6,1)} mi</div><div class="uop-l">${lbl}</div></div>`; }
 function useOfProceedsHTML(){
   const u=useOfProceeds(), row=(op,tile)=>`<div class="uop-row"><span class="uop-op">${op}</span>${tile}</div>`;
@@ -3948,6 +3956,8 @@ function renderDashboard(){
     h+=kpi("Equity Value — saída", "R$ "+fmt(_xv.equityExit/1e6,0)+" mi", "EV "+fmt(_xv.evExit/1e6,0)+" mi ("+fmt(_xv.mult,1)+"× EBITDA, saída "+fmtMesY(_xv.exitYm)+") − Dív. Líq.");
   }
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
+  const _en=equityNeeds();
+  h+=kpi("Equity Needs (R$ mi)", fmt(_en.total/1e6,0), (_en.firstYm?"1º aporte "+fmtMesY(_en.firstYm)+" · ":"")+"aporte de capital na projeção (p/ caixa mínimo)");
   h+='</div>';
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
