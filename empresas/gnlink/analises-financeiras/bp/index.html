@@ -199,7 +199,7 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
 /* Fontes & Usos (Use of Proceeds) */
-.uop{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:6px 2px 2px}
+.uop{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:6px 2px 2px}
 .uop-base{font-size:11px;font-weight:600;color:var(--muted);margin-left:6px}
 .uop-hd{background:var(--accent);color:#fff;font-weight:700;text-align:center;padding:9px;border-radius:8px;letter-spacing:.02em;margin-bottom:11px;font-size:13px}
 .uop-row{display:grid;grid-template-columns:20px 1fr;align-items:center;gap:8px;margin-bottom:9px}
@@ -3915,7 +3915,7 @@ function useOfProceedsHTML(){
     +row('+', _uopTile('t-red',u.sgaHold,'SG&A Holding'))
     +row('+', _uopTile('t-orange',u.opexOutros,'OpEx e outros'))
     +row('=', _uopTile('t-blue',u.utilizado,'Capital utilizado'));
-  return `<div class="premcard"><div class="ph"><b>Fontes &amp; Usos — Use of Proceeds</b><span class="uop-base">base ${fmtMesY(u.baseYm)}</span></div>`
+  return `<div class="premcard" style="max-width:560px"><div class="ph"><b>Fontes &amp; Usos — Use of Proceeds</b><span class="uop-base">base ${fmtMesY(u.baseYm)}</span></div>`
     +`<div class="psub">Origem e aplicação do capital acumulado até a data-base (realizado). <b>Fontes</b> = capital próprio + dívida líquida = Capital Investido. <b>Usos</b> = CapEx planta (liquefação/compressão) + CapEx cliente (regás) + juros + SG&amp;A da holding + OpEx e outros (resultado operacional pré-SG&amp;A holding, capital de giro e impostos).</div>`
     +`<div class="uop"><div class="uop-col">${fontes}</div><div class="uop-col">${usos}</div></div></div>`;
 }
@@ -3949,7 +3949,6 @@ function renderDashboard(){
   }
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+='</div>';
-  h+=useOfProceedsHTML();   // Fontes & Usos (Use of Proceeds) — retrato do realizado até a data-base
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
   h+='<div class="premcard"><div class="ph"><b>Taxa de desconto — Ke real</b>'+help(MECH.vpl)+'<span class="hspace"></span><button class="btn-reset" onclick="resetKe()">restaurar</button></div>';
@@ -3971,6 +3970,7 @@ function renderDashboard(){
   t+=rowT("Receita (GNL+GNC+extras)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO)+rowT("EBITDA",yEB,true)+rowT("Lucro líquido",yLL)+'</tbody></table></div>';
   h+='<div class="card"><h4>DRE resumida por ano (R$ MM)</h4>'+t+'</div>';
   h+='<div class="note"><b>A DRE inteira já está por fórmula viva</b>, validada 1:1 — Receita → Custo → EBITDA → Depreciação → Result. Financeiro → Impostos → <b>Lucro Líquido</b> (impostos ao vivo por máquina de prejuízo fiscal de 2 entidades). Falta só o módulo de <b>DCF</b> (investimento inicial, capital de giro, valor terminal) para o VPL/TIR plenos — a prévia acima é o resultado operacional descontado.</div>';
+  h+=useOfProceedsHTML();   // Fontes & Usos (Use of Proceeds) — retrato do realizado até a data-base (no fim da aba, meia tela)
   return h;
 }
 
