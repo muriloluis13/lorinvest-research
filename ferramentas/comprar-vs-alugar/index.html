@@ -161,8 +161,8 @@ var BASE={
   // custos mensais da compra
   condominioMensal:2500, iptuAnualPct:0.008,
   valorizReal:0.0,       // valorização REAL do imóvel (acima da inflação)
-  // aluguel
-  aluguelMensal:20000,   // reajuste do aluguel = inflação
+  // aluguel: % do valor do imóvel por faixa (tabela), com reajuste = inflação
+  aluguelMult:1.0,       // ajuste sobre o aluguel de referência (p/ sensibilidade)
   // mercado / você
   rendimentoAA:0.10, inflacaoAA:0.04,
   patrimonioInicial:180000,
@@ -190,6 +190,16 @@ function pct(v,d){d=d==null?1:d; if(v==null||isNaN(v))return "—"; return (v*10
 function num(v,d){d=d==null?0:d; if(v==null||isNaN(v))return "—"; return v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
 function parseNum(v){ if(typeof v==='number')return v; var s=String(v).replace(/\./g,'').replace(',','.').replace(/[^0-9.\-]/g,''); var n=parseFloat(s); return isNaN(n)?0:n; }
 function mipTaxa(ops,age){ var t=ops[0][1]; for(var i=0;i<ops.length;i++){ if(age>=ops[i][0]) t=ops[i][1]; } return t; }
+/* Aluguel mensal como % do valor do imóvel, por faixa (ponto médio da faixa de mercado) */
+var ALU_BANDS=[
+  {max:250000,    pct:0.00675, perfil:"Populares, estúdios, periferia"},
+  {max:600000,    pct:0.0055,  perfil:"Padrão médio, 2–3 quartos"},
+  {max:1500000,   pct:0.00475, perfil:"Médio-alto, boa localização"},
+  {max:4000000,   pct:0.00425, perfil:"Alto padrão, bairros nobres"},
+  {max:Infinity,  pct:0.004,   perfil:"Luxo / cobertura"}
+];
+function aluguelBand(v){ for(var i=0;i<ALU_BANDS.length;i++){ if(v<=ALU_BANDS[i].max) return ALU_BANDS[i]; } return ALU_BANDS[ALU_BANDS.length-1]; }
+function aluguelRef(s){ return s.valImovel*aluguelBand(s.valImovel).pct*(s.aluguelMult||1); }
 function irRegressivo(dias){ if(dias<=180)return 0.225; if(dias<=360)return 0.20; if(dias<=720)return 0.175; return 0.15; }
 
 /* --- Salário líquido: INSS + IRRF (tabelas 2025), replicando idinheiro.com.br --- */
@@ -302,7 +312,7 @@ function compute(s){
   var investBuy=s.patrimonioInicial-entradaCash-custosAq;
   var investRent=s.patrimonioInicial;
   var basisBuy=investBuy, basisRent=investRent;
-  var aluguel=s.aluguelMensal, condo=s.condominioMensal;
+  var aluguel=aluguelRef(s), condo=s.condominioMensal;
   var valImovelAtual=s.valImovel;
 
   var wBuy=[],wRent=[],parcArr=[],rendaArr=[],compArr=[],aluArr=[],custoCompraArr=[],saldoArr=[],investBuyArr=[],investRentArr=[],equityArr=[],valImArr=[],despArr=[];
@@ -464,7 +474,7 @@ function buildPrem(){
   h+=sld('iptuAnualPct',0,0.02,0.0005,'IPTU (% do valor / ano)','pct2');
   h+=sld('valorizReal',-0.03,0.08,0.005,'Valorização real do imóvel (a.a.)','pct');
   h+='<h3 class="msub">Aluguel</h3>';
-  h+=sld('aluguelMensal',500,50000,100,'Aluguel inicial (R$/mês)','brl');
+  h+='<div class="mrow"><label><span>Aluguel inicial (calculado)</span><span class="mval" id="mv_aluguel">—</span></label><div id="aluguelInfo" class="note" style="margin-top:2px"></div></div>';
   h+='<h3 class="msub">Mercado &amp; você</h3>';
   h+=sld('rendimentoAA',0,0.20,0.005,'Rendimento do patrimônio (a.a.)','pct');
   h+=sld('inflacaoAA',0,0.12,0.005,'Inflação (a.a.)','pct');
@@ -535,7 +545,7 @@ function renderAluguel(R){
   var h='';
   h+='<div class="card"><h2>Aluguel &amp; investir a diferença</h2><p class="cap">Quem aluga não gasta a entrada nem os custos de aquisição: esse capital fica investido e rende '+pct(S.rendimentoAA,1)+' a.a. A diferença mensal de desembolso (moradia da compra − aluguel) entra/sai do investimento todo mês.</p>';
   h+='<div class="mkpis">';
-  h+=kc('Aluguel inicial',brl(S.aluguelMensal),'k-stone',pct(S.aluguelMensal*12/S.valImovel,1)+' do valor / ano');
+  h+=kc('Aluguel inicial',brl(aluguelRef(S)),'k-stone',pct(aluguelBand(S.valImovel).pct,3)+' do valor / mês');
   h+=kc('Capital que fica investido',brl(S.patrimonioInicial),'k-sage','vs. '+brl(R.investInicialBuy)+' na compra');
   h+=kc('Alíquota de IR no resgate',pct(R.aliqIR,1),'k-stone','regressivo p/ '+R.anos+' anos');
   h+='</div></div>';
@@ -606,7 +616,7 @@ function renderSens(){
   var defs=[
     {label:'Rendimento do patrimônio', key:'rendimentoAA', d:0.02},
     {label:'Valorização real do imóvel', key:'valorizReal', d:0.02},
-    {label:'Aluguel inicial', key:'aluguelMensal', d:0.2, mult:true},
+    {label:'Nível do aluguel (±20%)', key:'aluguelMult', d:0.2, mult:true},
     {label:'Inflação', key:'inflacaoAA', d:0.02},
     {label:'Idade (horizonte)', key:'idade', d:5, abs:true, min:18, max:60},
     {label:'Prazo do financiamento', key:'prazo', d:60, abs:true, min:60, max:420}
@@ -647,6 +657,9 @@ function update(){
   // refresh instrument dropdown selection & info without rebuilding all sliders
   var R=compute(S);
   var hz=$('horizInfo'); if(hz){ hz.innerHTML='Horizonte fixo até os '+FIM_IDADE+' anos → <b>'+horizAnos(S)+' anos</b> de análise.'; }
+  var ab=aluguelBand(S.valImovel), alu=aluguelRef(S);
+  var mvAlu=$('mv_aluguel'); if(mvAlu) mvAlu.textContent=brl(alu)+'/mês';
+  var alInfo=$('aluguelInfo'); if(alInfo) alInfo.innerHTML=pct(ab.pct,3)+' do valor do imóvel / mês ('+ab.perfil+'). Reajuste anual pela inflação.';
   var info=$('instrInfo'); if(info){ if(R.empty) info.innerHTML='<span class="warn">Nenhuma linha elegível.</span>'; else info.innerHTML=R.instr.nome+'<br>Faixa de valor: '+brl(R.instr.valmin)+(R.instr.valmax?(' a '+brl(R.instr.valmax)):' ou mais')+' · % máx.: '+pct(parseFloat(R.instr.percfinmax),0)+' · prazo '+R.instr.prmin+'–'+R.instr.prmax+' m'+(R.instr.fgts?' · aceita FGTS':' · sem FGTS'); }
   if(curTab==='veredito')renderVeredito(R);
   else if(curTab==='compra')renderCompra(R);
