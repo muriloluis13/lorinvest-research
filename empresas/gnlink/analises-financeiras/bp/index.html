@@ -198,6 +198,23 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .premgrp{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin:12px 0 2px;grid-column:1/-1}
 .btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
+/* Fontes & Usos (Use of Proceeds) */
+.uop{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:6px 2px 2px}
+.uop-base{font-size:11px;font-weight:600;color:var(--muted);margin-left:6px}
+.uop-hd{background:var(--accent);color:#fff;font-weight:700;text-align:center;padding:9px;border-radius:8px;letter-spacing:.02em;margin-bottom:11px;font-size:13px}
+.uop-row{display:grid;grid-template-columns:20px 1fr;align-items:center;gap:8px;margin-bottom:9px}
+.uop-op{font-size:17px;font-weight:800;color:var(--muted);text-align:center}
+.uop-tile{border-radius:9px;padding:11px 14px;text-align:center;border:1px solid rgba(0,0,0,.05)}
+.uop-v{font-size:19px;font-weight:800;color:var(--accent);letter-spacing:-.01em}
+.uop-l{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.uop-tile.t-gray{background:#F4F6F8}
+.uop-tile.t-orange{background:#FBEBD8}
+.uop-tile.t-green{background:#E6F0E8}
+.uop-tile.t-yellow{background:#FBF3D6}
+.uop-tile.t-red{background:#FBE2E0}
+.uop-tile.t-blue{background:#E1EAF5}
+.uop-tile.t-teal{background:#E1EFED}
+@media(max-width:640px){.uop{grid-template-columns:1fr}}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
 .cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
@@ -2314,9 +2331,11 @@ function capexEngine(){
   for(let k=0;k<n;k++) net[k]=gross[k]+dfm146[k]+num(dfm147[k]);
   // saída de caixa de CapEx (DFC, DFM208) = −(investimento do mês), gated pelo switch e escalado → VIVO
   const fciInvest=new Array(n); for(let k=0;k<n;k++) fciInvest[k]= -(cap694[k]+cap699[k]);
+  // capex por natureza (Use of Proceeds): inv1=Liquefação/Compressão=PLANTA; inv2=Regás/Descompressão=CLIENTE
+  const capPlanta=cap694.slice(), capCliente=cap699.slice();
   // depreciação por planta (gated pelo switch) — p0 0-based; RN=2. Alimenta imp36 (Impostos!36 = Capex 1386+1391).
   const depP=[]; for(let p=0;p<6;p++){ const on=plantOn(p+1); depP.push(dep1[p].map((v,k)=> on ? v+dep2[p][k] : 0)); }
-  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net, fciInvest, depP});
+  return (_capexCache={dfm103, dfm145:gross, dfm146, dfm144:net, fciInvest, depP, capPlanta, capCliente});
 }
 function depreciacaoSerie(){                             // DFM103: realizado da DRE + projeção viva
   const cut=DB.cutoffIdx, d=DB.dre.depreciacao||[], eng=capexEngine().dfm103, n=DB.meses.length, out=new Array(n);
@@ -3866,6 +3885,40 @@ const PREM_OPEX = {
 let DASH={wacc:0.12};
 function onWacc(v){ DASH.wacc=+v; render(); }
 function onKeReal(v){ _liveCancel(); const x=+v; if(x>0){ DB.dcfConst.ke_real=x; clearAllCaches(); render(); } }   // Ke real → desconto do DCF (move o Equity Value)
+// Use of Proceeds (Consolidated do modelo 09.07): origem/aplicação do capital ACUMULADO até a data-base
+// (realizado). Fontes = Capital próprio (DFM321 no corte) + Dívida líquida (dívida bruta − caixa). Usos =
+// CapEx planta (inv1 Liquefação/Compressão) + CapEx cliente (inv2 Regás) + Juros (−Σ result. financeiro) +
+// SG&A Holding (−Σ(EBITDA−RO)) + OpEx e outros (plug = Investido − demais usos; ≈ result. operacional pré
+// SG&A holding + WC/impostos). É um retrato do realizado (não reage às premissas de projeção).
+function useOfProceeds(){
+  const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx;
+  const cb=caixaBalancoEngine(), cx=capexEngine(), ev=evParts();
+  const sumTo=a=>{ let s=0; for(let k=0;k<=cut;k++) s+=num(a[k]); return s; };
+  const capProprio=num(cb.capital[cut]), dividaLiq=num(ev.grossDebt)-num(ev.cash), investido=capProprio+dividaLiq;
+  const capPlanta=sumTo(cx.capPlanta), capCliente=sumTo(cx.capCliente);
+  const juros=-sumTo(cb.resfin);
+  const sgaHold=sumTo(resultadoOperacionalSerie())-sumTo(ebitdaSerie());   // = −(EBITDA−RO) = SG&A holding realizado
+  const opexOutros=investido-(capPlanta+capCliente+juros+sgaHold);         // plug → Fontes = Usos
+  return {baseYm:DB.meses[cut].ym, capProprio, dividaLiq, investido, capPlanta, capCliente, juros, sgaHold, opexOutros, utilizado:investido};
+}
+function _uopTile(cls,val,lbl){ return `<div class="uop-tile ${cls}"><div class="uop-v">R$ ${fmt(val/1e6,1)} mi</div><div class="uop-l">${lbl}</div></div>`; }
+function useOfProceedsHTML(){
+  const u=useOfProceeds(), row=(op,tile)=>`<div class="uop-row"><span class="uop-op">${op}</span>${tile}</div>`;
+  const fontes=`<div class="uop-hd">Fontes</div>`
+    +row('', _uopTile('t-gray',u.capProprio,'Capital próprio'))
+    +row('+', _uopTile('t-orange',u.dividaLiq,'Dívida líquida'))
+    +row('=', _uopTile('t-green',u.investido,'Capital Investido'));
+  const usos=`<div class="uop-hd">Usos</div>`
+    +row('', _uopTile('t-gray',u.capPlanta,'CapEx planta'))
+    +row('+', _uopTile('t-teal',u.capCliente,'CapEx cliente'))
+    +row('+', _uopTile('t-yellow',u.juros,'Juros'))
+    +row('+', _uopTile('t-red',u.sgaHold,'SG&A Holding'))
+    +row('+', _uopTile('t-orange',u.opexOutros,'OpEx e outros'))
+    +row('=', _uopTile('t-blue',u.utilizado,'Capital utilizado'));
+  return `<div class="premcard"><div class="ph"><b>Fontes &amp; Usos — Use of Proceeds</b><span class="uop-base">base ${fmtMesY(u.baseYm)}</span></div>`
+    +`<div class="psub">Origem e aplicação do capital acumulado até a data-base (realizado). <b>Fontes</b> = capital próprio + dívida líquida = Capital Investido. <b>Usos</b> = CapEx planta (liquefação/compressão) + CapEx cliente (regás) + juros + SG&amp;A da holding + OpEx e outros (resultado operacional pré-SG&amp;A holding, capital de giro e impostos).</div>`
+    +`<div class="uop"><div class="uop-col">${fontes}</div><div class="uop-col">${usos}</div></div></div>`;
+}
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
 function resultadoOperacionalSerie(){
   const rec=receitaComp(0).total, ct=custoTotal(0), n=DB.meses.length, out=new Array(n);
@@ -3896,6 +3949,7 @@ function renderDashboard(){
   }
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   h+='</div>';
+  h+=useOfProceedsHTML();   // Fontes & Usos (Use of Proceeds) — retrato do realizado até a data-base
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
   h+='<div class="premcard"><div class="ph"><b>Taxa de desconto — Ke real</b>'+help(MECH.vpl)+'<span class="hspace"></span><button class="btn-reset" onclick="resetKe()">restaurar</button></div>';
