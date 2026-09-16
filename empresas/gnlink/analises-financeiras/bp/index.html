@@ -2045,13 +2045,13 @@ function aplicarCli(id){
   const pz=DB.preco[id]||(DB.preco[id]={});
   pz.dataBase=ordOf(parseMesY(_v("e_dataBase"))); pz.indicador=_v("e_indicador");
   state.cliMsg="✓ aplicado — projeção atualizada (ver Receita)";
-  render();
+  clearAllCaches(); render();   // clearAllCaches: cascateia no caixa/DCF (não só na receita/EBITDA)
 }
 function reverterCli(id){
   const b=(DB.clientesBase||[]).find(x=>x.id===id); if(!b) return;
   const i=DB.clientes.findIndex(x=>x.id===id);
   DB.clientes[i]=JSON.parse(JSON.stringify(b));
-  state.cliMsg="revertido"; render();
+  state.cliMsg="revertido"; clearAllCaches(); render();
 }
 
 /* --------------------------------------------------- aba Resumo / EBITDA (E) */
