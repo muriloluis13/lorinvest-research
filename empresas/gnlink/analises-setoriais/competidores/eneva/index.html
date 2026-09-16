@@ -445,6 +445,79 @@ table.heat td.l,table.heat th.l{text-align:left}
 .negtile .tl{font-size:9px;color:var(--muted);line-height:1.15;margin-top:2px}
 @media(max-width:1024px){.negrid{grid-template-columns:1fr}}
 @media(max-width:560px){.negcard{grid-template-columns:1fr}.negviz{min-height:130px}.negmetrics{grid-template-columns:1fr 1fr}}
+/* --- Visão Geral (overview rico) --- */
+.ohero{position:relative;border-radius:16px;overflow:hidden;background:#0A484C;color:#fff;margin-bottom:16px;box-shadow:var(--shadow)}
+.ohero-bg{position:absolute;inset:0}
+.ohero-bg svg{width:100%;height:100%}
+.ohero-veil{position:absolute;inset:0;background:linear-gradient(100deg,rgba(6,42,44,.97) 0%,rgba(8,58,60,.9) 40%,rgba(8,58,60,.36) 66%,rgba(8,58,60,.04) 100%)}
+.ohero-main{position:relative;display:flex;align-items:center;gap:22px;padding:26px 28px 18px}
+.ohero-logo{width:118px;height:92px;border-radius:12px;background:rgba(255,255,255,.95);display:grid;place-items:center;flex:none}
+.ohero-logo img{max-width:94px;max-height:58px;object-fit:contain}
+.ohero-copy{flex:1;min-width:0;max-width:560px}
+.ohero-copy h1{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1;color:#fff}
+.ohero-copy .ohsub{font-size:15px;font-weight:600;color:rgba(255,255,255,.85);margin:4px 0 10px}
+.ohero-copy p{font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.82)}
+.ohero-tag{margin-left:auto;text-align:right;font-size:21px;font-weight:800;line-height:1.18;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.96);align-self:center}
+.ohero-feats{position:relative;display:flex;gap:10px;padding:0 28px 20px;flex-wrap:wrap}
+.ohfeat{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.17);border-radius:10px;padding:10px 14px;flex:1;min-width:190px}
+.ohfeat svg{width:22px;height:22px;flex:none;fill:none;stroke:#84E2D2;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ohfeat b{display:block;font-size:12.5px;font-weight:700;color:#fff;line-height:1.15}
+.ohfeat span{font-size:12px;color:rgba(255,255,255,.8)}
+@media(max-width:920px){.ohero-tag{display:none}}
+@media(max-width:620px){.ohero-main{flex-wrap:wrap;gap:14px;padding:18px}.ohero-copy h1{font-size:25px}}
+.kgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+.kcard{display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:var(--shadow)}
+.kcic{width:34px;height:34px;border-radius:9px;background:#E7F2F1;color:var(--accent);display:grid;place-items:center;flex:none}
+.kcic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.kcb{min-width:0}
+.kcl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;line-height:1.2}
+.kcv{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-top:3px;white-space:nowrap}
+.kcs{font-size:9.5px;color:var(--muted);margin-top:2px}
+@media(max-width:1180px){.kgrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.kgrid{grid-template-columns:repeat(2,1fr)}}
+.orow{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;align-items:start}
+@media(max-width:1080px){.orow{grid-template-columns:1fr}}
+.oaside{display:flex;flex-direction:column;gap:16px;min-width:0}
+.seelink{margin-left:auto;align-self:center;background:#fff;border:1px solid var(--line);color:var(--accent);font-family:inherit;font-weight:700;font-size:12px;padding:7px 13px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.seelink:hover{background:#EAF3F2;border-color:var(--accent2)}
+.pfgrid{display:grid;grid-template-columns:0.95fr 1.05fr;gap:18px;margin-top:6px}
+@media(max-width:720px){.pfgrid{grid-template-columns:1fr}}
+.pfmapsvg{width:100%;height:auto;display:block;max-height:320px}
+.pflegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:11px;color:var(--muted)}
+.pflegend span{display:inline-flex;align-items:center;gap:6px}
+.pflegend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.pflegend i.ln{width:14px;height:3px;border-radius:2px}
+.pfcplx{min-width:0}
+.pfcplx-t{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:9px}
+.cplx{display:grid;grid-template-columns:64px 1fr;gap:11px;padding:9px 0;border-top:1px solid var(--line)}
+.cplx:first-of-type{border-top:none}
+.cplx-th{width:64px;height:52px;border-radius:8px;overflow:hidden;position:relative}
+.cplx-th .scene{position:absolute;inset:0;width:100%;height:100%}
+.cplx-b{min-width:0}
+.cplx-h{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.cplx-n{font-size:12.3px;font-weight:700;color:var(--ink);line-height:1.2}
+.cplx-st{font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap;flex:none}
+.cplx-st.ok{background:#E4EEEC;color:var(--green)}
+.cplx-st.wip{background:#FBF0DD;color:#B5791E}
+.cplx-st.dev{background:#EDF0F0;color:var(--muted)}
+.cplx-cap{font-size:11px;font-weight:700;color:var(--accent);margin:2px 0}
+.cplx-d{font-size:11px;color:var(--muted);line-height:1.4}
+.pfstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.pstat .n{font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-.4px;line-height:1}
+.pstat .l{font-size:10.5px;color:var(--muted);line-height:1.3;margin-top:3px}
+@media(max-width:560px){.pfstats{grid-template-columns:1fr}}
+.dnum{display:flex;flex-direction:column}
+.dnr{display:grid;grid-template-columns:30px 1fr;gap:11px;padding:10px 0;border-top:1px solid var(--line)}
+.dnr:first-child{border-top:none}
+.dnn{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800}
+.dnt{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.2}
+.dnd{font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px}
+.qlinks{display:flex;flex-direction:column;gap:8px}
+.qlink{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;text-decoration:none;color:var(--ink);font-size:12.5px;font-weight:600;transition:background .12s,border-color .12s}
+.qlink:hover{background:#EAF3F2;border-color:var(--accent2)}
+.qlink .qi{width:17px;height:17px;flex:none;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.qlink span{flex:1;min-width:0}
+.qlink .qe{width:14px;height:14px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8}
 
 </style>
 </head>
@@ -856,48 +929,75 @@ function enhance(){const acc={g1:'#0A585C',g2:'#2AA4A7',g3:'#C9820F',g4:'#E4562E
  * ============================================================ */
 
 /* ---------- 1. Visão Geral ---------- */
+function heroSVG(){return `<svg viewBox="0 0 620 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="hsky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0B4A4E"/><stop offset=".55" stop-color="#1C6E5F"/><stop offset="1" stop-color="#C9863A"/></linearGradient>
+<radialGradient id="hsun" cx="70%" cy="60%" r="34%"><stop stop-color="#FFDCA6" stop-opacity=".85"/><stop offset="1" stop-color="#FFDCA6" stop-opacity="0"/></radialGradient></defs>
+<rect width="620" height="300" fill="url(#hsky)"/><circle cx="440" cy="188" r="140" fill="url(#hsun)"/>
+<g fill="#0A3436" opacity=".92"><rect x="352" y="150" width="16" height="150"/><rect x="376" y="118" width="16" height="182"/>
+<path d="M424 300V150q0-15 14-15t14 15v150Z"/><rect x="468" y="172" width="58" height="128"/><rect x="536" y="138" width="15" height="162"/><rect x="560" y="158" width="15" height="142"/>
+<rect x="300" y="205" width="46" height="95"/><rect x="588" y="185" width="20" height="115"/>
+<path d="M0 300 q70-22 140-8 t140 4 t140-10 t140 8 t120-2V300Z"/></g>
+<g stroke="#FFE0B0" stroke-width="2" opacity=".5"><path d="M432 135v-14"/><path d="M382 118v-12"/></g></svg>`;}
+function mapOverview(){const S=2.45;
+ const at=(uf,dx,dy)=>{const xy=UFXY[uf]||[50,50];return [(xy[0]*S+(dx||0)),(xy[1]*S+(dy||0))];};
+ const dot=(uf,c,dx,dy,r)=>{const[x,y]=at(uf,dx,dy);return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r||5.5}" fill="${c}" stroke="#fff" stroke-width="1.6"/>`;};
+ const lbl=(uf,t,dx,dy)=>{const[x,y]=at(uf,dx,dy);return `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-size="10" font-weight="700" fill="#3E5E5C">${esc(t)}</text>`;};
+ let g=`<path transform="scale(${S})" d="${BR_PATH}" fill="#DCE7E4" stroke="#C4D6D2" stroke-width="1"/>`;
+ // gasodutos (âmbar): Azulão(AM)->Jaguatirica(RR) e AM->Parnaíba(MA)
+ const [ax,ay]=at('AM'),[rx,ry]=at('RR'),[mx,my]=at('MA'),[sx,sy]=at('SE');
+ g+=`<path d="M${ax} ${ay} L${rx} ${ry} M${ax} ${ay} L${mx} ${my} L${sx} ${sy}" stroke="#F0A415" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`;
+ // marcadores: E&P gás (petróleo), térmica (coral), renováveis (verde)
+ g+=dot('AM',C.petrol)+dot('MA',C.petrol,-4,4);
+ g+=dot('MA',C.coral,5,-3)+dot('SE',C.coral)+dot('ES',C.coral)+dot('RR',C.coral)+dot('CE',C.coral,-3,-3);
+ g+=dot('BA',C.green)+dot('CE',C.green,5,4);
+ g+=lbl('AM','Amazonas & Solimões',-6,-10)+lbl('MA','Parnaíba',10,-6)+lbl('SE','Sergipe',10,4);
+ const H=(110*S).toFixed(0),W=(100*S).toFixed(0);
+ return `<svg class="pfmapsvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;}
 function renderOver(){
-  const p=CORP.perfil;
-  const hero=`<div class="overview-hero"><div class="hero-logo"><img src="${LOGO}" alt="Eneva"></div>
-    <div class="hero-copy"><h1>Eneva — Guia de Investimento</h1>
-    <p>${esc(p.descricao)}</p></div></div>`;
-  // LTM (últimos 12 meses = soma dos 4 últimos trimestres); dívida é posição; alavancagem já é 12M
   const ltm=a=>{let s=0;for(let i=L-3;i<=L;i++)s+=a[i];return s;};
-  const ltmRev=ltm(F.receita_liquida),ltmEb=ltm(F.ebitda_icvm),ltmNI=ltm(F.resultado_liquido_eneva);
-  const ltmMarg=ltmRev?ltmEb/ltmRev*100:null;
-  const kpL=[
-    ['EBITDA 12M','R$ '+fMn(ltmEb)+' mi','up'],
-    ['Receita 12M','R$ '+fMn(ltmRev)+' mi',''],
-    ['Margem 12M',nf(ltmMarg,1)+'%',''],
-    ['Result. líq. 12M','R$ '+fMn(ltmNI)+' mi',''],
-    ['Dívida líq. (posição)','R$ '+nf(F.divida_liquida_bi[L],1)+' bi',''],
-    ['DL/EBITDA 12M',nf(F.alavancagem[L],2)+'x','']
+  const ltmEb=ltm(F.ebitda_icvm),ltmRev=ltm(F.receita_liquida),ltmMarg=ltmRev?ltmEb/ltmRev*100:null;
+  const mkt=1.944371272*PRICE;
+  // hero
+  const feats=[['bolt','Gás como','vantagem competitiva'],['bars','Portfólio integrado','e flexível'],['leaf','Crescimento com','disciplina de capital']];
+  const hero=`<div class="ohero"><div class="ohero-bg">${heroSVG()}</div><div class="ohero-veil"></div>`+
+    `<div class="ohero-main"><div class="ohero-logo"><img src="${LOGO}" alt="Eneva"></div>`+
+    `<div class="ohero-copy"><h1>Eneva</h1><div class="ohsub">Guia de Investimento</div>`+
+    `<p>A Eneva é uma das principais plataformas integradas de energia do Brasil, atuando na exploração e produção de gás natural, geração térmica e renováveis, com ativos estratégicos conectados por gasodutos próprios.</p></div>`+
+    `<div class="ohero-tag">Gás brasileiro<br>para um futuro<br>mais seguro</div></div>`+
+    `<div class="ohero-feats">${feats.map(f=>`<div class="ohfeat"><svg viewBox="0 0 24 24">${MIC[f[0]]}</svg><div><b>${f[1]}</b><span>${f[2]}</span></div></div>`).join('')}</div></div>`;
+  // KPI strip
+  const KP=[
+    ['bars','Preço (ENEV3)','R$ 20,09','ref. mar/26 (GS)'],
+    ['receipt','Valor de mercado','R$ '+nf(mkt,1)+' bi','≈ 1,94 bi ações × R$ 20,09'],
+    ['chart','EBITDA 12M','R$ '+fMn(ltmEb)+' mi','fim '+Q[L]],
+    ['layers','Dívida líq. (posição)','R$ '+nf(F.divida_liquida_bi[L],1)+' bi',Q[L]],
+    ['divide','Dívida líq. / EBITDA',nf(F.alavancagem[L],2)+'x','12 meses'],
+    ['gauge','Margem EBITDA 12M',nf(ltmMarg,1)+'%','fim '+Q[L]]
   ];
-  const strip=`<div class="overview-strip"><div class="m"><div class="l">Últimos 12 meses</div><div class="v">fim ${Q[L]}</div></div>`+
-    kpL.map(k=>`<div class="m"><div class="l">${esc(k[0])}</div><div class="v ${k[2]}">${k[1]}</div></div>`).join('')+`</div>`;
-  // números-chave da companhia — largura total, segregados por tópico
-  const TOPICS=['Geração & capacidade','Upstream & reservas','Midstream & gás natural','Mercado & financeiro'];
-  const topicOf=s=>{s=s.toLowerCase();
-    if(/reserva|recurso|óleo|condensado|concess|onshore|e&p|bacia/.test(s))return TOPICS[1];
-    if(/liquefa|regaseifica|sslng|\bgnl\b|m³\/d|m3\/d|off-grid|on-grid|midstream/.test(s))return TOPICS[2];
-    if(/market|mercado|ebitda|\breceita|\bações?\b|\bdívida|r\$/.test(s))return TOPICS[3];
-    return TOPICS[0];};
-  const grp={};TOPICS.forEach(t=>grp[t]=[]);
-  p.numeros_chave.forEach(n=>grp[topicOf(n[1])].push(n));
-  const tile=n=>`<div class="bigc"><div class="n">${esc(n[0])}</div><div class="l">${esc(n[1])}</div></div>`;
-  let numsInner=head('cic-over','A companhia em números','Escala e ativos-chave por tópico — data-base Mar/26 (mercado) e Dez/25 (operacional).');
-  TOPICS.forEach(t=>{if(grp[t].length)numsInner+=`<h3 class="msub">${t}</h3><div class="big">${grp[t].map(tile).join('')}</div>`;});
-  const nums=card(numsInner,'tinted');
-  // tese + risco-retorno (GS)
-  const teseCard=card(head('cic-tese','Risco–retorno & tese',null,'Tese de investimento')+
-    lead('A Eneva é a <b>maior geradora térmica do Brasil</b> e pioneira do modelo integrado <b>reservatório-a-fio (R2W)</b>: monetiza gás onshore próprio em usinas flexíveis, com <b>~82% do EBITDA em contratos de receita fixa</b> de longo prazo. Num sistema elétrico cada vez mais dependente de renováveis intermitentes, a <b>capacidade despachável</b> vira o gargalo — e o LRCAP 2026 destravou um ciclo de crescimento contratado (<b>+R$ 161 bi</b> de receita fixa).')+
-    cap('Referência sell-side — Goldman Sachs, início de cobertura ('+esc(GS.data)+'):')+
-    '<div class="big">'+[['Buy','Recomendação (GS)'],['R$ 25,00','Preço-alvo 12m'],['~24%','Upside vs. ref. R$ 20,09'],['12,4%','TIR real (vs. ~10% setor)']].map(n=>`<div class="bigc"><div class="n">${n[0]}</div><div class="l">${n[1]}</div></div>`).join('')+'</div>'+
-    `<div class="note"><b>Cenários GS:</b> bear R$ 13,1 (sem LRCAP) · base R$ 25,0 · bull R$ 34,0 · extreme bull ~R$ 37,2. Fonte única — a ser ampliada com consenso de mercado.</div>`);
-  // panorama do último trimestre
-  const dq=(NARR[Q[L]]&&NARR[Q[L]].destaques)?NARR[Q[L]].destaques.slice(0,6):[];
-  const panorama=card(head('cic-proj','Panorama do trimestre — '+Q[L],'Principais destaques reportados no release.')+blist(dq.map(esc)));
-  $('p-over').innerHTML=hero+strip+nums+`<div class="row2">${teseCard}${panorama}</div>`;
+  const kstrip=`<div class="kgrid">`+KP.map(k=>`<div class="kcard"><div class="kcic"><svg viewBox="0 0 24 24">${MIC[k[0]]}</svg></div><div class="kcb"><div class="kcl">${esc(k[1])}</div><div class="kcv">${k[2]}</div><div class="kcs">${esc(k[3])}</div></div></div>`).join('')+`</div>`;
+  // portfólio de ativos
+  const complexos=[
+    {n:'Parnaíba – Geração a Gás R2W',st:'Operacional',stc:'ok',cap:'1,9 GW · 6 UTEs',d:'Complexo integrado ao Reservoir-to-Wire (R2W) com gás próprio da Bacia do Parnaíba.',sc:'gas'},
+    {n:'Amazonas & Solimões – Gás R2W',st:'Em construção',stc:'wip',cap:'~1,1 GW · Azulão + Jaguatirica',d:'Gás de Azulão e Jaguatirica, com sistema isolado e integração logística dedicada.',sc:'gas'},
+    {n:'Sergipe – Geração G2P',st:'Operação + construção',stc:'wip',cap:'1,6 GW + 1,3 GW',d:'UTEs conectadas ao gasoduto da TAG, com ~21 mm m³/d de regaseificação e Hub Sergipe.',sc:'lng'},
+    {n:'Ceará – Hub G2P (novo)',st:'Em desenvolvimento',stc:'dev',cap:'1,2 GW',d:'Terminal e UTEs no Porto de Pecém, aproveitando infraestrutura portuária e potencial de parceria.',sc:'lng'}
+  ];
+  const cplxHTML=complexos.map((c,i)=>`<div class="cplx"><div class="cplx-th">${scene(c.sc,'o'+i)}</div><div class="cplx-b"><div class="cplx-h"><span class="cplx-n">${esc(c.n)}</span><span class="cplx-st ${c.stc}">${esc(c.st)}</span></div><div class="cplx-cap">${esc(c.cap)}</div><div class="cplx-d">${esc(c.d)}</div></div></div>`).join('');
+  const mlegend=`<div class="pflegend"><span><i style="background:${C.coral}"></i>Geração térmica</span><span><i style="background:${C.petrol}"></i>Gás natural (E&P)</span><span><i class="ln" style="background:${C.amber}"></i>Gasodutos</span><span><i style="background:${C.green}"></i>Renováveis</span></div>`;
+  const pstats=[['~51.800 km²','Área de concessão de E&P no Brasil'],['10,9 GW','Capacidade contratada e em construção'],['+10 GW','Pipeline de projetos para futuros leilões']];
+  const portfolio=card(`<div class="section-head"><div class="title-icon"><svg viewBox="0 0 24 24"><use href="#cic-market"/></svg></div><div class="head-copy"><h2>Portfólio de ativos</h2><div class="cap">Ativos integrados e estrategicamente localizados, conectando gás, geração e novas oportunidades.</div></div><button class="seelink" onclick="setTab(3)">Ver todos os ativos →</button></div>`+
+    `<div class="pfgrid"><div class="pfmap">${mapOverview()}${mlegend}</div>`+
+    `<div class="pfcplx"><div class="pfcplx-t">Principais complexos e projetos</div>${cplxHTML}</div></div>`+
+    `<div class="pfstats">${pstats.map(s=>`<div class="pstat"><div class="n">${esc(s[0])}</div><div class="l">${esc(s[1])}</div></div>`).join('')}</div>`);
+  // destaques + links
+  const dest=[['Portfólio integrado de gás e geração','Modelo R2W/G2P garante segurança de suprimento e competitividade.'],['Reservas próprias e flexibilidade','Ativos de gás conectados por gasodutos dedicados.'],['Pipeline relevante de crescimento','+10 GW em projetos licenciados para futuros leilões.'],['Disciplina financeira','Foco em geração de caixa e desalavancagem.'],['Posição estratégica no setor elétrico','Ativos relevantes para a segurança energética do Brasil.']];
+  const destCard=card(`<div class="section-head"><div class="title-icon"><svg viewBox="0 0 24 24">${MIC.star}</svg></div><div class="head-copy"><h2>Destaques do investimento</h2></div></div>`+
+    `<div class="dnum">`+dest.map((d,i)=>`<div class="dnr"><div class="dnn">${i+1}</div><div><div class="dnt">${esc(d[0])}</div><div class="dnd">${esc(d[1])}</div></div></div>`).join('')+`</div>`);
+  const CORP_URL='https://api.mziq.com/mzfilemanager/v2/d/6c663f3b-ae5a-4692-81d3-ab23ee84c1de/f103d56b-e396-95e3-602b-94c6c9ddc8be?origin=2';
+  const links=[['file','Apresentação institucional',CORP_URL],['chart','Últimos resultados','https://ri.eneva.com.br/informacoes-financeiras/central-de-resultados/'],['bars','Planilha de valuation','https://ri.eneva.com.br/informacoes-financeiras/planilhas-interativas/']];
+  const linksCard=card(`<div class="section-head"><div class="title-icon"><svg viewBox="0 0 24 24">${MIC.link}</svg></div><div class="head-copy"><h2>Links rápidos</h2></div></div>`+
+    `<div class="qlinks">`+links.map(l=>`<a class="qlink" href="${l[2]}" target="_blank" rel="noopener"><svg class="qi" viewBox="0 0 24 24">${MIC[l[0]]}</svg><span>${esc(l[1])}</span><svg class="qe" viewBox="0 0 24 24">${MIC.ext}</svg></a>`).join('')+`</div>`);
+  $('p-over').innerHTML=hero+kstrip+`<div class="orow">${portfolio}<div class="oaside">${destCard}${linksCard}</div></div>`;
 }
 
 /* ---------- 2. A Empresa ---------- */
@@ -991,7 +1091,18 @@ const MIC={
  doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
  trophy:'<path d="M6 4h12v4a6 6 0 0 1-12 0zM6 6H3v2a3 3 0 0 0 3 3M18 6h3v2a3 3 0 0 1-3 3M9 20h6M12 15v5"/>',
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
- truck:'<path d="M2 6h11v9H2zM13 9h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'};
+ truck:'<path d="M2 6h11v9H2zM13 9h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+ bars:'<path d="M6 20v-6M12 20V6M18 20v-9"/><path d="M3 20h18"/>',
+ chart:'<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>',
+ leaf:'<path d="M11 20A7 7 0 0 1 4 13C4 8 8 4 20 4c0 12-4 16-9 16z"/><path d="M11 20c0-6 3-9 7-11"/>',
+ gauge:'<path d="M4 20a10 10 0 1 1 16 0"/><path d="M12 14l5-4"/>',
+ layers:'<path d="M12 2 2 7l10 5 10-5z"/><path d="M2 12l10 5 10-5M2 17l10 5 10-5"/>',
+ divide:'<circle cx="12" cy="6" r="1.3"/><circle cx="12" cy="18" r="1.3"/><path d="M5 12h14"/>',
+ receipt:'<path d="M5 2v20l3-2 2 2 2-2 2 2 2-2 3 2V2z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+ file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+ link:'<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
+ ext:'<path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+ star:'<path d="M12 2l3 7 7 .5-5.5 4.5 2 7-6.5-4-6.5 4 2-7L2 9.5 9 9z"/>'};
 /* metadados por segmento: localização, tipo de cena e 3 métricas */
 function segMeta(nome){const n=nome.toLowerCase();
  if(n.includes('parnaíba')&&n.includes('r2w'))return{uf:'Parnaíba (MA)',ufc:'MA',scene:'gas',metrics:[['1,9 GW','capacidade','bolt'],['37,9 bcm','reservas 2P','cube'],['R$ 2,3–3,0 bi','receita fixa/ano','coin']]};
