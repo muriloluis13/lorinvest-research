@@ -185,7 +185,14 @@ table.mtbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap
 .prow2 .pval:focus{outline:none;color:var(--accent);text-decoration:underline}
 .prow2 .pedit{font-family:inherit;font-size:12.5px;font-weight:700;padding:2px 6px;border:1px solid var(--accent3);border-radius:6px;background:#fff;color:var(--ink);text-align:right;width:112px}
 .prow2 .pedit:focus{outline:none}
-.prow2 .pslider{width:100%;accent-color:var(--accent3);margin:0;display:block}
+/* slider fino (trilho 3px, thumb vermelho) com preenchimento vermelho à esquerda via --pct */
+.pslider{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;margin:0;display:block;cursor:pointer}
+.pslider:focus{outline:none}
+.pslider::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:linear-gradient(90deg,var(--accent3) 0 var(--pct,50%),#DCE1E8 var(--pct,50%) 100%)}
+.pslider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;margin-top:-5px;border-radius:50%;background:var(--accent3);border:2px solid #fff;box-shadow:0 1px 2.5px rgba(0,0,0,.28)}
+.pslider::-moz-range-track{height:3px;border-radius:3px;background:#DCE1E8}
+.pslider::-moz-range-progress{height:3px;border-radius:3px;background:var(--accent3)}
+.pslider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent3);border:2px solid #fff;box-shadow:0 1px 2.5px rgba(0,0,0,.28)}
 .premgrp{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin:12px 0 2px;grid-column:1/-1}
 .btn-reset{font-family:inherit;font-size:11px;font-weight:600;color:var(--accent3);background:#fff;border:1px solid var(--accent3);border-radius:7px;padding:4px 10px;cursor:pointer}
 .prem-edited{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);background:#FDF3EC;border-radius:5px;padding:2px 6px}
@@ -3551,12 +3558,10 @@ function drawMolecula(mol){
 }
 
 /* -------------------------------------------- aba Premissas globais (E) ---- */
-function gslider(key,gk,lbl,min,max,step){
-  const v=G[gk];
-  return `<div class="frow"><label>${lbl} <b style="color:var(--accent3)" id="${key}_v">${Math.round(v*100)}%</b></label>
-    <input type="range" id="${key}" min="${min}" max="${max}" step="${step}" value="${v}"
-      oninput="document.getElementById('${key}_v').textContent=Math.round(this.value*100)+'%'; liveG('${gk}', this)"
-      onchange="applyG('${gk}',this.value)" style="accent-color:var(--accent3)"></div>`;
+function gslider(key,gk,lbl,min,max,step){   // what-if global: mesmo widget premCtrl (valor vermelho + slider fino)
+  return premCtrl(lbl.replace(/\s*\(×\s*base\)/i,''), "%", (G[gk]||0)*100,
+    (function(k){return v=>{ G[k]=(+v)/100; };})(gk),
+    {dec:1, min:min*100, max:max*100, step:step*100});
 }
 function applyG(gk,val){ _liveCancel(); G[gk]=+val; clearAllCaches(); render(); }   // clearAllCaches: alavanca cascateia no caixa/DCF (não só no EBITDA)
 function resetG(){ G={volMult:1,precoMult:1,molMult:1}; clearAllCaches(); render(); }
@@ -3602,7 +3607,7 @@ function premCtrl(label, unit, disp, apply, o){
     +   `onclick="premEdit(${i})" onkeydown="if(event.key==='Enter'){event.preventDefault();premEdit(${i});}">${_pvalTxt(disp,dec,unit)}</span>`
     +   `<input type="text" inputmode="decimal" class="numfmt pedit" id="${vid}" data-dec="${dec}" data-raw="${disp}" value="${fmtIn(disp,dec)}" style="display:none" `
     +     `onchange="premApply(${i}, this.value)" onblur="premEditDone(${i})" onkeydown="if(event.key==='Enter')this.blur()"></div>`
-    +`<input type="range" class="pslider" data-dec="${dec}" min="${lo}" max="${hi}" step="${st}" value="${disp}" `
+    +`<input type="range" class="pslider" data-dec="${dec}" min="${lo}" max="${hi}" step="${st}" value="${disp}" style="--pct:${hi>lo?Math.min(100,Math.max(0,(disp-lo)/(hi-lo)*100)):0}%" `
     +   `oninput="premSlide(${i}, this)" onchange="premApply(${i}, +this.value)">`
     +`</div>`;
 }
@@ -3610,7 +3615,8 @@ function premCtrl(label, unit, disp, apply, o){
 function _pvalTxt(v,dec,unit){ const s=fmtIn(v,dec); if(s==='') return '—'; if(!unit) return s; if(unit==='%') return s+'%'; if(unit==='x') return s+'×'; return s+' '+unit; }
 // arraste do slider: atualiza o valor exibido + a caixa escondida ao vivo, e dispara o recompute throttled
 function premSlide(i, el){
-  const dec=+el.getAttribute('data-dec')||0, v=+el.value;
+  const dec=+el.getAttribute('data-dec')||0, v=+el.value, lo=+el.min, hi=+el.max;
+  el.style.setProperty('--pct', (hi>lo?Math.min(100,Math.max(0,(v-lo)/(hi-lo)*100)):0)+'%');   // preenchimento vermelho
   const sp=document.getElementById('ps'+i), inp=document.getElementById('pv'+i);
   if(inp){ inp.setAttribute('data-raw', v); inp.value=fmtIn(v,dec); }
   if(sp){ sp.textContent=_pvalTxt(v, dec, sp.getAttribute('data-unit')||''); }
@@ -3886,13 +3892,14 @@ function renderDashboard(){
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   h+='<div class="cform"><div class="sec">Taxa de desconto — Ke real (custo de capital próprio)'+help(MECH.vpl)+'</div>';
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
-  h+=`<div class="frow"><label>Ke real <b style="color:var(--accent3)" id="kereal_v">${fmtPct(_keR,1)}</b> a.a. <span class="pu">desconto do DCF (nominal mês a mês, grosseado pelo IPCA) — <b>move o Equity Value</b></span></label>
-      <input type="range" id="kereal" min="0.06" max="0.25" step="0.0025" value="${_keR}"
-        oninput="document.getElementById('kereal_v').textContent=(this.value*100).toFixed(1).replace('.',',')+'%'; liveKe(this)" onchange="onKeReal(this.value)" style="accent-color:var(--accent3)"></div>`;
+  h+='<div class="premgrid" style="grid-template-columns:1fr">'+premCtrl("Ke real (a.a.)","%", _keR*100, v=>{ const x=(+v)/100; if(x>0) DB.dcfConst.ke_real=x; }, {dec:1,min:6,max:25,step:0.25})+'</div>';
+  h+='<div class="psub" style="margin:2px 0 0">Desconto do DCF (nominal mês a mês, grosseado pelo IPCA) — <b>move o Equity Value</b>.</div>';
   h+='<div class="sec">Premissas globais (what-if) — sobre a projeção (> jul/26)</div>';
-  h+=gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01);
-  h+=gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005);
-  h+=gslider("g_mol","molMult","Custo da molécula (× base)",0.8,1.2,0.005);
+  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">'
+    +gslider("g_vol","volMult","Volume (× base)",0.5,1.5,0.01)
+    +gslider("g_preco","precoMult","Preço de venda (× base)",0.8,1.2,0.005)
+    +gslider("g_mol","molMult","Custo da molécula (× base)",0.8,1.2,0.005)
+    +'</div>';
   h+=`<div class="formbtns"><button class="btn-ghost" onclick="resetG()">Resetar (100%)</button><span class="okmsg">${gAtivo()?"premissas ativas — cascateiam por Receita/OPEX/Resumo e pelo VPL acima":""}</span></div>`;
   h+='</div>';
   // resumo operacional por ano
