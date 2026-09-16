@@ -410,6 +410,15 @@ table.heat td.l,table.heat th.l{text-align:left}
 .risks.soft .risk:nth-child(6n+4){background:#EBF3ED;border-color:#D6E7DB}
 .risks.soft .risk:nth-child(6n+5){background:#EEF4F4;border-color:#DBE8E7}
 .risks.soft .risk:nth-child(6n+6){background:#F3F3F0;border-color:#E3E7E0}
+/* grade de segmentos (Por negócio) */
+.segrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:2px}
+.segcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.segcard h4{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:5px;line-height:1.25}
+.segcard .sd{font-size:12px;color:#3E5E5C;line-height:1.5;margin-bottom:8px}
+.segcard .blist{margin-top:6px}
+.segcard .blist li{font-size:11.8px;color:#3E5E5C;margin-bottom:6px;padding-left:16px}
+.segcard .blist li::before{width:5px;height:5px;top:7px;left:3px;box-shadow:none}
+@media(max-width:860px){.segrid{grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -935,26 +944,37 @@ function renderTese(){
 }
 
 /* ---------- 4. Segmentos & Ativos ---------- */
+function famTint(nome){const s=nome.toLowerCase();
+  if(/carvão|óleo|legad/.test(s))return['#F2F1EE','#E3E0D8'];
+  if(/upstream|e&p/.test(s))return['#FBF4E7','#EEE0C1'];
+  if(/midstream|sslng|corredor verde|gnl/.test(s))return['#E9F1F1','#D6E5E4'];
+  if(/comercializ/.test(s))return['#FBEEE9','#F0D8CE'];
+  if(/renováv|solar/.test(s))return['#EBF3ED','#D6E7DB'];
+  return['#EAF3F2','#D5E7E4'];}
 function renderSeg(){
-  // EBITDA por segmento (histórico) — stacked
+  /* --- sub-aba 1: Visão & EBITDA --- */
   const buckets=Object.keys(SEG);
   const segColors={'Gás Parnaíba':C.petrol,'Gás Roraima':C.teal,'Gás terceiros / Hub Sergipe':C.tealL,'Upstream':C.amber,'Carvão':C.coal,'Óleo':C.oil,'Solar':C.sun,'Comerc. Energia':C.coral,'Comerc. Gás (Off-Grid)':'#8FB0AE'};
   const series=buckets.map(b=>({n:b,c:segColors[b]||C.slate,v:SEG[b].map(x=>x==null?0:x)}));
-  let segChart=card(head('cic-proj','EBITDA por segmento operacional (R$ mi)','Contribuição por segmento, 1T23–'+Q[L]+'. Exclui Holding/corporativo, equivalência e eliminações — por isso a soma difere do EBITDA consolidado.')+
-    chStackCat(Q,series,{h:340,fmt:v=>fMn(v),tip:v=>fMn(v)+' mi',unit:''})+legend(series.map(s=>({name:s.n,color:s.c}))));
-  // segmentos descritivos
-  let segCards=card(head('cic-edge','Os negócios da Eneva','Segmentos operacionais e modelos R2W (reservatório-a-fio) e G2P (gás-para-energia).')+
-    CORP.segmentos.map(s=>`<div style="margin-bottom:14px"><h3 class="msub">${esc(s.nome)}</h3><p class="cap" style="margin-bottom:8px">${esc(s.descricao)}</p>${blist(s.destaques.map(esc))}</div>`).join(''));
-  // ativos — capacidade por usina (barras) + tabela
+  let s1=card(head('cic-proj','EBITDA por segmento operacional',null,'1T23–'+Q[L])+
+    lead('A Eneva opera em <b>segmentos complementares</b> — geração a gás (Parnaíba, Hub Sergipe, Roraima), upstream de gás, comercialização de energia e gás, carvão/óleo legados e solar. O gráfico mostra a <b>contribuição de cada segmento ao EBITDA operacional</b> ao longo do tempo.')+
+    cap('EBITDA por segmento operacional (R$ mi) — como reportado nos releases')+
+    chStackCat(Q,series,{h:330,fmt:v=>fMn(v),tip:v=>fMn(v)+' mi',unit:''})+legend(series.map(s=>({name:s.n,color:s.c})))+
+    `<div class="note">Exclui Holding/corporativo, equivalência patrimonial e eliminações intercompany — por isso a soma difere do EBITDA consolidado. Carvão no 4T24 usa o valor ex-impairment. A taxonomia de segmentos da Eneva mudou no período; buckets harmonizados para comparabilidade.</div>`);
+  /* --- sub-aba 2: Portfólio de ativos --- */
   const opAssets=CORP.ativos.filter(a=>typeof a.capacidade_mw==='number'&&a.capacidade_mw>0);
   const byCap=[...opAssets].sort((a,b)=>b.capacidade_mw-a.capacidade_mw).slice(0,16).map(a=>[a.nome.replace('UTE ','').replace('Complexo ',''),a.capacidade_mw]);
-  let capChart=card(head('cic-market','Base de ativos por capacidade (MW)','Principais usinas por capacidade instalada/contratada.')+
+  let s2=card(head('cic-market','Base de ativos por capacidade',null,fMn(opAssets.reduce((t,a)=>t+a.capacidade_mw,0))+' MW em '+opAssets.length+' ativos')+
+    cap('Principais usinas por capacidade instalada/contratada (MW)')+
     chHBars(byCap,{fmt:v=>fMn(v),unit:' MW',color:C.teal,hiColor:C.petrol,rh:26}));
-  // tabela de ativos
-  const rowsA=CORP.ativos.map(a=>`<tr><td class="l">${esc(a.nome)}</td><td>${esc(a.uf)}</td><td>${esc(a.combustivel)}</td><td>${a.capacidade_mw==null?'—':fMn(a.capacidade_mw)}</td><td>${esc(a.status)}</td><td class="l" style="white-space:normal;max-width:340px;font-size:11px;color:var(--muted)">${esc(a.obs||'')}</td></tr>`).join('');
-  let tblA=card(head('cic-dist','Portfólio de ativos','Usinas, combustível, capacidade (MW), status e contratos.')+
+  const rowsA=CORP.ativos.map(a=>`<tr><td class="l">${esc(a.nome)}</td><td>${esc(a.uf)}</td><td>${esc(a.combustivel)}</td><td>${a.capacidade_mw==null?'—':fMn(a.capacidade_mw)}</td><td>${esc(a.status)}</td><td class="l" style="white-space:normal;max-width:320px;font-size:11px;color:var(--muted)">${esc(a.obs||'')}</td></tr>`).join('');
+  s2+=card(head('cic-dist','Portfólio completo de ativos',CORP.ativos.length+' ativos — usina, UF, combustível, capacidade, status e contratos.')+
     `<div class="twrap"><table><thead><tr><th class="l">Ativo</th><th>UF</th><th>Combustível</th><th>MW</th><th>Status</th><th class="l">Observações (COD / contrato)</th></tr></thead><tbody>${rowsA}</tbody></table></div>`);
-  $('p-seg').innerHTML=segChart+segCards+capChart+tblA;
+  /* --- sub-aba 3: Por negócio --- */
+  const segGrid=`<div class="segrid">`+CORP.segmentos.map(s=>{const[bg,bd]=famTint(s.nome);
+    return `<div class="segcard" style="background:${bg};border-color:${bd}"><h4>${esc(s.nome)}</h4><div class="sd">${esc(s.descricao)}</div>${blist((s.destaques||[]).map(esc))}</div>`;}).join('')+`</div>`;
+  let s3=card(head('cic-edge','Os negócios da Eneva','Os 12 segmentos operacionais — modelos R2W (reservatório-a-fio) e G2P (gás-para-energia).')+segGrid);
+  $('p-seg').innerHTML=subBar('seg',['Visão & EBITDA','Portfólio de ativos','Por negócio'])+subpane('seg',0,s1)+subpane('seg',1,s2)+subpane('seg',2,s3);
 }
 
 /* ---------- 5. Resultados (histórico 1T23–2T26) ---------- */
