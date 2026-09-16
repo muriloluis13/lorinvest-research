@@ -997,7 +997,15 @@ function renderOver(){
   const links=[['file','Apresentação institucional',CORP_URL],['chart','Últimos resultados','https://ri.eneva.com.br/informacoes-financeiras/central-de-resultados/'],['bars','Planilha de valuation','https://ri.eneva.com.br/informacoes-financeiras/planilhas-interativas/']];
   const linksCard=card(`<div class="section-head"><div class="title-icon"><svg viewBox="0 0 24 24">${MIC.link}</svg></div><div class="head-copy"><h2>Links rápidos</h2></div></div>`+
     `<div class="qlinks">`+links.map(l=>`<a class="qlink" href="${l[2]}" target="_blank" rel="noopener"><svg class="qi" viewBox="0 0 24 24">${MIC[l[0]]}</svg><span>${esc(l[1])}</span><svg class="qe" viewBox="0 0 24 24">${MIC.ext}</svg></a>`).join('')+`</div>`);
-  $('p-over').innerHTML=hero+kstrip+`<div class="orow">${portfolio}<div class="oaside">${destCard}${linksCard}</div></div>`;
+  // risco-retorno & tese + panorama do trimestre (abaixo do portfólio)
+  const teseCard=card(head('cic-tese','Risco–retorno & tese','A Eneva como pilar da nova matriz energética brasileira.','Tese de investimento')+
+    lead('A Eneva é a <b>maior geradora térmica do Brasil</b> e pioneira do modelo integrado <b>reservatório-a-fio (R2W)</b>: monetiza gás onshore próprio em usinas flexíveis, com <b>~82% do EBITDA em contratos de receita fixa</b> de longo prazo. Num sistema elétrico cada vez mais dependente de renováveis intermitentes, a <b>capacidade despachável</b> vira o gargalo — e o LRCAP 2026 destravou um ciclo de crescimento contratado (<b>+R$ 161 bi</b> de receita fixa).')+
+    cap('Referência sell-side — Goldman Sachs, início de cobertura ('+esc(GS.data)+'):')+
+    '<div class="big">'+[['Buy','Recomendação (GS)'],['R$ 25,00','Preço-alvo 12m'],['~24%','Upside vs. ref. R$ 20,09'],['12,4%','TIR real (vs. ~10% setor)']].map(n=>`<div class="bigc"><div class="n">${n[0]}</div><div class="l">${n[1]}</div></div>`).join('')+'</div>'+
+    `<div class="note"><b>Cenários GS:</b> bear R$ 13,1 (sem LRCAP) · base R$ 25,0 · bull R$ 34,0 · extreme bull ~R$ 37,2. Fonte única — a ser ampliada com consenso de mercado.</div>`);
+  const dq=(NARR[Q[L]]&&NARR[Q[L]].destaques)?NARR[Q[L]].destaques.slice(0,6):[];
+  const panorama=card(head('cic-proj','Panorama do trimestre — '+Q[L],'Principais destaques reportados no release.')+blist(dq.map(esc)));
+  $('p-over').innerHTML=hero+kstrip+`<div class="orow">${portfolio}<div class="oaside">${destCard}${linksCard}</div></div>`+`<div class="row2">${teseCard}${panorama}</div>`;
 }
 
 /* ---------- 2. A Empresa ---------- */
