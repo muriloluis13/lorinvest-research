@@ -395,7 +395,8 @@ main{padding:17px 24px 54px;max-width:1440px;margin:0 auto}
 
 
 /* --- extras Eneva --- */
-.hbtn{font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);background:#E7F1F0;border:1px solid var(--line);border-radius:7px;padding:4px 10px;cursor:pointer;margin-left:4px}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.hbtn{font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);background:#E7F1F0;border:1px solid var(--line);border-radius:7px;padding:5px 11px;cursor:pointer}
 .hbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 table.heat td,table.heat th{text-align:center;padding:5px 7px;font-size:11px}
 table.heat td.l,table.heat th.l{text-align:left}
@@ -1249,36 +1250,43 @@ function renderSeg(){
 
 /* ---------- 5. Resultados (histórico 1T23–2T26) ---------- */
 function renderResult(){
-  // msbar KPIs último tri
+  const ltm=a=>{let s=0;for(let i=L-3;i<=L;i++)s+=a[i];return s;};
+  /* --- sub-aba 1: Financeiro --- */
   const kk=[['Receita líq.',fMn(F.receita_liquida[L]),'mi'],['EBITDA ICVM',fMn(F.ebitda_icvm[L]),'mi'],['Margem',nf(margICVM[L],1)+'%',''],
     ['Result. líq.',fMn(F.resultado_liquido_eneva[L]),'mi'],['FCO',fMn(F.fco[L]),'mi'],['Capex',fMn(F.investimentos[L]),'mi'],
     ['Dívida líq.',nf(F.divida_liquida_bi[L],1),'bi'],['DL/EBITDA',nf(F.alavancagem[L],2)+'x','']];
-  let msbar=`<div class="msbar">`+kk.map(k=>`<div class="m"><div class="l">${esc(k[0])} ${Q[L]}</div><div class="v">${k[1]==null?'—':(k[2]==='mi'||k[2]==='bi'?'R$ ':'')}${k[1]} ${k[2]!=='%'&&k[2]!==''?k[2]:''}</div></div>`).join('')+`</div>`;
-  // receita + ebitda grouped
-  let c1=card(head('cic-proj','Receita líquida & EBITDA (R$ mi)','Série trimestral consolidada · valores "como reportados" nos releases.')+
+  const msbar=`<div class="msbar">`+kk.map(k=>`<div class="m"><div class="l">${esc(k[0])} ${Q[L]}</div><div class="v">${k[1]==null?'—':(k[2]==='mi'||k[2]==='bi'?'R$ ':'')}${k[1]} ${k[2]!=='%'&&k[2]!==''?k[2]:''}</div></div>`).join('')+`</div>`;
+  const c1=card(head('cic-proj','Receita líquida & EBITDA',null,'1T23–'+Q[L])+
+    lead('EBITDA de <b>R$ '+fMn(ltm(F.ebitda_icvm))+' mi</b> nos últimos 12 meses (margem '+nf(ltm(F.ebitda_icvm)/ltm(F.receita_liquida)*100,1)+'%). Série "como reportada" na coluna do trimestre corrente de cada release.')+
     chGrouped(Q,[{name:'Receita líquida',color:C.tealL,vals:F.receita_liquida},{name:'EBITDA ICVM',color:C.petrol,vals:F.ebitda_icvm}],{h:290,fmt:v=>fMn(v),tip:v=>fMn(v)+' mi'})+
     legend([{name:'Receita líquida',color:C.tealL},{name:'EBITDA ICVM 527/12',color:C.petrol}]));
-  // lucro + fco/capex + divida/alavancagem em row3
-  let cNI=card(head('cic-mult','Resultado líquido Eneva (R$ mi)','Atribuível aos acionistas.')+chVBars(F.resultado_liquido_eneva.map((v,i)=>[Q[i],v]),{h:250,fmt:v=>fMn(v),unit:'',color:C.teal,hiColor:C.coral,cpl:4}));
-  let cLev=card(head('cic-tp','Dívida líquida (R$ bi) & alavancagem','Barras: dívida líquida. Rótulo: DL/EBITDA 12M.')+chVBars(F.divida_liquida_bi.map((v,i)=>[Q[i]+' · '+nf(F.alavancagem[i],2)+'x',v]),{h:250,fmt:v=>nf(v,1),unit:' bi',color:C.petrol,cpl:6}));
-  let cFco=card(head('cic-growth','FCO & investimentos (R$ mi)','Geração de caixa operacional vs. capex.')+
+  const cNI=card(head('cic-mult','Resultado líquido Eneva (R$ mi)','Atribuível aos acionistas.')+chVBars(F.resultado_liquido_eneva.map((v,i)=>[Q[i],v]),{h:250,fmt:v=>fMn(v),unit:'',color:C.teal,hiColor:C.coral,cpl:4}));
+  const cLev=card(head('cic-tp','Dívida líquida (R$ bi) & alavancagem','Barras: dívida líquida. Rótulo: DL/EBITDA 12M.')+chVBars(F.divida_liquida_bi.map((v,i)=>[Q[i]+' · '+nf(F.alavancagem[i],2)+'x',v]),{h:250,fmt:v=>nf(v,1),unit:' bi',color:C.petrol,cpl:6}));
+  const cFco=card(head('cic-growth','FCO & investimentos (R$ mi)','Geração de caixa operacional vs. capex.')+
     chGrouped(Q,[{name:'FCO',color:C.teal,vals:F.fco},{name:'Investimentos',color:C.amber,vals:F.investimentos}],{h:250,fmt:v=>fMn(v),tip:v=>fMn(v)+' mi'})+legend([{name:'FCO',color:C.teal},{name:'Investimentos',color:C.amber}]));
-  // gas: produção e reservas
-  let cGas=card(head('cic-market','Produção & reservas de gás (Bi m³)','Produção trimestral por bacia e reservas remanescentes.')+
-    chStackCat(Q,[{n:'Parnaíba',c:C.petrol,v:GAS.prod_parnaiba.map(x=>x||0)},{n:'Amazonas',c:C.amber,v:GAS.prod_amazonas.map(x=>x||0)}],{h:230,fmt:v=>nf(v,1),tip:v=>nf(v,2)+' Bi m³',segLbl:false})+
-    legend([{name:'Produção Parnaíba',color:C.petrol},{name:'Produção Amazonas',color:C.amber}]));
-  // tabela financeira completa
   const rows=[['Receita líquida (R$ mi)',F.receita_liquida,0],['EBITDA ICVM (R$ mi)',F.ebitda_icvm,0],['Margem EBITDA ICVM (%)',margICVM,1],
     ['Result. líq. Eneva (R$ mi)',F.resultado_liquido_eneva,0],['Investimentos (R$ mi)',F.investimentos,0],['FCO (R$ mi)',F.fco,0],
     ['Dívida líquida (R$ bi)',F.divida_liquida_bi,1],['DL/EBITDA 12M (x)',F.alavancagem,2]];
-  let tbl=`<div class="twrap"><table><thead><tr><th class="l">Indicador</th>${Q.map(q=>`<th>${q}</th>`).join('')}</tr></thead><tbody>`+
+  const tbl=`<div class="twrap"><table><thead><tr><th class="l">Indicador</th>${Q.map(q=>`<th>${q}</th>`).join('')}</tr></thead><tbody>`+
     rows.map(r=>`<tr><td class="l">${r[0]}</td>${r[1].map(v=>`<td${(typeof v==='number'&&v<0)?' style="color:var(--accent3)"':''}>${nf(v,r[2])}</td>`).join('')}</tr>`).join('')+`</tbody></table></div>`;
-  let cTbl=card(head('cic-model','Série histórica trimestral','1T23–'+Q[L]+', como reportado em cada release.')+tbl);
-  // heatmap por usina
-  let cPl=card(head('cic-dist','Indicadores por usina','Heatmap por trimestre. '+
-    `<span style="white-space:nowrap"><button class="hbtn on" data-m="disp" onclick="enePlanta(this,'disp')">Disponibilidade</button> <button class="hbtn" data-m="desp" onclick="enePlanta(this,'desp')">Despacho</button> <button class="hbtn" data-m="ger_liq" onclick="enePlanta(this,'ger_liq')">Geração líq.</button></span>`)+
-    `<div id="plwrap"></div><p class="warn">Complexo Parnaíba (UTEs I–V) com série completa; demais ativos a partir de quando passaram a ser divulgados individualmente. Fonte: Releases Operacionais.</p>`);
-  $('p-result').innerHTML=msbar+c1+`<div class="row3">${cNI}${cLev}${cFco}</div>`+cGas+cTbl+cPl;
+  const cTbl=card(head('cic-model','Série histórica trimestral','1T23–'+Q[L]+', como reportado em cada release.')+tbl+
+    `<div class="warn">Reapresentações posteriores não são retroaplicadas. 4T24: EBITDA ICVM inclui impairment não-caixa de R$ 634,7 mi (ajustado: R$ 1.242,7 mi).</div>`);
+  const s1=msbar+c1+`<div class="row3">${cNI}${cLev}${cFco}</div>`+cTbl;
+  /* --- sub-aba 2: Gás & Upstream --- */
+  const cProd=card(head('cic-market','Produção de gás por bacia (Bi m³/tri)','Volume produzido por trimestre.')+
+    chStackCat(Q,[{n:'Parnaíba',c:C.petrol,v:GAS.prod_parnaiba.map(x=>x||0)},{n:'Amazonas',c:C.amber,v:GAS.prod_amazonas.map(x=>x||0)}],{h:250,fmt:v=>nf(v,1),tip:v=>nf(v,2)+' Bi m³'})+
+    legend([{name:'Parnaíba',color:C.petrol},{name:'Amazonas',color:C.amber}]));
+  const cRes=card(head('cic-market','Reservas remanescentes de gás (Bi m³)','Reservas 2P por bacia ao fim de cada trimestre.')+
+    chGrouped(Q,[{name:'Parnaíba',color:C.petrol,vals:GAS.res_parnaiba.map(x=>x||0)},{name:'Amazonas',color:C.amber,vals:GAS.res_amazonas.map(x=>x||0)}],{h:250,fmt:v=>nf(v,0),tip:v=>nf(v,1)+' Bi m³'})+
+    legend([{name:'Parnaíba',color:C.petrol},{name:'Amazonas',color:C.amber}]));
+  const s2=card(head('cic-market','Gás & Upstream',null,'E&P onshore')+
+    lead('A Eneva é o <b>maior operador onshore</b> em 4 bacias, com <b>~38% das reservas 2P de gás onshore do país</b>. A produção acompanha o despacho térmico; os saltos nas reservas refletem novas certificações.'))+
+    `<div class="row2">${cProd}${cRes}</div>`;
+  /* --- sub-aba 3: Por usina --- */
+  const cPl=card(head('cic-dist','Indicadores por usina','Heatmap por trimestre — disponibilidade, despacho e geração por ativo.')+
+    `<div class="hbtns"><button class="hbtn on" data-m="disp" onclick="enePlanta(this,'disp')">Disponibilidade</button><button class="hbtn" data-m="desp" onclick="enePlanta(this,'desp')">Despacho</button><button class="hbtn" data-m="ger_liq" onclick="enePlanta(this,'ger_liq')">Geração líq.</button></div>`+
+    `<div id="plwrap"></div><p class="warn">Complexo Parnaíba (UTEs I–V) com série completa; demais ativos a partir de quando passaram a ser divulgados individualmente. Fonte: Releases Operacionais da Eneva.</p>`);
+  $('p-result').innerHTML=subBar('res',['Financeiro','Gás & Upstream','Por usina'])+subpane('res',0,s1)+subpane('res',1,s2)+subpane('res',2,cPl);
   enePlanta(null,'disp');
 }
 function heatColor(v,m){if(v==null)return 'background:#f3f6f6;color:#c3cdcc';
