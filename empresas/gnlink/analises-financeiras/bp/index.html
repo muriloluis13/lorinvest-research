@@ -2728,7 +2728,7 @@ function _mcSel(id, val, opts, onch){
   return `<select id="${id}" onchange="${onch}" style="font-family:inherit;font-size:12px;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%">`
     + opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`).join('') + '</select>';
 }
-// Painel da cobertura do caixa mínimo (reusado nas abas DCF e Dívida). 3 modos (Consolidated!C31 do modelo
+// Painel da cobertura do caixa mínimo (na aba DCF; dirige o Equity Value). 3 modos (Consolidated!C31 do modelo
 // 09.07): APORTE de capital (Equity, C31="N", default), DÍVIDA rolling (C31="Y") ou NENHUM.
 function minCashDebtPanelHTML(){
   const C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0, e=caixaBalancoEngine();
@@ -3205,7 +3205,7 @@ function renderDivida(){
   const cut=DB.cutoffIdx, n=DB.meses.length, de=dividaEngine(), num=x=>typeof x==="number"?x:0;
   const saldo=de.saldo, juros=de.juros, desemb=de.desemb, amort=de.amort, pagJ=de.pagJ, lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);
   const totJuros=juros.slice(cut+1).reduce((s,v)=>s+num(v),0);
-  let h=`<div class="pglead"><b>Dívida</b> — saldo devedor, desembolsos, amortização e juros dos ${de.insts.length} instrumentos (por fórmula: SAC/PRICE, indexação IPCA/CDI + spread, gate de amortização). A dívida da holding fica fixa; a dívida por planta reage ao switch. Abaixo, a <b>dívida rolling</b> de caixa mínimo (mecânica do 09.07, editável).<span class="tag">Fase F</span></div>`;
+  let h=`<div class="pglead"><b>Dívida</b> — saldo devedor, desembolsos, amortização e juros dos ${de.insts.length} instrumentos (por fórmula: SAC/PRICE, indexação IPCA/CDI + spread, gate de amortização). A dívida da holding fica fixa; a dívida por planta reage ao switch. A <b>cobertura do caixa mínimo</b> (aporte ou dívida rolling do 09.07) fica na aba <b>DCF (VPL)</b>.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
   const peak=Math.max(...saldo.map(v=>num(v)));
   h+=kpi("Dívida — pico do saldo","R$ "+fmt(peak/1e6,0)+" mi","saldo devedor máximo",null,MECH.vpl);
@@ -3242,8 +3242,7 @@ function renderDivida(){
   h+=premCtrl("Seguro RN","% a.a.", (cfg.seg_rate_rn||0)*100, v=>{ if(DB.divida.cfg) DB.divida.cfg.seg_rate_rn=(+v)/100; }, {dec:3,min:0,max:5,step:0.05});
   h+=premCtrl("Seguro BA","% a.a.", (cfg.seg_rate_ba||0)*100, v=>{ if(DB.divida.cfg) DB.divida.cfg.seg_rate_ba=(+v)/100; }, {dec:3,min:0,max:5,step:0.05});
   h+='</div></div>';
-  h+='<h3 class="msub">Dívida rolling p/ caixa mínimo (mecânica 09.07)</h3>';
-  h+=minCashDebtPanelHTML();
+  h+='<div class="note" style="margin-top:12px">A <b>cobertura do caixa mínimo</b> (aporte de capital ou dívida rolling do modelo 09.07) fica na aba <b>DCF (VPL)</b> — é onde a escolha de financiamento afeta o Equity Value.</div>';
   return {html:h};
 }
 function renderResumo(){
