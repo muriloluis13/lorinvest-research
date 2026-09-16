@@ -1,0 +1,2222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eneva — Consolidado de Resultados Trimestrais (1T23–2T26)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0f2740; --navy2:#1b3c5e; --teal:#127d83; --teal-l:#3fa7ad;
+  --ink:#16232e; --muted:#6a7c8a; --line:#e4e9ee; --bg:#f5f7f9; --card:#ffffff;
+  --pos:#1f8a4c; --neg:#c0392b; --amber:#d98a1f;
+  --c1:#0f2740;--c2:#127d83;--c3:#3fa7ad;--c4:#d98a1f;--c5:#7b6cae;--c6:#c0563b;--c7:#4a8f5b;--c8:#9aa7b2;--c9:#e0c04a;
+  --shadow:0 1px 3px rgba(16,35,46,.08),0 1px 2px rgba(16,35,46,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 60px}
+header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:26px 0 22px;margin-bottom:0}
+header .wrap{padding-bottom:0}
+.htop{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.2px}
+.sub{color:#b9cbdb;font-size:12.5px;margin-top:4px}
+.badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:5px 11px;border-radius:20px;font-size:12px;color:#eaf2f8}
+nav{position:sticky;top:0;z-index:20;background:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+nav .wrap{display:flex;gap:2px;padding:0 20px;overflow-x:auto}
+nav button{background:none;border:none;color:#b9cbdb;padding:13px 16px;font-size:13.5px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;font-family:inherit}
+nav button:hover{color:#fff}
+nav button.active{color:#fff;border-bottom-color:var(--teal-l)}
+section{display:none;padding-top:22px}
+section.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h2{font-size:16px;margin:6px 0 2px;color:var(--navy)}
+.hint{color:var(--muted);font-size:12px;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:4px 0 22px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 14px;box-shadow:var(--shadow)}
+.kpi .lbl{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.kpi .val{font-size:22px;font-weight:700;margin:3px 0 2px;color:var(--navy)}
+.kpi .unit{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .delta{font-size:11.5px;font-weight:600;margin-top:2px}
+.up{color:var(--pos)} .down{color:var(--neg)} .flat{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid1{display:grid;grid-template-columns:1fr;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 16px 10px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 2px;font-size:13.5px;color:var(--navy)}
+.card .cnote{font-size:11px;color:var(--muted);margin:0 0 8px}
+.chartbox{position:relative;height:290px}
+.chartbox.tall{height:340px}
+table{border-collapse:collapse;width:100%;font-size:12px}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:var(--shadow)}
+th,td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:#fff;font-weight:600;z-index:1}
+thead th{background:var(--navy);color:#fff;position:sticky;top:0;font-weight:600;font-size:11.5px}
+thead th:first-child{background:var(--navy);color:#fff}
+tbody tr:hover td{background:#f0f5f7}
+tbody tr:hover td:first-child{background:#f0f5f7}
+.rowlbl{color:var(--muted);font-size:11px}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+.selrow{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+select,.btn{font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 0;font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+.acc{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
+.acc-h{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;cursor:pointer;gap:12px}
+.acc-h:hover{background:#f6f9fb}
+.acc-h .q{font-weight:700;color:var(--navy);font-size:14px}
+.acc-h .meta{font-size:11.5px;color:var(--muted)}
+.acc-b{display:none;padding:4px 18px 16px;border-top:1px solid var(--line)}
+.acc.open .acc-b{display:block}
+.acc-b h4{margin:12px 0 6px;font-size:12px;color:var(--teal);text-transform:uppercase;letter-spacing:.4px}
+.acc-b ul{margin:0;padding-left:18px}
+.acc-b li{margin-bottom:7px;font-size:12.5px;color:#2a3b47}
+.chev{transition:transform .2s;color:var(--muted)}
+.acc.open .chev{transform:rotate(90deg)}
+.heat td.cell{text-align:center;font-weight:600;color:#1b2b36}
+.note{font-size:11.5px;color:var(--muted);background:#eef3f6;border-left:3px solid var(--teal-l);padding:9px 12px;border-radius:0 8px 8px 0;margin:14px 0}
+.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+.pill{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:10px;background:#eef3f6;color:var(--teal);font-weight:600;margin-left:6px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="htop">
+  <div><h1>ENEVA S.A. — Consolidado de Resultados Trimestrais</h1>
+  <div class="sub">Série 1T23 – 2T26 · valores "como reportados" nos Releases de Resultados (ICVM 527/12) · B3: ENEV3</div></div>
+  <div class="badge" id="hbadge">14 trimestres</div>
+</div></div></header>
+<nav><div class="wrap" id="tabs"></div></nav>
+
+<div class="wrap">
+  <section id="s-visao" class="active">
+    <h2>Visão geral <span class="pill" id="lastq"></span></h2>
+    <p class="hint">Indicadores do último trimestre reportado, com variação vs. trimestre anterior (T/T) e mesmo trimestre do ano anterior (A/A).</p>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="card"><h3>Receita líquida &amp; EBITDA (R$ mi) · margem EBITDA (%)</h3><p class="cnote">Barras: receita e EBITDA ICVM. Linha: margem EBITDA ICVM = EBITDA/Receita.</p><div class="chartbox"><canvas id="c_rev"></canvas></div></div>
+      <div class="card"><h3>Dívida líquida (R$ bi) &amp; alavancagem (x)</h3><p class="cnote">Barras: dívida líquida. Linha: Dívida Líquida / EBITDA 12M.</p><div class="chartbox"><canvas id="c_debt"></canvas></div></div>
+      <div class="card"><h3>Resultado líquido Eneva (R$ mi)</h3><p class="cnote">Atribuível aos acionistas da Eneva.</p><div class="chartbox"><canvas id="c_ni"></canvas></div></div>
+      <div class="card"><h3>Fluxo de caixa operacional &amp; investimentos (R$ mi)</h3><p class="cnote">FCO vs. Capex (competência).</p><div class="chartbox"><canvas id="c_fco"></canvas></div></div>
+    </div>
+  </section>
+
+  <section id="s-fin">
+    <h2>Financeiro</h2>
+    <p class="hint">Série trimestral completa. Passe o mouse para valores exatos. Margem ICVM calculada como EBITDA ICVM / Receita.</p>
+    <div class="tblwrap"><table id="tbl_fin"></table></div>
+    <div class="note" id="fin_notes"></div>
+  </section>
+
+  <section id="s-seg">
+    <h2>EBITDA por segmento operacional</h2>
+    <p class="hint">Contribuição dos segmentos operacionais (R$ mi). <b>Exclui</b> Holding/corporativo, equivalência patrimonial e eliminações intercompany — por isso a soma operacional (linha pontilhada) fica acima do EBITDA consolidado (linha cheia). A taxonomia de segmentos da Eneva mudou ao longo do período (ver notas).</p>
+    <div class="card grid1"><h3>EBITDA operacional por segmento (R$ mi)</h3><div class="chartbox tall"><canvas id="c_seg"></canvas></div></div>
+    <h2 style="margin-top:24px">EBITDA por segmento — como reportado</h2>
+    <p class="hint">Valores exatos de cada release (linha "EBITDA ICVM 527/12" das DREs por segmento). Nomes preservados conforme o release; "—" = segmento não reportado com esse nome naquele trimestre.</p>
+    <div class="tblwrap"><table id="tbl_seg"></table></div>
+    <div class="note">Notas de taxonomia: (i) 1T23–2T23 usam matriz de reconciliação com linha de <i>eliminações</i>; a partir do 3T23 os valores vêm das DREs individuais por segmento. (ii) "Gás terceiros / Hub Sergipe" agrega Hub Sergipe (Porto de Sergipe/CELSE), UTE Fortaleza (CGTF) e as térmicas a gás do Espírito Santo (combustível de terceiros, adquiridas no 4T24) — daí o salto a partir do 4T24. (iii) Carvão no 4T24: usado o EBITDA ajustado ex-Impairment (+R$ 117,5 mi) no gráfico; o ICVM foi -R$ 517,2 mi por impairment não-caixa de R$ 634,7 mi. (iv) UTE Pecém II desconsolidada a partir do 2T26 (processo de venda).</div>
+  </section>
+
+  <section id="s-oper">
+    <h2>Operacional — gás (upstream)</h2>
+    <p class="hint">Produção e reservas remanescentes de gás natural por bacia (Bi m³). A Eneva divulga geração e disponibilidade por usina (aba "Por usina"), sem total consolidado do parque.</p>
+    <div class="grid2">
+      <div class="card"><h3>Produção de gás natural por bacia (Bi m³/tri)</h3><div class="chartbox"><canvas id="c_gasprod"></canvas></div></div>
+      <div class="card"><h3>Reservas remanescentes de gás (Bi m³)</h3><p class="cnote">Saltos refletem novas certificações de reservas.</p><div class="chartbox"><canvas id="c_gasres"></canvas></div></div>
+    </div>
+  </section>
+
+  <section id="s-planta">
+    <h2>Indicadores por usina</h2>
+    <div class="selrow">
+      <label for="metricSel" style="font-weight:600;color:var(--muted);font-size:12px">Métrica:</label>
+      <select id="metricSel">
+        <option value="disp">Disponibilidade (%)</option>
+        <option value="desp">Despacho (%)</option>
+        <option value="ger_liq">Geração líquida (GWh)</option>
+      </select>
+      <span class="hint" style="margin:0">Heatmap por trimestre. Fonte: Releases Operacionais (janelas móveis de 5 tri).</span>
+    </div>
+    <div class="tblwrap"><table id="tbl_planta" class="heat"></table></div>
+    <div class="note">Cobertura: o Complexo Parnaíba (UTEs I–V) tem série completa 1T23–2T26; demais ativos a partir de quando passaram a ser divulgados individualmente. Grupos foram normalizados entre releases (ex.: "Parnaíba I" ⇄ "UTE Parnaíba I"). Para a base oficial por ativo, ver a Planilha de Dados Operacionais Trimestrais no site de RI da Eneva.</div>
+  </section>
+
+  <section id="s-narr">
+    <h2>Destaques &amp; eventos por trimestre</h2>
+    <p class="hint">Bullets da seção "Destaques" e eventos subsequentes de cada release (verbatim). Clique para expandir.</p>
+    <div id="acc"></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const DATA = {
+ "quarters": [
+  "1T23",
+  "2T23",
+  "3T23",
+  "4T23",
+  "1T24",
+  "2T24",
+  "3T24",
+  "4T24",
+  "1T25",
+  "2T25",
+  "3T25",
+  "4T25",
+  "1T26",
+  "2T26"
+ ],
+ "financeiro": {
+  "quarters": [
+   "1T23",
+   "2T23",
+   "3T23",
+   "4T23",
+   "1T24",
+   "2T24",
+   "3T24",
+   "4T24",
+   "1T25",
+   "2T25",
+   "3T25",
+   "4T25",
+   "1T26",
+   "2T26"
+  ],
+  "receita_liquida": [
+   2459.2,
+   2523.3,
+   2380.5,
+   2727.9,
+   2004.7,
+   1943.0,
+   2581.2,
+   4882.6,
+   4423.6,
+   3514.0,
+   4428.0,
+   6050.5,
+   4682.3,
+   3975.8
+  ],
+  "ebitda_icvm": [
+   1168.5,
+   1188.1,
+   891.7,
+   1035.8,
+   1089.0,
+   1070.4,
+   1134.1,
+   607.9,
+   1527.8,
+   1668.3,
+   1822.9,
+   1487.7,
+   1690.6,
+   1238.7
+  ],
+  "ebitda_ajustado": [
+   1168.8,
+   1188.4,
+   903.1,
+   1053.3,
+   1089.0,
+   1070.4,
+   1134.1,
+   1242.7,
+   1527.8,
+   1668.3,
+   1822.9,
+   1487.7,
+   1690.6,
+   1238.7
+  ],
+  "margem_ebitda_reportada": [
+   47.5,
+   47.1,
+   37.9,
+   38.6,
+   54.3,
+   55.3,
+   43.9,
+   25.5,
+   34.5,
+   47.5,
+   41.2,
+   24.6,
+   36.1,
+   31.2
+  ],
+  "resultado_liquido_eneva": [
+   222.9,
+   372.3,
+   -86.9,
+   -290.6,
+   -60.9,
+   1066.7,
+   102.7,
+   -962.6,
+   384.4,
+   364.5,
+   351.7,
+   57.0,
+   522.7,
+   31.2
+  ],
+  "investimentos": [
+   516.8,
+   682.7,
+   716.1,
+   789.3,
+   422.3,
+   771.9,
+   966.9,
+   1124.0,
+   861.1,
+   1600.5,
+   1566.6,
+   2083.4,
+   2054.5,
+   1590.2
+  ],
+  "fco": [
+   573.5,
+   660.5,
+   933.8,
+   932.5,
+   1104.7,
+   933.7,
+   1272.4,
+   1139.9,
+   1018.3,
+   1300.9,
+   1965.2,
+   1317.7,
+   1512.4,
+   1679.6
+  ],
+  "divida_liquida_bi": [
+   17.1,
+   16.6,
+   16.1,
+   17.1,
+   17.4,
+   17.8,
+   15.3,
+   13.5,
+   14.4,
+   15.3,
+   15.5,
+   17.0,
+   18.5,
+   19.8
+  ],
+  "alavancagem": [
+   4.6,
+   4.26,
+   4.22,
+   3.99,
+   4.1,
+   4.36,
+   3.53,
+   2.42,
+   2.6,
+   2.71,
+   2.68,
+   2.61,
+   2.77,
+   3.18
+  ]
+ },
+ "fin_notas": {
+  "margem_ebitda_reportada": "1T23/2T23/3T23/4T23 e 4T24 sao margem sobre EBITDA Ajustado; demais sobre EBITDA ICVM. Margem ICVM = ebitda_icvm/receita.",
+  "ebitda_ajustado": "4T24 = 1.242,7 ex-Impairment carvao (ICVM 607,9). 1T23-4T23 excluem pocos secos/provisoes.",
+  "receita_liquida": "4T24 reportado 4.882,6; releases de 2025 reapresentaram como 4.858,6.",
+  "divida_liquida_bi": "Divida bruta menos caixa+equivalentes+TVM."
+ },
+ "segmentos_bucket": {
+  "Gás Parnaíba": [
+   220.5,
+   272.2,
+   114.0,
+   187.7,
+   318.5,
+   291.4,
+   364.9,
+   293.8,
+   254.3,
+   325.9,
+   394.7,
+   296.6,
+   322.0,
+   353.3
+  ],
+  "Gás Roraima": [
+   68.7,
+   56.9,
+   81.4,
+   87.2,
+   116.8,
+   103.1,
+   90.7,
+   97.8,
+   124.1,
+   114.2,
+   129.9,
+   103.0,
+   381.4,
+   122.1
+  ],
+  "Gás terceiros / Hub Sergipe": [
+   471.2,
+   575.3,
+   511.3,
+   498.3,
+   380.8,
+   389.2,
+   349.1,
+   671.3,
+   967.9,
+   990.2,
+   1020.3,
+   860.6,
+   628.9,
+   503.4
+  ],
+  "Upstream": [
+   62.5,
+   116.3,
+   96.2,
+   127.2,
+   79.3,
+   51.5,
+   302.0,
+   206.4,
+   39.2,
+   86.7,
+   229.8,
+   82.9,
+   156.3,
+   182.9
+  ],
+  "Carvão": [
+   159.2,
+   149.8,
+   150.8,
+   116.1,
+   158.6,
+   156.6,
+   119.0,
+   117.5,
+   171.3,
+   165.9,
+   130.8,
+   140.6,
+   165.7,
+   90.7
+  ],
+  "Óleo": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   18.7,
+   -30.6,
+   -30.6,
+   -3.5,
+   58.2,
+   62.6,
+   59.1
+  ],
+  "Solar": [
+   null,
+   7.2,
+   16.5,
+   47.8,
+   34.3,
+   26.8,
+   -0.4,
+   -11.6,
+   -5.2,
+   12.0,
+   -9.3,
+   -7.9,
+   -5.4,
+   -8.6
+  ],
+  "Comerc. Energia": [
+   268.8,
+   73.5,
+   -28.0,
+   -4.2,
+   59.1,
+   82.2,
+   -16.2,
+   -66.4,
+   58.1,
+   10.0,
+   -14.9,
+   5.9,
+   8.4,
+   134.6
+  ],
+  "Comerc. Gás (Off-Grid)": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   -1.8,
+   55.4,
+   78.5,
+   67.1,
+   73.4,
+   82.5,
+   73.9
+  ]
+ },
+ "segmentos_op_sum": [
+  1250.9,
+  1251.2,
+  942.2,
+  1060.1,
+  1147.4,
+  1100.8,
+  1209.1,
+  1325.7,
+  1634.5,
+  1752.8,
+  1944.9,
+  1613.3,
+  1802.4,
+  1511.4
+ ],
+ "segmentos_reportado": {
+  "1T23": {
+   "Geração Parnaíba": 220.5,
+   "Geração Roraima": 68.7,
+   "Geração Gás Terceiros": 471.2,
+   "Upstream": 62.5,
+   "Geração a Carvão": 159.2,
+   "Comercializadora": 268.8,
+   "Holding e Outros": 265.0,
+   "Eliminações entre Segmentos": -347.4,
+   "Total": 1168.5
+  },
+  "2T23": {
+   "Geração Parnaíba": 272.2,
+   "Geração Roraima": 56.9,
+   "Geração Gás Terceiros": 575.3,
+   "Upstream": 116.3,
+   "Geração Carvão": 149.8,
+   "Geração Solar": 7.2,
+   "Comercializadora": 73.5,
+   "Holding e Outros": 593.0,
+   "Eliminações entre Segmentos": -656.1,
+   "Total": 1188.1
+  },
+  "3T23": {
+   "Geração Parnaíba": 114.0,
+   "UTE Jaguatirica II": 81.4,
+   "UTE Fortaleza": 157.2,
+   "UTE Porto de Sergipe I": 354.1,
+   "Geração a Carvão": 150.8,
+   "Geração Solar": 16.5,
+   "Upstream": 96.2,
+   "Comercialização": -28.0,
+   "Holding e Outros": -48.7,
+   "Total": 891.7
+  },
+  "4T23": {
+   "Geração Parnaíba": 187.7,
+   "UTE Jaguatirica II": 87.2,
+   "UTE Fortaleza": 160.3,
+   "UTE Porto de Sergipe I": 338.0,
+   "Geração a Carvão": 116.1,
+   "Geração Solar": 47.8,
+   "Upstream": 127.2,
+   "Comercialização": -4.2,
+   "Holding e Outros": 9.7,
+   "Total": 1035.8
+  },
+  "1T24": {
+   "Geração Térmica a Gás no Parnaíba": 318.5,
+   "Geração Térmica a Gás em Roraima (UTE Jaguatirica II)": 116.8,
+   "Geração a Gás – Combustível de Terceiros (UTE Porto de Sergipe I)": 386.5,
+   "Geração a Gás – Combustível de Terceiros (UTE Fortaleza)": -5.7,
+   "Geração Térmica a Carvão": 158.6,
+   "Geração Solar": 34.3,
+   "Upstream": 79.3,
+   "Comercialização": 59.1,
+   "Holding e Outros": 410.3,
+   "Holding e Outros (ex-Equivalência Patrimonial)": -58.7,
+   "EBITDA ICVM 527/12 Consolidado": 1089.0
+  },
+  "2T24": {
+   "Geração Térmica a Gás no Parnaíba": 291.4,
+   "Geração Térmica a Gás em Roraima (UTE Jaguatirica II)": 103.1,
+   "Geração a Gás – Combustível de Terceiros (UTE Porto de Sergipe I)": 389.7,
+   "Geração a Gás – Combustível de Terceiros (UTE Fortaleza)": -0.5,
+   "Geração Térmica a Carvão": 156.6,
+   "Geração Solar": 26.8,
+   "Upstream": 51.5,
+   "Comercialização": 82.2,
+   "Holding e Outros": 107.0,
+   "EBITDA ICVM 527/12 Consolidado": 1070.4
+  },
+  "3T24": {
+   "Geração Térmica a Gás no Parnaíba": 364.9,
+   "Geração Térmica a Gás em Roraima (UTE Jaguatirica II)": 90.7,
+   "Geração a Gás – Combustível de Terceiros (UTE Porto de Sergipe I)": 352.9,
+   "Geração a Gás – Combustível de Terceiros (UTE Fortaleza)": -3.8,
+   "Geração Térmica a Carvão": 119.0,
+   "Geração Solar": -0.4,
+   "Upstream": 302.0,
+   "Comercialização": -16.2,
+   "Holding e Outros": 423.9,
+   "EBITDA ICVM 527/12 Consolidado": 1134.1
+  },
+  "4T24": {
+   "Geração Parnaíba": 293.8,
+   "Geração Roraima": 97.8,
+   "HUB Sergipe": 328.2,
+   "Geração Gás de Terceiros": 347.0,
+   "Geração Gás de Terceiros (UTE Fortaleza)": -3.9,
+   "Upstream": 206.4,
+   "Geração Carvão (EBITDA ICVM, com Impairment)": -517.2,
+   "Geração Carvão (EBITDA Ajustado ex-Impairment)": 117.5,
+   "Geração Óleo": 18.7,
+   "Geração Solar": -11.6,
+   "Comercializadora": -66.4,
+   "SSLNG & GNL": -1.8,
+   "Holding e Outros": -871.2,
+   "Impairment Carvão (não caixa)": -634.7,
+   "EBITDA ICVM 527/12 Consolidado": 607.9,
+   "EBITDA Ajustado Consolidado (ex-Impairment)": 1242.7
+  },
+  "1T25": {
+   "Complexo Parnaíba": 254.3,
+   "UTE Jaguatirica II": 124.1,
+   "Hub Sergipe": 528.3,
+   "Térmicas a Gás Espírito Santo": 439.6,
+   "Geração a Carvão": 171.3,
+   "Geração a Óleo": -30.6,
+   "Geração Solar": -5.2,
+   "Upstream": 39.2,
+   "Comercialização de Gás Off-Grid": 55.4,
+   "Comercialização de Energia": 58.1,
+   "Holding e Outros": 275.0
+  },
+  "2T25": {
+   "Complexo Parnaíba": 325.9,
+   "UTE Jaguatirica II": 114.2,
+   "Hub Sergipe": 523.9,
+   "Térmicas a Gás Espírito Santo": 466.3,
+   "Geração a Carvão": 165.9,
+   "Geração a Óleo": -30.6,
+   "Geração Solar": 12.0,
+   "Upstream": 86.7,
+   "Comercialização de Gás Off-Grid": 78.5,
+   "Comercialização de Energia": 10.0,
+   "Holding e Outros": 73.4
+  },
+  "3T25": {
+   "Complexo Parnaíba": 394.7,
+   "UTE Jaguatirica II": 129.9,
+   "Hub Sergipe": 563.2,
+   "Térmicas a Gás Espírito Santo": 457.1,
+   "Geração a Carvão": 130.8,
+   "Geração a Óleo": -3.5,
+   "Geração Solar": -9.3,
+   "Upstream": 229.8,
+   "Comercialização de Gás Off-Grid": 67.1,
+   "Comercialização de Energia": -14.9,
+   "Holding e Outros": 144.2
+  },
+  "4T25": {
+   "Complexo Parnaíba": 296.6,
+   "UTE Jaguatirica II": 103.0,
+   "Hub Sergipe": 366.8,
+   "Térmicas a Gás Espírito Santo": 493.8,
+   "Geração a Carvão": 140.6,
+   "Geração a Óleo": 58.2,
+   "Geração Solar": -7.9,
+   "Upstream": 82.9,
+   "Comercialização de Gás Off-Grid": 73.4,
+   "Comercialização de Energia": 5.9,
+   "Holding e Outros": 94.3
+  },
+  "1T26": {
+   "Geração Térmica a Gás no Parnaíba": 322.0,
+   "Geração Térmica a Gás em Roraima (UTE Jaguatirica II)": 381.4,
+   "Hub Sergipe": 637.5,
+   "Hub Sergipe - UTE Porto de Sergipe I": 436.1,
+   "Hub Sergipe - Comercialização de Gás On-Grid": 201.4,
+   "Geração a Gás – Combustível de Terceiros": -8.6,
+   "Geração a Carvão": 165.7,
+   "Geração a Óleo": 62.6,
+   "Geração Solar": -5.4,
+   "Upstream": 156.3,
+   "Upstream (excluindo poços secos)": 200.1,
+   "Comercialização de Gás Off-Grid": 82.5,
+   "Comercialização de Energia": 8.4,
+   "Holding e Outros": 356.0,
+   "Holding e Outros (ex-Equivalência Patrimonial)": -99.8
+  },
+  "2T26": {
+   "Geração Térmica a Gás no Parnaíba": 353.3,
+   "Geração Térmica a Gás em Roraima (UTE Jaguatirica II)": 122.1,
+   "Hub Sergipe": 521.0,
+   "Hub Sergipe - UTE Porto de Sergipe I": 432.3,
+   "Hub Sergipe - Comercialização de Gás On-Grid": 88.7,
+   "Geração a Gás – Combustível de Terceiros": -17.6,
+   "Geração a Carvão": 90.7,
+   "Geração a Carvão - Itaqui": 90.7,
+   "Geração a Carvão - Pecém II": 0.0,
+   "Geração a Óleo": 59.1,
+   "Geração Solar": -8.6,
+   "Upstream": 182.9,
+   "Upstream (excluindo poços secos)": 182.9,
+   "Comercialização de Gás Off-Grid": 73.9,
+   "Comercialização de Energia": 134.6,
+   "Holding e Outros": 53.8,
+   "Holding e Outros (ex-Equivalência Patrimonial)": -259.6
+  }
+ },
+ "narrativa": {
+  "1T23": {
+   "destaques": [
+    "EBITDA ajustado de R$ 1.168,8 milhões, aumento de 138%, ou R$ 677,4 milhões, em relação ao resultado reportado no 1T22, com melhora no EBITDA em todos os segmentos operacionais;",
+    "Contribuição no EBITDA do 1T23 dos ativos adquiridos em 2022 com R$ 346,8 milhões provenientes de Celse e R$ 124,4 milhões de CGTF;",
+    "Aumento na atividade de comercialização, com crescimento de R$ 248,3 milhões no EBITDA reportado no 1T23 frente ao reportado no 1T22, sendo R$ 182,7 milhões em função da variação MtM nos contratos futuros de energia, principalmente devido à migração de contratos de venda de energia anteriormente alocados no projeto Futura I para o segmento de comercialização, e R$ 65,6 milhões devido à maior atividade de trading no período;",
+    "Aumento da disponibilidade média da UTE Jaguatirica II para 81% no trimestre, gerando um aumento de R$ 50,3 milhões entre o EBITDA reportado no período e o 1T22;",
+    "Despacho para exportação para a Argentina no mês de jan/2023, gerando R$ 39,2 milhões de EBITDA no Complexo Parnaíba;",
+    "Redução do SG&A da Holding (ex-despesas com ILP) de 48,3% em relação ao 4T22;",
+    "Início do ciclo da desalavancagem, medida pela Dívida Líquida/EBITDA 12 meses, de 4,8x no final de dez/2022 para 4,6x no final de mar/2023;",
+    "Conclusão da incorporação da CGTF na Holding em mar/2023, possibilitando sinergias operacionais, administrativas e tributárias;",
+    "Concluída a energização das 22 UFVs de Futura I, e unidades já gerando energia para comercialização, com COD previsto para final de mai/2023;",
+    "Celebração de parceria societária entre três SPEs do Complexo Solar Futura 1 e White Martins, garantindo PPA de R$ 2,287 bilhões (data base mar/2023), a ser recebido entre 2023 e 2035, ajustado ao longo do contrato pelo IPCA, referente à venda de 100,6 MWm nesse período."
+   ],
+   "eventos": [
+    "Emissão de Notas Comerciais Escriturais: em 06 de abril de 2023, a Eneva aprovou a 1ª emissão de Notas Comerciais Escriturais, em série única, no valor de R$ 1,0 bilhão, com prazo de vigência de 60 dias (vencimento em 13 de junho de 2023); em 17 de abril as notas foram integralmente subscritas e integralizadas, destinadas exclusivamente a investidores profissionais.",
+    "Manutenção de Rating da Standard & Poor's (S&P): em 28 de abril de 2023 a S&P reafirmou o rating 'brAAA' da Eneva, com rating de recuperação '3' inalterado, removeu os ratings da listagem CreditWatch e alterou a perspectiva do rating de emissor para negativa.",
+    "Parceria societária entre três SPEs do Complexo Solar Futura 1 e White Martins para autoprodução: anunciada em 09 de maio de 2023, com montante total do contrato de R$ 2,287 bilhões (data base mar/2023), a ser recebido entre 2023 e 2035, ajustado pelo IPCA, referente à venda de 100,6 MWmédios.",
+    "Aprovação do benefício da SUDENE: em 09 de maio de 2023 a Parnaíba Geração e Comercialização de Energia S.A. obteve aprovação de redução de 75% do IRPJ (modalidade Modernização Total), vigente de 01/01/2023 a 31/12/2032.",
+    "Negociação de operação de investimento minoritário indireto do Itaú em empresas do Complexo Parnaíba: em 15 de maio de 2023 a Companhia anunciou tratativas com o Itaú Unibanco para aquisição de participação indireta minoritária em ações preferenciais da Eneva Participações III S.A.; operação submetida ao CADE, com despacho de aprovação publicado em 12 de maio de 2023."
+   ]
+  },
+  "2T23": {
+   "destaques": [
+    "EBITDA trimestral recorde, totalizando R$ 1.188,1 milhões, um aumento de R$ 700,4 milhões ou de 144% em relação ao reportado no 2T22, impactado principalmente pelo aumento nas exportações de energia e pelas aquisições de CELSE e CGTF no 2S22 que, em conjunto, geraram um EBITDA de R$ 575,3 milhões no trimestre;",
+    "Operações de exportação de energia à Argentina e Uruguai pelas usinas do Complexo Parnaíba geraram um EBITDA de R$ 197,8 milhões versus R$ 113,7 milhões no 2T22;",
+    "Segmento de comercialização reportou EBITDA de R$ 73,5 milhões no trimestre, 18% acima do realizado no 2T22, devido ao fortalecimento e reestruturação da Comercializadora da Eneva após a incorporação da Focus Energia, com o crescimento de margem e do portfólio de contratos de comercialização de energia e de clientes;",
+    "Redução do SG&A da Holding e do Consolidado (ex-despesas com ILP) de 40,4% e 5,8%, respectivamente, em relação ao 2T22. Desconsiderando as despesas dos ativos adquiridos no último ano (CELSE, CGTF e Futura 1), que totalizaram R$ 15,2 milhões no 2T23, o SG&A Consolidado teria totalizado R$ 112,3 milhões, representando uma redução de 16,4% frente ao reportado no 2T22 em valores nominais;",
+    "Alavancagem, medida pela Dívida Líquida/EBITDA 12 meses, de 4,26x ao final do 2T23, totalizando uma queda de aproximadamente 0,56x nos 6 primeiros meses de 2023 e reforçando a disciplina financeira da Companhia;",
+    "Início da operação comercial do Complexo Solar Futura 1 em 26 de maio de 2023, com capacidade instalada de 692,4 MWac;",
+    "Celebração de parceria societária entre 3 SPEs do Complexo Solar Futura 1 e White Martins, garantindo PPA de R$ 2,3 bilhões (data base mar/2023), a ser recebido entre 2023 e 2035, ajustado ao longo do contrato pelo IPCA, referente à venda de 100,6 MWm nesse período;",
+    "Negociação de operação de investimento minoritário indireto do Itaú nas usinas do Complexo Parnaíba, no total de R$ 1,0 bilhão;",
+    "Obtenção de saving de cerca de R$ 152 milhões no projeto SSLNG no Maranhão, sendo R$ 126 milhões referente aos benefícios tributários relacionados ao diferimento de ICMS e ao regime de Ex-Tarifário e R$ 26 milhões com a contratação de hedge para 100% da exposição cambial do projeto;",
+    "Contratação de hedge para 100% da exposição cambial do projeto Azulão 950 MW."
+   ],
+   "eventos": []
+  },
+  "3T23": {
+   "destaques": [
+    "EBITDA alcançou R$ 891,7 milhões no 3T23, aumento de 49,3% frente ao 3T22 (ou 134% não considerando o impacto do reconhecimento da compra vantajosa da CGTF, contabilizado no 3T22), reflexo da entrada total de Hub Sergipe e UTE Fortaleza no resultado da ENEVA, além da redução de SG&A, da maior disponibilidade e geração de Jaguatirica no período com os progressos na estabilização da planta e do início da operação comercial de Futura 1 no 2T23.",
+    "Compromisso com disciplina financeira e gestão de gastos resulta em reduções nominais de SG&A total e O&M fixo: redução do SG&A da Holding de R$ 43,8 milhões, -42,1% versus 3T22 e do Consolidado de R$ 33,4 milhões, mesmo com crescimento da Companhia, -22,9% versus 3T22; bem como redução de custos de O&M dos ativos existentes em ambos os períodos de 4,9% versus 3T22.",
+    "Reestruturação de dívida da subsidiária CELSE iniciada no 3T23 e concluída no 4T23, que visou eliminar condições impostas nos contratos de dívidas celebrados anteriormente à aquisição da subsidiária que dificultavam o aproveitamento de relevantes oportunidades de geração de valor relacionadas ao desenvolvimento do Hub Sergipe. Em outubro/2023 foi também aprovada pelo Conselho de Administração a incorporação da subsidiária pela ENEVA, que permitirá o aproveitamento de sinergias financeiras adicionais para a Companhia integrada.",
+    "Estabilização do Complexo Solar Futura 1, que ao longo do 3T23 reportou EBITDA de R$ 16,5 milhões, impactado pelas restrições de operações do ONS após corte automático de carga no SIN e pela indisponibilidade de 30% em função das manutenções em determinadas UFVs. Ao final de outubro/2023 o parque encontrava-se com todas as 22 UFVs operacionais, totalizando 692,4 MWac de capacidade instalada.",
+    "Celebração de contrato de compra e venda de energia entre a SPE Futura 5 do Complexo Solar Futura e Vallourec, garantindo PPA de venda de 29 MWmed de energia ao longo de 12 anos. Assim, do total de seis SPEs do Complexo Solar Futura 1, cinco já contam com contratos firmados no ACL, totalizando um montante contratado de 84% do parque a partir de 2024.",
+    "Realização da primeira operação de estocagem de GNL no FSRU do Hub Sergipe, primeiro marco do desenvolvimento de novos serviços relacionados à comercialização de gás on-grid. O contrato prevê o armazenamento de 152 mil m³ GNL para a QatarEnergy por até 6 meses, até março/2024."
+   ],
+   "eventos": [
+    "Conclusão da reestruturação da dívida da CELSE: em 17 de outubro de 2023, através da 2ª emissão de debêntures simples da CELSE (datada de 21 de setembro de 2023), no valor total de R$ 5,0 bilhões, para pré-pagamento integral da dívida com IIC, BID, China Co-Financing Fund e IFC e recompra mandatória integral da 1ª emissão de debêntures; a dívida total remanescente de CELSE passa a ser de R$ 4,5 bilhões de principal. O Conselho de Administração aprovou a proposta de incorporação da CELSE, a ser aprovada em assembleia geral.",
+    "Celebração de contrato de compra e venda de energia entre a SPE Futura 5 e Vallourec: em 13 de novembro de 2023, venda de 29 MW médios pelo período de 12 anos; com isso o volume médio contratado do Complexo Solar Futura 1 em 2023 é de 61%, crescendo para 84% a partir de 2024."
+   ]
+  },
+  "4T23": {
+   "destaques": [
+    "EBITDA ICVM no 4T23 atinge R$ 1.035,8 milhões, representando crescimento de 84,0% frente ao 4T22;",
+    "Conclusão da estabilização no sistema de liquefação que supre a UTE Jaguatirica II, atingindo 100% de disponibilidade em dezembro/23, resultando no aumento de R$ 62,0 milhões de EBITDA comparado ao 4T22;",
+    "Conclusão da estabilização do Complexo Solar Futura 1, passando a contar com todas as suas 22 UFVs 100% operacionais a partir do final de outubro/23, com crescimento no EBITDA de R$ 61,4 milhões versus o 4T22 e R$ 31,3 milhões em relação ao 3T23, após entrada em operação em maio/23;",
+    "Retorno do despacho regulatório em praticamente todo o parque térmico da Eneva conectado ao SIN, decorrente da necessidade de geração termelétrica para atendimento à carga em momentos de pico, mesmo em cenário de níveis ainda elevados de armazenamento dos reservatórios;",
+    "Redução nos patamares de SG&A e custos fixos totais no Consolidado, com ganhos nominais de R$ 121,1 milhões e R$ 94,7 milhões, respectivamente, em relação ao 4T22, acompanhando o desempenho das iniciativas de eficiência operacional e o empenho na otimização de custos da Companhia;",
+    "Redução das despesas operacionais na Holding com savings de R$ 139,3 milhões frente ao 4T22, ocasionada por: (i) melhora recorrente no SG&A de R$ 59,2 milhões; (ii) impacto de R$ 48,0 milhões referentes à revisão da contabilização das despesas provisionadas referentes aos programas de ILP, sendo R$ 28,6 milhões referentes ao ano de 2023, e (iii) maior alocação de despesas aos demais segmentos da Companhia;",
+    "Realização da primeira operação de GNL no FSRU do Hub Sergipe com a QatarEnergy, contribuindo para variação positiva do EBITDA da usina no 4T23 na comparação com o 4T22;",
+    "Relação de dívida líquida/EBITDA atinge 3,99x em dezembro/23, com relevante evolução frente à alavancagem de 4,82x reportada ao final de 2022, quando foram concluídas duas grandes aquisições, evidenciando o empenho da Companhia na continuidade da trajetória de desalavancagem;",
+    "Celebração de contratos de financiamentos de cerca de R$ 1,0 bilhão ao final do 4T23 direcionados à UTE Azulão I no contexto do projeto Azulão 950 MW, sendo (i) R$ 400 milhões junto ao Fundo Constitucional de Financiamento do Norte com o Banco da Amazônia, já desembolsados em dezembro/23, e (ii) R$ 626 milhões junto ao Fundo de Desenvolvimento da Amazônia e Banco do Brasil, ainda não desembolsados no período;",
+    "Postergação do término dos prazos de vigência dos contratos de comercialização de energia no ACR para Itaqui e Pecém II, estendendo os prazos dos contratos em 355 dias e 246 dias, respectivamente, em função do reconhecimento de excludente de responsabilidade concedido pela Aneel ao final do 4T23;",
+    "Celebração de contrato bilateral de compra e venda de energia em modalidade de autoprodução (APE) entre a SPE Futura 5 do Complexo Solar Futura e Vallourec, garantindo PPA de venda de 29 MWmed de energia ao longo de 12 anos. Assim, do total de seis SPEs do Complexo Solar Futura 1, cinco contam com contratos firmados em APE, com 84% do parque solar contratado a partir de 2024."
+   ],
+   "eventos": [
+    "Continuidade do despacho regulatório no SIN no início de janeiro/24 e subsequente retomada da demanda de exportação para a Argentina ao final de janeiro/24 e início de fevereiro/24, com volume exportado de 132 GWh nas usinas do Complexo Parnaíba, reflexo da elevação das temperaturas observada no país;",
+    "Aquisição pela GNL Brazil (JV 51% Eneva e 49% Virtu GNL) de 30 cavalos mecânicos movidos à GNL para realização da parte logística envolvida nos contratos de suprimento de GNL firmados com Vale e Suzano;",
+    "Parceria firmada entre ENEVA, Virtu GNL e Scania em fevereiro/24 para implantação do primeiro corredor logístico com infraestrutura para abastecimento de caminhões movidos à GNL no Brasil, cuja primeira frota a ser abastecida será a da própria Virtu GNL, que ofertará os serviços logísticos e comprará o gás liquefeito pela Eneva no Complexo Parnaíba;",
+    "Abertura de Consulta Pública para realização do Leilão de Reserva de Capacidade de 2024 para contratação de Potência, a partir de empreendimentos de geração novos e existentes, previsto para 31 de agosto de 2024;",
+    "Lançamento de Mesa de Gás com celebração dos primeiros acordos com clientes industrial e gerador térmico para fornecer soluções de flexibilidade, liquidez e segurança para o mercado brasileiro de gás natural."
+   ]
+  },
+  "1T24": {
+   "destaques": [
+    "Despacho médio de 25% no Complexo Parnaíba no período frente a 10% no 1T23, refletindo os despachos regulatórios em todas as usinas do Complexo e a retomada da exportação de energia para a Argentina em janeiro/24, contribuindo para o crescimento de R$ 98,0 milhões no EBITDA do segmento de geração a gás no Parnaíba e para o aumento de R$ 16,7 milhões no EBITDA do Upstream;",
+    "Trajetória positiva de geração líquida na UTE Jaguatirica II, impulsionada pela evolução na disponibilidade para 99% e despacho para 82% na média do 1T24, pós estabilização, resultando em crescimento de R$ 48,1 milhões no EBITDA;",
+    "EBITDA ICVM de R$ 1.089,0 milhões, acompanhando o desempenho operacional no período. Aumento de R$ 126,7 milhões, ou 13,1%, frente ao 1T23, desconsiderando a variação não caixa do MtM dos contratos de energia, que no 1T23 foi impactada pelo valor positivo de R$ 203,9 milhões com a realocação dos contratos de Futura 1 para a Comercializadora;",
+    "Fluxo de Caixa Operacional atinge valor recorde de R$ 1,1 bilhão, impulsionado pelo EBITDA e pela variação positiva do capital de giro, suportando o fluxo de investimentos e o crescimento contratado no plano de negócios da Companhia;",
+    "Continuidade de iniciativas focadas em eficiência operacional e diligência com despesas, contribuindo para redução em mais um trimestre dos níveis de custos com O&M e de SG&A, que combinados representam ganho nominal de R$ 20,1 milhões frente ao 1T23, considerando apenas os segmentos operacionais em ambos os trimestres (excluindo Futura 1 e UTE Fortaleza);",
+    "Relação de dívida líquida/EBITDA alcança 4,1x ao final de março/24, apresentando redução de 0,5x em relação ao indicador de 4,6x registrado em março/23, reforçando o controle do nível de alavancagem da Companhia;"
+   ],
+   "eventos": [
+    "Encerrado o prazo para envio pelos agentes das contribuições sobre a minuta da Portaria Normativa com as Diretrizes para a realização do Leilão de Reserva de Capacidade na forma de Potência de 2024 em 26 de abril de 2024;",
+    "Reafirmação de Rating 'brAAA' para a Eneva e as emissões da Companhia e da sua subsidiária CELSE com alteração de perspectiva de crédito de rating corporativo para 'estável' pela agência S&P Global Ratings em abril/24;",
+    "Conclusão da incorporação das comercializadoras FC One Energia Ltda., Focus Energia Ltda. e Platinum Comercializadora na Holding no 2T24, simplificando estrutura societária e destravando sinergias;",
+    "Iniciativas de liability management realizadas no 2T24 promovem melhoria de perfil de dívida, com alongamento de prazo médio e redução do custo da dívida consolidada, após a conclusão da 10ª emissão de debêntures simples da Eneva, no valor total de R$ 2,5 bilhões e o pré-pagamento de dívidas mais antigas e mais caras em montante similar."
+   ]
+  },
+  "2T24": {
+   "destaques": [
+    "Continuação do despacho termelétrico no SIN no Complexo Parnaíba para atendimento à ponta de carga, por restrição elétrica e unit commitment. Retorno da exportação para a Argentina ao final de maio, com demanda crescente ao final do trimestre, resultando em exportação mensal recorde em julho/24, totalizando 500 GWh e já ultrapassando 150 GWh nos primeiros 12 dias do mês de agosto/24;",
+    "Celebração do primeiro contrato de suprimento de gás natural flexível para um cliente termelétrico utilizando a capacidade do FSRU do Hub Sergipe, garantindo fluxo de receita firme por 15 anos a partir de julho/26;",
+    "EBITDA consolidado de R$ 1.070,4 milhões no 2T24, suportado pelo desempenho operacional do período;",
+    "Disciplina financeira resulta em mais um trimestre com menores custos de O&M e SG&A em termos nominais versus o 2T23, com redução de 14,9% de SG&A e de 7,7% nos custos com O&M em base comparável;",
+    "Crescimento de R$ 46,3 milhões no EBITDA da UTE Jaguatirica II, com maior volume de energia gerada e menores deduções de receita, refletindo a estabilização da usina e melhora da disponibilidade de 82% no 2T23 para 97% no 2T24;",
+    "Disponibilidade de 98,5% do Complexo Futura em junho/2024, maior patamar desde o início da operação comercial, com crescimento de R$ 19,6 milhões no EBITDA do segmento;",
+    "Iniciativas de liability management realizadas no 2T24 alongam prazo médio da dívida em 0,7 anos e aumentam exposição a IPCA de 61% para 70% em relação ao 1T24, promovendo maior conformidade com as principais receitas da Companhia;",
+    "Conclusão da incorporação dos principais veículos de comercialização na Holding, simplificando a estrutura societária da Companhia e aumentando o aproveitamento de despesas correntes;"
+   ],
+   "eventos": [
+    "Celebração de memorandos vinculantes para: (a) Combinação de negócios e aquisição de 4 ativos do portfólio de geração de energia termelétrica do BTG, avaliados à taxas atrativas e em base stand-alone, considerando apenas contratos já celebrados, com sinergias financeiras, societárias e operacionais mapeadas advindas de sua integração ao portfólio Eneva; e (b) Estruturação de Follow-On, com oferta base de R$ 3,2 bilhões com garantia firme do BTG, e hot issue de R$ 1,0 bilhão, a R$ 14,00/ação, representando um prêmio de 10,7% sobre o VWAP dos 60 pregões anteriores ao anúncio;",
+    "Conclusão da incorporação da CELSE, com efeitos a partir de 24 de junho, simplificando a estrutura societária e possibilitando o melhor aproveitamento das despesas financeiras da Holding, além de viabilizar o início do aproveitamento da mais-valia e aceleração da utilização do prejuízo acumulado da Eneva;",
+    "Conclusão da operação de cessão parcial dos direitos creditórios decorrentes da Receita Fixa da UTE Porto de Sergipe I, no valor total de R$ 2,7 bilhões, à taxa de DI + 1,4% a.a., considerando a entrada de caixa da operação, realizada em julho/24, a relação dívida líquida/EBITDA ajustada do 2T24 totalizaria 3,70x, frente aos 4,36x apurados; e",
+    "Celebração de contrato de suprimento de gás com a Copergás, a partir de agosto/24, utilizando parte da capacidade remanescente da planta de liquefação do Complexo Parnaíba, fortalecendo o modelo de negócios de SSLNG."
+   ]
+  },
+  "3T24": {
+   "destaques": [
+    "Aceleração do despacho em quase a totalidade dos ativos térmicos da Eneva, tanto para atendimento à exportação, quanto ao despacho para o Sistema Interligado Nacional (SIN) e para o Sistema Isolado de Roraima;",
+    "Recorde de geração para exportação no Complexo do Parnaíba, que ocorreu de forma ininterrupta até o final de agosto/24, tendo cessado devido à maior necessidade de geração termelétrica para atendimento à demanda interna do SIN;",
+    "EBITDA consolidado de R$ 1.134,1 milhões no 3T24, crescimento de 27,2% frente ao 3T23, refletindo, sobretudo, o maior despacho termelétrico das usinas da Eneva;",
+    "Recorde na geração de caixa operacional, que totalizou R$ 1.272,4 milhões no trimestre, aumento de aproximadamente 36% YoY e QoQ, impulsionado pelo resultado operacional e variação positiva nas contas de capital de giro, com a monetização dos estoques de carvão e redução no saldo de despesas antecipadas;",
+    "Redução da alavancagem da Companhia para 3,53x, redução de 0,68x no trimestre, com a conclusão da operação de antecipação de recebíveis da UTE Porto do Sergipe I. Patamar a ser reduzido no 4T24 com a conclusão do Follow-On e aquisição do portfólio de ativos termelétricos do BTG;",
+    "Aumento do prazo médio da dívida concentrando ainda mais o percentual de vencimentos pós-2028, de 65% ao final do 2T24, para 73% no 3T24 e da exposição da dívida a IPCA, principal indexador de receita da Companhia, de 70% para 80% no encerramento do trimestre, como resultado das iniciativas de liability management;",
+    "Aprovação de novos CVUs regulatórios, sendo: (i) UTE Porto de Sergipe I: R$ 1.035,12/MWh até 29/nov/24 e R$ 806,11/MWh pós esse período para uma nova modalidade de despacho flexível, adicionando uma nova opcionalidade de geração a partir da usina; e (ii) UTE Parnaíba IV: R$ 532,78/MWh, em substituição ao CVU anteriormente vigente, fixado em decreto;",
+    "Assinatura de contrato de suprimento de gás natural em modalidade 100% flexível com a Termopernambuco S.A., com volume de até 2.400.000 m³/dia e vigência de 01 de outubro/24 a 30 de junho/26 para geração termelétrica da UTE Termopernambuco, no contexto do CRCAP;",
+    "Início da vigência dos primeiros contratos de suprimento de gás natural celebrados pela Companhia, tanto da frente off-grid, com Copergás no modelo de negócios de SSLNG no Complexo Parnaíba, quanto do on-grid, com contratos firmados por meio da mesa de gás da Eneva, com suprimento preferencialmente a partir do Hub Sergipe;"
+   ],
+   "eventos": [
+    "Conclusão, em 15 de outubro/24, da Oferta Pública de Distribuição Primária de Ações ('Follow-On'), com emissão de 228.571.429 ações ordinárias, precificadas a R$ 14,00/ação, no valor total de R$ 3.200,0 milhões;",
+    "Finalização da aquisição de ativos do portfólio de geração de energia de termelétrica do BTG em 25 de outubro/24, sendo Linhares Brasil Energia Participações S.A., Tevisa Termelétrica Viana S.A. e Povoação Energia S.A. A Companhia ainda irá adquirir 100% das ações da Geradora de Energia do Maranhão S.A., cuja transação ainda não foi concluída devido à existência de condições suspensivas a serem implementadas ou renunciadas;",
+    "Elevação, pela agência de classificação de risco de crédito Fitch Ratings do rating nacional de longo prazo para 'AAA(bra)' da Eneva, com 'Perspectiva Estável' do rating corporativo."
+   ]
+  },
+  "4T24": {
+   "destaques": [
+    "Conclusão da aquisição dos ativos do portfólio de geração de energia termelétrica do BTG ('M&A'), adicionando 859 MW de capacidade instalada operacional ao portfólio com contratos regulados de curto e longo prazos;",
+    "Realização de Oferta Pública de Distribuição Primária de Ações ('Follow-On') em outubro/24, com a emissão de 228.571.429 ações ordinárias, precificadas a R$ 14,00/ação, no valor total de R$ 3.200 milhões;",
+    "Despacho em todos os ativos térmicos operacionais da Eneva, inclusive nos adquiridos, principalmente para atendimento ao SIN e Roraima, considerando também o despacho da UTE Porto de Sergipe I, cujo compromisso de geração foi atendido tanto com geração de energia do ativo quanto pela geração por substituição do Complexo Parnaíba;",
+    "EBITDA Ajustado Consolidado recorde de R$ 1.242,7 milhões no 4T24, crescimento de 20,0% frente ao 4T23, refletindo, sobretudo, o maior despacho das usinas da Eneva e a entrada do resultado pró rata dos ativos térmicos adquiridos no 4T24;",
+    "Redução de 1,11x na alavancagem da Companhia para 2,42x ao final do 4T24 versus 3T24, pós Follow-On e M&A, com redução da dívida líquida consolidada e a entrada do EBITDA dos ativos adquiridos. Considerando o EBITDA Ajustado sem efeito do Impairment, a alavancagem reduziria para 2,18x;",
+    "Elevação do rating corporativo nacional de longo prazo da Eneva para 'AAA(bra)' e 'Perspectiva Estável' pela Fitch Ratings;",
+    "Concluído com sucesso ao final de dezembro/24 a substituição do riser que conecta o Floating Storage and Regaseification Unit ('FSRU') ao Hub Sergipe, possibilitando a retomada das operações de movimentação de gás natural do FSRU à UTE Porto de Sergipe I e à malha de transporte de gás natural;",
+    "Estruturação de solução alternativa para despacho e realização de operações que permitiram o atendimento das obrigações contratuais do Hub Sergipe, incluindo o despacho antecipado da usina e o cumprimento dos contratos de venda de gás anteriormente celebrados pela Mesa de Gás, com impacto líquido total de apenas -R$ 0,8 milhão no EBITDA;"
+   ],
+   "eventos": [
+    "Aprovação, em 05 de janeiro/25, do Programa de Recompra da Eneva com quantidade máxima de até 50 milhões de ações, representativas de 2,6% do total de ações em circulação naquela data;",
+    "Conclusão, em 25 de janeiro/25, da incorporação das subsidiárias Linhares, Tevisa e Povoação na Eneva S.A., com o objetivo de simplificar e racionalizar a estrutura societária do grupo Eneva, com a consequente redução de custos operacionais, administrativos e possibilidade de obtenção de sinergias adicionais;",
+    "Consolidação do modelo de comercialização de gás natural e GNL Off-Grid com a contratação de 100% da capacidade nominal da planta de liquefação de gás natural no Parnaíba após aditivo contratual celebrado em janeiro/25 e com o COD do segundo trem da planta em fevereiro/25, elevando a capacidade agregada de liquefação para 600.000m³/dia;",
+    "Divulgação, ao longo do 1T25, de Portaria de Sistemática, Edital para Consulta Pública e demais documentos relacionados ao Leilão de Reserva de Capacidade 2025 ('LRCAP 2025') destinado à contratação de potência elétrica. O LRCAP 2025, programado para ocorrer em 27 de junho/25 e que contará com 10 produtos para ativos termelétricos novos e existentes e hidrelétricos com novas unidades geradoras, com entregas diferentes por produto entre 2025 e 2030, encerrou os prazos para cadastramento de projetos em fevereiro/25;",
+    "Início da operação comercial da UTE Parnaíba VI em 01 de março/25, com CCEAR de 25 anos vigente a partir de 01 de janeiro/25."
+   ]
+  },
+  "1T25": {
+   "destaques": [
+    "EBITDA Consolidado recorde de R$ 1.527,8 milhões no 1T25, aumento de 40,3% frente ao 1T24, mesmo com a entrada em operação faseada de ativos e efeitos one-off em cerca de R$ 100,0 milhões no período, refletindo a materialização de importantes avenidas de crescimento da Companhia, com o início da operação comercial de ativos, consolidação de operações dos segmentos de comercialização de gás on-grid e off-grid e a entrada dos resultados dos ativos operacionais adquiridos no 4T24;",
+    "Primeiro trimestre de contribuição integral de resultados dos ativos de geração termelétrica adquiridos no 4T24, adicionando 859 MW de capacidade instalada operacional ao portfólio da Companhia e R$ 439,6 milhões de EBITDA no 1T25 advindos de seus contratos vigentes. Além disso, em 25 de janeiro/25, foi concluída a incorporação das subsidiárias Linhares, Tevisa e Povoação na Holding, visando a simplificação da estrutura societária e a captura de sinergias operacionais e financeiras;",
+    "EBITDA de R$ 162,8 milhões resultante da comercialização de gás e GNL da Mesa de Gás no trimestre, suportado pela estabilização da conexão do Hub Sergipe à malha ao final do 4T24 permitindo a expansão de clientes e contratos e o aproveitamento de oportunidades pontuais nos mercados de gás e GNL no período;",
+    "Comercialização de gás natural e GNL Off-Grid registra R$ 55,4 milhões de EBITDA após o COD do segundo trem da planta em fevereiro/25, elevando a capacidade agregada de liquefação para o total de 600.000m³/dia, já totalmente contratada. Importante ressaltar que o resultado do 1T25 não reflete ainda todo o potencial do segmento em função do ramp-up da planta no período;",
+    "Conclusão de processo de liability management iniciado em dezembro/24, com o resgate parcial antecipado da 11ª Emissão (custo de CDI + 2,5% a.a.), e a realização da 13ª Emissão de Debêntures da Eneva em janeiro/25 (CDI + 0,9% a.a.), contribuindo para a redução do custo médio da dívida no período;",
+    "Saldo de caixa de R$ 4.765,8 milhões no final do 1T25, crescimento de R$ 899,5 milhões na comparação com o final do 4T24, de R$ 3.866,3 milhões, impulsionado pelo resultado operacional e captações e desembolsos no período. Relação de dívida líquida/EBITDA nos últimos 12 meses em 2,6x. Considerando o EBITDA Ajustado, sem efeito do Impairment no 4T24, a alavancagem seria de 2,3x;",
+    "Aprovação, em março/25, de investimento para a construção do terceiro trem da planta de liquefação de gás natural do Maranhão, que expandirá a capacidade total de liquefação da planta para 900.000 m³/dia;",
+    "Início, em 01 de março/25, da operação comercial da UTE Parnaíba VI, que compôs o ciclo combinado da UTE Parnaíba III, adicionando cerca de 90 MW de capacidade instalada e receita fixa superando R$ 110 milhões anuais, por 25 anos. Com isso, 100% das turbinas do Complexo Parnaíba estarão habilitadas a operar em ciclo combinado ou ciclo simples;",
+    "Aprovação, em janeiro/25, do Programa de Recompra da Eneva, com quantidade máxima de até 50 milhões de ações, representativas de 2,6% do total de ações em circulação naquela data. A Companhia recomprou 20.682.412 ações pelo valor total de R$ 222,2 milhões, sendo incorporadas ao saldo de ações em tesouraria;"
+   ],
+   "eventos": [
+    "Como evento subsequente ao 1T25, foram aprovadas pela ANEEL, em abril/25, as postergações dos términos dos prazos de vigência dos CCEARs no ACR para as UTEs Parnaíba I (Maranhão IV e V) e Parnaíba III, sendo Maranhão IV até 19/02/28, Maranhão V até 27/03/28 e Parnaíba III até 21/10/28."
+   ]
+  },
+  "2T25": {
+   "destaques": [
+    "EBITDA Consolidado de R$ 1.668,3 milhões, atingindo novo recorde trimestral pelo terceiro trimestre consecutivo, com crescimento de R$ 597,9 milhões vs. o 2T24, refletindo a entrada dos resultados dos ativos adquiridos no 4T24, a sólida performance operacional dos ativos, impulsionado pelos resultados do Complexo Parnaíba e a UTE Jaguatirica II, além de contribuições relevantes dos segmentos de Comercialização de Gás Off-Grid e On-Grid;",
+    "EBITDA de R$ 130,5 milhões no segmento de Comercialização de Gás On-Grid, com a execução de contratos de curto e médio prazos de venda de gás firme e flexível e a estruturação de operações oportunísticas aproveitando arbitragem de preços no mercado e otimização de portfólio e contratos diante de um ambiente dinâmico de mercado;",
+    "EBITDA de R$ 78,5 milhões no segmento de Comercialização de Gás Off-Grid, refletindo o primeiro trimestre com 100% da capacidade da planta de liquefação do Complexo Parnaíba em operação, demonstrando o potencial de geração de valor desse novo negócio, que ainda está em ramp-up do total de volume contratado até o 4T26, e cuja capacidade total de liquefação de gás será ampliada em 50% nos próximos 2 anos com a construção de mais um trem com capacidade de liquefação de gás natural de 300.000 m³/dia;",
+    "Retomada do despacho por ordem de mérito das UTEs do portfólio desde o 2T25, com o 3T25 já somando 1.380 GWh de geração bruta no SIN pelos ativos da Companhia até 10 de agosto/25, ultrapassando o volume gerado no 2T25. Adicionalmente, as UTEs Porto de Sergipe I e Luiz Oscar Rodrigues de Melo (UTE Linhares) também já foram chamadas para despacho antecipado por 3 e 2 semanas, respectivamente, entre setembro e outubro/25, refletindo a perspectiva de maiores preços de energia esperada pelo ONS;",
+    "Contratação de financiamento de R$ 500 milhões para construção e implementação do projeto Azulão 950, atingindo um total de mais de R$ 2,5 bilhões contratados, com custo médio ponderado de IPCA + 4,13% a.a.;"
+   ],
+   "eventos": [
+    "Antecipação do início de suprimento de contratos de ativos da Companhia vencedores no Leilão de Reserva de Capacidade de 2021, os quais originalmente estavam previstos para iniciar em julho/26, sendo antecipados para agosto/25, para a UTE Viana, e outubro/25, para as UTEs Parnaíba IV e Geramar I e II. A antecipação traz uma importante contribuição para o fortalecimento da posição de caixa da Companhia, com incremento de cerca de R$ 362 milhões de receitas fixas;",
+    "Aprovação, em 24 de julho/25, da renovação do benefício fiscal de redução de 75% do IRPJ pela SUDENE da controlada Parnaíba II Geração de Energia S.A., que consolida a operação das UTEs Parnaíba II, Parnaíba III, Parnaíba IV e Parnaíba VI, na modalidade de Modernização Total, possibilitada pelos investimentos realizados para otimizar e modernizar as unidades produtivas. O novo benefício estará em vigor de 01 de janeiro/25 a 31 de dezembro/34;",
+    "Aprovação, em 25 de julho/25, dos novos CVUs regulatórios para a modalidade de despacho para atendimento à ponta de carga para as UTEs da Companhia que apresentavam compromisso contratual de despacho antecipado, adicionando uma nova opcionalidade de geração pelas usinas para o SIN, sendo: (i) R$ 968,27/MWh para a UTE Porto de Sergipe I; e (ii) R$ 1.251,82/MWh para a UTE Linhares. Os novos CVUs, referentes à data base de junho/25, serão reajustados mensalmente pelos indexadores JKM e taxa de câmbio BRL/USD e vigorarão de setembro/25 a dezembro/25;",
+    "Conforme Aviso aos Acionistas de 21 de julho de 2025, a Companhia realizou a emissão de 4.381.891 novas ações ordinárias em favor do Banco BTG Pactual S.A., ao valor total de R$ 1,00, passando o capital social a ser representado por 1.936.973.658 ações ordinárias. O aumento decorreu do exercício do bônus de subscrição, no âmbito do acordo de associação que resultou na incorporação da Termelétrica Viana S.A., no contexto do pagamento do earn out relativo à antecipação da data de início do Contrato de Potência de Reserva de Capacidade (CRCAP 2021) da termelétrica Viana."
+   ]
+  },
+  "3T25": {
+   "destaques": [
+    "EBITDA Consolidado atingiu R$ 1.822,9 milhões, recorde histórico trimestral pelo quarto trimestre consecutivo, com aumento de R$ 688,8 milhões frente ao 3T24, impulsionado principalmente pelo desempenho operacional dos ativos, com aceleração do despacho termelétrico no mérito, pela contribuição dos novos segmentos de Comercialização de Gás On-Grid e Off-Grid a partir de 2025 e pelo resultado dos ativos adquiridos no 4T24;",
+    "Crescimento de R$ 206,3 milhões no EBITDA do Hub Sergipe, refletindo a contribuição do EBITDA da Comercialização de Gás On-Grid com as operações recorrentes de gás firme e flexível e o resultado de operações de venda de GNL oportunísticas no período, assim como pela redução de custos com cancelamento de cargas vs. o 3T24 e pelo impacto positivo no 3T25 do ressarcimento do sinistro referente ao evento do riser ocorrido no 4T24;",
+    "EBITDA de R$ 67,1 milhões no segmento de Comercialização de Gás Off-Grid, com a continuidade do ramp-up dos contratos de venda de GNL, evidenciando o potencial desse modelo de negócio, que continuará a trajetória de aumento gradual do volume total contratado dos 2 primeiros trens até o 4T26. Como destaque, no 3T25 foram iniciadas as obras civis e concluídas as contratações dos principais fornecedores para a construção do 3º trem da planta, que expandirá em 50% a capacidade de liquefação no Parnaíba. Com o COD previsto para o início do 2S27, a expansão de 300 mil m³/dia posiciona a Eneva para capturar ainda mais oportunidades em um mercado com elevado potencial de crescimento;",
+    "Redução nos patamares de custos operacionais fixos (em bases comparáveis) e SG&A totais no Consolidado, com ganhos nominais de R$ 29,8 milhões e R$ 9,2 milhões, respectivamente, em relação ao 3T24, refletindo a diligência financeira e as iniciativas de eficiência operacional da Companhia;",
+    "Geração de caixa operacional atinge novo recorde histórico no 3T25, somando R$ 1.965,2 milhões, aumento de 54% vs. o 3T24, superando o patamar de EBITDA alcançado no 3T25, refletindo o importante desempenho operacional dos ativos;",
+    "Aceleração do despacho por ordem de mérito nos ativos a gás próprio e melhoria nos níveis de disponibilidade e eficiência da UTE Jaguatirica II. A continuidade do despacho após o encerramento do 3T25, com o despacho regulado (ex-inflexibilidade) no 4T25, reforça a importância do portfólio da Eneva para a confiabilidade do SIN e a segurança energética do país;",
+    "Alavancagem financeira de 2,7x no 3T25 (sendo 2,4x desconsiderando impacto contábil não caixa de despesas de impairment), com melhora de 0,9x frente ao 3T24 e manutenção vs. o 2T25. Foram também desembolsados R$ 693 milhões junto ao BASA e BNB para os projetos Azulão 950 e SSLNG, contribuindo para o reforço da estrutura de capital e com redução do custo médio da dívida frente ao 3T24;",
+    "Início dos contratos regulados referentes ao Leilão de Reserva de Capacidade de 2021 da UTE Viana em ago/25, já contribuindo no resultado do 3T25, assim como das UTEs Parnaíba IV, Geramar I e II em out/25, com todos passando a contribuir integralmente no resultado do 4T25;",
+    "Divulgação em out/25 da Portaria Normativa referente às Diretrizes e Sistemática do Leilão de Reserva de Capacidade na forma de potência de 2026 (LRCAP 2026) previsto para 18/03/26. O certame contará com 8 diferentes produtos, incluindo 6 para gás natural e carvão, permitindo a participação de ativos novos, com prazo de suprimento de 15 anos, e existentes, com prazo de 10 anos. O LRCAP 2026 representa uma oportunidade estratégica relevante para a recontratação dos ativos existentes e para o desenvolvimento do pipeline de projetos da Companhia, promovendo a criação de valor de longo prazo e a aceleração da implementação do plano de negócios da Eneva."
+   ],
+   "eventos": []
+  },
+  "4T25": {
+   "destaques": [
+    "EBITDA Consolidado alcança R$ 1.487,7 milhões no 4T25 e R$ 6.506,8 milhões no ano de 2025, impulsionados pelo desempenho operacional e pela materialização de importantes avenidas de crescimento da Companhia;",
+    "Aumentos de R$ 38,5 milhões e de R$ 520,8 milhões no EBITDA do Hub Sergipe no 4T25 e no ano de 2025, suportados, sobretudo, pela conexão do Hub à malha de gás e pela estruturação de operações oportunísticas nos mercados de gás e GNL, aproveitando portfólio de contratos e arbitragens de preços em um ambiente dinâmico;",
+    "Segmento de Comercialização de Gás Off-Grid contribui com EBITDA de R$ 73,4 milhões no 4T25 e de R$ 274,3 milhões em 2025, refletindo o ramp-up dos contratos de venda de GNL após a entrada em operação dos 2 primeiros trens de liquefação no 1T25. As obras para a construção do 3º trem, que aumentará a capacidade de liquefação no Parnaíba em 50%, seguem conforme o cronograma;",
+    "Contribuição integral no 4T25 e em 2025 dos resultados dos ativos de geração térmica a gás adquiridos no 4T24, com aumento de EBITDA de R$ 142,8 milhões e de R$ 1.505,9 milhões versus os respectivos períodos comparativos de 2024;",
+    "Início do CCEAR da UTE Parnaíba VI no 1T25 e dos CRCAPs da UTE Viana em ago/25 e das UTEs Parnaíba IV e Geramar I e II em out/25, após sucesso na antecipação dos contratos do LRCAP 2021;",
+    "Continuação do despacho das UTEs do portfólio no 1T26, já somando geração bruta de aproximadamente 2.700 GWh nos 2 primeiros meses de 2026, sendo cerca de 1.500 GWh nos ativos a gás próprio, evidenciando a relevância dos ativos da Eneva para a confiabilidade e segurança energética do país;",
+    "Alavancagem em 2,6x ao final do 4T25 (-0,1x frente ao 3T25 e +0,2x vs. 4T24), com R$ 606,2 milhões desembolsados no 4T25 junto ao FDA/BASA para o projeto Azulão 950, reforçando estrutura de capital e reduzindo custo médio da dívida vs. 4T24;"
+   ],
+   "eventos": [
+    "Conclusão da 14ª Emissão de Debêntures da Eneva, com a captação de R$ 2,4 bilhões em 2 séries: (i) primeira com vencimento de 10 anos e taxa IPCA + 6,71% a.a. e (ii) segunda com vencimento de 15 anos e taxa IPCA + 6,67% a.a.. Os recursos serão destinados ao Projeto Azulão 950;",
+    "Recebimento pela Companhia de R$ 293,1 milhões como resultado de instrumento de transação terminativa celebrado com fornecedores de serviços de construção e montagem, extinguindo determinados processos arbitrais anteriores;",
+    "Divulgação de novo Relatório de Certificação de Reservas da Bacia do Parnaíba, referente a 31/12/25, atingindo IRR de 111% frente ao saldo de 31/12/23, com incorporação total de 3,52 bcm de reservas e consumo de 3,16 bcm no período (2 anos);",
+    "Publicação dos preços teto dos 8 diferentes produtos do LRCAP 2026, previsto para 18/03/26, considerando novas usinas movidas a gás natural, em contratos com prazo de 15 anos, e existentes, incluindo carvão, com prazo de 10 anos, representando uma oportunidade estratégica para a recontratação dos ativos e desenvolvimento do pipeline de projetos da Companhia."
+   ]
+  },
+  "1T26": {
+   "destaques": [
+    "EBITDA Consolidado alcança R$ 1.690,6 milhões no 1T26, +10,7% vs. o 1T25, refletindo o desempenho operacional, os resultados dos novos negócios de gás da Eneva, despacho térmico, o início de novos contratos regulados e efeitos pontuais de recebimento de acordo comercial mais que compensando o término do fluxo dos contratos do PCS;",
+    "Crescimento de R$ 109,2 milhões no EBITDA do Hub Sergipe no 1T26 comparado ao 1T25, suportado pela melhoria das margens fixas e variáveis da UTE Porto de Sergipe I e pela estruturação de operações oportunísticas pela Mesa de Gás nos mercados de gás e GNL, aproveitando o portfólio de contratos e arbitragens de preços em um ambiente dinâmico;",
+    "Segmento de Comercialização de Gás Off-Grid contribui com EBITDA de R$ 82,5 milhões no 1T26 frente a R$ 55,4 milhões no 1T25, refletindo o ramp-up dos contratos de venda de GNL após a entrada em operação dos 2 primeiros trens de liquefação em meados do 1T25;",
+    "Início dos contratos regulados dos ativos de Geração a Óleo ao longo do 2S25, contribuindo com EBITDA de R$ 62,6 milhões no 1T26, comparado ao EBITDA de -R$ 30,6 milhões no 1T25;",
+    "Continuação do despacho regulatório no 1T26, sobretudo no Complexo Parnaíba, impulsionando os resultados da Geração a Gás no Parnaíba e do Upstream, que, em conjunto, apresentaram aumento de EBITDA de R$ 184,8 milhões no 1T26;",
+    "Resultado do 1T26 impulsionado por efeitos one-off em um total líquido de R$ 256,4 milhões, suportado pelo recebimento de R$ 293,0 milhões decorrente de instrumento de transação terminativo celebrado com fornecedor de serviços extinguindo processos arbitrais, com impacto positivo nos EBITDA de Parnaíba e da UTE Jaguatirica II, parcialmente mitigado por -R$ 36,6 milhões relacionados a ajustes na recontabilização da CCEE de receita provisionada em 2025 referente a acertos históricos referentes ao COD da UTE Parnaíba III;",
+    "Participação bem-sucedida no Leilão de Reservas de Capacidade de 2026 (\"LRCAP 2026\") com a contratação de 3,65 GW de potência nova por 15 anos e de 1,7 GW existentes por 10 anos, adicionando receita fixa total de R$ 161 bilhões entre 2026 e 2046, viabilizando o desenvolvimento de 2 novos Hubs de Gás (Ceará e Sudeste) e a monetização da capacidade remanescente do Hub Sergipe, além da celebração de contratos de venda de gás natural flexível com prazos entre 10 a 15 anos.",
+    "Celebração de acordo envolvendo a venda de 100% da UTE Pecém II para a Diamante Geração de Energia S.A. (\"Diamante\"), com EV avaliado em R$ 872,3 milhões na data base de mar/26, a ser corrigido até a data do closing, além de earn-out que poderá atingir R$ 149,0 milhões condicionado ao êxito na antecipação do CRCAP 2026. Na mesma data, foi também assinado termo de cessão do contrato de área do porto com a Diamante, por meio do qual a Eneva passou a deter 100% dos direitos de implantação de Terminal de GNL no Complexo Industrial do Pecém, que permitirá à Companhia o desenvolvimento do Hub Ceará.",
+    "Conclusão da 14ª Emissão de Debêntures da Eneva, com a captação de R$ 2,4 bilhões em 2 séries: (i) vencimento de 10 anos e taxa IPCA + 6,71% a.a. e (ii) vencimento de 15 anos e taxa IPCA + 6,67% a.a.. Os recursos serão destinados ao Projeto Azulão 950;",
+    "Alavancagem (Dívida Líquida/EBITDA 12 meses) em 2,8x ao final do 1T26, com espaço no balanço para absorver o crescimento contratado;"
+   ],
+   "eventos": [
+    "Continuação do despacho das UTEs do portfólio no 2T26, já ultrapassando geração bruta de 750 GWh nos 43 primeiros dias do 2T26, sendo praticamente toda nos ativos a gás próprio, reforçando a relevância do portfólio da Eneva para a confiabilidade e segurança eletroenergética do país;",
+    "Habilitação das UTES LORM, Viana 1 e Povoação 1 no Produto 2026 do LRCAP 2026, conforme Despacho nº 1.481/2026. Próximos marcos incluem a homologação do resultado e adjudicação deste produto previsto para 21/maio/26, com assinatura do CRCAP prevista para 25/junho/26, conforme cronograma do Edital. A habilitação dos projetos vencedores nos demais produtos do LRCAP 2026 ainda está em curso, com publicação prevista para 22/maio/26."
+   ]
+  },
+  "2T26": {
+   "destaques": [
+    "EBITDA Consolidado somou R$ 1.238,7 milhões no 2T26, redução de R$ 429,6 milhões frente ao 2T25, reflexo, principalmente, do encerramento dos contratos do PCS das usinas do Espírito Santo, dos efeitos contábeis da venda da UTE Pecém II e das maiores despesas com SOP/ILP no período associadas à maturação de ILPs;",
+    "Continuação do despacho regulatório no mérito no 2T26, sobretudo no Complexo Parnaíba, impulsionando os resultados da Geração a Gás no Parnaíba e do Upstream, que, em conjunto, apresentaram aumento de EBITDA de R$ 123,6 milhões no 2T26;",
+    "Crescimento de R$ 124,6 milhões no EBITDA do segmento de Comercialização de Energia no 2T26, impulsionado principalmente pela melhor margem comercial com a realização do book;",
+    "Início dos contratos regulados dos ativos de Geração a Óleo ao longo do 2S25, contribuindo com EBITDA de R$ 59,1 milhões no 2T26, comparado ao EBITDA de -R$ 30,6 milhões no 2T25;",
+    "EBITDA da Mesa de Gás (On-grid) totaliza R$ 88,7 milhões no 2T26, impulsionado pela estruturação de operações oportunísticas nos mercados de gás e GNL, aproveitando portfólio de contratos e arbitragens de preços em um ambiente dinâmico;",
+    "Geração de caixa operacional recorde para um segundo trimestre e o segundo maior FCO da série histórica, impulsionado pelo resultado operacional dos ativos, atingindo R$ 1.680 milhões no 2T26;",
+    "Contratação de financiamento junto ao Banco do Nordeste no montante de R$ 500,9 milhões para o projeto do 3º Trem do SSLNG, com taxa IPCA + 3,4907%, carência até jul/31 e amortização até jul/41, reforçando a estrutura de capital da Companhia;",
+    "Alavancagem (Dívida Líquida/EBITDA 12 meses) em 3,2x ao final do 2T26, com espaço no balanço para absorver o crescimento contratado;"
+   ],
+   "eventos": [
+    "Início dos Contratos de Reserva de Capacidade (CRCAP) das UTEs do Espírito Santo, adicionando receita fixa a partir do 2S26: (i) UTE LORM a partir de jul/26, com prazo de 15 anos e receita fixa anual de R$ 201,2 milhões (data-base dez/25); e (ii) UTE LORM 1, Viana 1 e Povoação 1 a partir de ago/26, com prazo de 10 anos e receita fixa anual de R$ 283,1 milhões (data-base jul/26);",
+    "Início da operação comercial da UTE Azulão I, primeiro ativo do Complexo Azulão, com 295 MW contratados no Leilão de Reserva de Capacidade de 2021 por prazo de 15 anos, com receita fixa anual de R$ 278,3 milhões (data-base: dez/25), adicionando resiliência e flexibilidade ao SIN;",
+    "Aprovação de Aumento de Capital de 7.341.755 ações de emissão da Eneva referente aos earn-outs negociados na compra das usinas no 4T24, relacionados ao êxito das recontratações das UTEs Viana 1 e Povoação 1. Adicionalmente, a Companhia aprovou o pagamento de cerca de R$ 77,9 milhões em caixa relacionado ao earn-out de Linhares, associado à recontratação da UTE LORM."
+   ]
+  }
+ },
+ "gas": {
+  "prod_parnaiba": [
+   0.08,
+   0.24,
+   0.23,
+   0.29,
+   0.2,
+   0.11,
+   0.67,
+   0.53,
+   null,
+   null,
+   null,
+   null,
+   0.45,
+   0.42
+  ],
+  "prod_amazonas": [
+   0.05,
+   0.06,
+   0.06,
+   0.07,
+   0.06,
+   0.06,
+   0.05,
+   0.06,
+   null,
+   null,
+   null,
+   null,
+   0.06,
+   0.05
+  ],
+  "res_parnaiba": [
+   33.0,
+   32.7,
+   32.5,
+   37.6,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   37.5,
+   37.1
+  ],
+  "res_amazonas": [
+   14.4,
+   14.3,
+   14.3,
+   10.0,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   9.5,
+   9.5
+  ]
+ },
+ "planta": {
+  "UTE Parnaíba I": {
+   "group": "Gás Parnaíba",
+   "q": {
+    "1T23": {
+     "disp": 100.0,
+     "desp": 11.0,
+     "ger_liq": 157.0,
+     "ger_bruta": 165.0
+    },
+    "2T23": {
+     "disp": 98.0,
+     "desp": 35.0,
+     "ger_liq": 508.0,
+     "ger_bruta": 536.0
+    },
+    "3T23": {
+     "disp": 100.0,
+     "desp": 8.0,
+     "ger_liq": 107.0,
+     "ger_bruta": 113.0
+    },
+    "4T23": {
+     "disp": 98.0,
+     "desp": 23.0,
+     "ger_liq": 326.0,
+     "ger_bruta": 345.0
+    },
+    "1T24": {
+     "disp": 98.0,
+     "desp": 22.0,
+     "ger_liq": 322.0,
+     "ger_bruta": 337.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 10.0,
+     "ger_liq": 155.0,
+     "ger_bruta": 162.0
+    },
+    "3T24": {
+     "disp": 99.0,
+     "desp": 85.0,
+     "ger_liq": 1252.0,
+     "ger_bruta": 1309.0
+    },
+    "4T24": {
+     "disp": 98.0,
+     "desp": 66.0,
+     "ger_liq": 939.0,
+     "ger_bruta": 984.0
+    },
+    "1T25": {
+     "disp": 100.0,
+     "desp": 7.0,
+     "ger_liq": 108.0,
+     "ger_bruta": 114.0
+    },
+    "2T25": {
+     "disp": 97.0,
+     "desp": 32.0,
+     "ger_liq": 455.0,
+     "ger_bruta": 473.0
+    },
+    "3T25": {
+     "disp": 100.0,
+     "desp": 78.0,
+     "ger_liq": 1070.0,
+     "ger_bruta": 1114.0
+    },
+    "4T25": {
+     "disp": 97.0,
+     "desp": 84.0,
+     "ger_liq": 1114.0,
+     "ger_bruta": 1161.0
+    },
+    "1T26": {
+     "disp": 99.0,
+     "desp": 43.0,
+     "ger_liq": 598.0,
+     "ger_bruta": 628.0
+    },
+    "2T26": {
+     "disp": 99.0,
+     "desp": 56.0,
+     "ger_liq": 786.0,
+     "ger_bruta": 828.0
+    }
+   }
+  },
+  "UTE Parnaíba II": {
+   "group": "Gás Parnaíba",
+   "q": {
+    "1T23": {
+     "disp": 99.0,
+     "desp": 10.0,
+     "ger_liq": 116.0,
+     "ger_bruta": 122.0
+    },
+    "2T23": {
+     "disp": 100.0,
+     "desp": 91.0,
+     "ger_liq": 345.0,
+     "ger_bruta": 366.0
+    },
+    "3T23": {
+     "disp": 97.0,
+     "desp": 73.0,
+     "ger_liq": 986.0,
+     "ger_bruta": 1043.0
+    },
+    "4T23": {
+     "disp": 95.0,
+     "desp": 33.0,
+     "ger_liq": 780.0,
+     "ger_bruta": 827.0
+    },
+    "1T24": {
+     "disp": 89.0,
+     "desp": 0.0,
+     "ger_liq": 356.0,
+     "ger_bruta": 372.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 82.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T24": {
+     "disp": 99.0,
+     "desp": 92.0,
+     "ger_liq": 898.0,
+     "ger_bruta": 942.0
+    },
+    "4T24": {
+     "disp": 95.0,
+     "desp": 32.0,
+     "ger_liq": 998.0,
+     "ger_bruta": 1047.0
+    },
+    "1T25": {
+     "disp": 84.0,
+     "desp": 52.0,
+     "ger_liq": 346.0,
+     "ger_bruta": 363.0
+    },
+    "2T25": {
+     "disp": 99.0,
+     "desp": 91.0,
+     "ger_liq": 553.0,
+     "ger_bruta": 582.0
+    },
+    "3T25": {
+     "disp": 100.0,
+     "desp": 97.0,
+     "ger_liq": 989.0,
+     "ger_bruta": 1036.0
+    },
+    "4T25": {
+     "disp": 96.0,
+     "desp": 85.0,
+     "ger_liq": 997.0,
+     "ger_bruta": 1044.0
+    },
+    "1T26": {
+     "disp": 94.0,
+     "desp": 31.0,
+     "ger_liq": 904.0,
+     "ger_bruta": 953.0
+    },
+    "2T26": {
+     "disp": 44.0,
+     "desp": 6.0,
+     "ger_liq": 327.0,
+     "ger_bruta": 348.0
+    }
+   }
+  },
+  "UTE Parnaíba III e VI": {
+   "group": "Gás Parnaíba",
+   "q": {
+    "1T23": {
+     "disp": 74.0,
+     "desp": 4.0,
+     "ger_liq": 30.0,
+     "ger_bruta": 32.0
+    },
+    "2T23": {
+     "disp": 100.0,
+     "desp": 9.0,
+     "ger_liq": 36.0,
+     "ger_bruta": 37.0
+    },
+    "3T23": {
+     "disp": 98.0,
+     "desp": 0.0,
+     "ger_liq": 2.0,
+     "ger_bruta": 2.0
+    },
+    "4T23": {
+     "disp": 100.0,
+     "desp": 20.0,
+     "ger_liq": 75.0,
+     "ger_bruta": 78.0
+    },
+    "1T24": {
+     "disp": 100.0,
+     "desp": 12.0,
+     "ger_liq": 45.0,
+     "ger_bruta": 46.0
+    },
+    "2T24": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T24": {
+     "disp": 100.0,
+     "desp": 40.0,
+     "ger_liq": 154.0,
+     "ger_bruta": 159.0
+    },
+    "4T24": {
+     "disp": 100.0,
+     "desp": 45.0,
+     "ger_liq": 169.0,
+     "ger_bruta": 176.0
+    },
+    "1T25": {
+     "disp": 100.0,
+     "desp": 15.0,
+     "ger_liq": 66.0,
+     "ger_bruta": 68.0
+    },
+    "2T25": {
+     "disp": 93.0,
+     "desp": 32.0,
+     "ger_liq": 180.0,
+     "ger_bruta": 191.0
+    },
+    "3T25": {
+     "disp": 100.0,
+     "desp": 81.0,
+     "ger_liq": 460.0,
+     "ger_bruta": 483.0
+    },
+    "4T25": {
+     "disp": 95.0,
+     "desp": 62.0,
+     "ger_liq": 346.0,
+     "ger_bruta": 364.0
+    },
+    "1T26": {
+     "disp": 98.0,
+     "desp": 52.0,
+     "ger_liq": 284.0,
+     "ger_bruta": 300.0
+    },
+    "2T26": {
+     "disp": 92.0,
+     "desp": 46.0,
+     "ger_liq": 255.0,
+     "ger_bruta": 270.0
+    }
+   }
+  },
+  "UTE Parnaíba IV": {
+   "group": "Gás Parnaíba",
+   "q": {
+    "1T23": {
+     "disp": 100.0,
+     "desp": 24.0,
+     "ger_liq": 13.0,
+     "ger_bruta": 14.0
+    },
+    "2T23": {
+     "disp": 97.0,
+     "desp": 41.0,
+     "ger_liq": 24.0,
+     "ger_bruta": 25.0
+    },
+    "3T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T23": {
+     "disp": 98.0,
+     "desp": 33.0,
+     "ger_liq": 37.0,
+     "ger_bruta": 39.0
+    },
+    "1T24": {
+     "disp": 98.0,
+     "desp": 25.0,
+     "ger_liq": 29.0,
+     "ger_bruta": 29.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 19.0,
+     "ger_liq": 19.0,
+     "ger_bruta": 21.0
+    },
+    "3T24": {
+     "disp": 96.0,
+     "desp": 71.0,
+     "ger_liq": 83.0,
+     "ger_bruta": 85.0
+    },
+    "4T24": {
+     "disp": 96.0,
+     "desp": 44.0,
+     "ger_liq": 51.0,
+     "ger_bruta": 53.0
+    },
+    "1T25": {
+     "disp": 98.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T25": {
+     "disp": 100.0,
+     "desp": 11.0,
+     "ger_liq": 14.0,
+     "ger_bruta": 14.0
+    },
+    "3T25": {
+     "disp": 100.0,
+     "desp": 26.0,
+     "ger_liq": 31.0,
+     "ger_bruta": 32.0
+    },
+    "4T25": {
+     "disp": 100.0,
+     "desp": 2.0,
+     "ger_liq": 2.0,
+     "ger_bruta": 2.0
+    },
+    "1T26": {
+     "disp": 96.0,
+     "desp": 7.0,
+     "ger_liq": 8.0,
+     "ger_bruta": 9.0
+    },
+    "2T26": {
+     "disp": 100.0,
+     "desp": 27.0,
+     "ger_liq": 32.0,
+     "ger_bruta": 33.0
+    }
+   }
+  },
+  "UTE Parnaíba V": {
+   "group": "Gás Parnaíba",
+   "q": {
+    "1T23": {
+     "disp": 100.0,
+     "desp": 10.0,
+     "ger_liq": 87.0,
+     "ger_bruta": 92.0
+    },
+    "2T23": {
+     "disp": 97.0,
+     "desp": 33.0,
+     "ger_liq": 265.0,
+     "ger_bruta": 279.0
+    },
+    "3T23": {
+     "disp": 100.0,
+     "desp": 7.0,
+     "ger_liq": 52.0,
+     "ger_bruta": 55.0
+    },
+    "4T23": {
+     "disp": 96.0,
+     "desp": 23.0,
+     "ger_liq": 180.0,
+     "ger_bruta": 190.0
+    },
+    "1T24": {
+     "disp": 100.0,
+     "desp": 27.0,
+     "ger_liq": 203.0,
+     "ger_bruta": 215.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 11.0,
+     "ger_liq": 82.0,
+     "ger_bruta": 88.0
+    },
+    "3T24": {
+     "disp": 100.0,
+     "desp": 90.0,
+     "ger_liq": 700.0,
+     "ger_bruta": 740.0
+    },
+    "4T24": {
+     "disp": 99.0,
+     "desp": 71.0,
+     "ger_liq": 543.0,
+     "ger_bruta": 573.0
+    },
+    "1T25": {
+     "disp": 100.0,
+     "desp": 9.0,
+     "ger_liq": 65.0,
+     "ger_bruta": 68.0
+    },
+    "2T25": {
+     "disp": 55.0,
+     "desp": 6.0,
+     "ger_liq": 39.0,
+     "ger_bruta": 43.0
+    },
+    "3T25": {
+     "disp": 60.0,
+     "desp": 46.0,
+     "ger_liq": 341.0,
+     "ger_bruta": 367.0
+    },
+    "4T25": {
+     "disp": 60.0,
+     "desp": 54.0,
+     "ger_liq": 388.0,
+     "ger_bruta": 418.0
+    },
+    "1T26": {
+     "disp": 45.0,
+     "desp": 30.0,
+     "ger_liq": 220.0,
+     "ger_bruta": 236.0
+    },
+    "2T26": {
+     "disp": 99.0,
+     "desp": 59.0,
+     "ger_liq": 439.0,
+     "ger_bruta": 468.0
+    }
+   }
+  },
+  "UTE Jaguatirica II": {
+   "group": "Gás Roraima",
+   "q": {
+    "1T23": {
+     "disp": 81.0,
+     "desp": 64.0,
+     "ger_liq": 164.0,
+     "ger_bruta": 172.0
+    },
+    "2T23": {
+     "disp": 82.0,
+     "desp": 63.0,
+     "ger_liq": 166.0,
+     "ger_bruta": 174.0
+    },
+    "3T23": {
+     "disp": 86.0,
+     "desp": 73.0,
+     "ger_liq": 185.0,
+     "ger_bruta": 194.0
+    },
+    "4T23": {
+     "disp": 94.0,
+     "desp": 78.0,
+     "ger_liq": 209.0,
+     "ger_bruta": 219.0
+    },
+    "1T24": {
+     "disp": 99.0,
+     "desp": 82.0,
+     "ger_liq": 216.0,
+     "ger_bruta": 226.0
+    },
+    "2T24": {
+     "disp": 97.0,
+     "desp": 75.0,
+     "ger_liq": 198.0,
+     "ger_bruta": 207.0
+    },
+    "3T24": {
+     "disp": 85.0,
+     "desp": 68.0,
+     "ger_liq": 180.0,
+     "ger_bruta": 189.0
+    },
+    "4T24": {
+     "disp": 91.0,
+     "desp": 83.0,
+     "ger_liq": 224.0,
+     "ger_bruta": 234.0
+    },
+    "1T25": {
+     "disp": 99.0,
+     "desp": 81.0,
+     "ger_liq": 211.0,
+     "ger_bruta": 221.0
+    },
+    "2T25": {
+     "disp": 100.0,
+     "desp": 76.0,
+     "ger_liq": 201.0,
+     "ger_bruta": 209.0
+    },
+    "3T25": {
+     "disp": 100.0,
+     "desp": 78.0,
+     "ger_liq": 207.0,
+     "ger_bruta": 217.0
+    },
+    "4T25": {
+     "disp": 96.0,
+     "desp": 71.0,
+     "ger_liq": 196.0,
+     "ger_bruta": 205.0
+    },
+    "1T26": {
+     "disp": 98.0,
+     "desp": 80.0,
+     "ger_liq": 208.0,
+     "ger_bruta": 217.0
+    },
+    "2T26": {
+     "disp": 100.0,
+     "desp": 60.0,
+     "ger_liq": 157.0,
+     "ger_bruta": 166.0
+    }
+   }
+  },
+  "UTE Porto de Sergipe I": {
+   "group": "Gás terceiros",
+   "q": {
+    "1T23": {
+     "disp": 59.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T23": {
+     "disp": 97.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T23": {
+     "disp": 97.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T23": {
+     "disp": 97.0,
+     "desp": 32.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "1T24": {
+     "disp": 98.0,
+     "desp": 28.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T24": {
+     "disp": 95.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T24": {
+     "disp": 96.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T24": {
+     "disp": 92.0,
+     "desp": 4.0,
+     "ger_liq": 145.0,
+     "ger_bruta": 155.0
+    },
+    "1T25": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T25": {
+     "disp": 84.0,
+     "desp": 0.0,
+     "ger_liq": 4.0,
+     "ger_bruta": 5.0
+    },
+    "3T25": {
+     "disp": 88.0,
+     "desp": 1.0,
+     "ger_liq": 43.0,
+     "ger_bruta": 46.0
+    },
+    "4T25": {
+     "disp": 95.0,
+     "desp": 52.0,
+     "ger_liq": 1682.0,
+     "ger_bruta": 1756.0
+    },
+    "1T26": {
+     "disp": 98.0,
+     "desp": 27.0,
+     "ger_liq": 894.0,
+     "ger_bruta": 938.0
+    },
+    "2T26": {
+     "disp": 97.0,
+     "desp": 0.0,
+     "ger_liq": 2.0,
+     "ger_bruta": 2.0
+    }
+   }
+  },
+  "UTE Itaqui": {
+   "group": "Carvão",
+   "q": {
+    "1T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T23": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T23": {
+     "disp": 93.0,
+     "desp": 4.0,
+     "ger_liq": 28.0,
+     "ger_bruta": 33.0
+    },
+    "1T24": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 3.0,
+     "ger_bruta": 3.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T25": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T25": {
+     "disp": 96.0,
+     "desp": 32.0,
+     "ger_liq": 226.0,
+     "ger_bruta": 256.0
+    },
+    "4T25": {
+     "disp": 94.0,
+     "desp": 57.0,
+     "ger_liq": 369.0,
+     "ger_bruta": 418.0
+    },
+    "1T26": {
+     "disp": 70.0,
+     "desp": 19.0,
+     "ger_liq": 126.0,
+     "ger_bruta": 144.0
+    },
+    "2T26": {
+     "disp": 28.0,
+     "desp": 2.0,
+     "ger_liq": 15.0,
+     "ger_bruta": 17.0
+    }
+   }
+  },
+  "UTE Pecém II": {
+   "group": "Carvão",
+   "q": {
+    "1T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T23": {
+     "disp": 100.0,
+     "desp": 13.0,
+     "ger_liq": 91.0,
+     "ger_bruta": 104.0
+    },
+    "1T24": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    }
+   }
+  },
+  "UTEs Itaqui + Pecém II (grupo antigo)": {
+   "group": "Carvão",
+   "q": {
+    "4T23": {
+     "disp": 96.0,
+     "desp": 9.0,
+     "ger_liq": 120.0,
+     "ger_bruta": 137.0
+    },
+    "1T24": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 3.0,
+     "ger_bruta": 3.0
+    },
+    "2T24": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T24": {
+     "disp": 94.0,
+     "desp": 19.0,
+     "ger_liq": 265.0,
+     "ger_bruta": 298.0
+    },
+    "4T24": {
+     "disp": 82.0,
+     "desp": 30.0,
+     "ger_liq": 420.0,
+     "ger_bruta": 473.0
+    },
+    "1T25": {
+     "disp": 81.0,
+     "desp": 0.0,
+     "ger_liq": 2.0,
+     "ger_bruta": 3.0
+    },
+    "2T25": {
+     "disp": 98.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T25": {
+     "disp": 97.0,
+     "desp": 28.0,
+     "ger_liq": 399.0,
+     "ger_bruta": 449.0
+    },
+    "4T25": {
+     "disp": 70.0,
+     "desp": 40.0,
+     "ger_liq": 518.0,
+     "ger_bruta": 586.0
+    }
+   }
+  },
+  "UTEs Viana e Geramar I e II": {
+   "group": "Óleo",
+   "q": {
+    "2T24": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T24": {
+     "disp": 98.0,
+     "desp": 7.0,
+     "ger_liq": 75.0,
+     "ger_bruta": 75.0
+    },
+    "4T24": {
+     "disp": 98.0,
+     "desp": 5.0,
+     "ger_liq": 35.0,
+     "ger_bruta": 37.0
+    },
+    "1T25": {
+     "disp": 43.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T25": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "3T25": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T25": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "1T26": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 1.0,
+     "ger_bruta": 1.0
+    },
+    "2T26": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    }
+   }
+  },
+  "UTEs ES (Viana1/Povoação1/LORM/LORM1)": {
+   "group": "Gás terceiros ES",
+   "q": {
+    "4T23": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "1T24": {
+     "disp": 100.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "2T24": {
+     "disp": 76.0,
+     "desp": 0.0,
+     "ger_liq": 1.0,
+     "ger_bruta": 1.0
+    },
+    "3T24": {
+     "disp": 99.0,
+     "desp": 0.0,
+     "ger_liq": 0.0,
+     "ger_bruta": 0.0
+    },
+    "4T24": {
+     "disp": 98.0,
+     "desp": 34.0,
+     "ger_liq": 145.0,
+     "ger_bruta": 145.0
+    },
+    "1T25": {
+     "disp": 94.0,
+     "desp": 0.0,
+     "ger_liq": 1.0,
+     "ger_bruta": 1.0
+    },
+    "2T25": {
+     "disp": 100.0,
+     "desp": 1.0,
+     "ger_liq": 14.0,
+     "ger_bruta": 15.0
+    },
+    "3T25": {
+     "disp": 100.0,
+     "desp": 1.0,
+     "ger_liq": 7.0,
+     "ger_bruta": 7.0
+    },
+    "4T25": {
+     "disp": 99.0,
+     "desp": 45.0,
+     "ger_liq": 347.0,
+     "ger_bruta": 349.0
+    },
+    "1T26": {
+     "disp": 94.0,
+     "desp": 0.0,
+     "ger_liq": 2.0,
+     "ger_bruta": 2.0
+    },
+    "2T26": {
+     "desp": 1.0,
+     "ger_liq": 1.0,
+     "ger_bruta": 1.0
+    }
+   }
+  },
+  "Complexo Solar Futura 1": {
+   "group": "Solar",
+   "q": {
+    "4T24": {
+     "disp": 78.0,
+     "fc": 28.0,
+     "ger_bruta_pos": 338.0,
+     "ger_liq": 336.0
+    },
+    "1T25": {
+     "disp": 98.0,
+     "fc": 28.0,
+     "ger_bruta_pos": 337.0,
+     "ger_liq": 334.0
+    },
+    "2T25": {
+     "disp": 98.0,
+     "fc": 32.0,
+     "ger_bruta_pos": 311.0,
+     "ger_liq": 338.0
+    },
+    "3T25": {
+     "disp": 98.0,
+     "fc": 32.0,
+     "ger_bruta_pos": 350.0,
+     "ger_liq": 301.0
+    },
+    "4T25": {
+     "disp": 98.0,
+     "fc": 28.0,
+     "ger_bruta_pos": 351.0,
+     "ger_liq": 338.0
+    },
+    "1T26": {
+     "disp": 98.0,
+     "fc": 26.0,
+     "ger_bruta_pos": 306.0,
+     "ger_liq": 340.0
+    },
+    "2T26": {
+     "disp": 99.0,
+     "fc": 10.11,
+     "ger_bruta_pos": 11.0,
+     "ger_liq": 294.0
+    }
+   }
+  },
+  "Upstream Parnaíba": {
+   "group": "Upstream",
+   "q": {
+    "4T24": {
+     "prod_gas_bi": 0.53,
+     "reservas_bi": 36.1,
+     "vol_prod_mm": 19.9,
+     "vol_vend_mm": 28.5
+    },
+    "1T25": {
+     "prod_gas_bi": 0.15,
+     "reservas_bi": 36.0,
+     "vol_prod_mm": 24.6,
+     "vol_vend_mm": 35.7
+    },
+    "2T25": {
+     "prod_gas_bi": 0.31,
+     "reservas_bi": 35.7,
+     "vol_prod_mm": 15.8,
+     "vol_vend_mm": 36.6
+    },
+    "3T25": {
+     "prod_gas_bi": 0.63,
+     "reservas_bi": 35.0,
+     "vol_prod_mm": 15.1,
+     "vol_vend_mm": 37.8
+    },
+    "4T25": {
+     "prod_gas_bi": 0.63,
+     "reservas_bi": 37.9,
+     "vol_prod_mm": 16.5,
+     "vol_vend_mm": 35.8
+    },
+    "1T26": {
+     "prod_gas_bi": 0.45,
+     "reservas_bi": 37.5,
+     "vol_prod_mm": 21.2,
+     "vol_vend_mm": 29.6
+    },
+    "2T26": {
+     "prod_gas_bi": 0.42,
+     "reservas_bi": 37.1,
+     "vol_prod_mm": 4.0,
+     "vol_vend_mm": 5.0
+    }
+   }
+  },
+  "Upstream Amazonas": {
+   "group": "Upstream",
+   "q": {
+    "4T24": {
+     "prod_gas_bi": 0.06,
+     "reservas_bi": 9.8
+    },
+    "1T25": {
+     "prod_gas_bi": 0.06,
+     "reservas_bi": 9.8
+    },
+    "2T25": {
+     "prod_gas_bi": 0.06,
+     "reservas_bi": 9.7
+    },
+    "3T25": {
+     "prod_gas_bi": 0.06,
+     "reservas_bi": 9.6
+    },
+    "4T25": {
+     "prod_gas_bi": 0.06,
+     "reservas_bi": 9.6
+    },
+    "1T26": {
+     "prod_gas_bi": 0.06,
+     "reservas_bi": 9.5
+    },
+    "2T26": {
+     "prod_gas_bi": 0.05,
+     "reservas_bi": 9.5
+    }
+   }
+  }
+ }
+};
+</script>
+<script>
+/* ---------- helpers ---------- */
+const QS = DATA.quarters, F = DATA.financeiro, N = DATA.fin_notas||{};
+const nf = (v,d=0)=> v==null||v==="N/A"?"—":Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const COL = getComputedStyle(document.documentElement);
+const cvar = n=>COL.getPropertyValue(n).trim();
+const PAL=['--c1','--c2','--c3','--c4','--c5','--c6','--c7','--c8','--c9'].map(cvar);
+Chart.defaults.font.family="-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.color=cvar('--muted');
+Chart.defaults.plugins.legend.labels.boxWidth=11;
+Chart.defaults.plugins.legend.labels.boxHeight=11;
+Chart.defaults.plugins.legend.labels.usePointStyle=false;
+Chart.defaults.plugins.tooltip.callbacks={};
+
+/* margem ICVM */
+const margICVM = QS.map((q,i)=> F.receita_liquida[i]? +(F.ebitda_icvm[i]/F.receita_liquida[i]*100).toFixed(1):null);
+
+/* ---------- tabs ---------- */
+const TABS=[['s-visao','Visão geral'],['s-fin','Financeiro'],['s-seg','Segmentos'],['s-oper','Operacional · gás'],['s-planta','Por usina'],['s-narr','Destaques']];
+const tabsEl=document.getElementById('tabs');
+TABS.forEach(([id,lbl],i)=>{const b=document.createElement('button');b.textContent=lbl;b.dataset.t=id;if(i===0)b.classList.add('active');b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});};tabsEl.appendChild(b);});
+
+/* ---------- KPIs ---------- */
+document.getElementById('lastq').textContent=QS[QS.length-1];
+document.getElementById('hbadge').textContent=QS[0]+' – '+QS[QS.length-1];
+function delta(arr,i,pct=true,inv=false){if(i<1)return null;const a=arr[i],b=arr[i-1];if(a==null||b==null||b===0)return null;const d=pct?((a-b)/Math.abs(b)*100):(a-b);return d;}
+function deltaHTML(prevQ,prevY,dunit,pct=true){
+  function fmtd(d){if(d==null)return '<span class="delta flat">—</span>';const s=d>=0?'up':'down';const ar=d>=0?'▲':'▼';return `<span class="delta ${s}">${ar} ${nf(Math.abs(d),pct?1:(dunit==='x'?2:1))}${pct?'%':dunit}</span>`;}
+  return `${fmtd(prevQ)} <span class="rowlbl">T/T</span> &nbsp; ${fmtd(prevY)} <span class="rowlbl">A/A</span>`;
+}
+const L=QS.length-1;
+const KPI=[
+ ['Receita líquida',F.receita_liquida,'R$ mi','',0,true],
+ ['EBITDA ICVM',F.ebitda_icvm,'R$ mi','',0,true],
+ ['Margem EBITDA ICVM',margICVM,'%',' p.p.',1,false],
+ ['Resultado líq. Eneva',F.resultado_liquido_eneva,'R$ mi','',0,true],
+ ['FCO',F.fco,'R$ mi','',0,true],
+ ['Investimentos',F.investimentos,'R$ mi','',0,true],
+ ['Dívida líquida',F.divida_liquida_bi,'R$ bi','',1,true],
+ ['Alavancagem (DL/EBITDA)',F.alavancagem,'x','x',2,false],
+];
+const kpiEl=document.getElementById('kpis');
+KPI.forEach(([lbl,arr,vunit,dunit,dec,pct])=>{
+  const cur=arr[L];
+  const dQ=delta(arr,L,pct,!pct);
+  const dYv=(L>=4&&arr[L]!=null&&arr[L-4]!=null&&arr[L-4]!==0)?(pct?((arr[L]-arr[L-4])/Math.abs(arr[L-4])*100):(arr[L]-arr[L-4])):null;
+  const div=document.createElement('div');div.className='kpi';
+  div.innerHTML=`<div class="lbl">${lbl}</div><div class="val">${nf(cur,dec)} <span class="unit">${vunit}</span></div>${deltaHTML(dQ,dYv,dunit,pct)}`;
+  kpiEl.appendChild(div);
+});
+
+/* ---------- charts ---------- */
+const gridc={color:'#eef2f5'};
+function baseOpts(extra={}){return Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'}}},extra);}
+
+new Chart(c_rev,{type:'bar',data:{labels:QS,datasets:[
+ {type:'bar',label:'Receita líq.',data:F.receita_liquida,backgroundColor:cvar('--c8'),order:3,yAxisID:'y'},
+ {type:'bar',label:'EBITDA ICVM',data:F.ebitda_icvm,backgroundColor:cvar('--c2'),order:2,yAxisID:'y'},
+ {type:'line',label:'Margem EBITDA %',data:margICVM,borderColor:cvar('--c4'),backgroundColor:cvar('--c4'),borderWidth:2,tension:.3,pointRadius:2,order:1,yAxisID:'y1'}
+]},options:baseOpts({scales:{y:{grid:gridc,title:{display:true,text:'R$ mi'}},y1:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'%'},min:0}},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw, c.dataset.yAxisID==='y1'?1:0)}${c.dataset.yAxisID==='y1'?'%':' mi'}`}}}})});
+
+new Chart(c_debt,{type:'bar',data:{labels:QS,datasets:[
+ {type:'bar',label:'Dívida líquida',data:F.divida_liquida_bi,backgroundColor:cvar('--c1'),yAxisID:'y'},
+ {type:'line',label:'DL/EBITDA (x)',data:F.alavancagem,borderColor:cvar('--c6'),backgroundColor:cvar('--c6'),borderWidth:2,tension:.3,pointRadius:2,yAxisID:'y1'}
+]},options:baseOpts({scales:{y:{grid:gridc,title:{display:true,text:'R$ bi'}},y1:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'x'},min:0}},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw,c.dataset.yAxisID==='y1'?2:1)}${c.dataset.yAxisID==='y1'?'x':' bi'}`}}}})});
+
+new Chart(c_ni,{type:'bar',data:{labels:QS,datasets:[{label:'Resultado líq. Eneva',data:F.resultado_liquido_eneva,backgroundColor:F.resultado_liquido_eneva.map(v=>v>=0?cvar('--pos'):cvar('--neg'))}]},options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${nf(c.raw,0)} mi`}}},scales:{y:{grid:gridc,title:{display:true,text:'R$ mi'}}}})});
+
+new Chart(c_fco,{type:'bar',data:{labels:QS,datasets:[
+ {label:'FCO',data:F.fco,backgroundColor:cvar('--c2')},
+ {label:'Investimentos',data:F.investimentos,backgroundColor:cvar('--c4')}
+]},options:baseOpts({plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw,0)} mi`}}},scales:{y:{grid:gridc,title:{display:true,text:'R$ mi'}}}})});
+
+/* ---------- financeiro table ---------- */
+const FINROWS=[
+ ['Receita líquida (R$ mi)','receita_liquida',0],
+ ['EBITDA ICVM 527/12 (R$ mi)','ebitda_icvm',0],
+ ['EBITDA ajustado (R$ mi)','ebitda_ajustado',0],
+ ['Margem EBITDA ICVM (%)',null,1,margICVM],
+ ['Margem EBITDA reportada (%)','margem_ebitda_reportada',1],
+ ['Resultado líq. Eneva (R$ mi)','resultado_liquido_eneva',0],
+ ['Investimentos (R$ mi)','investimentos',0],
+ ['Fluxo de caixa operacional (R$ mi)','fco',0],
+ ['Dívida líquida (R$ bi)','divida_liquida_bi',1],
+ ['Dívida líquida / EBITDA 12M (x)','alavancagem',2],
+];
+(function(){let h='<thead><tr><th>R$ / indicador</th>'+QS.map(q=>`<th>${q}</th>`).join('')+'</tr></thead><tbody>';
+FINROWS.forEach(([lbl,key,dec,arr])=>{const a=arr||F[key];h+=`<tr><td>${lbl}</td>`+a.map(v=>{const neg=(typeof v==='number'&&v<0);return `<td class="${neg?'neg':''}">${nf(v,dec)}</td>`;}).join('')+'</tr>';});
+h+='</tbody>';document.getElementById('tbl_fin').innerHTML=h;})();
+document.getElementById('fin_notes').innerHTML='<b>Notas:</b> '+Object.values(N).join(' · ');
+
+/* ---------- segmentos ---------- */
+const SEG=DATA.segmentos_bucket, SEGKEYS=Object.keys(SEG);
+const segDs=SEGKEYS.map((k,i)=>({label:k,data:SEG[k].map(v=>v==null?null:v),backgroundColor:PAL[i%PAL.length],stack:'s'}));
+segDs.push({type:'line',label:'EBITDA operacional (soma)',data:DATA.segmentos_op_sum,borderColor:cvar('--muted'),borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false,stack:'x'});
+segDs.push({type:'line',label:'EBITDA ICVM consolidado',data:F.ebitda_icvm,borderColor:cvar('--navy'),borderWidth:2,pointRadius:2,fill:false,stack:'x'});
+new Chart(c_seg,{type:'bar',data:{labels:QS,datasets:segDs},options:baseOpts({plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw,0)} mi`}}},scales:{x:{stacked:true},y:{stacked:true,grid:gridc,title:{display:true,text:'R$ mi'}}}})});
+
+/* segment reported table */
+(function(){
+ const rep=DATA.segmentos_reportado;
+ const names=new Set();
+ QS.forEach(q=>Object.keys(rep[q]||{}).forEach(k=>{if(!/total|consolidado|ex-|excluindo| - /i.test(k))names.add(k);}));
+ const ordered=[...names];
+ let h='<thead><tr><th>Segmento (nome reportado)</th>'+QS.map(q=>`<th>${q}</th>`).join('')+'</tr></thead><tbody>';
+ ordered.forEach(nm=>{h+=`<tr><td>${nm}</td>`+QS.map(q=>{const v=(rep[q]||{})[nm];const neg=(typeof v==='number'&&v<0);return `<td class="${neg?'neg':''}">${v==null?'—':nf(v,1)}</td>`;}).join('')+'</tr>';});
+ h+='</tbody>';document.getElementById('tbl_seg').innerHTML=h;
+})();
+
+/* ---------- gás ---------- */
+const G=DATA.gas;
+new Chart(c_gasprod,{type:'bar',data:{labels:QS,datasets:[
+ {label:'Parnaíba',data:G.prod_parnaiba,backgroundColor:cvar('--c2'),stack:'g'},
+ {label:'Amazonas',data:G.prod_amazonas,backgroundColor:cvar('--c4'),stack:'g'}
+]},options:baseOpts({plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw,2)} Bi m³`}}},scales:{x:{stacked:true},y:{stacked:true,grid:gridc,title:{display:true,text:'Bi m³'}}}})});
+new Chart(c_gasres,{type:'line',data:{labels:QS,datasets:[
+ {label:'Parnaíba',data:G.res_parnaiba,borderColor:cvar('--c2'),backgroundColor:cvar('--c2'),borderWidth:2,tension:.2,pointRadius:2},
+ {label:'Amazonas',data:G.res_amazonas,borderColor:cvar('--c4'),backgroundColor:cvar('--c4'),borderWidth:2,tension:.2,pointRadius:2}
+]},options:baseOpts({plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw,1)} Bi m³`}}},scales:{y:{grid:gridc,title:{display:true,text:'Bi m³'}}}})});
+
+/* ---------- por usina heatmap ---------- */
+const P=DATA.planta;
+function heatColor(v,metric){
+ if(v==null)return '#f4f6f8';
+ let t;
+ if(metric==='disp'){t=Math.max(0,Math.min(1,(v-40)/60));return `rgba(18,125,131,${.12+t*.72})`;}
+ if(metric==='desp'){t=Math.max(0,Math.min(1,v/100));return `rgba(217,138,31,${.10+t*.75})`;}
+ // ger_liq scale relative
+ return `rgba(15,39,64,${.08+Math.min(1,v/1200)*.7})`;
+}
+function renderPlanta(metric){
+ const plants=Object.keys(P);
+ let h='<thead><tr><th>Usina</th><th>Grupo</th>'+QS.map(q=>`<th>${q}</th>`).join('')+'</tr></thead><tbody>';
+ plants.forEach(pn=>{
+  const rec=P[pn];const q=rec.q||{};
+  const hasAny=QS.some(qq=>q[qq]&&q[qq][metric]!=null);
+  if(!hasAny)return;
+  h+=`<tr><td>${pn}</td><td class="rowlbl" style="text-align:left">${rec.group||''}</td>`+QS.map(qq=>{
+    const v=q[qq]?q[qq][metric]:null;
+    const dec=metric==='ger_liq'?0:0;
+    return `<td class="cell" style="background:${heatColor(v,metric)}">${v==null?'':nf(v,dec)+(metric==='ger_liq'?'':'%')}</td>`;
+  }).join('')+'</tr>';
+ });
+ h+='</tbody>';document.getElementById('tbl_planta').innerHTML=h;
+}
+document.getElementById('metricSel').onchange=e=>renderPlanta(e.target.value);
+renderPlanta('disp');
+
+/* ---------- narrativa ---------- */
+(function(){
+ const acc=document.getElementById('acc');
+ [...QS].reverse().forEach(q=>{
+  const d=DATA.narrativa[q]||{destaques:[],eventos:[]};
+  const div=document.createElement('div');div.className='acc';
+  const dq=d.destaques||[],ev=d.eventos||[];
+  div.innerHTML=`<div class="acc-h"><div><span class="q">${q}</span> <span class="meta">${dq.length} destaques · ${ev.length} eventos subsequentes</span></div><span class="chev">▶</span></div>
+  <div class="acc-b">${dq.length?'<h4>Destaques</h4><ul>'+dq.map(x=>`<li>${x}</li>`).join('')+'</ul>':''}${ev.length?'<h4>Eventos subsequentes</h4><ul>'+ev.map(x=>`<li>${x}</li>`).join('')+'</ul>':''}</div>`;
+  div.querySelector('.acc-h').onclick=()=>div.classList.toggle('open');
+  acc.appendChild(div);
+ });
+})();
+
+document.getElementById('foot').innerHTML='Fonte: Releases de Resultados trimestrais da Eneva S.A. (Central de Resultados, ri.eneva.com.br), 1T23–2T26. Valores "como reportados" na coluna do trimestre corrente de cada release (reapresentações posteriores não retroaplicadas). Consolidação e dashboard: uso interno Lorinvest · gerado em '+new Date().toLocaleDateString('pt-BR')+'. Este material não constitui recomendação de investimento.';
+</script>
+</body>
+</html>
