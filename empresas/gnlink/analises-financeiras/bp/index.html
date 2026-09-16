@@ -2467,8 +2467,9 @@ function fatorDescMensal(){
 }
 function vplMensal(gen){ const n=DB.meses.length, cut=DB.cutoffIdx, f=fatorDescMensal(), num=x=>typeof x==="number"?x:0;
   let v=0; for(let k=cut+1;k<n;k++) v+=num(gen[k])*f[k]; return v; }
-function genConsRaw(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n);
-  for(let k=0;k<n;k++) g[k]=num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k]); return g; }
+function genConsRaw(){ const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, g=new Array(n), dIR=cashIRDelta();
+  // + Δ do IR de CAIXA vivo: a geração usa o IR colado (em fco) mais a reação viva às premissas/alíquotas.
+  for(let k=0;k<n;k++) g[k]=num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k])+num(dIR[k]); return g; }
 // Plantas desligadas por PADRÃO do modelo (flag=0, ex.: Terminal PE). O switch do usuário são as
 // plantas desligadas ALÉM dessas.
 function _modelOffSet(){ const fl=(DB.dcfProj||{}).flags||{}, s={}; for(let id=1;id<=6;id++){ if(fl[CAP_PLANTA[id]]===0) s[id]=true; } return s; }
@@ -2812,6 +2813,24 @@ function _taxPieces(){
   return {taxTotal, d142:d142arr, accrual:accr, K0};
 }
 function impostosSerie(){ return _taxPieces().accrual; }   // DFM116 (competência, c/ diferido); NEG (despesa)
+// IR de CAIXA ao vivo (DFM195 = I378 + I116): dfm195[k] = −Impostos81[k−1] + Δ(ativo fiscal diferido).
+// Impostos81 = imposto de competência do grupo (taxTotal); diferido = d142 (MAX rolante). Reage às
+// premissas (alíquotas, EBITDA) e ao switch via a máquina de NOL. Usa o resfin do caixa com IR COLADO
+// (sem realimentar), quebrando a circularidade caixa↔imposto — one-pass.
+function cashIRLive(){
+  const p=_taxPieces(), n=DB.meses.length, out=new Array(n).fill(0);
+  for(let k=p.K0;k<n;k++) out[k]= -p.taxTotal[k-1] + (p.d142[k]-p.d142[k-1]);
+  return out;
+}
+// IR de caixa EFETIVO do DCF: colado (baseline 1:1) + Δ da derivação viva (agora − baseline congelado no
+// boot). No default o Δ é 0 (preserva o colado, validações 1:1). Ao mudar alíquota/premissa, reage.
+let _cashIRBaseArr=null;
+function cashIRDelta(){
+  const n=DB.meses.length, live=cashIRLive(), base=_cashIRBaseArr, num=x=>typeof x==="number"?x:0, out=new Array(n).fill(0);
+  if(!base) return out;                                   // antes do boot: sem delta
+  for(let k=0;k<n;k++) out[k]=num(live[k])-num(base[k]);
+  return out;
+}
 // Lucro Líquido: realizado da DRE (≤corte); projeção = EBT + Impostos (identidade DFM118).
 function lucroLiquidoSerie(){
   const cut=DB.cutoffIdx, ll=DB.dre.lucro_liquido||[], ebt=ebtSerie(), im=impostosSerie(), n=DB.meses.length, out=new Array(n);
@@ -3978,6 +3997,7 @@ function boot(){
   // estado inicial dos switches de planta = cenário do modelo (flags do Painel; Terminal PE desligada)
   { const fl=(DB.dcfProj||{}).flags||{}; for(let id=1;id<=6;id++){ const nm=CAP_PLANTA[id]; if(fl[nm]===0) state.plantOff[id]=true; } }
   snapshotPrem();                                              // snapshot dos defaults p/ reset de premissas
+  _cashIRBaseArr=cashIRLive();                                 // baseline congelado do IR de caixa vivo (default) → Δ=0 no default
   const cut = DB.meses.filter(m=>m.flag==="R").slice(-1)[0];
   const hs=$("#hsubR"); if(hs) hs.textContent = "Realizado até "+(cut?fmtMesY(cut.ym):"—");
   buildSidebar(); render();
