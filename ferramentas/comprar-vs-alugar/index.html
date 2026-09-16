@@ -156,22 +156,22 @@ var INSTR=[
 var FIM_IDADE=65; // horizonte fixo: análise vai até os 65 anos
 var BASE={
   // imóvel & financiamento
-  valImovel:800000, percFin:0.70, prazo:360, idade:27, cod:"6313",
+  valImovel:5000000, percFin:0.45, prazo:360, idade:27, cod:"6313",
   itbiPct:0.03, cartorioPct:0.015, corretagemPct:0.06,
   // custos mensais da compra
-  condominioMensal:1200, iptuAnualPct:0.008,
+  condominioMensal:2500, iptuAnualPct:0.008,
   valorizReal:0.0,       // valorização REAL do imóvel (acima da inflação)
   // aluguel
   aluguelMensal:2800,    // reajuste do aluguel = inflação
   // mercado / você
   rendimentoAA:0.10, inflacaoAA:0.04,
-  patrimonioInicial:350000, despesasMensais:9000, despesaCrescComInflacao:true,
-  // carreira (comp = salário bruto mensal de entrada no nível)
+  patrimonioInicial:180000,
+  // carreira (comp = salário bruto mensal de entrada no nível; despesaPct = despesas ex-moradia como % da renda líquida)
   stages:[
-    {nome:"Analista", ate:29, comp:15000,  cresc:0.05, clt:true,  bonus:1},
-    {nome:"Gerente",  ate:32, comp:25000,  cresc:0.05, clt:true,  bonus:2},
-    {nome:"Diretor",  ate:37, comp:60000,  cresc:0.05, clt:false, bonus:4},
-    {nome:"Sócio",    ate:65, comp:120000, cresc:0.06, clt:false, bonus:6}
+    {nome:"Analista", ate:29, comp:15000,  cresc:0.05, clt:true,  bonus:1, despesaPct:0.70},
+    {nome:"Gerente",  ate:32, comp:25000,  cresc:0.05, clt:true,  bonus:2, despesaPct:0.60},
+    {nome:"Diretor",  ate:37, comp:60000,  cresc:0.05, clt:false, bonus:4, despesaPct:0.45},
+    {nome:"Sócio",    ate:65, comp:120000, cresc:0.06, clt:false, bonus:6, despesaPct:0.35}
   ]
 };
 var S=JSON.parse(JSON.stringify(BASE));
@@ -302,10 +302,10 @@ function compute(s){
   var investBuy=s.patrimonioInicial-entradaCash-custosAq;
   var investRent=s.patrimonioInicial;
   var basisBuy=investBuy, basisRent=investRent;
-  var aluguel=s.aluguelMensal, condo=s.condominioMensal, despesa=s.despesasMensais;
+  var aluguel=s.aluguelMensal, condo=s.condominioMensal;
   var valImovelAtual=s.valImovel;
 
-  var wBuy=[],wRent=[],parcArr=[],rendaArr=[],compArr=[],aluArr=[],custoCompraArr=[],saldoArr=[],investBuyArr=[],investRentArr=[],equityArr=[],valImArr=[];
+  var wBuy=[],wRent=[],parcArr=[],rendaArr=[],compArr=[],aluArr=[],custoCompraArr=[],saldoArr=[],investBuyArr=[],investRentArr=[],equityArr=[],valImArr=[],despArr=[];
   var breakevenM=null;
   var minRendaCompra=0;
 
@@ -313,11 +313,11 @@ function compute(s){
     if(m>0 && m%12===0){
       aluguel*=(1+s.inflacaoAA);   // reajuste do aluguel = inflação
       condo*=(1+s.inflacaoAA);
-      if(s.despesaCrescComInflacao) despesa*=(1+s.inflacaoAA);
     }
     valImovelAtual*=(1+valoriz_m);
     var iptuM=valImovelAtual*s.iptuAnualPct/12;
     var renda=rendaMensal(s,m);
+    var despesa=renda*(stageAt(s,s.idade+m/12).st.despesaPct||0);  // despesas ex-moradia = % da renda líquida
     var parc=(m<s.prazo)?sched.parc[m]:0;
     var saldo=(m<s.prazo)?sched.saldo[m]:0;
     var custoCompra=parc+condo+iptuM;
@@ -336,7 +336,7 @@ function compute(s){
 
     wBuy.push(patBuy);wRent.push(patRent);
     parcArr.push(parc);rendaArr.push(renda);aluArr.push(aluguel);
-    custoCompraArr.push(custoCompra);saldoArr.push(saldo);
+    custoCompraArr.push(custoCompra);saldoArr.push(saldo);despArr.push(despesa);
     investBuyArr.push(netInvBuy);investRentArr.push(netInvRent);equityArr.push(equity);valImArr.push(valImovelAtual);
     compArr.push(renda>0?custoCompra/renda:0);
     if(breakevenM==null && patBuy>=patRent && m>0) breakevenM=m;
@@ -349,7 +349,7 @@ function compute(s){
   res.sched=sched;
   res.wBuy=wBuy; res.wRent=wRent; res.parc=parcArr; res.renda=rendaArr; res.alu=aluArr;
   res.custoCompra=custoCompraArr; res.saldo=saldoArr; res.investBuy=investBuyArr; res.investRent=investRentArr;
-  res.equity=equityArr; res.valIm=valImArr; res.comprometimento=compArr;
+  res.equity=equityArr; res.valIm=valImArr; res.comprometimento=compArr; res.despesa=despArr;
   res.finalBuy=wBuy[N-1]; res.finalRent=wRent[N-1]; res.delta=wBuy[N-1]-wRent[N-1];
   res.breakevenAno=breakevenM==null?null:Math.ceil(breakevenM/12);
   res.aliqIR=aliq; res.investInicialBuy=s.patrimonioInicial-entradaCash-custosAq;
@@ -469,7 +469,7 @@ function buildPrem(){
   h+=sld('rendimentoAA',0,0.20,0.005,'Rendimento do patrimônio (a.a.)','pct');
   h+=sld('inflacaoAA',0,0.12,0.005,'Inflação (a.a.)','pct');
   h+=sld('patrimonioInicial',0,5000000,10000,'Patrimônio atual','brl');
-  h+=sld('despesasMensais',0,80000,250,'Despesas mensais (fora moradia)','brl');
+  h+='<div class="note" style="margin-top:4px">Despesas mensais (fora moradia) são definidas como % da renda líquida, por nível, na aba <b>Carreira &amp; receitas</b>.</div>';
   $('premBody').innerHTML=h;
 }
 function setInstr(cod){ S.cod=cod; update(); }
@@ -554,8 +554,8 @@ function renderAluguel(R){
 
 function renderCarreira(R){
   var h='';
-  h+='<div class="card"><h2>Escada de carreira</h2><p class="cap">Cada nível tem seu salário bruto de entrada e um crescimento anual próprio. O 1º nível começa na idade do proponente ('+S.idade+' anos); o último vai até os '+FIM_IDADE+'. CLT recebe 13º + férias (1 salário extra cada); PJ/sócio, não. O bônus é em número de salários por ano.</p>';
-  h+='<table class="careertbl"><thead><tr><th>Nível</th><th>Até a idade</th><th>Salário bruto (R$/mês)</th><th>Cresc. a.a.</th><th style="text-align:center">CLT</th><th>Bônus (nº sal.)</th></tr></thead><tbody>';
+  h+='<div class="card"><h2>Escada de carreira</h2><p class="cap">Cada nível tem seu salário bruto de entrada e um crescimento anual próprio. O 1º nível começa na idade do proponente ('+S.idade+' anos); o último vai até os '+FIM_IDADE+'. CLT recebe 13º + férias (1 salário extra cada); PJ/sócio, não. O bônus é em número de salários por ano. As despesas (fora moradia) são um % da renda líquida do nível.</p>';
+  h+='<table class="careertbl"><thead><tr><th>Nível</th><th>Até a idade</th><th>Salário bruto (R$/mês)</th><th>Cresc. a.a.</th><th style="text-align:center">CLT</th><th>Bônus (nº sal.)</th><th>Despesas (% renda líq.)</th></tr></thead><tbody>';
   for(var i=0;i<S.stages.length;i++){ var st=S.stages[i]; var last=(i===S.stages.length-1);
     h+='<tr>'+
       '<td><input class="txt" value="'+st.nome+'" onchange="setStage('+i+',\'nome\',this.value)"></td>'+
@@ -564,9 +564,10 @@ function renderCarreira(R){
       '<td><input value="'+pct(st.cresc,1)+'" onchange="setStage('+i+',\'cresc\',this.value)"></td>'+
       '<td style="text-align:center"><input type="checkbox" '+(st.clt?'checked':'')+' onchange="setStageCLT('+i+',this.checked)"></td>'+
       '<td><input value="'+num(st.bonus||0,1)+'" onchange="setStage('+i+',\'bonus\',this.value)"></td>'+
+      '<td><input value="'+pct(st.despesaPct||0,0)+'" onchange="setStage('+i+',\'despesaPct\',this.value)"></td>'+
       '</tr>';
   }
-  h+='</tbody></table><p class="note">Salário: bruto − INSS − IRRF (tabelas mensais 2025, sem dependentes, escolhendo automaticamente o desconto simplificado ou completo); 13º e férias tributados pela tabela mensal. <b>Bônus/PLR</b>: isento de INSS e tributado pela <b>tabela exclusiva anual da PLR</b> (0% até R$8.214,40 … 27,5% acima de R$16.380,38). Gastos pessoais entram em “Despesas mensais”.</p></div>';
+  h+='</tbody></table><p class="note">Salário: bruto − INSS − IRRF (tabelas mensais 2025, sem dependentes, escolhendo automaticamente o desconto simplificado ou completo); 13º e férias tributados pela tabela mensal. <b>Bônus/PLR</b>: isento de INSS e tributado pela <b>tabela exclusiva anual da PLR</b> (0% até R$8.214,40 … 27,5% acima de R$16.380,38). Despesas ex-moradia são um % da renda líquida por nível (coluna acima).</p></div>';
   // net salary breakdown for the entry salary of each level (today)
   h+='<div class="card"><h2>Remuneração líquida por nível (hoje)</h2><div class="mtwrap"><table class="mtbl"><thead><tr><th>Nível</th><th>Bruto/mês</th><th>INSS</th><th>IRRF mês</th><th>Líquido/mês</th><th>Bônus bruto/ano</th><th>Bônus líq./ano (PLR)</th><th>Renda líq. média/mês</th></tr></thead><tbody>';
   for(var i=0;i<S.stages.length;i++){ var st=S.stages[i]; var G=st.comp; var inss=inssCalc(G); var baseC=G-inss,baseS=G-564.80; var irrf=Math.min(irrfTabela(baseC),irrfTabela(baseS)); var c=compNet(G,st.clt,st.bonus);
@@ -579,7 +580,7 @@ function renderCarreira(R){
   h+='<p class="note">Comprometimento no 1º ano: <b>'+pct(R.comprometimento[11]||R.comprometimento[0],0)+'</b> · no último ano: <b>'+pct(R.comprometimento[R.N-1],0)+'</b>.</p></div>';
   // yearly income table
   h+='<div class="card"><h2>Renda e poupança ano a ano</h2><div class="mtwrap"><table class="mtbl"><thead><tr><th>Ano</th><th>Idade</th><th>Renda líq./mês</th><th>Despesas/mês</th><th>Sobra p/ moradia+invest.</th></tr></thead><tbody>';
-  for(var y=1;y<=R.anos;y++){ var m=Math.min(R.N-1,y*12-1); var desp=S.despesasMensais*(S.despesaCrescComInflacao?Math.pow(1+S.inflacaoAA,y-1):1);
+  for(var y=1;y<=R.anos;y++){ var m=Math.min(R.N-1,y*12-1); var desp=R.despesa[m];
     var sobra=R.renda[m]-desp;
     h+='<tr><td>'+y+'</td><td>'+(S.idade+y-1)+'</td><td>'+brl(R.renda[m])+'</td><td>'+brl(desp)+'</td><td class="'+(sobra>=0?'pos':'neg')+'">'+brl(sobra)+'</td></tr>'; }
   h+='</tbody></table></div></div>';
@@ -598,7 +599,7 @@ function barsCompareRenda(renda,custo,nYears){
     if(y%step===0)g+='<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="#8290A0">'+y+'</text>';}
   g+='</svg>';return g;
 }
-function setStage(i,f,v){ if(f==='nome')S.stages[i].nome=v; else if(f==='ate')S.stages[i].ate=parseNum(v); else if(f==='comp')S.stages[i].comp=parseNum(v); else if(f==='cresc')S.stages[i].cresc=parseNum(v)/100; else if(f==='bonus')S.stages[i].bonus=parseNum(v); update(); }
+function setStage(i,f,v){ if(f==='nome')S.stages[i].nome=v; else if(f==='ate')S.stages[i].ate=parseNum(v); else if(f==='comp')S.stages[i].comp=parseNum(v); else if(f==='cresc')S.stages[i].cresc=parseNum(v)/100; else if(f==='bonus')S.stages[i].bonus=parseNum(v); else if(f==='despesaPct')S.stages[i].despesaPct=parseNum(v)/100; update(); }
 function setStageCLT(i,v){ S.stages[i].clt=v; update(); }
 
 function renderSens(){
