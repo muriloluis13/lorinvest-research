@@ -293,7 +293,7 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco","capex","divida"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2031-01", exitMult:10, minCashDebt:false};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2031-01", exitMult:10, minCashMode:"aporte"};   // cobertura do caixa mínimo: 'aporte'(default)|'debt'|'none'
 // SWITCH de planta ligada/desligada (cenário): desliga TUDO daquela planta do consolidado — capacidade,
 // volume, receita, custos, SG&A planta, capex/depreciação/imobilizado, dívida da planta. A HOLDING
 // (SG&A da holding + dívidas da holding) fica fixa, independente dos switches.
@@ -2600,6 +2600,25 @@ function minCashDebtEngine(){
   }
   return (_minCashCache={minCash, bop, iss, accr, paid, amort, eop, adj, fee:feeA, netFlow, cut});
 }
+// Aporte de capital p/ cobrir o caixa mínimo (Consolidated!191 do modelo 09.07, modo C31="N" = Equity):
+// injeta equity APENAS o suficiente p/ manter o caixa ≥ mínimo. Sem juros, sem amortização. O aporte fica
+// FORA do FCFE descontado (r203 do modelo NÃO inclui r191) → NÃO altera o Equity Value; só tampa o caixa e
+// aumenta o Capital Social (PL). adj[k] = caixa base[k] + aporte acumulado[k]; identidade preservada.
+let _aporteCache=null;
+function aporteMinimoEngine(){
+  if(_aporteCache) return _aporteCache;
+  const n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0;
+  const minCash=caixaMinimoSerie(), baseCash=caixaBalancoEngine().caixa;
+  const aporte=new Array(n).fill(0), adj=new Array(n).fill(0), cum=new Array(n).fill(0);
+  let acc=0;
+  for(let k=0;k<=cut;k++) adj[k]=num(baseCash[k]);
+  for(let k=cut+1;k<n;k++){
+    const cashBoP=adj[k-1], baseFlow=num(baseCash[k])-num(baseCash[k-1]), proj=cashBoP+baseFlow;
+    const ap=Math.max(0, num(minCash[k])-proj);
+    aporte[k]=ap; acc+=ap; cum[k]=acc; adj[k]=proj+ap;              // adj[k] = baseCash[k] + cum[k]
+  }
+  return (_aporteCache={minCash, aporte, adj, cum, cut});
+}
 // Geração consolidada MENSAL com o switch de plantas cascateando por TODO o consolidado (capex/IR/dívida
 // inclusive). Reconstrução: base − Σ(geração pré-imposto das plantas desligadas pelo usuário) + Δ do IR
 // consolidado VIVO (máquina de prejuízo fiscal). No cenário-base ⇒ = geração bruta (nada muda). Valida
@@ -2623,10 +2642,12 @@ function genConsMensal(){
       g[k]=num(base.genDef[k]) - rem + taxReact; }
   }
   // Dívida rolling de min-cash (toggle): soma o fluxo líquido de financiamento ao FCFE consolidado.
-  if(state.minCashDebt){ const mc=minCashDebtEngine(); for(let k=0;k<n;k++) g[k]=num(g[k])+num(mc.netFlow[k]); }
+  // Dívida rolling entra no FCFE (r189 do modelo inclui o serviço da dívida). O APORTE fica FORA do FCFE
+  // (r203 não inclui r191) → não somamos nada aqui no modo 'aporte'; ele só tampa o caixa/balanço.
+  if(state.minCashMode==='debt'){ const mc=minCashDebtEngine(); for(let k=0;k<n;k++) g[k]=num(g[k])+num(mc.netFlow[k]); }
   return g;
 }
-function toggleMinCash(){ state.minCashDebt=!state.minCashDebt; clearAllCaches(); render(); }
+function setMinCashMode(m){ state.minCashMode=m; clearAllCaches(); render(); }
 function setMinCash(key, raw, pct){ const v=parseBR(raw); if(v==null) return; DB.dcfConst[key]= pct? v/100 : v; clearAllCaches(); render(); }
 function setMinCashSel(key, val){ DB.dcfConst[key]=+val; clearAllCaches(); render(); }
 // --- premissas de CapEx editáveis ---
@@ -2674,31 +2695,56 @@ function _mcSel(id, val, opts, onch){
   return `<select id="${id}" onchange="${onch}" style="font-family:inherit;font-size:12px;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%">`
     + opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`).join('') + '</select>';
 }
-// Painel editável da dívida rolling de caixa mínimo (reusado nas abas DCF e Dívida).
+// Painel da cobertura do caixa mínimo (reusado nas abas DCF e Dívida). 3 modos (Consolidated!C31 do modelo
+// 09.07): APORTE de capital (Equity, C31="N", default), DÍVIDA rolling (C31="Y") ou NENHUM.
 function minCashDebtPanelHTML(){
   const C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0, e=caixaBalancoEngine();
-  let h='<div class="premcard"><div class="ph"><b>Dívida rolling p/ caixa mínimo</b>'
-    +'<button class="'+(state.minCashDebt?'badge-ok':'badge-wip')+'" onclick="toggleMinCash()" style="cursor:pointer;border-style:solid">'
-    +(state.minCashDebt?'LIGADA':'DESLIGADA')+' · clique p/ '+(state.minCashDebt?'desligar':'ligar')+'</button></div>';
-  h+='<div class="psub">Mecânica do modelo 09.07: emite dívida de curto prazo (<b>rolling</b>) p/ manter o caixa ≥ <b>caixa mínimo</b> = N meses de custos fixos (O&M + SG&A plantas + SG&A holding, média móvel 3m) <b>+ retenção BNB</b>. Amortização linear no prazo; juros = indexador × spread, pagos na frequência. Custo entra no DCF ao vivo (FCFE). <b>Premissas editáveis</b> (padrão: desligado, como o toggle do modelo):</div>';
+  const mode=state.minCashMode||'aporte';
+  const byY=(serie,how)=>{ const by={}; for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4);
+    if(how==="last") by[y]=num(serie[k]); else by[y]=(by[y]||0)+num(serie[k]); } return by; };
+  const seg=(v,l)=>`<button class="${mode===v?'badge-ok':'badge-wip'}" onclick="setMinCashMode('${v}')" style="cursor:pointer;border-style:solid;margin-left:5px">${l}</button>`;
+  let h='<div class="premcard"><div class="ph"><b>Cobertura do caixa mínimo</b><span>'
+    + seg('aporte','Aporte (equity)') + seg('debt','Dívida rolling') + seg('none','Nenhum') + '</span></div>';
+  h+='<div class="psub"><b>Caixa mínimo</b> = N meses de custos fixos (O&M + SG&A plantas + SG&A holding, média móvel 3m) <b>+ retenção BNB</b>. '
+    +'O modelo 09.07 (Consolidated!C31) tampa o gap de duas formas alternativas: <b>Aporte</b> = injeção de equity só o necessário p/ manter o caixa ≥ mínimo (sem juros/amortização; <b>fora do FCFE descontado</b> → não muda o Equity Value, só o caixa/PL); <b>Dívida rolling</b> = emite dívida de 1 ano (amort. linear, juros = indexador × spread) que <b>entra no FCFE</b> (move o Equity Value). Default do modelo = <b>Aporte</b>.</div>';
   const row=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
   h+=row("Meses de custos fixos", numBox("mc_months", C.mincash_months||3, 0, 'onchange="setMinCash(\'mincash_months\',this.value)"'));
-  h+=row("Prazo da dívida (meses)", numBox("mc_tenor", C.mincash_tenor_m||12, 0, 'onchange="setMinCash(\'mincash_tenor_m\',this.value)"'));
-  h+=row("Spread (% a.a.)", numBox("mc_spread", (C.mincash_spread||0.045)*100, 2, 'onchange="setMinCash(\'mincash_spread\',this.value,true)"'));
-  h+=row("Indexador", _mcSel("mc_idx", C.mincash_index||0, [[0,"IPCA"],[1,"DI / CDI"]], "setMinCashSel('mincash_index',this.value)"));
-  h+=row("Frequência dos juros", _mcSel("mc_freq", C.mincash_freq_m||3, [[1,"Mensal"],[3,"Trimestral"],[6,"Semestral"]], "setMinCashSel('mincash_freq_m',this.value)"));
-  h+=row("Taxa flat (% da emissão)", numBox("mc_fee", (C.mincash_flatfee||0)*100, 2, 'onchange="setMinCash(\'mincash_flatfee\',this.value,true)"'));
+  if(mode==='debt'){
+    h+=row("Prazo da dívida (meses)", numBox("mc_tenor", C.mincash_tenor_m||12, 0, 'onchange="setMinCash(\'mincash_tenor_m\',this.value)"'));
+    h+=row("Spread (% a.a.)", numBox("mc_spread", (C.mincash_spread||0.045)*100, 2, 'onchange="setMinCash(\'mincash_spread\',this.value,true)"'));
+    h+=row("Indexador", _mcSel("mc_idx", C.mincash_index||0, [[0,"IPCA"],[1,"DI / CDI"]], "setMinCashSel('mincash_index',this.value)"));
+    h+=row("Frequência dos juros", _mcSel("mc_freq", C.mincash_freq_m||3, [[1,"Mensal"],[3,"Trimestral"],[6,"Semestral"]], "setMinCashSel('mincash_freq_m',this.value)"));
+    h+=row("Taxa flat (% da emissão)", numBox("mc_fee", (C.mincash_flatfee||0)*100, 2, 'onchange="setMinCash(\'mincash_flatfee\',this.value,true)"'));
+  }
   h+='</div></div>';
-  if(!state.minCashDebt){ h+='<div class="note">Ligue a mecânica (botão acima) p/ ver a simulação — caixa mínimo, emissões, saldo da dívida e caixa ajustado — e o impacto no Equity Value.</div>'; return h; }
+  const cashMinBase=Math.min(...e.caixa.slice(cut+1).map(x=>num(x)));
+  if(mode==='none'){ h+='<div class="note">Sem cobertura: o caixa base fica <b>negativo</b> (mínimo '+fmt(cashMinBase/1e6,0)+' mi em '+(function(){let mn=1e18,at=-1;for(let k=cut+1;k<n;k++){if(num(e.caixa[k])<mn){mn=num(e.caixa[k]);at=k;}}return at>0?fmtMesY(DB.meses[at].ym):'';})()+'). Escolha <b>Aporte</b> ou <b>Dívida</b> acima p/ tampar o gap.</div>'; return h; }
+  let t,yrs,rw,tt;
+  if(mode==='aporte'){
+    const ap=aporteMinimoEngine();
+    const yMin=byY(ap.minCash,"last"), yBase=byY(e.caixa,"last"), yApt=byY(ap.aporte,"sum"), yCum=byY(ap.cum,"last"), yAdj=byY(ap.adj,"last");
+    yrs=Object.keys(yMin).map(Number).sort((a,b)=>a-b);
+    rw=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const y of yrs) r+=`<td>${fmt((by[y]||0)/1e6,0)}</td>`; return r+'</tr>'; };
+    t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'</tr></thead><tbody>';
+    t+=rw("Caixa mínimo exigido (EoP)",yMin);
+    t+=rw("Caixa base — sem cobertura (EoP)",yBase);
+    t+=rw("(+) Aporte de capital no ano",yApt);
+    t+=rw("Aporte de capital acumulado (EoP)",yCum,true);
+    t+=rw("Caixa ajustado — com aporte (EoP)",yAdj,true);
+    t+='</tbody></table></div>';
+    h+='<h3 class="msub" style="border:none;margin:12px 0 6px">Simulação do aporte de capital (R$ MM/ano)</h3>'+t;
+    const totApt=ap.cum[n-1];
+    h+='<div class="note">Sem cobertura o caixa base atinge <b>'+fmt(cashMinBase/1e6,0)+' mi</b>. O aporte injeta equity só o necessário p/ manter o caixa ≥ mínimo — <b>total aportado até dez/38 = '+fmt(totApt/1e6,0)+' mi</b>, que entra no <b>Capital Social</b> (PL) e não é remunerado nem devolvido no horizonte. Por ficar <b>fora do FCFE descontado</b> (r203 do modelo não inclui a injeção r191), o <b>Equity Value permanece ~184,8 mi</b> — o aporte é financiamento de solvência, não distribuição.</div>';
+    return h;
+  }
+  // mode === 'debt'
   const mc=minCashDebtEngine();
-  const byY=(serie,how)=>{ const by={}; for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4);
-    if(how==="last") by[y]=num(serie[k]); else by[y]=(by[y]||0)+num(serie[k]); } return by; };
   const yEmit=byY(mc.iss,"sum"), yJuros=byY(mc.paid,"sum"), ySaldo=byY(mc.eop,"last"),
         yMin=byY(mc.minCash,"last"), yAdj=byY(mc.adj,"last"), yBase=byY(e.caixa,"last");
-  const yrs=Object.keys(ySaldo).map(Number).sort((a,b)=>a-b);
-  let t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'</tr></thead><tbody>';
-  const rw=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const y of yrs) r+=`<td>${fmt((by[y]||0)/1e6,0)}</td>`; return r+'</tr>'; };
+  yrs=Object.keys(ySaldo).map(Number).sort((a,b)=>a-b);
+  rw=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const y of yrs) r+=`<td>${fmt((by[y]||0)/1e6,0)}</td>`; return r+'</tr>'; };
+  t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'</tr></thead><tbody>';
   t+=rw("Caixa mínimo exigido (EoP)",yMin);
   t+=rw("Caixa base — sem dívida (EoP)",yBase);
   t+=rw("(+) Emissão de dívida rolling (ano)",yEmit);
@@ -2707,7 +2753,7 @@ function minCashDebtPanelHTML(){
   t+=rw("Caixa ajustado — com dívida (EoP)",yAdj,true);
   t+='</tbody></table></div>';
   h+='<h3 class="msub" style="border:none;margin:12px 0 6px">Simulação da dívida rolling (R$ MM/ano)</h3>'+t;
-  const impacto=vplMensal(mc.netFlow), cashMinBase=Math.min(...e.caixa.slice(cut+1).map(x=>num(x)));
+  const impacto=vplMensal(mc.netFlow);
   h+='<div class="note">Sem a dívida, o caixa base fica <b>negativo</b> (mínimo '+fmt(cashMinBase/1e6,0)+' mi); com ela, o caixa se mantém ≥ mínimo (facility temporária — amortiza quando o caixa volta a sobrar). Impacto no <b>Equity Value</b> = <b>'+fmt(impacto/1e6,1)+' mi</b> (PV do fluxo líquido emissão − amortização − juros − taxa). O sinal '+(impacto>=0?'positivo':'negativo')+' segue o tratamento de <b>FCFE</b> do modelo (a emissão entra no fluxo ao acionista, descontada ao Ke).</div>';
   return h;
 }
@@ -2893,6 +2939,12 @@ function dreYear(key){ return anoSum(DB.dre[key]||[]); }
 /* --------------------------------------------------- aba Balanço & DCF (Fase F) */
 function renderBalanco(){
   const e=caixaBalancoEngine(), dcf=dcfConsolidado(), n=DB.meses.length;
+  // overlay do aporte de capital (modo 'aporte'): tampa o caixa ao mínimo e sobe o Capital (PL) pelo aporte
+  // acumulado — identidade preservada (Ativo e PL sobem o mesmo cum). Fora do FCFE (DCF/Equity Value intactos).
+  const _numB=x=>typeof x==="number"?x:0;
+  const _apo=(state.minCashMode==='aporte')?aporteMinimoEngine():null, _cum=_apo?_apo.cum:null;
+  const AD=s=> _cum? s.map((v,k)=>_numB(v)+_numB(_cum[k])) : s;
+  const caixaS=AD(e.caixa), ativoCircS=AD(e.ativoCirc), totAtivoS=AD(e.totAtivo), capitalS=AD(e.capital), plS=AD(e.pl);
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
   let h=`<div class="pglead"><b>Balanço Patrimonial · Fluxo de Caixa (DFC)</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando e a <b>DFC</b> reconciliando o caixa. O <b>VPL/DCF</b> e o Equity/Enterprise Value estão na aba <b>DCF (VPL)</b>.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
@@ -2901,16 +2953,16 @@ function renderBalanco(){
   h+=kpi("Dívida Líquida", "R$ "+fmt(_nd/1e6,0)+" mi", "Dívida Bruta − Caixa · base "+_ndM, "", MECH.vpl);
   h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "FCF ao acionista descontado (Ke)", "", MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "consolidado", "", MECH.tir);
-  h+=kpi("Total de Ativos "+lastY+" (R$ MM)", fmt(e.totAtivo[lastK]/1e6,0), "saldo no fim do horizonte");
-  h+=kpi("Caixa "+lastY+" (R$ MM)", fmt(e.caixa[lastK]/1e6,0), "saldo de caixa");
+  h+=kpi("Total de Ativos "+lastY+" (R$ MM)", fmt(totAtivoS[lastK]/1e6,0), "saldo no fim do horizonte");
+  h+=kpi("Caixa "+lastY+" (R$ MM)", fmt(caixaS[lastK]/1e6,0), _apo?"saldo de caixa (com aporte)":"saldo de caixa");
   h+='</div>';
   const L={how:"last",d:1,div:1e6};
   const gb=k=>DB.balanco[k]||[], num=x=>typeof x==="number"?x:0, imob=imobilizadoSerie();
   const pc157=gb("dfm157"), pc156=e.forn.map((v,k)=> v-num(pc157[k]));         // fornecedores = forn − partes rel.
   const obrTrabTrib=e.trab.map((v,k)=> v+num(e.trib[k]));                       // obrigações trab.+tributárias
   const rows=[
-    {lbl:"Ativo Circulante",serie:e.ativoCirc,...L,bold:true,children:[
-      {lbl:"Caixa e aplicações",serie:e.caixa},
+    {lbl:"Ativo Circulante",serie:ativoCircS,...L,bold:true,children:[
+      {lbl:"Caixa e aplicações",serie:caixaS},
       {lbl:"Contas a receber (clientes)",serie:e.cr},
       {lbl:"Estoques",serie:e.est},
       {lbl:"Adiantamentos",serie:gb("dfm353")},
@@ -2926,7 +2978,7 @@ function renderBalanco(){
       {lbl:"Ativo Imobilizado (líq.)",serie:imob,tip:MECH.depreciacao},
       {lbl:"Outros ativos não circulantes",serie:gb("dfm148")},
     ]},
-    {lbl:"Total de Ativos",serie:e.totAtivo,...L,bold:true},
+    {lbl:"Total de Ativos",serie:totAtivoS,...L,bold:true},
     {lbl:"Passivo Circulante",serie:e.passCirc,...L,bold:true,children:[
       {lbl:"Fornecedores",serie:pc156},
       {lbl:"Fornecedores (partes relacionadas)",serie:pc157},
@@ -2940,8 +2992,9 @@ function renderBalanco(){
       {lbl:"Outros passivos não circulantes",serie:gb("dfm165")},
     ]},
     {lbl:"Total de Passivos",serie:e.totPass,...L,bold:true},
-    {lbl:"Patrimônio Líquido",serie:e.pl,...L,bold:true,tip:MECH.lucro_liquido,children:[
+    {lbl:"Patrimônio Líquido",serie:plS,...L,bold:true,tip:MECH.lucro_liquido,children:[
       {lbl:"Capital social",serie:e.capital},
+      ...(_apo?[{lbl:"(+) Aporte p/ caixa mínimo (acionista)",serie:_cum}]:[]),
       {lbl:"Lucros/prejuízos acumulados",serie:e.lucroAcum},
       {lbl:"Reserva legal",serie:e.resLegal},
     ]},
@@ -2954,8 +3007,10 @@ function renderBalanco(){
   const de=dividaEngine();
   const wcChange=e.dWC.map((v,k)=> num(v)+num(e.r368[k])+num(e.r374[k]));   // Δ capital de giro (DFM)
   const F={how:"sum",d:1,div:1e6}, P={how:"last",d:1,div:1e6};
+  const caixaIniS = e.caixaIni.map((v,k)=> _cum? (k>0?_numB(caixaS[k-1]):_numB(v)) : _numB(v));
+  const varCaixaS = e.varCaixa.map((v,k)=> _cum? _numB(v)+_numB(_apo.aporte[k]) : _numB(v));
   const dfcRows=[
-    {lbl:"Caixa no início do período",serie:e.caixaIni,how:"first",d:1,div:1e6},
+    {lbl:"Caixa no início do período",serie:caixaIniS,how:"first",d:1,div:1e6},
     {lbl:"Fluxo de Caixa Operacional",serie:e.fco,...F,bold:true,children:[
       {lbl:"EBITDA",serie:ebitdaSerie(),tip:MECH.ebitda},
       {lbl:"IR/CSLL pagos (caixa)",serie:e.irccsll},
@@ -2969,9 +3024,10 @@ function renderBalanco(){
       {lbl:"Comissões / seguros / IOF",serie:e.div26},
       {lbl:"Rendimento de aplicações",serie:e.dfm385},
     ]},
+    ...(_apo?[{lbl:"(+) Aporte de capital (acionista)",serie:_apo.aporte,...F,bold:true}]:[]),
     {lbl:"Ajustes / outras variações",serie:e.ajuste,...F},
-    {lbl:"Variação de caixa no período",serie:e.varCaixa,...F,bold:true},
-    {lbl:"Caixa no fim do período",serie:e.caixa,...P,bold:true},
+    {lbl:"Variação de caixa no período",serie:varCaixaS,...F,bold:true},
+    {lbl:"Caixa no fim do período",serie:caixaS,...P,bold:true},
   ];
   h+='<h3 class="msub">Demonstração do Fluxo de Caixa (R$ MM)</h3>';
   h+='<div class="note" style="margin:0 0 8px">Método indireto: <b>Operacional</b> (EBITDA − IR/CSLL ± capital de giro) + <b>Investimentos</b> (capex) + <b>Financiamento</b> (captações, amortização, juros, comissões/seguros e rendimento do caixa). Clique nos grupos em <b>negrito</b> para abrir o detalhamento. Fluxos somados no período; caixa início/fim são saldos. Realizado usa o caixa efetivo; a projeção é o waterfall vivo (reage às premissas). Fecha por construção: início + Operacional + Investimentos + Financiamento + Ajustes = fim.</div>';
@@ -3476,6 +3532,7 @@ function clearAllCaches(){
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
   _dcfBaseCache=null;   // referências do cenário-base do DCF (re-capturadas por dcfSwitchBase)
   _minCashCache=null;   // motor da dívida rolling de caixa mínimo
+  _aporteCache=null;    // motor do aporte de capital p/ caixa mínimo
 }
 function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
