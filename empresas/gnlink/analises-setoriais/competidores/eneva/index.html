@@ -401,6 +401,15 @@ table.heat td,table.heat th{text-align:center;padding:5px 7px;font-size:11px}
 table.heat td.l,table.heat th.l{text-align:left}
 .section-head .title-icon svg use{stroke:currentColor}
 .hsub{color:var(--accent2)!important}
+/* cards de risco sem barra lateral, com tom suave rotativo por card */
+.risks.soft .risk{border:1px solid var(--line);border-left:1px solid var(--line);background:#fff;box-shadow:none}
+.risks.soft .risk .rt{display:block;margin-bottom:5px;font-size:12.8px}
+.risks.soft .risk:nth-child(6n+1){background:#EAF3F2;border-color:#D5E7E4}
+.risks.soft .risk:nth-child(6n+2){background:#FBF4E7;border-color:#EEE0C1}
+.risks.soft .risk:nth-child(6n+3){background:#FBEEE9;border-color:#F0D8CE}
+.risks.soft .risk:nth-child(6n+4){background:#EBF3ED;border-color:#D6E7DB}
+.risks.soft .risk:nth-child(6n+5){background:#EEF4F4;border-color:#DBE8E7}
+.risks.soft .risk:nth-child(6n+6){background:#F3F3F0;border-color:#E3E7E0}
 
 </style>
 </head>
@@ -909,12 +918,10 @@ function renderTese(){
   const bear=card(head('cic-tese','Riscos-chave (Goldman Sachs)','Principais preocupações apontadas pelo GS.')+
     vectors(GS.bear_points.map(b=>({n:esc(b.t),v:'!',d:esc(b.d),c:C.coral}))));
   h+=`<div class="row2">${bull}${bear}</div>`;
-  // fatores de risco do FR (empresa)
-  if(GOV&&GOV.fatores_risco&&GOV.fatores_risco.length){
-    h+=card(head('cic-method','Fatores de risco — Formulário de Referência 2026','Riscos declarados pela própria companhia (itens 4.1–4.3 do FR).')+
-      `<div class="risks">`+GOV.fatores_risco.map(r=>`<div class="risk" style="--pc:${C.oil}"><div class="rh"><span class="rt">${esc(r.titulo)}</span><span class="rb some">FR</span></div><div class="rd">${esc(r.descricao)}</div></div>`).join('')+`</div>`);
-  }
-  $('p-tese').innerHTML=h;
+  // --- sub-aba 2: fatores de risco do FR (empresa) — cards com tom suave, sem barra lateral ---
+  let s2=card(head('cic-method','Fatores de risco — Formulário de Referência 2026','Riscos declarados pela própria companhia (itens 4.1–4.3 do FR 2026).')+
+    `<div class="risks soft">`+(GOV.fatores_risco||[]).map(r=>`<div class="risk"><div class="rt">${esc(r.titulo)}</div><div class="rd">${esc(r.descricao)}</div></div>`).join('')+`</div>`);
+  $('p-tese').innerHTML=subBar('tese',['Tese & drivers','Fatores de risco (FR)'])+subpane('tese',0,h)+subpane('tese',1,s2);
 }
 
 /* ---------- 4. Segmentos & Ativos ---------- */
