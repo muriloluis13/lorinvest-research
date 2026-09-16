@@ -291,7 +291,7 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2031-01", exitMult:10};
 // SWITCH de planta ligada/desligada (cenário): desliga TUDO daquela planta do consolidado — capacidade,
 // volume, receita, custos, SG&A planta, capex/depreciação/imobilizado, dívida da planta. A HOLDING
 // (SG&A da holding + dívidas da holding) fica fixa, independente dos switches.
@@ -1651,6 +1651,8 @@ function volDimRows(reg){
     .concat([{lbl:"Total",serie:_cliVolSum(reg,()=>true),...VOL0,bold:true,perPlanta:_cliVolPer(()=>true)}]);
 }
 function setVoldim(d){ state.voldim=d; render(); }
+function setExitYm(v){ const ym=parseMesY(v); if(ym) state.exitYm=ym; render(); }
+function setExitMult(v){ const x=parseBR(v); if(x!=null && x>0) state.exitMult=x; render(); }
 function voldimbarHTML(){ return '<div class="perbar" style="margin-bottom:8px">'+REVDIMS.map(d=>`<button onclick="setVoldim('${d[0]}')" class="${(state.voldim||'produto')===d[0]?'on':''}">${d[1]}</button>`).join('')+'</div>'; }
 function renderVolume(){
   const reg=state.regiao, cut=DB.cutoffIdx;
@@ -2430,6 +2432,27 @@ function evParts(){
   const cash=num(caixaBalancoEngine().caixa[cut]);
   return {equity, grossDebt, cash, ev:equity+grossDebt-cash, cut};
 }
+// SAÍDA POR MÚLTIPLO (exit) + IMPLIED EV/EBITDA — premissas: mês de saída (state.exitYm) e múltiplo de
+// EBITDA (state.exitMult). Reproduz a aba Dashboard do modelo 2026.09.07 (linhas 14-15):
+//   • EBITDA LTM  = Σ EBITDA dos 12 meses anteriores ao mês de saída.
+//   • Desconto    = (1+Ke)^(m/12), m = meses da data-base (último realizado) ao mês de saída.
+//   • PV do EBITDA = EBITDA LTM ÷ desconto.
+//   • EV (múltiplo) = PV do EBITDA × múltiplo de saída ; Equity = EV − dívida líquida (data-base).
+//   • Implied EV/EBITDA = Enterprise Value do DCF ÷ PV do EBITDA.
+function exitValuation(){
+  const n=DB.meses.length, cut=DB.cutoffIdx, mo=DB.monthsOrd, eb=ebitdaSerie(), ev=evParts();
+  const ke=(DB.dcfConst&&DB.dcfConst.ke)||dcfConsolidado().Ke||0.155, mult=+state.exitMult||0;
+  const exOrd=ordOf(state.exitYm); let exitK=-1;
+  if(exOrd!=null) for(let k=0;k<n;k++){ if(mo[k]===exOrd){ exitK=k; break; } }
+  const netDebt=ev.grossDebt-ev.cash;
+  if(exitK<0) return {ok:false, exitK:-1, netDebt, evDcf:ev.ev, ke, mult};
+  let ltm=0, nm=0; for(let k=Math.max(0,exitK-12); k<exitK; k++){ ltm+=(typeof eb[k]==="number"?eb[k]:0); nm++; }
+  const months=exitK-cut, disc=Math.pow(1+ke, months/12), pvEbitda=disc?ltm/disc:0;
+  const evExit=pvEbitda*mult, equityExit=evExit-netDebt;
+  const impliedEvEbitda=(pvEbitda>1)?ev.ev/pvEbitda:null;
+  return {ok:true, exitK, exitYm:state.exitYm, ltm, nMonths:nm, months, disc, pvEbitda, evExit, equityExit,
+          impliedEvEbitda, netDebt, mult, ke, evDcf:ev.ev, equityDcf:ev.equity, exitYear:exOrd!=null?Math.floor(exOrd/12):null};
+}
 /* ====== DRE / DFC POR PROJETO (DCF por Projeto) — validado 1:1 vs modelo (perproj_ref.py) ==========
    EBITDA(p)=Resultado Operacional por planta (vivo); ΔCapital de Giro(p)=ΔWC consol × (RL_p/RL_consol);
    Impostos(p)=IR/CSLL consol × (RL_p/RL_consol); Capex(p)=−(inv1_p+inv2_p) do módulo de capex;
@@ -2648,6 +2671,8 @@ function renderDCF(){
   h+=kpi("Equity Value @Ke", "R$ "+fmt(dcf.vpl/1e6,0)+" mi", "FCF ao acionista descontado @ "+fmtPct(ke,1),null,MECH.vpl);
   h+=kpi("Enterprise Value", "R$ "+fmt(ev.ev/1e6,0)+" mi", "Equity + Dívida Líquida",null,MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
+  const xv=exitValuation();
+  if(xv.ok) h+=kpi("Implied EV/EBITDA "+(xv.exitYear||''), fmt(xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída)");
   h+='</div>';
   // custo de capital
   const cc=(lbl,val)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:2px">${lbl}</label><div style="font-size:16px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums">${val}</div></div>`;
@@ -2686,6 +2711,28 @@ function renderDCF(){
   h+=br("(−) Caixa ("+fmtMesY(DB.meses[cut].ym)+")", fmt(-ev.cash/1e6,0));
   h+=br("(=) Enterprise Value", fmt(ev.ev/1e6,0), true);
   h+='</tbody></table></div>';
+  // ---- Saída por múltiplo de EBITDA (exit) ----
+  h+='<h3 class="msub">Valuation por múltiplo de EBITDA (saída)</h3>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas de saída</b><span class="badge-ok">editável · ao vivo</span></div>';
+  h+='<div class="psub">Valuation alternativo: EBITDA dos 12 meses anteriores ao <b>mês de saída</b> × <b>múltiplo de EBITDA</b>, trazido a valor presente (Ke) da data-base ao mês de saída = Enterprise Value; menos a dívida líquida da data-base = Equity Value. Também gera o <b>Implied EV/EBITDA</b> do DCF.</div>';
+  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">';
+  h+=`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">Mês de saída (Mmm/AAAA)</label><input id="exitYm" value="${fmtMesY(state.exitYm)}" placeholder="Mmm/AAAA" onchange="setExitYm(this.value)" style="max-width:140px"></div>`;
+  h+=`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">Múltiplo de EBITDA (exit)</label>${numBox("exitMult", state.exitMult, 1, 'onchange="setExitMult(this.value)"')}</div>`;
+  h+='</div></div>';
+  if(!xv.ok){ h+='<div class="note" style="border-left-color:var(--accent3)">Mês de saída fora do horizonte do modelo (jan/23–dez/38) ou anterior ao último realizado. Ajuste a premissa.</div>'; }
+  else {
+    const b2=(lbl,val,bold,cls)=>`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td><td style="text-align:right${cls?';'+cls:''}">${val}</td></tr>`;
+    h+='<div class="tblwrap" style="max-width:520px"><table class="mtbl"><thead><tr><th class="l">Passo a passo</th><th style="text-align:right">Valor</th></tr></thead><tbody>';
+    h+=b2("EBITDA (12 meses até "+fmtMes(DB.meses[Math.max(0,xv.exitK-1)].ym)+", R$ MM)", fmt(xv.ltm/1e6,1));
+    h+=b2("(÷) Fator de desconto @ Ke ("+fmtPct(xv.ke,1)+", "+xv.months+" meses)", fmt(xv.disc,2));
+    h+=b2("(=) PV do EBITDA (R$ MM)", fmt(xv.pvEbitda/1e6,1), true);
+    h+=b2("(×) Múltiplo de saída", fmt(xv.mult,1)+"x");
+    h+=b2("(=) Enterprise Value — saída (R$ MM)", fmt(xv.evExit/1e6,0), true);
+    h+=b2("(−) Dívida Líquida ("+fmtMesY(DB.meses[cut].ym)+")", fmt(-xv.netDebt/1e6,0));
+    h+=b2("(=) Equity Value — saída (R$ MM)", fmt(xv.equityExit/1e6,0), true);
+    h+='</tbody></table></div>';
+    h+='<div class="note"><b>Implied EV/EBITDA</b> (do DCF) = Enterprise Value do DCF ('+fmt(xv.evDcf/1e6,0)+' mi) ÷ PV do EBITDA na saída ('+fmt(xv.pvEbitda/1e6,1)+' mi) = <b>'+fmt(xv.impliedEvEbitda,1)+'x</b>. Reage às premissas do modelo, ao mês de saída e ao múltiplo.</div>';
+  }
   h+=perProjSummaryHTML();   // VPL/TIR por projeto
   return h;
 }
