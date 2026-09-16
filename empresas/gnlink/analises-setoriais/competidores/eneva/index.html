@@ -918,9 +918,19 @@ function renderTese(){
   const bear=card(head('cic-tese','Riscos-chave (Goldman Sachs)','Principais preocupações apontadas pelo GS.')+
     vectors(GS.bear_points.map(b=>({n:esc(b.t),v:'!',d:esc(b.d),c:C.coral}))));
   h+=`<div class="row2">${bull}${bear}</div>`;
-  // --- sub-aba 2: fatores de risco do FR (empresa) — cards com tom suave, sem barra lateral ---
-  let s2=card(head('cic-method','Fatores de risco — Formulário de Referência 2026','Riscos declarados pela própria companhia (itens 4.1–4.3 do FR 2026).')+
-    `<div class="risks soft">`+(GOV.fatores_risco||[]).map(r=>`<div class="risk"><div class="rt">${esc(r.titulo)}</div><div class="rd">${esc(r.descricao)}</div></div>`).join('')+`</div>`);
+  // --- sub-aba 2: fatores de risco do FR (empresa) — agrupados por tópico, cards suaves sem barra lateral ---
+  const RT=['Operacionais & de ativos','Regulatórios & ambientais','Financeiros & de mercado','Governança & estratégia'];
+  const riskTopic=t=>{t=t.toLowerCase();
+    if(/alavancagem|refinanciamento|juros|câmbio|commodities|preço de energia|inflação/.test(t))return RT[2];
+    if(/licença|concess|ambient|climátic|transição|descarboniz|regulação|novos projetos/.test(t))return RT[1];
+    if(/controlador|aquisiç|m&a|contingências|governança/.test(t))return RT[3];
+    return RT[0];};
+  const rg={};RT.forEach(t=>rg[t]=[]);
+  (GOV.fatores_risco||[]).forEach(r=>rg[riskTopic(r.titulo)].push(r));
+  const riskCard=r=>`<div class="risk"><div class="rt">${esc(r.titulo)}</div><div class="rd">${esc(r.descricao)}</div></div>`;
+  let s2Inner=head('cic-method','Fatores de risco — Formulário de Referência 2026','Riscos declarados pela própria companhia (itens 4.1–4.3 do FR 2026), agrupados por tópico.');
+  RT.forEach(t=>{if(rg[t].length)s2Inner+=`<h3 class="msub">${t}</h3><div class="risks soft">${rg[t].map(riskCard).join('')}</div>`;});
+  let s2=card(s2Inner);
   $('p-tese').innerHTML=subBar('tese',['Tese & drivers','Fatores de risco (FR)'])+subpane('tese',0,h)+subpane('tese',1,s2);
 }
 
