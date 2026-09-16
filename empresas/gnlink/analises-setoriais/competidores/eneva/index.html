@@ -410,15 +410,41 @@ table.heat td.l,table.heat th.l{text-align:left}
 .risks.soft .risk:nth-child(6n+4){background:#EBF3ED;border-color:#D6E7DB}
 .risks.soft .risk:nth-child(6n+5){background:#EEF4F4;border-color:#DBE8E7}
 .risks.soft .risk:nth-child(6n+6){background:#F3F3F0;border-color:#E3E7E0}
-/* grade de segmentos (Por negócio) */
-.segrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:2px}
-.segcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.segcard h4{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:5px;line-height:1.25}
-.segcard .sd{font-size:12px;color:#3E5E5C;line-height:1.5;margin-bottom:8px}
-.segcard .blist{margin-top:6px}
-.segcard .blist li{font-size:11.8px;color:#3E5E5C;margin-bottom:6px;padding-left:16px}
-.segcard .blist li::before{width:5px;height:5px;top:7px;left:3px;box-shadow:none}
-@media(max-width:860px){.segrid{grid-template-columns:1fr}}
+/* --- Por negócio: banner + cards ricos --- */
+.negbanner{display:flex;justify-content:space-between;align-items:center;gap:18px;background:linear-gradient(100deg,#fff 40%,#E7F2F1);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:16px;box-shadow:var(--shadow);flex-wrap:wrap}
+.negbanner .nbleft{display:flex;align-items:center;gap:14px;min-width:0}
+.negbanner .title-icon{width:46px;height:46px;border-radius:11px;background:#D8ECEA;color:var(--accent);display:grid;place-items:center;flex:none}
+.negbanner .title-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.negbanner h2{font-size:16px;color:var(--ink);line-height:1.15}
+.negbanner .cap{margin-top:3px}
+.negbanner .nbright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fchip{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--accent);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.fchip svg{width:14px;height:14px;fill:none;stroke:var(--green);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tagline{font-size:12px;font-weight:700;color:var(--accent);border-left:3px solid var(--accent2);padding-left:11px;line-height:1.3}
+.negrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.negcard{display:grid;grid-template-columns:170px 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow);transition:box-shadow .16s ease,transform .16s ease}
+.negcard:hover{box-shadow:0 14px 32px rgba(12,58,58,.12);transform:translateY(-2px)}
+.negviz{position:relative;min-height:100%;overflow:hidden}
+.negviz .scene{position:absolute;inset:0;width:100%;height:100%}
+.negviz .locpill{position:absolute;left:9px;bottom:9px;display:inline-flex;align-items:center;gap:5px;background:rgba(10,42,42,.60);backdrop-filter:blur(3px);color:#fff;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:999px;max-width:150px}
+.negviz .locpill svg{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;flex:none}
+.negviz .brm{position:absolute;right:7px;top:7px;width:42px;height:42px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))}
+.negbody{padding:14px 16px;min-width:0}
+.negbody .nh{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.negbody .nh h4{font-size:13.8px;font-weight:700;color:var(--ink);line-height:1.2;flex:1;min-width:0}
+.negbody .nh .chev{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.negbody .nd{font-size:12px;color:#3E5E5C;line-height:1.5;margin-bottom:6px}
+.negbody .blist{margin:4px 0 0}
+.negbody .blist li{font-size:11.6px;color:#3E5E5C;margin-bottom:5px;padding-left:16px}
+.negbody .blist li::before{width:5px;height:5px;top:7px;left:3px;box-shadow:none}
+.negmetrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}
+.negtile{display:flex;align-items:center;gap:7px;background:#F1F6F5;border:1px solid var(--line);border-radius:9px;padding:8px 9px;min-width:0}
+.negtile .ti{width:18px;height:18px;flex:none;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.negtile .tt{min-width:0}
+.negtile .tv{font-size:11.5px;font-weight:800;color:var(--ink);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.negtile .tl{font-size:9px;color:var(--muted);line-height:1.15;margin-top:2px}
+@media(max-width:1024px){.negrid{grid-template-columns:1fr}}
+@media(max-width:560px){.negcard{grid-template-columns:1fr}.negviz{min-height:130px}.negmetrics{grid-template-columns:1fr 1fr}}
 
 </style>
 </head>
@@ -951,6 +977,64 @@ function famTint(nome){const s=nome.toLowerCase();
   if(/comercializ/.test(s))return['#FBEEE9','#F0D8CE'];
   if(/renováv|solar/.test(s))return['#EBF3ED','#D6E7DB'];
   return['#EAF3F2','#D5E7E4'];}
+/* ícones dos tiles de métrica */
+const MIC={
+ bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+ cube:'<path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+ coin:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+ ship:'<path d="M3 14l2 6h14l2-6z"/><path d="M5 14V8h14v6M12 3v5"/>',
+ users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.7"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>',
+ map:'<path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2z"/><path d="M9 3v16M15 5v16"/>',
+ pct:'<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/>',
+ shield:'<path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5z"/>',
+ doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+ trophy:'<path d="M6 4h12v4a6 6 0 0 1-12 0zM6 6H3v2a3 3 0 0 0 3 3M18 6h3v2a3 3 0 0 1-3 3M9 20h6M12 15v5"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+ truck:'<path d="M2 6h11v9H2zM13 9h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'};
+/* metadados por segmento: localização, tipo de cena e 3 métricas */
+function segMeta(nome){const n=nome.toLowerCase();
+ if(n.includes('parnaíba')&&n.includes('r2w'))return{uf:'Parnaíba (MA)',ufc:'MA',scene:'gas',metrics:[['1,9 GW','capacidade','bolt'],['37,9 bcm','reservas 2P','cube'],['R$ 2,3–3,0 bi','receita fixa/ano','coin']]};
+ if(n.includes('amazonas')||n.includes('azulão'))return{uf:'Amazonas / Roraima',ufc:'AM',scene:'gas',metrics:[['950 MW','em construção','bolt'],['9,6 bcm','reservas (AM)','cube'],['24,0 bcm','recursos 2C','cube']]};
+ if(n.includes('sergipe'))return{uf:'Sergipe (SE)',ufc:'SE',scene:'lng',metrics:[['1,6 GW','Sergipe I oper.','bolt'],['R$ 90 bi','receitas (PPAs)','coin'],['21 mm m³/d','regaseificação','ship']]};
+ if(n.includes('ceará'))return{uf:'Ceará (CE)',ufc:'CE',scene:'lng',metrics:[['1,2 GW','capacidade','bolt'],['14 mm m³/d','FSRU (+5 mm)','ship'],['30%','pot. parceria','users']]};
+ if(n.includes('sudeste'))return{uf:'Sudeste (RJ/ES)',ufc:'RJ',scene:'lng',metrics:[['1,15 GW','capacidade','bolt'],['2031','entrada op.','cal'],['21 mm m³/d','FSRU (+13 mm)','ship']]};
+ if(n.includes('legada')||n.includes('carvão'))return{uf:'MA · CE · ES',ufc:'MA',scene:'coal',metrics:[['1,1 GW','capac. total','bolt'],['Receitas fixas','contratadas','coin'],['Estratégico','seg. energética','shield']]};
+ if(n.includes('upstream'))return{uf:'Parnaíba · Amazonas',ufc:'MA',scene:'upstream',metrics:[['47,5 bcm','reservas 2P','cube'],['51,8 mil km²','concessão E&P','map'],['38%','reservas onshore BR','pct']]};
+ if(n.includes('sslng')||n.includes('midstream'))return{uf:'Parnaíba (MA)',ufc:'MA',scene:'lng',metrics:[['1,3 mm m³/d','liquefação','ship'],['~R$ 400 MM','receita/ano','coin'],['4','contratos','doc']]};
+ if(n.includes('corredor verde'))return{uf:'MA · TO · BA',ufc:'MA',scene:'lng',metrics:[['2.288 km','2 fases','map'],['9,0 mm m³/d','merc. potencial','ship'],['180','caminhões GNL','truck']]};
+ if(n.includes('comercialização de energia'))return{uf:'Brasil',ufc:'BR',scene:'trading',metrics:[['42.098 GWh','comercializado','bolt'],['R$ 986 MM','saldo MtM','coin'],['Top 10','do Brasil','trophy']]};
+ if(n.includes('comercialização de gás')||n.includes('mesa de gás'))return{uf:'Brasil',ufc:'BR',scene:'trading',metrics:[['395,8 MMm³','negociado','ship'],['R$ 303 MM','EBITDA on-grid','coin'],['5,5 mm m³/d','a terceiros','doc']]};
+ if(n.includes('renováv')||n.includes('solar'))return{uf:'Bahia (BA)',ufc:'BA',scene:'solar',metrics:[['692 MWac','Futura I oper.','sun'],['~R$ 198/MWh','preço médio','coin'],['90%','contratado até 30','pct']]};
+ return{uf:'Brasil',ufc:'BR',scene:'gas',metrics:[]};}
+/* cena ilustrativa por tipo de ativo */
+function scene(type,uid){
+ const bg={gas:['#0A585C','#158A8F'],lng:['#0E6E73','#2AA4A7'],upstream:['#A9701B','#DDA23A'],coal:['#586A69','#889997'],trading:['#BC4527','#E4562E'],solar:['#2E8B57','#4FAE7A']}[type]||['#0A585C','#158A8F'];
+ const W='rgba(255,255,255,.92)',W2='rgba(255,255,255,.5)',id='sc'+uid;
+ let art='';
+ if(type==='gas')art=`<g fill="none" stroke="${W}" stroke-width="2.4"><rect x="34" y="72" width="24" height="54" rx="3"/><rect x="66" y="56" width="26" height="70" rx="3"/><path d="M112 126V84q0-13 12-13t12 13v42"/></g><path d="M124 66q-9-9-1-20 q4 7 8 3 q5 12-7 19Z" fill="#FFD27A"/><path d="M0 126h180" stroke="${W2}" stroke-width="2"/>`;
+ else if(type==='lng')art=`<path d="M0 96q22-9 45 0t45 0 45 0 45 0V150H0Z" fill="rgba(255,255,255,.16)"/><path d="M0 108q22-9 45 0t45 0 45 0 45 0V150H0Z" fill="rgba(255,255,255,.10)"/><g fill="${W}"><path d="M52 84h74l-11 17H63Z"/><rect x="60" y="66" width="58" height="12" rx="2"/></g><g fill="none" stroke="${W}" stroke-width="2.2"><circle cx="74" cy="72" r="6"/><circle cx="90" cy="72" r="6"/><circle cx="106" cy="72" r="6"/></g>`;
+ else if(type==='upstream')art=`<path d="M0 118h180" stroke="${W2}" stroke-width="2"/><g fill="none" stroke="${W}" stroke-width="2.4"><path d="M74 118 84 54 96 54 106 118M78 92h24M82 74h16"/><path d="M96 54l14-10 10 6"/></g><rect x="112" y="104" width="26" height="14" rx="2" fill="${W}"/><path d="M0 118q30-8 60 0t60 0 60 0" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="8"/>`;
+ else if(type==='coal')art=`<g fill="${W}"><rect x="40" y="80" width="70" height="46" rx="2"/><rect x="116" y="62" width="14" height="64"/><rect x="134" y="70" width="14" height="56"/></g><g fill="rgba(255,255,255,.4)"><circle cx="123" cy="52" r="9"/><circle cx="135" cy="44" r="7"/><circle cx="141" cy="58" r="6"/></g><path d="M0 126h180" stroke="${W2}" stroke-width="2"/>`;
+ else if(type==='trading')art=`<g stroke="${W2}" stroke-width="1"><path d="M20 40H160M20 70H160M20 100H160"/></g><g fill="${W}"><rect x="40" y="86" width="16" height="34"/><rect x="70" y="66" width="16" height="54"/><rect x="100" y="78" width="16" height="42"/><rect x="130" y="48" width="16" height="72"/></g><path d="M40 92 78 72 108 82 138 50" fill="none" stroke="#FFD27A" stroke-width="2.6"/>`;
+ else if(type==='solar')art=`<circle cx="132" cy="44" r="16" fill="#FFE08A"/><g stroke="#FFE08A" stroke-width="2.4"><path d="M132 20v-8M132 76v8M156 44h8M100 44h8M150 26l6-6M108 62l-6 6M150 62l6 6M108 26l-6-6"/></g><g fill="${W}" stroke="${bg[0]}" stroke-width="1.5"><path d="M26 122l8-34h40l-4 34zM82 122l4-34h40l8 34z"/></g><path d="M0 122h180" stroke="${W2}" stroke-width="2"/>`;
+ return `<svg class="scene" viewBox="0 0 180 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${bg[0]}"/><stop offset="1" stop-color="${bg[1]}"/></linearGradient></defs><rect width="180" height="150" fill="url(#${id})"/>${art}</svg>`;
+}
+/* mini-mapa do Brasil (silhueta simplificada) com o estado destacado */
+const BR_PATH="M30,7 L41,4 L52,10 L63,13 L79,19 L93,27 L88,39 L80,51 L75,63 L66,79 L59,92 L52,96 L46,88 L44,73 L36,66 L27,60 L17,53 L7,43 L5,33 L13,25 L17,17 L23,11 Z";
+const UFXY={MA:[60,27],AM:[26,30],RR:[32,13],SE:[86,43],CE:[78,25],ES:[80,60],BA:[76,47],RJ:[71,66],SP:[63,66],PR:[57,72],BR:null};
+function brMap(uf){const xy=UFXY[uf];
+ const fill=xy?'rgba(255,255,255,.26)':'rgba(255,255,255,.55)';
+ const dot=xy?`<circle cx="${xy[0]}" cy="${xy[1]}" r="7.5" fill="#fff"/><circle cx="${xy[0]}" cy="${xy[1]}" r="3.6" fill="${C.coral}"/>`:'';
+ return `<svg class="brm" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="${BR_PATH}" fill="${fill}" stroke="rgba(255,255,255,.65)" stroke-width="1.6"/>${dot}</svg>`;}
+function negTile(m){const[v,l,ic]=m;return `<div class="negtile"><svg class="ti" viewBox="0 0 24 24">${MIC[ic]||MIC.bolt}</svg><div class="tt"><div class="tv">${esc(v)}</div><div class="tl">${esc(l)}</div></div></div>`;}
+function negCard(s,i){const m=segMeta(s.nome);
+ const pin='<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+ const chev='<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+ return `<div class="negcard"><div class="negviz">${scene(m.scene,i)}<div class="locpill">${pin}${esc(m.uf)}</div>${brMap(m.ufc)}</div>`+
+   `<div class="negbody"><div class="nh"><h4>${esc(s.nome)}</h4>${chev}</div>`+
+   `<div class="nd">${esc(s.descricao)}</div>${blist((s.destaques||[]).slice(0,3).map(esc))}`+
+   (m.metrics.length?`<div class="negmetrics">${m.metrics.map(negTile).join('')}</div>`:'')+`</div></div>`;}
 function renderSeg(){
   /* --- sub-aba 1: Visão & EBITDA --- */
   const buckets=Object.keys(SEG);
@@ -970,10 +1054,14 @@ function renderSeg(){
   const rowsA=CORP.ativos.map(a=>`<tr><td class="l">${esc(a.nome)}</td><td>${esc(a.uf)}</td><td>${esc(a.combustivel)}</td><td>${a.capacidade_mw==null?'—':fMn(a.capacidade_mw)}</td><td>${esc(a.status)}</td><td class="l" style="white-space:normal;max-width:320px;font-size:11px;color:var(--muted)">${esc(a.obs||'')}</td></tr>`).join('');
   s2+=card(head('cic-dist','Portfólio completo de ativos',CORP.ativos.length+' ativos — usina, UF, combustível, capacidade, status e contratos.')+
     `<div class="twrap"><table><thead><tr><th class="l">Ativo</th><th>UF</th><th>Combustível</th><th>MW</th><th>Status</th><th class="l">Observações (COD / contrato)</th></tr></thead><tbody>${rowsA}</tbody></table></div>`);
-  /* --- sub-aba 3: Por negócio --- */
-  const segGrid=`<div class="segrid">`+CORP.segmentos.map(s=>{const[bg,bd]=famTint(s.nome);
-    return `<div class="segcard" style="background:${bg};border-color:${bd}"><h4>${esc(s.nome)}</h4><div class="sd">${esc(s.descricao)}</div>${blist((s.destaques||[]).map(esc))}</div>`;}).join('')+`</div>`;
-  let s3=card(head('cic-edge','Os negócios da Eneva','Os 12 segmentos operacionais — modelos R2W (reservatório-a-fio) e G2P (gás-para-energia).')+segGrid);
+  /* --- sub-aba 3: Por negócio (cards ricos) --- */
+  const chips=['Matriz de geração diversificada','Segurança energética e competitividade','Plataforma de crescimento de longo prazo'];
+  const check='<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
+  const banner=`<div class="negbanner"><div class="nbleft"><div class="title-icon"><svg viewBox="0 0 24 24"><use href="#cic-edge"/></svg></div>`+
+    `<div><h2>Os negócios da Eneva</h2><div class="cap">Os 12 segmentos operacionais — modelos R2W (reservatório-a-fio) e G2P (gás-para-energia).</div></div></div>`+
+    `<div class="nbright">${chips.map(c=>`<span class="fchip">${check}${esc(c)}</span>`).join('')}<div class="tagline">Disciplina hoje.<br>Energia para o amanhã.</div></div></div>`;
+  const grid=`<div class="negrid">`+CORP.segmentos.map((s,i)=>negCard(s,i)).join('')+`</div>`;
+  let s3=banner+grid;
   $('p-seg').innerHTML=subBar('seg',['Visão & EBITDA','Portfólio de ativos','Por negócio'])+subpane('seg',0,s1)+subpane('seg',1,s2)+subpane('seg',2,s3);
 }
 
