@@ -792,6 +792,20 @@ const L=Q.length-1;
 function head(icon,title,cap,tag){return `<div class="section-head"><div class="title-icon"><svg viewBox="0 0 24 24"><use href="#${icon}"/></svg></div><div class="head-copy"><h2>${esc(title)}</h2>${cap?`<div class="cap">${cap}</div>`:''}</div>${tag?`<span class="tag">${esc(tag)}</span>`:''}</div>`;}
 function blist(items){return '<ul class="blist">'+items.map(t=>`<li>${t}</li>`).join('')+'</ul>';}
 function card(inner,cls){return `<div class="card${cls?' '+cls:''}">${inner}</div>`;}
+function cap(t){return `<div class="cap">${t}</div>`;}
+function lead(t){return `<p class="lead">${t}</p>`;}
+/* sub-abas (Compass-style) */
+function subBar(pfx,labels){return '<div class="subtabs">'+labels.map((l,k)=>`<button id="${pfx}b${k}"${k===0?' class="on"':''} onclick="subTab('${pfx}',${k},${labels.length})">${esc(l)}</button>`).join('')+'</div>';}
+function subpane(pfx,k,inner){return `<div id="${pfx}p${k}" class="subpane"${k===0?'':' style="display:none"'}>${inner}</div>`;}
+window.subTab=function(pfx,i,n){for(let k=0;k<n;k++){const p=$(pfx+'p'+k),b=$(pfx+'b'+k);if(p)p.style.display=(k===i?'':'none');if(b)b.classList.toggle('on',k===i);}
+  const ab=$(pfx+'b'+i);if(ab&&ab.parentElement){const bar=ab.parentElement,br=bar.getBoundingClientRect(),tr=ab.getBoundingClientRect();bar.scrollBy({left:(tr.left+tr.width/2)-(br.left+br.width/2),behavior:'smooth'});}};
+/* padroniza os painéis: panel-skin + acento por grupo + breadcrumb + panel-card */
+function enhance(){const acc={g1:'#0A585C',g2:'#2AA4A7',g3:'#C9820F',g4:'#E4562E',g5:'#5E7B79'};
+  TABS.forEach(t=>{const panel=$(t[0]);if(!panel)return;
+    panel.classList.add('panel-skin');panel.style.setProperty('--panel-accent',acc[t[2]]||'#0A585C');
+    if(!panel.querySelector(':scope > .breadcrumb')){const bc=document.createElement('div');bc.className='breadcrumb';
+      bc.innerHTML=`<span>Empresas</span><i></i><span>ENEV3</span><i></i><b>${esc(t[1])}</b>`;panel.prepend(bc);}
+    panel.querySelectorAll('.card').forEach(c=>c.classList.add('panel-card'));});}
 
 /* ============================================================ *
  *  PAINÉIS
@@ -814,14 +828,19 @@ function renderOver(){
   ];
   const strip=`<div class="overview-strip"><div class="m"><div class="l">Último trimestre</div><div class="v">${Q[L]}</div></div>`+
     kp.map(k=>`<div class="m"><div class="l">${esc(k[0])}</div><div class="v ${k[2]}">${k[1]}</div></div>`).join('')+`</div>`;
-  // tese em 1 frase + risco-retorno (GS)
-  const teseCard=card(head('cic-tese','A tese em uma frase','Síntese da leitura de mercado (sell-side) e dos fundamentos da companhia.')+
-    `<p class="lead">A Eneva é a <b>maior geradora térmica do Brasil</b> e pioneira do modelo integrado <b>reservatório-a-fio (R2W)</b>: monetiza gás onshore próprio em usinas flexíveis, com <b>~82% do EBITDA em contratos de receita fixa</b> de longo prazo. Num sistema elétrico cada vez mais dependente de renováveis intermitentes, a <b>capacidade despachável</b> vira o gargalo — e o LRCAP 2026 destravou um ciclo de crescimento contratado (+R$ 161 bi de receita fixa).</p>`+
-    `<div class="tirbox"><div><div class="l">Visão sell-side · Goldman Sachs (${esc(GS.data)})</div><div class="v" style="color:${C.green}">${esc(GS.rating)} · alvo ${esc((GS.preco_alvo||'').split('—')[0].trim())}</div><div class="s">TIR real ~12,4% (vs. ~10% do setor) · upside ~24% · fonte única, será ampliado com consenso de mercado</div></div></div>`);
+  // tese + risco-retorno (GS) — card principal
+  const teseCard=card(head('cic-tese','Risco–retorno & tese',null,'Tese de investimento')+
+    lead('A Eneva é a <b>maior geradora térmica do Brasil</b> e pioneira do modelo integrado <b>reservatório-a-fio (R2W)</b>: monetiza gás onshore próprio em usinas flexíveis, com <b>~82% do EBITDA em contratos de receita fixa</b> de longo prazo. Num sistema elétrico cada vez mais dependente de renováveis intermitentes, a <b>capacidade despachável</b> vira o gargalo — e o LRCAP 2026 destravou um ciclo de crescimento contratado (<b>+R$ 161 bi</b> de receita fixa).')+
+    cap('Referência sell-side — Goldman Sachs, início de cobertura ('+esc(GS.data)+'):')+
+    '<div class="big">'+[['Buy','Recomendação (GS)'],['R$ 25,00','Preço-alvo 12m'],['~24%','Upside vs. ref. R$20,09'],['12,4%','TIR real (vs. ~10% setor)']].map(n=>`<div class="bigc"><div class="n">${n[0]}</div><div class="l">${n[1]}</div></div>`).join('')+'</div>'+
+    `<div class="note"><b>Cenários GS:</b> bear R$ 13,1 (sem LRCAP) · base R$ 25,0 · bull R$ 34,0 · extreme bull ~R$ 37,2. Fonte única — a ser ampliada com consenso de mercado.</div>`);
   // números-chave da companhia
-  const nums=card(head('cic-over','A companhia em números','Escala e ativos-chave (data-base Mar/26 mercado, Dez/25 operacional).')+
-    '<div class="big">'+p.numeros_chave.map(n=>`<div class="bigc"><div class="n">${esc(n[0])}</div><div class="l">${esc(n[1])}</div></div>`).join('')+'</div>','tinted');
-  $('p-over').innerHTML=hero+strip+`<div class="row31">${teseCard}${nums}</div>`;
+  const nums=card(head('cic-over','A companhia em números','Escala e ativos-chave (Mar/26 mercado · Dez/25 operacional).')+
+    '<div class="big">'+p.numeros_chave.slice(0,10).map(n=>`<div class="bigc"><div class="n">${esc(n[0])}</div><div class="l">${esc(n[1])}</div></div>`).join('')+'</div>','tinted');
+  // panorama do último trimestre
+  const dq=(NARR[Q[L]]&&NARR[Q[L]].destaques)?NARR[Q[L]].destaques.slice(0,5):[];
+  const panorama=card(head('cic-proj','Panorama do último trimestre — '+Q[L],'Principais destaques reportados no release.')+blist(dq.map(esc)));
+  $('p-over').innerHTML=hero+strip+`<div class="row31">${teseCard}${nums}</div>`+panorama;
 }
 
 /* ---------- 2. A Empresa ---------- */
@@ -1024,6 +1043,7 @@ function setTab(i){curTab=i;renderTabs();const mt=$('mobTab');if(mt)mt.textConte
 function setHH(){const hh=document.querySelector('header').offsetHeight;document.documentElement.style.setProperty('--hh',hh+'px');}
 function boot(){
   TABS.forEach(t=>{try{t[4]();}catch(e){console.error('render '+t[0],e);$(t[0]).innerHTML='<div class="card">Erro ao renderizar: '+esc(e.message)+'</div>';}});
+  enhance();
   renderTabs();setTab(0);setHH();window.addEventListener('resize',setHH);
   const nt=$('navToggle');if(nt)nt.onclick=()=>document.body.classList.toggle('snav-collapsed');
 }
