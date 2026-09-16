@@ -1002,6 +1002,15 @@ def extract_balanco(wb):
     except Exception:
         out["dcf_const"]["ke_real"] = 0.12
         out["dcf_const"]["ke_real_nominal"] = 1
+    # MECÂNICA DE CAIXA MÍNIMO + DÍVIDA ROLLING (do modelo GNLink_Model_2026.09.07, aba Consolidated):
+    #   caixa mínimo = C321 meses de custos fixos + retenção BNB; dívida rolling de 1 ano cobre o gap.
+    # Params do Dashboard do 09.07 (C321=3, J303=4,5%, J302=IPCA, J304=Quarterly, J300=0). A série de
+    # retenção BNB (aba BnbRetencao) é grafada do 09.07 pelo scratchpad/patch_mincash.py (não vem do 09.04).
+    out["dcf_const"]["mincash_months"] = 3
+    out["dcf_const"]["mincash_spread"] = 0.045
+    out["dcf_const"]["mincash_index"] = 0        # 0=IPCA, 1=DI
+    out["dcf_const"]["mincash_freq_m"] = 3       # 3=trimestral, 6=semestral, 1=mensal
+    out["dcf_const"]["mincash_flatfee"] = 0.0
     return out
 
 

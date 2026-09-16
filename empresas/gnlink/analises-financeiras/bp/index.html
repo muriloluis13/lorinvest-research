@@ -291,7 +291,7 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2031-01", exitMult:10};
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2031-01", exitMult:10, minCashDebt:false};
 // SWITCH de planta ligada/desligada (cenário): desliga TUDO daquela planta do consolidado — capacidade,
 // volume, receita, custos, SG&A planta, capex/depreciação/imobilizado, dívida da planta. A HOLDING
 // (SG&A da holding + dívidas da holding) fica fixa, independente dos switches.
@@ -561,6 +561,10 @@ function parseWorkbook(buf){
   // constantes de custo de capital do DCF (Ke, custo dívida, IR, WACC, crescimento) — premissas coladas
   const gdc=grid("DcfConst"); const dcfConst={};
   if(gdc) for(let i=0;i<gdc.length;i++){ const r=gdc[i]; if(r&&r[0]!=null&&String(r[0])!=="field") dcfConst[String(r[0])]=+r[1]||0; }
+  // BnbRetencao: série mensal (R$) do valor reservado pela retenção financeira do BNB (premissa colada, do modelo 09.07)
+  const gbnb=grid("BnbRetencao"); const bnbRetencao=new Array((grid("meses").length-1)).fill(0);
+  if(gbnb){ const mi={}; grid("meses").slice(1).forEach((r,idx)=>mi[r[1]]=idx);
+    for(let i=1;i<gbnb.length;i++){ const r=gbnb[i]; if(!r||r[0]==null) continue; const k=mi[String(r[0])]; if(k!=null) bnbRetencao[k]=+r[1]||0; } }
   // Balanco: insumos do módulo caixa/balanço/DCF (séries coladas/de outro módulo + constantes + geração anual)
   const gbl = grid("Balanco"); const balanco={const:{}};
   if(gbl){ let ckeys=[];
@@ -671,7 +675,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr, dcfConst};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr, dcfConst, bnbRetencao};
 }
 
 async function tryFetch(){
@@ -2449,6 +2453,58 @@ function dcfSwitchBase(){
   state.plantOff=saved; clearAllCaches(); _capturingBase=false;
   return (_dcfBaseCache={genDef, impDef, preTax});
 }
+// ===== MECÂNICAS DE CAIXA MÍNIMO + DÍVIDA ROLLING (do modelo 2026.09.07) ============================
+// Custos fixos = O&M (liquefação) + SG&A das plantas + SG&A da holding (consolidado, módulo). Espelha as
+// linhas 92/130/131 do Consolidated do modelo 09.07.
+function custoFixoSerie(){
+  const n=DB.meses.length, oem=liquefCompAgg(0).oem, sgaP=aggByRegiao(sgaSerie(),0), sgaH=holdingSgaSerie(),
+        ab=x=>typeof x==="number"?Math.abs(x):0, out=new Array(n);
+  for(let k=0;k<n;k++) out[k]=ab(oem[k])+ab(sgaP[k])+ab(sgaH[k]);
+  return out;
+}
+// Caixa mínimo (Consolidated!317 + 199): C321 meses de custos fixos (média móvel 3m) + retenção fin. BNB.
+function caixaMinimoSerie(){
+  const C=DB.dcfConst||{}, meses=(C.mincash_months||3), n=DB.meses.length, fc=custoFixoSerie(),
+        bnb=DB.bnbRetencao||[], out=new Array(n);
+  for(let k=0;k<n;k++){ let s=0,c=0; for(let j=Math.max(0,k-2);j<=k;j++){ s+=fc[j]||0; c++; }
+    out[k]= meses*(c?s/c:0) + (bnb[k]||0); }
+  return out;
+}
+// Dívida rolling de 1 ano p/ cobrir o gap de caixa (Consolidated!277-284): emite p/ manter o caixa ≥ mínimo;
+// amortização LINEAR em 12 meses; juros = índice mensal (IPCA a.m. ou DI) × spread; pagos por frequência.
+let _minCashCache=null;
+function minCashDebtEngine(){
+  if(_minCashCache) return _minCashCache;
+  const C=DB.dcfConst||{}, n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0;
+  const spread=(C.mincash_spread!=null?C.mincash_spread:0.045), spM=Math.pow(1+spread,1/12)-1;
+  const idxDI=(C.mincash_index===1), freq=(C.mincash_freq_m||3), fee=(C.mincash_flatfee||0);
+  const ipca=DB.idx.ipca_m||[], cdi=DB.idx.cdi||[];
+  const minCash=caixaMinimoSerie(), baseCash=caixaBalancoEngine().caixa;
+  const bop=new Array(n).fill(0), iss=new Array(n).fill(0), accr=new Array(n).fill(0),
+        paid=new Array(n).fill(0), amort=new Array(n).fill(0), eop=new Array(n).fill(0),
+        adj=new Array(n).fill(0), feeA=new Array(n).fill(0), netFlow=new Array(n).fill(0);
+  let debt=0, pool=0; const issHist=[];
+  for(let k=0;k<=cut;k++) adj[k]=num(baseCash[k]);                  // realizado: sem dívida de min-cash
+  for(let k=cut+1;k<n;k++){
+    const idxM = idxDI ? num(cdi[k]) : num(ipca[k]);
+    const rate=(1+idxM)*(1+spM)-1;                                  // taxa nominal mensal
+    bop[k]=debt; const accrued=debt*rate;
+    let am=0; for(let j=Math.max(0,issHist.length-12); j<issHist.length; j++) am+=issHist[j]; am/=12;   // 1/12 por 12m
+    pool+=accrued; const moM=+DB.meses[k].ym.slice(5);
+    let pd=0; if(freq<=1 || (moM-1)%freq===0){ pd=pool; pool=0; }   // paga juros na frequência (trim: 1/4/7/10)
+    const baseFlow=num(baseCash[k])-num(baseCash[k-1]), cashBoP=adj[k-1];
+    // emissão dimensiona p/ atingir o mínimo APÓS o próprio serviço da dívida (juros+amort são saídas):
+    // caixaBoP + fluxo base + emissão − juros − amort − taxa = mínimo  ⇒  emissão = (min − BoP − base + juros + amort)/(1−taxa)
+    const need=minCash[k]-cashBoP-baseFlow+pd+am;
+    const issue=Math.max(0,need)/(1-fee), fc2=issue*fee;
+    debt=debt+issue+accrued-pd-am; if(debt<0) debt=0;
+    adj[k]=cashBoP+baseFlow+issue-pd-am-fc2;
+    iss[k]=issue; accr[k]=accrued; paid[k]=pd; amort[k]=am; eop[k]=debt; feeA[k]=fc2;
+    netFlow[k]=issue-pd-am-fc2;                                     // fluxo líquido de financiamento (entra no FCFE)
+    issHist.push(issue);
+  }
+  return (_minCashCache={minCash, bop, iss, accr, paid, amort, eop, adj, fee:feeA, netFlow, cut});
+}
 // Geração consolidada MENSAL com o switch de plantas cascateando por TODO o consolidado (capex/IR/dívida
 // inclusive). Reconstrução: base − Σ(geração pré-imposto das plantas desligadas pelo usuário) + Δ do IR
 // consolidado VIVO (máquina de prejuízo fiscal). No cenário-base ⇒ = geração bruta (nada muda). Valida
@@ -2457,19 +2513,25 @@ function genConsMensal(){
   const base=dcfSwitchBase(), off=_modelOffSet(), n=DB.meses.length, num=x=>typeof x==="number"?x:0;
   // plantas desligadas pelo usuário (além do padrão-off do modelo)
   const extra=[]; for(const [nm,pid] of PERPROJ){ if(!plantOn(pid) && !off[pid]) extra.push(nm); }
-  if(!extra.length) return base.genDef.slice();                    // cenário-base: nada a cascatear
-  // Reconstrução: base − Σ(geração PRÉ-IMPOSTO das plantas desligadas) + reação do IR de CAIXA.
-  // O IR de caixa (dfm195, colado) não reage ao switch; a máquina de IR accrual VIVA reage (lucro). O IR de
-  // caixa ≈ accrual (defasagem 1 mês + diferido), então escalamos o IR caixa pela RAZÃO da accrual viva
-  // (agora/base) mês a mês — captura o benefício fiscal cruzado das plantas restantes. Valida vs o modelo
-  // recalculado (COM): AR+SAL off ⇒ ~−117M (alvo −116,9M).
-  const impNow=impostosSerie(), cash=caixaBalancoEngine().irccsll, g=new Array(n);
-  for(let k=0;k<n;k++){ let rem=0; for(const nm of extra) rem+=num(base.preTax[nm][k]);
-    const iD=num(base.impDef[k]), iN=num(impNow[k]);
-    const taxReact = (Math.abs(iD)>1) ? num(cash[k])*(iN/iD - 1) : 0;   // Δ do IR caixa via razão da accrual
-    g[k]=num(base.genDef[k]) - rem + taxReact; }
+  let g;
+  if(!extra.length) g=base.genDef.slice();                         // cenário-base: nada a cascatear
+  else {
+    // Reconstrução: base − Σ(geração PRÉ-IMPOSTO das plantas desligadas) + reação do IR de CAIXA.
+    // O IR de caixa (dfm195, colado) não reage ao switch; a máquina de IR accrual VIVA reage (lucro). O IR de
+    // caixa ≈ accrual (defasagem 1 mês + diferido), então escalamos o IR caixa pela RAZÃO da accrual viva
+    // (agora/base) mês a mês — captura o benefício fiscal cruzado das plantas restantes. Valida vs o modelo
+    // recalculado (COM): AR+SAL off ⇒ ~−117M (alvo −116,9M).
+    const impNow=impostosSerie(), cash=caixaBalancoEngine().irccsll; g=new Array(n);
+    for(let k=0;k<n;k++){ let rem=0; for(const nm of extra) rem+=num(base.preTax[nm][k]);
+      const iD=num(base.impDef[k]), iN=num(impNow[k]);
+      const taxReact = (Math.abs(iD)>1) ? num(cash[k])*(iN/iD - 1) : 0;   // Δ do IR caixa via razão da accrual
+      g[k]=num(base.genDef[k]) - rem + taxReact; }
+  }
+  // Dívida rolling de min-cash (toggle): soma o fluxo líquido de financiamento ao FCFE consolidado.
+  if(state.minCashDebt){ const mc=minCashDebtEngine(); for(let k=0;k<n;k++) g[k]=num(g[k])+num(mc.netFlow[k]); }
   return g;
 }
+function toggleMinCash(){ state.minCashDebt=!state.minCashDebt; clearAllCaches(); render(); }
 function dcfConsolidado(){
   const B=DB.balanco||{}, C=B.const||{}, F20=C.F20||0, F22=C.F22||0, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
   const anos=(B.dcf_anos||[]).map(x=>x==null?null:Math.round(x)), gy=dcfConsGenLive();
@@ -2807,6 +2869,33 @@ function renderDCF(){
     h+='</tbody></table></div>';
     h+='<div class="note"><b>Implied EV/EBITDA</b> (do DCF) = Enterprise Value do DCF ('+fmt(xv.evDcf/1e6,0)+' mi) ÷ PV do EBITDA na saída ('+fmt(xv.pvEbitda/1e6,1)+' mi) = <b>'+fmt(xv.impliedEvEbitda,1)+'x</b>. Reage às premissas do modelo, ao mês de saída e ao múltiplo.</div>';
   }
+  // ---- Caixa mínimo + dívida rolling (mecânica do modelo 2026.09.07) ----
+  h+='<h3 class="msub">Caixa mínimo &amp; dívida rolling (1 ano)</h3>';
+  h+='<div class="premcard"><div class="ph"><b>Financiamento do caixa mínimo</b>'
+     +'<button class="'+(state.minCashDebt?'badge-ok':'badge-wip')+'" onclick="toggleMinCash()" style="cursor:pointer;border-style:solid">'
+     +(state.minCashDebt?'LIGADA':'DESLIGADA')+' · clique p/ '+(state.minCashDebt?'desligar':'ligar')+'</button></div>';
+  h+='<div class="psub"><b>Caixa mínimo</b> = '+(C.mincash_months||3)+' meses de <b>custos fixos</b> (O&M + SG&A plantas + SG&A holding, média móvel 3m) <b>+ retenção financeira do BNB</b>. Quando ligada, emite uma <b>dívida rolling de 1 ano</b> (amortização linear em 12 meses) sempre que o caixa cairia abaixo do mínimo — juros = índice mensal ('+(C.mincash_index===1?'DI':'IPCA')+') × spread de '+fmtPct(C.mincash_spread||0.045,1)+' a.a., pagos '+((C.mincash_freq_m||3)===3?'trimestralmente':((C.mincash_freq_m||3)===6?'semestralmente':'mensalmente'))+'. O custo (juros + taxa) entra no DCF ao vivo. Desligada por padrão (como o toggle "usar dívida p/ min-cash" do modelo).</div>';
+  h+='</div>';
+  if(state.minCashDebt){
+    const mc=minCashDebtEngine();
+    const byY=(serie,how)=>{ const by={}; for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4);
+      if(how==="last") by[y]=num(serie[k]); else by[y]=(by[y]||0)+num(serie[k]); } return by; };
+    const yEmit=byY(mc.iss,"sum"), yJuros=byY(mc.paid,"sum"), ySaldo=byY(mc.eop,"last"),
+          yMin=byY(mc.minCash,"last"), yAdj=byY(mc.adj,"last"), yBase=byY(e.caixa,"last");
+    const yrs=Object.keys(ySaldo).map(Number).sort((a,b)=>a-b);
+    let t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'</tr></thead><tbody>';
+    const row=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const y of yrs) r+=`<td>${fmt((by[y]||0)/1e6,0)}</td>`; return r+'</tr>'; };
+    t+=row("Caixa mínimo exigido (EoP)",yMin);
+    t+=row("Caixa base — sem dívida (EoP)",yBase);
+    t+=row("(+) Emissão de dívida rolling (ano)",yEmit);
+    t+=row("(−) Juros pagos (ano)",yJuros);
+    t+=row("Saldo da dívida rolling (EoP)",ySaldo,true);
+    t+=row("Caixa ajustado — com dívida (EoP)",yAdj,true);
+    t+='</tbody></table></div>';
+    h+='<h3 class="msub" style="border:none;margin:12px 0 6px">Simulação da dívida rolling (R$ MM/ano)</h3>'+t;
+    const impacto=vplMensal(mc.netFlow), cashMinBase=Math.min(...e.caixa.slice(cut+1).map(x=>num(x)));
+    h+='<div class="note">Sem a dívida, o caixa base fica <b>negativo</b> (mínimo '+fmt(cashMinBase/1e6,0)+' mi); com ela, o caixa se mantém ≥ mínimo (a facility é temporária — amortiza quando o caixa volta a sobrar). Impacto no <b>Equity Value</b> = <b>'+fmt(impacto/1e6,1)+' mi</b> (PV do fluxo líquido emissão − amortização − juros − taxa), já no Equity Value acima. O sinal '+(impacto>=0?'positivo':'negativo')+' segue o tratamento de <b>FCFE</b> do modelo: a emissão entra no fluxo ao acionista e é descontada ao Ke, então antecipar o financiamento (Ke alto) supera o custo dos juros — espelha a mecânica do modelo 09.07.</div>';
+  }
   h+=perProjSummaryHTML();   // VPL/TIR por projeto
   return h;
 }
@@ -3134,6 +3223,7 @@ function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
   _dcfBaseCache=null;   // referências do cenário-base do DCF (re-capturadas por dcfSwitchBase)
+  _minCashCache=null;   // motor da dívida rolling de caixa mínimo
 }
 function premApply(i,val){ const f=_premReg[i]; if(!f) return; f(parseBR(val)); clearAllCaches(); render(); }
 // registra 1 premissa e devolve o HTML (label · slider · caixa numérica em unidade real)
