@@ -275,7 +275,8 @@ const ABAS = [
   {grp:"Outputs", items:[
     {id:"dashboard", nome:"Dashboard",       regiao:false, fase:null},
     {id:"resumo",    nome:"Resumo (EBITDA)", regiao:true,  fase:null},
-    {id:"balanco",   nome:"Balanço, DFC & DCF",   regiao:false, fase:null},
+    {id:"balanco",   nome:"Balanço & DFC",   regiao:false, fase:null},
+    {id:"dcf",       nome:"DCF (VPL)",       regiao:false, fase:null},
   ]},
   {grp:"Modelagem", items:[
     {id:"volume",   nome:"Volume",          regiao:true,  fase:null},
@@ -557,6 +558,9 @@ function parseWorkbook(buf){
   // planta de cada instrumento de dívida (1=PR,2=BA,3=RN,0=holding) — p/ o switch de planta gatear a dívida
   const ggpr=grid("DividaGpr"); let dividaGpr=[];
   if(ggpr) for(let i=0;i<ggpr.length;i++){ const r=ggpr[i]; if(r&&String(r[0])==="plant_by_instrument") dividaGpr=r.slice(1).map(x=>+x||0); }
+  // constantes de custo de capital do DCF (Ke, custo dívida, IR, WACC, crescimento) — premissas coladas
+  const gdc=grid("DcfConst"); const dcfConst={};
+  if(gdc) for(let i=0;i<gdc.length;i++){ const r=gdc[i]; if(r&&r[0]!=null&&String(r[0])!=="field") dcfConst[String(r[0])]=+r[1]||0; }
   // Balanco: insumos do módulo caixa/balanço/DCF (séries coladas/de outro módulo + constantes + geração anual)
   const gbl = grid("Balanco"); const balanco={const:{}};
   if(gbl){ let ckeys=[];
@@ -667,7 +671,7 @@ function parseWorkbook(buf){
   return {meses, regioes, macro, clientes, overrides, fatores, volHist,
           preco, idx, revHist, revExtra, molCompBase, molCompBasePreco, molAjuste, holdingSga, dreBelow, capex, divida, balanco, molPrem, molPiso, molTeto, precoBrent, gasHist, gasAdj, opexCat, custoTotalSerie, dre,
           premLiquef, seriesOpex, logCli, logPlanta, logGlob, regasCli, regasGlob, regasNecess, regasDolar, compTerm,
-          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr};
+          sgaCfg, sgaGlob, sgaOcup, sgaSeed, monthsOrd, cutoffIdx, diasMes, dcfProj, capacidade, capPrem, dividaGpr, dcfConst};
 }
 
 async function tryFetch(){
@@ -777,6 +781,7 @@ function render(){
     const r=renderResumo(); m.innerHTML=html+r.html; wireSubtabs(); if(r.draw) r.draw(); return;
   }
   if(aba.id==="balanco"){ m.innerHTML = html + renderBalanco(); return; }
+  if(aba.id==="dcf"){ m.innerHTML = html + renderDCF(); return; }
   if(aba.id==="opex"){
     const r=renderOpex(); m.innerHTML=html+r.html; wireSubtabs(); wireOcat(); if(r.draw) r.draw(); return;
   }
@@ -2396,14 +2401,24 @@ function _irr(flows){
   for(let it=0;it<200;it++){ const mid=(lo+hi)/2, fm=npv(mid); if(Math.abs(fm)<1e-3) return mid;
     if(flo*fm<0){hi=mid;fhi=fm;}else{lo=mid;flo=fm;} } return (lo+hi)/2;
 }
+// geração de caixa CONSOLIDADA por ano — AO VIVO (motor da DFC): Operacional + Investimento +
+// Financiamento. Reage às premissas (volume/preço/molécula/capacidade), ao capex/dívida e ao switch de
+// plantas. (Substitui a série anual COLADA dfa_gen_cons, que não reagia a nada.)
+function dcfConsGenLive(){
+  const cf=caixaBalancoEngine(), n=DB.meses.length, num=x=>typeof x==="number"?x:0, by={};
+  for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4); by[y]=(by[y]||0)+num(cf.fco[k])+num(cf.fci[k])+num(cf.fcf[k]); }
+  return by;
+}
 function dcfConsolidado(){
   const B=DB.balanco||{}, C=B.const||{}, F20=C.F20||0, F22=C.F22||0;
-  const anos=(B.dcf_anos||[]).map(x=>x==null?null:Math.round(x)), gen=(B.dfa_gen_cons||[]).map(x=>+x||0);
+  const anos=(B.dcf_anos||[]).map(x=>x==null?null:Math.round(x)), gy=dcfConsGenLive();
+  const gen=anos.map(y=> y==null?0:(gy[y]||0));   // geração anual VIVA alinhada ao eixo de anos do DCF
   const d=new Date(Date.UTC(1899,11,30)+Math.round(F22)*86400000), YF22=d.getUTCFullYear(), MF22=d.getUTCMonth()+1;
   const fac=y=> y==null?null : (y<YF22?1 : (y===YF22?Math.pow(1+F20,(12-MF22)/12) : Math.pow(1+F20,(12-MF22)/12+(y-YF22))));
-  let vpl=0; for(let j=4;j<20;j++){ const f=fac(anos[j]); if(f) vpl+=gen[j]/f; }
+  const fcd=anos.map((y,j)=>{ const f=fac(y); return (f&&y!=null)? gen[j]/f : 0; });
+  let vpl=0; for(let j=4;j<20;j++){ if(anos[j]!=null) vpl+=fcd[j]; }   // mesmo intervalo do modelo (a partir da projeção)
   const flows=[]; for(let j=0;j<16;j++){ if(anos[j]!=null) flows.push(gen[j]); }
-  return {vpl, tir:_irr(flows), gen, anos};
+  return {vpl, tir:_irr(flows), gen, anos, fcd, fac, Ke:F20, anchorY:YF22, anchorM:MF22, j0:4, j1:20};
 }
 // Enterprise Value = Equity Value (@Ke) + Dívida Bruta − Caixa, com dívida/caixa do ÚLTIMO mês realizado.
 // Dívida bruta = empréstimos CP (Balanço div12) + LP (div13); Caixa EoP = saldo de caixa (motor).
@@ -2537,7 +2552,7 @@ function dreYear(key){ return anoSum(DB.dre[key]||[]); }
 function renderBalanco(){
   const e=caixaBalancoEngine(), dcf=dcfConsolidado(), n=DB.meses.length;
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
-  let h=`<div class="pglead"><b>Balanço Patrimonial · Fluxo de Caixa (DFC) · DCF</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando e a <b>DFC</b> reconciliando o caixa. VPL/TIR do fluxo de caixa livre.<span class="tag">Fase F</span></div>`;
+  let h=`<div class="pglead"><b>Balanço Patrimonial · Fluxo de Caixa (DFC)</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando e a <b>DFC</b> reconciliando o caixa. O <b>VPL/DCF</b> e o Equity/Enterprise Value estão na aba <b>DCF (VPL)</b>.<span class="tag">Fase F</span></div>`;
   h+='<div class="mkpis">';
   const _ev=evParts(), _nd=_ev.grossDebt-_ev.cash, _ndM=fmtMesY(DB.meses[_ev.cut].ym);
   h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" mi", "Equity Value + Dívida Líquida", "", MECH.vpl);
@@ -2618,7 +2633,60 @@ function renderBalanco(){
   h+='<h3 class="msub">Demonstração do Fluxo de Caixa (R$ MM)</h3>';
   h+='<div class="note" style="margin:0 0 8px">Método indireto: <b>Operacional</b> (EBITDA − IR/CSLL ± capital de giro) + <b>Investimentos</b> (capex) + <b>Financiamento</b> (captações, amortização, juros, comissões/seguros e rendimento do caixa). Clique nos grupos em <b>negrito</b> para abrir o detalhamento. Fluxos somados no período; caixa início/fim são saldos. Realizado usa o caixa efetivo; a projeção é o waterfall vivo (reage às premissas). Fecha por construção: início + Operacional + Investimentos + Financiamento + Ajustes = fim.</div>';
   h+=serieTableHTML(dfcRows,"R$ MM");
-  h+=perProjSummaryHTML();   // DCF por projeto (VPL/TIR) — clique abre a DRE+DFC da planta na aba Resumo
+  return h;
+}
+/* --------------------------------------------------- aba DCF (VPL) — passo a passo até Equity/EV */
+function renderDCF(){
+  const dcf=dcfConsolidado(), ev=evParts(), C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
+  const anos=dcf.anos, gy=dcfConsGenLive(), e=caixaBalancoEngine();
+  const annBy=serie=>{ const by={}; for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4); by[y]=(by[y]||0)+num(serie[k]); } return by; };
+  const wcChange=e.dWC.map((v,k)=>num(v)+num(e.r368[k])+num(e.r374[k]));
+  const A={EBITDA:annBy(ebitdaSerie()), WC:annBy(wcChange), IMP:annBy(e.irccsll), CAPEX:annBy(e.fci), FCFin:annBy(e.fcf)};
+  const kdPos=(C.kd_pre||0)*(1-(C.ir||0)), ke=C.ke||dcf.Ke||0;
+  let h=`<div class="pglead"><b>DCF — Fluxo de Caixa Descontado</b>. A geração de caixa consolidada (viva, reage às premissas e ao switch de plantas) é descontada ao <b>custo de capital próprio (Ke)</b> → <b>Equity Value</b>; a ponte pela dívida líquida leva ao <b>Enterprise Value</b>. Espelha a aba <b>DCF</b> do modelo.<span class="tag">Fase F</span></div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("Equity Value @Ke", "R$ "+fmt(dcf.vpl/1e6,0)+" mi", "FCF ao acionista descontado @ "+fmtPct(ke,1),null,MECH.vpl);
+  h+=kpi("Enterprise Value", "R$ "+fmt(ev.ev/1e6,0)+" mi", "Equity + Dívida Líquida",null,MECH.vpl);
+  h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
+  h+='</div>';
+  // custo de capital
+  const cc=(lbl,val)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:2px">${lbl}</label><div style="font-size:16px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums">${val}</div></div>`;
+  h+='<div class="premcard"><div class="ph"><b>Custo de capital &amp; premissas do desconto</b></div><div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';
+  h+=cc("Custo de capital próprio (Ke)", fmtPct(ke,1));
+  h+=cc("Custo da dívida (pré-imposto)", fmtPct(C.kd_pre||0,1));
+  h+=cc("Custo da dívida (pós-imposto)", fmtPct(kdPos,1));
+  h+=cc("IR sobre a dívida", fmtPct(C.ir||0,0));
+  h+=cc("WACC (média)", fmtPct(C.wacc||0,1));
+  h+=cc("Crescimento na perpetuidade", fmtPct(C.growth||0,0));
+  h+=cc("Âncora (último mês realizado)", fmtMesY(DB.meses[cut].ym));
+  h+='</div><div class="psub" style="margin-top:6px">O modelo desconta a geração de caixa ao <b>Ke</b> (fluxo ao acionista, já líquido de dívida). WACC e custo da dívida pós-imposto são informativos. <b>Sem valor terminal</b> — crescimento na perpetuidade = 0 e horizonte explícito até dez/38.</div></div>';
+  // tabela anual
+  const yr=anos.filter(y=>y!=null);
+  const rowB=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`;
+    for(const y of yr) r+=`<td class="${y>=dcf.anchorY?'o':''}">${fmt((by[y]||0)/1e6,0)}</td>`; return r+'</tr>'; };
+  let t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yr.map(y=>`<th class="${y>=dcf.anchorY?'o':''}">${y}</th>`).join('')+'</tr></thead><tbody>';
+  t+=rowB("EBITDA",A.EBITDA,true);
+  t+=rowB("(+/−) Δ Capital de Giro",A.WC);
+  t+=rowB("(−) Impostos (IR/CSLL)",A.IMP);
+  t+=rowB("(−) CAPEX",A.CAPEX);
+  t+=rowB("(−) Fluxo de Caixa Financeiro",A.FCFin);
+  t+=rowB("Geração de Caixa",gy,true);
+  { let r='<tr><td class="l">Fator de desconto</td>'; for(const y of yr){ const f=dcf.fac(y); r+=`<td class="${y>=dcf.anchorY?'o':''}">${f!=null?fmt(f,2):'—'}</td>`; } t+=r+'</tr>'; }
+  { let r='<tr class="tot"><td class="l">FC Descontado @Ke</td>'; anos.forEach((y,j)=>{ if(y==null) return; const inSum=j>=dcf.j0&&j<dcf.j1;
+      r+=`<td class="${y>=dcf.anchorY?'o':''}" title="${inSum?'entra no VPL':'fora do VPL (pré-projeção)'}" style="${inSum?'':'color:var(--muted)'}">${fmt((dcf.fcd[j]||0)/1e6,0)}</td>`; }); t+=r+'</tr>'; }
+  t+='</tbody></table></div>';
+  h+='<h3 class="msub">Fluxo de caixa consolidado &amp; desconto (R$ MM/ano)</h3>'+t;
+  h+='<div class="note">Geração = EBITDA ± capital de giro − impostos − capex − fluxo financeiro (reage às premissas e ao switch de plantas). FC Descontado = geração ÷ (1+Ke)^t, t ancorado no último mês realizado. Cinza claro = anos anteriores à projeção (não somam no VPL). <b>Σ FC Descontado (projeção) = Equity Value</b>.</div>';
+  // ponte
+  h+='<h3 class="msub">Ponte Equity Value → Enterprise Value</h3>';
+  const br=(lbl,val,bold)=>`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td><td style="text-align:right">${val}</td></tr>`;
+  h+='<div class="tblwrap" style="max-width:480px"><table class="mtbl"><thead><tr><th class="l">R$ MM</th><th style="text-align:right">Valor</th></tr></thead><tbody>';
+  h+=br("Equity Value @Ke", fmt(dcf.vpl/1e6,0), true);
+  h+=br("(+) Dívida Bruta ("+fmtMesY(DB.meses[cut].ym)+")", fmt(ev.grossDebt/1e6,0));
+  h+=br("(−) Caixa ("+fmtMesY(DB.meses[cut].ym)+")", fmt(-ev.cash/1e6,0));
+  h+=br("(=) Enterprise Value", fmt(ev.ev/1e6,0), true);
+  h+='</tbody></table></div>';
+  h+=perProjSummaryHTML();   // VPL/TIR por projeto
   return h;
 }
 function renderResumo(){

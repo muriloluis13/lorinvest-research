@@ -946,7 +946,7 @@ def extract_balanco(wb):
     # p/ isolar o "outros" (comissão+taxa, colado) = Div26 − seguros_modelo − IOF_modelo.
     dvk = read(dv, {12, 13, 26, 64, 67, 73, 76, 82, 85, 91, 94, 100, 103, 109, 112, 118}, 120)
     impk = read(imp, {37}, 82)
-    dcfk = read(dcf, {5, 20, 22}, 25)
+    dcfk = read(dcf, {5, 15, 19, 20, 21, 22}, 25)
     dfak = read(dfa, {227}, 230)
 
     def ser(keep, r):
@@ -986,6 +986,11 @@ def extract_balanco(wb):
     }
     out["dcf_anos"] = [kc(dcfk, 5, COL_FIRST + j) for j in range(20)]
     out["dfa_gen_cons"] = [kc(dfak, 227, COL_FIRST + j) for j in range(20)]
+    # constantes de custo de capital do DCF (col F=6, G=7) — premissas p/ a aba DCF do HTML
+    out["dcf_const"] = {
+        "growth": kc(dcfk, 15, 6), "kd_pre": kc(dcfk, 19, 6), "ir": kc(dcfk, 19, 7),
+        "ke": kc(dcfk, 20, 6), "wacc": kc(dcfk, 21, 6),
+    }
     return out
 
 
@@ -1535,6 +1540,11 @@ def main():
     ws_bl.append(["const_vals"] + list(c.values()))
     ws_bl.append(["dcf_anos"] + balanco["dcf_anos"])
     ws_bl.append(["dfa_gen_cons"] + balanco["dfa_gen_cons"])
+
+    # aba DcfConst: custo de capital do DCF (Ke, custo da dívida, IR, WACC, crescimento) p/ a aba DCF
+    ws_dc = out.create_sheet("DcfConst")
+    for k, v in balanco["dcf_const"].items():
+        ws_dc.append([k, v])
 
     # aba DcfProj: DRE/DFC por projeto. Flags de planta (Painel B53..B58) + FC financeiro por planta
     # (bloco de dívida = plano de financiamento colado). EBITDA/ΔWC/Impostos/Capex são fórmula viva no HTML.
