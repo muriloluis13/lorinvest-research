@@ -1305,9 +1305,20 @@ function enePlanta(btn,m){
 
 /* ---------- 6. Mercado ---------- */
 function renderMarket(){
-  const m=CORP.mercado;
-  let h=card(head('cic-market','O gás natural no Brasil','Um mercado partido entre a malha (on-grid) e o fora-da-malha (off-grid).')+blist(m.gas_brasil.map(esc)));
-  h+=card(head('cic-over','O sistema elétrico e o papel da térmica','Por que a capacidade despachável e flexível é o gargalo.')+blist(m.energia.map(esc)));
+  const m=CORP.mercado, gb=m.gas_brasil, en=m.energia;
+  // gás no Brasil: off-grid × on-grid
+  let h=card(head('cic-market','O gás natural no Brasil','Um mercado partido entre a malha (on-grid) e o fora-da-malha (off-grid).')+
+    lead(esc(gb[0]))+
+    `<div class="steps s3">`+[
+      {n:'Off-grid',t:'Fora da malha',p:esc(gb[1]),c:C.amber},
+      {n:'On-grid',t:'Na malha',p:esc(gb[2]),c:C.teal},
+      {n:'Eneva',t:'Maiores reservas onshore',p:esc(gb[4]||''),c:C.petrol}
+    ].map(s=>`<div class="step" style="--pc:${s.c}"><div class="n">${esc(s.n)}</div><b>${esc(s.t)}</b><p>${s.p}</p></div>`).join('')+`</div>`+
+    `<div class="note">${esc(gb[3]||'')}</div>`);
+  // sistema elétrico e papel da térmica
+  h+=card(head('cic-over','O sistema elétrico e o papel da térmica','Por que a capacidade despachável e flexível virou o gargalo do sistema.')+
+    lead(esc(en[0]))+blist(en.slice(1).map(esc)));
+  // vetores de demanda
   h+=card(head('cic-growth','Vetores de demanda','O que sustenta a demanda por capacidade térmica e por gás.')+
     vectors(m.vetores_demanda.map(v=>({n:v.n,v:'',d:esc(v.d),c:C.teal}))));
   $('p-market').innerHTML=h;
