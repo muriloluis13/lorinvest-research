@@ -1017,6 +1017,8 @@ def extract_balanco(wb):
     out["dcf_const"]["mincash_freq_m"] = 3       # 3=trimestral, 6=semestral, 1=mensal
     out["dcf_const"]["mincash_flatfee"] = 0.0
     out["dcf_const"]["mincash_tenor_m"] = 12     # prazo da dívida rolling (12m = 1 ano)
+    out["dcf_const"]["mincash_bnb_mult"] = 1     # multiplicador da retenção BNB no caixa mínimo (default 1)
+    out["dcf_const"]["mincash_folga"] = 0.0      # folga-alvo do aporte sobre o mínimo (modo equity; default 0)
     return out
 
 

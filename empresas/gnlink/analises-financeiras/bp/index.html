@@ -2560,9 +2560,9 @@ function custoFixoSerie(){
 // Caixa mínimo (Consolidated!317 + 199): C321 meses de custos fixos (média móvel 3m) + retenção fin. BNB.
 function caixaMinimoSerie(){
   const C=DB.dcfConst||{}, meses=(C.mincash_months||3), n=DB.meses.length, fc=custoFixoSerie(),
-        bnb=DB.bnbRetencao||[], out=new Array(n);
+        bnb=DB.bnbRetencao||[], bnbMult=(C.mincash_bnb_mult!=null?C.mincash_bnb_mult:1), out=new Array(n);
   for(let k=0;k<n;k++){ let s=0,c=0; for(let j=Math.max(0,k-2);j<=k;j++){ s+=fc[j]||0; c++; }
-    out[k]= meses*(c?s/c:0) + (bnb[k]||0); }
+    out[k]= meses*(c?s/c:0) + bnbMult*(bnb[k]||0); }
   return out;
 }
 // Dívida rolling de 1 ano p/ cobrir o gap de caixa (Consolidated!277-284): emite p/ manter o caixa ≥ mínimo;
@@ -2607,17 +2607,19 @@ function minCashDebtEngine(){
 let _aporteCache=null;
 function aporteMinimoEngine(){
   if(_aporteCache) return _aporteCache;
-  const n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0;
+  const C=DB.dcfConst||{}, n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0;
+  const folga=(C.mincash_folga!=null?C.mincash_folga:0);          // folga-alvo: aporta p/ mínimo × (1+folga)
   const minCash=caixaMinimoSerie(), baseCash=caixaBalancoEngine().caixa;
-  const aporte=new Array(n).fill(0), adj=new Array(n).fill(0), cum=new Array(n).fill(0);
+  const aporte=new Array(n).fill(0), adj=new Array(n).fill(0), cum=new Array(n).fill(0), target=new Array(n).fill(0);
   let acc=0;
   for(let k=0;k<=cut;k++) adj[k]=num(baseCash[k]);
   for(let k=cut+1;k<n;k++){
     const cashBoP=adj[k-1], baseFlow=num(baseCash[k])-num(baseCash[k-1]), proj=cashBoP+baseFlow;
-    const ap=Math.max(0, num(minCash[k])-proj);
+    target[k]=num(minCash[k])*(1+folga);
+    const ap=Math.max(0, target[k]-proj);
     aporte[k]=ap; acc+=ap; cum[k]=acc; adj[k]=proj+ap;              // adj[k] = baseCash[k] + cum[k]
   }
-  return (_aporteCache={minCash, aporte, adj, cum, cut});
+  return (_aporteCache={minCash, target, aporte, adj, cum, cut});
 }
 // Geração consolidada MENSAL com o switch de plantas cascateando por TODO o consolidado (capex/IR/dívida
 // inclusive). Reconstrução: base − Σ(geração pré-imposto das plantas desligadas pelo usuário) + Δ do IR
@@ -2710,6 +2712,10 @@ function minCashDebtPanelHTML(){
   const row=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(185px,1fr))">';
   h+=row("Meses de custos fixos", numBox("mc_months", C.mincash_months||3, 0, 'onchange="setMinCash(\'mincash_months\',this.value)"'));
+  h+=row("Retenção BNB (multiplicador)", numBox("mc_bnb", (C.mincash_bnb_mult!=null?C.mincash_bnb_mult:1), 2, 'onchange="setMinCash(\'mincash_bnb_mult\',this.value)"'));
+  if(mode==='aporte'){
+    h+=row("Folga-alvo s/ o mínimo (%)", numBox("mc_folga", (C.mincash_folga||0)*100, 0, 'onchange="setMinCash(\'mincash_folga\',this.value,true)"'));
+  }
   if(mode==='debt'){
     h+=row("Prazo da dívida (meses)", numBox("mc_tenor", C.mincash_tenor_m||12, 0, 'onchange="setMinCash(\'mincash_tenor_m\',this.value)"'));
     h+=row("Spread (% a.a.)", numBox("mc_spread", (C.mincash_spread||0.045)*100, 2, 'onchange="setMinCash(\'mincash_spread\',this.value,true)"'));
@@ -2723,11 +2729,13 @@ function minCashDebtPanelHTML(){
   let t,yrs,rw,tt;
   if(mode==='aporte'){
     const ap=aporteMinimoEngine();
-    const yMin=byY(ap.minCash,"last"), yBase=byY(e.caixa,"last"), yApt=byY(ap.aporte,"sum"), yCum=byY(ap.cum,"last"), yAdj=byY(ap.adj,"last");
+    const folga=(C.mincash_folga||0);
+    const yMin=byY(ap.minCash,"last"), yTgt=byY(ap.target,"last"), yBase=byY(e.caixa,"last"), yApt=byY(ap.aporte,"sum"), yCum=byY(ap.cum,"last"), yAdj=byY(ap.adj,"last");
     yrs=Object.keys(yMin).map(Number).sort((a,b)=>a-b);
     rw=(lbl,by,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const y of yrs) r+=`<td>${fmt((by[y]||0)/1e6,0)}</td>`; return r+'</tr>'; };
     t='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'</tr></thead><tbody>';
     t+=rw("Caixa mínimo exigido (EoP)",yMin);
+    if(folga>0) t+=rw("Caixa-alvo — mín × (1+folga) (EoP)",yTgt);
     t+=rw("Caixa base — sem cobertura (EoP)",yBase);
     t+=rw("(+) Aporte de capital no ano",yApt);
     t+=rw("Aporte de capital acumulado (EoP)",yCum,true);
@@ -2735,7 +2743,7 @@ function minCashDebtPanelHTML(){
     t+='</tbody></table></div>';
     h+='<h3 class="msub" style="border:none;margin:12px 0 6px">Simulação do aporte de capital (R$ MM/ano)</h3>'+t;
     const totApt=ap.cum[n-1];
-    h+='<div class="note">Sem cobertura o caixa base atinge <b>'+fmt(cashMinBase/1e6,0)+' mi</b>. O aporte injeta equity só o necessário p/ manter o caixa ≥ mínimo — <b>total aportado até dez/38 = '+fmt(totApt/1e6,0)+' mi</b>, que entra no <b>Capital Social</b> (PL) e não é remunerado nem devolvido no horizonte. Por ficar <b>fora do FCFE descontado</b> (r203 do modelo não inclui a injeção r191), o <b>Equity Value permanece ~184,8 mi</b> — o aporte é financiamento de solvência, não distribuição.</div>';
+    h+='<div class="note">Sem cobertura o caixa base atinge <b>'+fmt(cashMinBase/1e6,0)+' mi</b>. O aporte injeta equity só o necessário p/ manter o caixa ≥ '+(folga>0?'<b>alvo</b> (mínimo × '+fmt((1+folga)*100,0)+'%)':'<b>mínimo</b>')+' — <b>total aportado até dez/38 = '+fmt(totApt/1e6,0)+' mi</b>, que entra no <b>Capital Social</b> (PL) e não é remunerado nem devolvido no horizonte. Premissas editáveis acima: <b>meses de custos fixos</b> e <b>retenção BNB</b> (definem o mínimo), e a <b>folga-alvo</b> (colchão sobre o mínimo). Por ficar <b>fora do FCFE descontado</b> (r203 do modelo não inclui a injeção r191), o <b>Equity Value permanece ~184,8 mi</b> — o aporte é financiamento de solvência, não distribuição.</div>';
     return h;
   }
   // mode === 'debt'
