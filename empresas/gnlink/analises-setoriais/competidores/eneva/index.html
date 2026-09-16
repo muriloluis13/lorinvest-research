@@ -395,6 +395,18 @@ main{padding:17px 24px 54px;max-width:1440px;margin:0 auto}
 
 
 /* --- extras Eneva --- */
+.srclist{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.srcitem{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.srcitem .si{width:20px;height:20px;flex:none;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.srcitem .sb{flex:1;min-width:0}
+.srcitem .st{font-size:12.8px;font-weight:700;color:var(--ink)}
+.sbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px}
+.sbadge.e{background:#E7F2F1;color:var(--accent)}
+.sbadge.s{background:#FBEEE9;color:var(--accent3)}
+.srcitem .sd{font-size:11px;color:var(--muted);margin-top:2px}
+.srcitem .sx{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line);color:var(--muted)}
+.srcitem .sx:hover{background:#EAF3F2;color:var(--accent);border-color:var(--accent2)}
+.srcitem .sx svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
 .chiprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
 .ichip{font-size:11.5px;font-weight:700;color:var(--accent);background:#E7F2F1;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 .hbtns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
@@ -1356,16 +1368,19 @@ function renderVal(){
 
 /* ---------- 9. Metodologia & Fontes ---------- */
 function renderMethod(){
+  const B='https://api.mziq.com/mzfilemanager/v2/d/6c663f3b-ae5a-4692-81d3-ab23ee84c1de/';
   const fontes=[
-    ['Releases de Resultados trimestrais (1T23–2T26)','Eneva S.A. · Central de Resultados (ri.eneva.com.br) — base da série financeira, operacional e por usina.'],
-    ['Apresentação Corporativa','Eneva S.A. · Abril/2026 — perfil, segmentos, ativos, mercado, pipeline e estratégia.'],
-    ['Apresentação Resultados LRCAP 2026','Eneva S.A. · 19/03/2026 — capacidade contratada, receita fixa e novos hubs.'],
-    ['Apresentação de Resultados 2T26','Eneva S.A. · 13/08/2026 — destaques do trimestre.'],
-    ['Formulário de Referência 2026 (v4)','Eneva S.A. — estrutura acionária, governança, capital e fatores de risco.'],
-    ['Início de cobertura','Goldman Sachs · "Flexibility is key" ('+esc(GS.data)+') — tese, riscos, drivers e referências de valuation.']
+    {t:'Releases de Resultados trimestrais (1T23–2T26)',d:'Base da série financeira, operacional e por usina.',u:'https://ri.eneva.com.br/informacoes-financeiras/central-de-resultados/',b:'Eneva'},
+    {t:'Apresentação Corporativa — Abr/2026',d:'Perfil, segmentos, ativos, mercado, pipeline e estratégia.',u:B+'f103d56b-e396-95e3-602b-94c6c9ddc8be?origin=2',b:'Eneva'},
+    {t:'Apresentação Resultados LRCAP 2026 — 19/03/2026',d:'Capacidade contratada, receita fixa e novos hubs.',u:B+'49fa09e7-73df-1504-7811-7f7b6eecbfa1?origin=2',b:'Eneva'},
+    {t:'Apresentação de Resultados 2T26 — 13/08/2026',d:'Destaques do trimestre.',u:B+'630f0517-4c7d-d607-8e75-57d57d85f7d8?origin=2',b:'Eneva'},
+    {t:'Formulário de Referência 2026 (v4)',d:'Estrutura acionária, governança, capital e fatores de risco.',u:B+'58163afe-af11-ce68-3dd3-a885e66417b3?origin=2',b:'Eneva'},
+    {t:'Início de cobertura — Goldman Sachs ("Flexibility is key")',d:'Tese, riscos, drivers e referências de valuation ('+esc(GS.data)+').',u:null,b:'Sell-side'}
   ];
-  let h=card(head('cic-method','Fontes','Documentos utilizados na construção deste guia.')+kv(fontes));
-  h+=card(head('cic-tese','Notas metodológicas','')+blist([
+  const src=`<div class="srclist">`+fontes.map(f=>`<div class="srcitem"><svg class="si" viewBox="0 0 24 24">${MIC.file}</svg><div class="sb"><div class="st">${esc(f.t)} <span class="sbadge ${f.b==='Eneva'?'e':'s'}">${esc(f.b)}</span></div><div class="sd">${esc(f.d)}</div></div>${f.u?`<a class="sx" href="${f.u}" target="_blank" rel="noopener" title="Abrir"><svg viewBox="0 0 24 24">${MIC.ext}</svg></a>`:''}</div>`).join('')+`</div>`;
+  let h=card(head('cic-method','Fontes','Documentos públicos da Eneva e relatório de início de cobertura de terceiros.')+
+    lead('Todo o conteúdo operacional e financeiro vem de <b>documentos públicos da Eneva</b>; a leitura de valuation vem de um <b>relatório de início de cobertura</b> de terceiros (Goldman Sachs).')+src);
+  h+=card(head('cic-tese','Notas metodológicas','Como ler os números deste guia.')+blist([
     'Série financeira "como reportada": usa a coluna do trimestre corrente de cada release; reapresentações posteriores não são retroaplicadas.',
     'EBITDA por segmento operacional exclui Holding/corporativo, equivalência patrimonial e eliminações intercompany — por isso a soma difere do EBITDA consolidado. Carvão no 4T24 usa o valor ex-impairment.',
     'A taxonomia de segmentos da Eneva mudou ao longo do período; buckets foram harmonizados para comparabilidade.',
