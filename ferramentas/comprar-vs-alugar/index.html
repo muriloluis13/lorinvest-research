@@ -212,6 +212,19 @@ function netFromGross(bruto){ // salário líquido mensal (sem dependentes), esc
   var irrf=Math.min(irrfTabela(baseCompleto), irrfTabela(baseSimpl));
   return bruto-inss-irrf;
 }
+function irrfPLR(plrAnual){ // IRRF do bônus/PLR — tabela EXCLUSIVA anual (isenta de INSS)
+  var tb=[[8214.40,0,0],[9922.28,0.075,616.08],[13167.00,0.15,1360.25],[16380.38,0.225,2348.00],[1e12,0.275,3167.00]];
+  for(var i=0;i<tb.length;i++){ if(plrAnual<=tb[i][0]) return Math.max(0, plrAnual*tb[i][1]-tb[i][2]); }
+  return 0;
+}
+function compNet(G, clt, bonus){ // decomposição anual da remuneração líquida
+  var liqMes=netFromGross(G);                 // salário mensal líquido (INSS+IRRF mensal)
+  var salParts=(12+(clt?2:0))*liqMes;         // 12 meses + 13º + férias (CLT)
+  var bonusBruto=(bonus||0)*G;                // bônus/PLR bruto no ano (nº de salários)
+  var bonusLiq=bonusBruto-irrfPLR(bonusBruto);// tabela exclusiva de PLR
+  var anual=salParts+bonusLiq;
+  return {liqMes:liqMes, salParts:salParts, bonusBruto:bonusBruto, bonusLiq:bonusLiq, anual:anual, media:anual/12};
+}
 
 /* ============================================================
    MOTOR DE CÁLCULO (puro — sem DOM)
@@ -259,13 +272,10 @@ function brutoMensal(s,m){ // salário BRUTO mensal no mês m (com crescimento a
   var age=s.idade+m/12, r=stageAt(s,age), y=Math.floor(age-r.start);
   return r.st.comp*Math.pow(1+r.st.cresc, y<0?0:y);
 }
-function rendaMensal(s,m){ // renda LÍQUIDA média mensal (INSS+IRRF, 13º, férias, bônus)
+function rendaMensal(s,m){ // renda LÍQUIDA média mensal (salário via tabela mensal; bônus via tabela PLR)
   var age=s.idade+m/12, r=stageAt(s,age);
   var G=brutoMensal(s,m);
-  var liq=netFromGross(G);
-  // parcelas/ano tributadas pela tabela mensal: 12 salários + (CLT? 13º + férias) + bônus
-  var unidades=12 + (r.st.clt?2:0) + (r.st.bonus||0);
-  return liq*unidades/12;
+  return compNet(G, r.st.clt, r.st.bonus).media;
 }
 function compute(s){
   var elig=elegiveis(s);
@@ -556,12 +566,12 @@ function renderCarreira(R){
       '<td><input value="'+num(st.bonus||0,1)+'" onchange="setStage('+i+',\'bonus\',this.value)"></td>'+
       '</tr>';
   }
-  h+='</tbody></table><p class="note">Renda líquida = salário bruto − INSS − IRRF (tabelas 2025, sem dependentes, escolhendo automaticamente o desconto simplificado ou completo). Cada parcela (mensal, 13º, férias, bônus) é tributada pela tabela mensal. Gastos pessoais entram em “Despesas mensais”.</p></div>';
+  h+='</tbody></table><p class="note">Salário: bruto − INSS − IRRF (tabelas mensais 2025, sem dependentes, escolhendo automaticamente o desconto simplificado ou completo); 13º e férias tributados pela tabela mensal. <b>Bônus/PLR</b>: isento de INSS e tributado pela <b>tabela exclusiva anual da PLR</b> (0% até R$8.214,40 … 27,5% acima de R$16.380,38). Gastos pessoais entram em “Despesas mensais”.</p></div>';
   // net salary breakdown for the entry salary of each level (today)
-  h+='<div class="card"><h2>Salário líquido por nível (hoje)</h2><div class="mtwrap"><table class="mtbl"><thead><tr><th>Nível</th><th>Bruto/mês</th><th>INSS</th><th>IRRF</th><th>Líquido/mês</th><th>% líquido</th><th>Renda líq. média/mês</th></tr></thead><tbody>';
-  for(var i=0;i<S.stages.length;i++){ var st=S.stages[i]; var G=st.comp; var inss=inssCalc(G); var baseC=G-inss,baseS=G-564.80; var irrf=Math.min(irrfTabela(baseC),irrfTabela(baseS)); var liq=G-inss-irrf; var un=12+(st.clt?2:0)+(st.bonus||0); var media=liq*un/12;
-    h+='<tr><td>'+st.nome+'</td><td>'+brl(G)+'</td><td class="neg">'+brl(inss)+'</td><td class="neg">'+brl(irrf)+'</td><td>'+brl(liq)+'</td><td>'+pct(liq/G,0)+'</td><td><b>'+brl(media)+'</b></td></tr>'; }
-  h+='</tbody></table></div><p class="note">Renda líq. média/mês = líquido × (12 + 13º/férias se CLT + bônus) ÷ 12 — é o valor usado no fluxo de caixa. Não inclui o crescimento anual dentro do nível.</p></div>';
+  h+='<div class="card"><h2>Remuneração líquida por nível (hoje)</h2><div class="mtwrap"><table class="mtbl"><thead><tr><th>Nível</th><th>Bruto/mês</th><th>INSS</th><th>IRRF mês</th><th>Líquido/mês</th><th>Bônus bruto/ano</th><th>Bônus líq./ano (PLR)</th><th>Renda líq. média/mês</th></tr></thead><tbody>';
+  for(var i=0;i<S.stages.length;i++){ var st=S.stages[i]; var G=st.comp; var inss=inssCalc(G); var baseC=G-inss,baseS=G-564.80; var irrf=Math.min(irrfTabela(baseC),irrfTabela(baseS)); var c=compNet(G,st.clt,st.bonus);
+    h+='<tr><td>'+st.nome+'</td><td>'+brl(G)+'</td><td class="neg">'+brl(inss)+'</td><td class="neg">'+brl(irrf)+'</td><td>'+brl(c.liqMes)+'</td><td>'+brl(c.bonusBruto)+'</td><td>'+brl(c.bonusLiq)+'</td><td><b>'+brl(c.media)+'</b></td></tr>'; }
+  h+='</tbody></table></div><p class="note">Renda líq. média/mês = [ líquido mensal × (12 + 13º/férias se CLT) + bônus líquido anual (PLR) ] ÷ 12 — é o valor usado no fluxo de caixa. Não inclui o crescimento anual dentro do nível.</p></div>';
   // renda vs moradia chart
   h+='<div class="card"><h2>Renda líquida vs. custo da moradia (compra)</h2><p class="cap">Média anual. Mostra o esforço da parcela ao longo da carreira.</p>';
   h+='<div class="legend"><span><i style="background:#2C6E9B"></i>Renda líq. mensal</span><span><i style="background:#3D4A5C"></i>Custo moradia (compra)</span></div>';
