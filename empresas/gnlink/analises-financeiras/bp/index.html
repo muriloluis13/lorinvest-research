@@ -313,6 +313,7 @@ const ABAS = [
     {id:"resumo",    nome:"Resumo (EBITDA)", regiao:true,  fase:null},
     {id:"balanco",   nome:"Balanço & DFC",   regiao:false, fase:null},
     {id:"dcf",       nome:"DCF (VPL)",       regiao:false, fase:null},
+    {id:"acionistas",nome:"Acionistas",     regiao:false, fase:null},
   ]},
   {grp:"Modelagem", items:[
     {id:"volume",   nome:"Volume",          regiao:true,  fase:null},
@@ -857,6 +858,7 @@ function render(opts){
   }
   if(aba.id==="balanco"){ _setMain(html + renderBalanco()); return; }
   if(aba.id==="dcf"){ _setMain(html + renderDCF()); return; }
+  if(aba.id==="acionistas"){ const r=renderAcionistas(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
   if(aba.id==="capex"){ const r=renderCapex(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
   if(aba.id==="divida"){ const r=renderDivida(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
   if(aba.id==="opex"){
@@ -3926,6 +3928,75 @@ function useOfProceedsHTML(){
   return `<div class="premcard" style="max-width:560px"><div class="ph"><b>Fontes &amp; Usos — Use of Proceeds</b><span class="uop-base">base ${fmtMesY(u.baseYm)}</span></div>`
     +`<div class="psub">Origem e aplicação do capital acumulado até a data-base (realizado). <b>Fontes</b> = capital próprio + dívida líquida = Capital Investido. <b>Usos</b> = CapEx planta (liquefação/compressão) + CapEx cliente (regás) + juros + SG&amp;A da holding + OpEx e outros (resultado operacional pré-SG&amp;A holding, capital de giro e impostos).</div>`
     +`<div class="uop"><div class="uop-col">${fontes}</div><div class="uop-col">${usos}</div></div></div>`;
+}
+// ===== ACIONISTAS: participação, fluxo de aportes por acionista, TIR/MOIC (via DCF e via saída de EBITDA) =====
+function resetAcio(){ if(DB.dcfConst){ DB.dcfConst.acio_hankoe=0.64; DB.dcfConst.acio_copa=0.36; } clearAllCaches(); render(); }
+function acionistasEngine(){
+  const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx, n=DB.meses.length, C=DB.dcfConst||{};
+  const hk=(C.acio_hankoe!=null?C.acio_hankoe:0.64), cp=(C.acio_copa!=null?C.acio_copa:0.36);
+  const ap=aporteMinimoEngine(), cb=caixaBalancoEngine(), dcf=dcfConsolidado();
+  let xv=null; try{ xv=exitValuation(); }catch(e){}
+  const capProprio=num(cb.capital[cut]);           // capital próprio já aportado (histórico, no corte)
+  const aporteFut=num(ap.cum[n-1]);                // aporte futuro (= Equity Needs)
+  const eqDCF=num(dcf.vpl), eqExit=(xv&&xv.ok)?num(xv.equityExit):null;
+  const exitK=(xv&&xv.ok)?xv.exitK:-1, exitYm=(xv&&xv.ok)?xv.exitYm:null;
+  // IRR mensal robusto (bisseção com escala)
+  function irrM(flows){ const sc=Math.max.apply(null,flows.map(f=>Math.abs(f)))||1, g=flows.map(f=>f/sc),
+    f=r=>{let s=0;for(let i=0;i<g.length;i++)s+=g[i]/Math.pow(1+r,i);return s;}; let lo=-0.99,hi=3,flo=f(lo);
+    if(flo*f(hi)>0)return null; for(let it=0;it<200;it++){const m=(lo+hi)/2,fm=f(m); if(Math.abs(fm)<1e-7)return m; if(flo*fm<0)hi=m;else{lo=m;flo=fm;}} return (lo+hi)/2; }
+  const ann=r=>r!=null?Math.pow(1+r,12)-1:null;
+  // TIR/MOIC forward: investe os aportes futuros e recebe o Equity Value (pró-rata → igual p/ os 2 acionistas)
+  let tirExit=null, sumApExit=0;
+  if(exitK>0&&eqExit!=null){ const fe=[]; for(let k=cut+1;k<=exitK;k++){ let v=-num(ap.aporte[k]); sumApExit+=num(ap.aporte[k]); if(k===exitK)v+=eqExit; fe.push(v);} tirExit=ann(irrM(fe)); }
+  const moicDCF=aporteFut>0?eqDCF/aporteFut:null;
+  const moicExit=(eqExit!=null&&sumApExit>0)?eqExit/sumApExit:null;
+  return {hk,cp,capProprio,aporteFut,eqDCF,eqExit,exitYm,moicDCF,moicExit,tirDCF:dcf.tir,tirExit,aporte:ap.aporte,cut,n};
+}
+function renderAcionistas(){
+  const a=acionistasEngine(), num=x=>typeof x==="number"?x:0, cut=a.cut, n=a.n;
+  const M=v=>fmt(v/1e6,0);
+  let h=`<div class="pglead"><b>Acionistas</b> — participação societária, fluxo de aportes de capital por acionista e retorno (TIR/MOIC) sobre o Equity Value, por <b>DCF</b> e por <b>saída de múltiplo de EBITDA</b>.<span class="tag">Fase F</span></div>`;
+  h+='<div class="mkpis">';
+  h+=kpi("Equity Value @DCF (R$ mi)", M(a.eqDCF), "fluxos futuros descontados ao Ke",null,MECH.vpl);
+  h+=kpi("Equity Value @saída (R$ mi)", a.eqExit!=null?M(a.eqExit):"—", a.exitYm?("múltiplo de EBITDA · "+fmtMesY(a.exitYm)):"",null,MECH.vpl);
+  h+=kpi("Equity Needs (R$ mi)", M(a.aporteFut), "aporte de capital na projeção");
+  h+=kpi("TIR @DCF", a.tirDCF!=null?fmtPct(a.tirDCF,1):"n.a.", "geração descontada (consolidado)",null,MECH.tir);
+  h+=kpi("TIR @saída", a.tirExit!=null?fmtPct(a.tirExit,1):"n.a.", a.exitYm?("aporte → saída "+fmtMesY(a.exitYm)):"",null,MECH.tir);
+  h+=kpi("MOIC @DCF / @saída", (a.moicDCF!=null?fmt(a.moicDCF,2)+"x":"—")+" / "+(a.moicExit!=null?fmt(a.moicExit,2)+"x":"—"), "Equity Value ÷ aporte");
+  h+='</div>';
+  h+='<h3 class="msub">Participação &amp; valor por acionista</h3>';
+  h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Acionista</th><th>Participação</th><th>Equity Value @DCF (R$ mi)</th><th>Equity Value @saída (R$ mi)</th><th>Aporte futuro (R$ mi)</th></tr></thead><tbody>';
+  for(const [nm,sh] of [["Hankoe",a.hk],["Copa Energia",a.cp]])
+    h+=`<tr><td class="l">${nm}</td><td>${fmtPct(sh,0)}</td><td>${M(a.eqDCF*sh)}</td><td>${a.eqExit!=null?M(a.eqExit*sh):"—"}</td><td>${M(a.aporteFut*sh)}</td></tr>`;
+  h+=`<tr class="tot"><td class="l">Total</td><td>${fmtPct(a.hk+a.cp,0)}</td><td>${M(a.eqDCF)}</td><td>${a.eqExit!=null?M(a.eqExit):"—"}</td><td>${M(a.aporteFut)}</td></tr>`;
+  h+='</tbody></table></div>';
+  h+='<div class="note">TIR e MOIC são <b>iguais para os dois acionistas</b> — os fluxos são pró-rata (cada um aporta e recebe o Equity Value na proporção da participação). <b>@DCF</b>: Equity Value por fluxo descontado ao Ke; <b>@saída</b>: venda por múltiplo de EBITDA em '+(a.exitYm?fmtMesY(a.exitYm):'—')+'. MOIC = Equity Value ÷ aporte futuro; TIR forward (investe o aporte, recebe o Equity Value). Capital próprio já aportado (histórico) = <b>R$ '+M(a.capProprio)+' mi</b>.</div>';
+  // fluxo de aportes por acionista, por ano (projeção)
+  const byY={}; for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), v=num(a.aporte[k]); if(v>1){ (byY[y]=byY[y]||{h:0,c:0,t:0}); byY[y].h+=v*a.hk; byY[y].c+=v*a.cp; byY[y].t+=v; } }
+  const yrs=Object.keys(byY).map(Number).sort((x,y)=>x-y);
+  if(yrs.length){
+    h+='<h3 class="msub">Fluxo de aportes por acionista (R$ mi/ano) — projeção</h3>';
+    h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ mi</th>'+yrs.map(y=>`<th class="o">${y}</th>`).join('')+'<th>Total</th></tr></thead><tbody>';
+    const rw=(lbl,key,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`,tot=0; for(const y of yrs){ r+=`<td>${fmt(byY[y][key]/1e6,1)}</td>`; tot+=byY[y][key]; } return r+`<td>${fmt(tot/1e6,1)}</td></tr>`; };
+    h+=rw("Hankoe ("+fmtPct(a.hk,0)+")","h")+rw("Copa Energia ("+fmtPct(a.cp,0)+")","c")+rw("Total","t",true);
+    h+='</tbody></table></div>';
+    h+='<div class="card"><h4>Aportes por acionista (R$ mi/ano)</h4><div class="chart-box" style="max-width:760px"><canvas id="cAcio"></canvas></div></div>';
+  }
+  h+='<div class="premcard"><div class="ph"><b>Participação societária</b><span class="hspace"></span><button class="btn-reset" onclick="resetAcio()">restaurar</button></div>';
+  h+='<div class="psub">Percentual de cada acionista (soma 100%). Move o rateio de aportes e Equity Value por acionista; a TIR/MOIC não mudam (pró-rata).</div>';
+  h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">'
+    +premCtrl("Hankoe","%", a.hk*100, v=>{ const x=Math.max(0,Math.min(100,+v))/100; DB.dcfConst.acio_hankoe=x; DB.dcfConst.acio_copa=1-x; }, {dec:0,min:0,max:100,step:1})
+    +premCtrl("Copa Energia","%", a.cp*100, v=>{ const x=Math.max(0,Math.min(100,+v))/100; DB.dcfConst.acio_copa=x; DB.dcfConst.acio_hankoe=1-x; }, {dec:0,min:0,max:100,step:1})
+    +'</div></div>';
+  return {html:h, draw:()=>{ const el=document.getElementById('cAcio'); if(!el||typeof Chart==='undefined'||!yrs.length) return;
+    charts.acio=new Chart(el,{type:"bar",data:{labels:yrs.map(String),datasets:[
+      {label:"Hankoe",data:yrs.map(y=>byY[y].h/1e6),backgroundColor:PAL[0],borderWidth:0,stack:"a"},
+      {label:"Copa Energia",data:yrs.map(y=>byY[y].c/1e6),backgroundColor:PAL[1],borderWidth:0,stack:"a"}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+        plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
+          tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,1)+" mi"}}},
+        scales:{x:{stacked:true,grid:{display:false},ticks:{color:"#5C6B7A"}},y:{stacked:true,grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A"},title:{display:true,text:"R$ mi/ano"}}}}});
+  }};
 }
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
 function resultadoOperacionalSerie(){

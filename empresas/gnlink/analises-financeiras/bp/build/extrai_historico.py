@@ -1019,6 +1019,9 @@ def extract_balanco(wb):
     out["dcf_const"]["mincash_tenor_m"] = 12     # prazo da dívida rolling (12m = 1 ano)
     out["dcf_const"]["mincash_bnb_mult"] = 1     # multiplicador da retenção BNB no caixa mínimo (default 1)
     out["dcf_const"]["mincash_folga"] = 0.0      # folga-alvo do aporte sobre o mínimo (modo equity; default 0)
+    # participação dos acionistas (Exposição!D5/D6 do 09.07): Hankoe/Lorinvest 64%, Copa Energia 36%
+    out["dcf_const"]["acio_hankoe"] = 0.64
+    out["dcf_const"]["acio_copa"] = 0.36
     return out
 
 
