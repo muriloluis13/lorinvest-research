@@ -216,8 +216,10 @@ input.tbox{width:100%;max-width:150px}
 .uop-tile.t-blue{background:#E1EAF5}
 .uop-tile.t-teal{background:#E1EFED}
 @media(max-width:640px){.uop{grid-template-columns:1fr}}
-/* switch de período dos gráficos de OpEx (NTM + anos) — mesma pílula, quebra em várias linhas */
-.perbar.opexper{display:flex;flex-wrap:wrap;margin-bottom:0}
+/* switch de período dos gráficos de OpEx (NTM + anos) — menu drop-down */
+.opexsel{font-family:inherit;font-size:12.5px;font-weight:700;color:var(--accent);padding:7px 30px 7px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;
+  appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C6B7A' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 9px center}
+.opexsel:hover{border-color:var(--accent)}
 /* gráfico "Visão Societária × Gerencial" (bridge de 2 barras horizontais) */
 .tvw{margin:2px 0}
 .tvw-row{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:12px;margin:10px 0}
@@ -1650,6 +1652,13 @@ function periodBuckets(){
 function aggBucket(serie,b,how){ let s=0,c=0,last=null,first=null;
   for(const k of b.months){ const v=serie[k]; if(typeof v==="number"){ s+=v; c++; last=v; if(first===null) first=v; } }
   return how==="last"?last : how==="first"?first : how==="avg"?(c?s/c:null) : (c?s:null); }
+// agrega séries mensais (R$/mês) nos buckets da periodicidade selecionada (state.per), p/ gráficos de barras.
+// labels/proj vêm dos buckets; agg(serie) soma cada bucket (fluxo). Espelha o Volume × capacidade.
+function perChart(how){ const B=periodBuckets(); how=how||"sum";
+  return { B, labels:B.map(b=>b.label), proj:B.map(b=>b.proj),
+    agg:serie=>B.map(b=>{ const v=aggBucket(serie,b,how); return v==null?0:v; }) }; }
+// sufixo do eixo p/ os gráficos que respeitam a periodicidade ("R$ MM/ano", "…/mês", …)
+function perUnit(){ return {A:"ano",S:"sem",Q:"tri",M:"mês"}[state.per]||"mês"; }
 // tabela periódica com linha de tipo (Hist/Orç/Forecast) acima das datas.
 // rows: [{lbl, serie:[192], how?, d?, pct?, div?, bold?, perPlanta?:fn(plantaId)->serie}]
 // No CONSOLIDADO, linhas com perPlanta abrem (clique) as linhas de todos os projetos.
@@ -1867,15 +1876,15 @@ function revTable(rc, reg){
     (ext?'Inclui serviço/aluguel/outros (por planta).':'Somente GNL+GNC (as parcelas serviço/aluguel/outros são por planta, não por cliente).')+'</div>';
 }
 function drawRev(rc){
-  const cut=DB.cutoffIdx, labels=DB.meses.map(m=>fmtMes(m.ym));
-  const ds=REVCOMP.map(([k,lbl,col])=>({label:lbl, data:rc[k].map(v=>v/1e6),
+  const P=perChart(), labels=P.labels;
+  const ds=REVCOMP.map(([k,lbl,col])=>({label:lbl, data:P.agg(rc[k]).map(v=>v/1e6),
     backgroundColor:col, borderColor:col, borderWidth:0, stack:"r"}));
   charts.rev=new Chart($("#cRev"),{type:"bar", data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
-              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
+              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
 function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
 
@@ -2283,14 +2292,14 @@ function renderHolding(){
   return {html:h, draw:()=>drawHoldStack(HC)};
 }
 function drawHoldStack(HC){
-  const labels=DB.meses.map(m=>fmtMes(m.ym));
-  const ds=HOLD_SUB.map((s,i)=>({label:HOLD_LABEL[s], data:HC.comp[s].map(v=>v/1e6), backgroundColor:SUBPAL[i%SUBPAL.length], borderWidth:0, stack:"h"}));
+  const P=perChart(), labels=P.labels;
+  const ds=HOLD_SUB.map((s,i)=>({label:HOLD_LABEL[s], data:P.agg(HC.comp[s]).map(v=>v/1e6), backgroundColor:SUBPAL[i%SUBPAL.length], borderWidth:0, stack:"h"}));
   charts.hold=new Chart($("#cHold"),{type:"bar",data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
-              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
+              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
 // EBITDA: realizado da DRE histórica (≤corte); projeção = Resultado Operacional + SG&A holding.
 function ebitdaSerie(){
@@ -3554,7 +3563,10 @@ function renderOpexOverview(reg, h){
 function opexYears(){ const y=[]; DB.meses.forEach(m=>{ const a=m.ym.slice(0,4); if(!y.includes(a)) y.push(a); }); return y.sort(); }
 function opexPerBar(){
   const opts=["NTM"].concat(opexYears());
-  return '<div class="perbar opexper">'+opts.map(p=>`<button onclick="setOpexPer('${p}')" class="${state.opexPer===p?'on':''}">${p}</button>`).join('')+'</div>';
+  const lbl=p=>p==="NTM"?"NTM (próximos 12 meses)":p;
+  return `<select class="opexsel" onchange="setOpexPer(this.value)">`
+    + opts.map(p=>`<option value="${p}" ${state.opexPer===p?'selected':''}>${lbl(p)}</option>`).join('')
+    + `</select>`;
 }
 function setOpexPer(p){ state.opexPer=p; render(); }
 function opexPerMonths(){
@@ -3671,14 +3683,14 @@ function renderOpexCat(reg, cat, h){
   return {html:h, draw:()=>{ comps ? drawOcatStack(comps, M) : drawOcatLine(tot, M.label); if(cat==="gas") drawMolecula(moleculaMedia(reg)); }};
 }
 function drawOpexStack(s){
-  const labels=DB.meses.map(m=>fmtMes(m.ym));
-  const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:s[c].map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
+  const P=perChart(), labels=P.labels;
+  const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:P.agg(s[c]).map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
   charts.opex=new Chart($("#cOpex"),{type:"bar",data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
         tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
-              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/mês"}}}}});
+              y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
 const SUBPAL=["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#4880A8","#7FC6A2","#55677C"];
 function drawOcatStack(comps, M){
