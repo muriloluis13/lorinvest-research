@@ -1194,10 +1194,15 @@ const R = {
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><div class="head-copy"><h2>Armações e lentes de grau</h2><div class="cap">O vetor de crescimento do setor — e a aposta estratégica da Chilli</div></div></div>
     <div class="card"><h2>Drivers de demanda</h2><div class="cap">Envelhecimento populacional e tempo de tela sustentam o crescimento</div>
       <div class="stat4" style="margin-top:4px">${F.grau.drivers.map((d,i)=>{const col=['var(--ink)','var(--red)','var(--red)','var(--green)'][i];return `<div class="st"><div class="n" style="color:${col}">${d.n}</div><div class="c">${d.c}</div></div>`;}).join("")}</div></div>
-    <div class="steps s3">
-      <div class="step"><div class="n">Demanda</div><b>Estrutural e crescente</b><p>Envelhecimento + tempo de tela; 45% da população ainda fora da rotina oftalmológica — mercado potencial adicional.</p></div>
-      <div class="step"><div class="n">Estrutura</div><b>Mercado pulverizado</b><p>As 15 maiores marcas de armação somam só 16% do valor; marcas próprias e sem marca respondem por 84%.</p></div>
-      <div class="step"><div class="n">Posição</div><b>Chilli lidera com marca própria</b><p>À frente de grifes (Ray-Ban, Vogue, Nike) e único varejista relevante a vender marca própria em escala.</p></div>
+    <div class="row31">
+      <div class="card"><h2>Mercado de armações pulverizado</h2><div class="cap">As 15 maiores marcas somam só 16% do valor — o espaço onde a Chilli lidera</div>
+        ${svgDonut([{k:"15 maiores marcas",v:16,c:"var(--ink)"},{k:"Marcas próprias / sem marca",v:84,c:"var(--red)"}],{center:"84%"})}</div>
+      <div class="card tinted"><h2>Por que a Chilli ganha aqui</h2>
+        <ul style="margin:8px 0 0 16px;font-size:12.5px;color:#3A3A3E;line-height:1.65">
+          <li><b>Demanda estrutural:</b> envelhecimento + tempo de tela; 45% da população fora da rotina oftalmológica.</li>
+          <li><b>Mercado fragmentado:</b> marcas próprias e sem marca = 84% do valor.</li>
+          <li><b>Posição única:</b> lidera à frente de grifes (Ray-Ban, Vogue, Nike) e é o único varejista relevante com marca própria em escala.</li>
+        </ul></div>
     </div>
   </div>
 
@@ -1207,9 +1212,10 @@ const R = {
       <div class="st"><div class="n">7%</div><div class="c">dos PDVs do país nas principais redes</div></div>
       <div class="st"><div class="n" style="color:var(--red)">88,5%</div><div class="c">do valor do grau vendido em óticas</div></div>
       <div class="st"><div class="n" style="color:var(--muted)">0,7%</div><div class="c">e-commerce (grau)</div></div></div></div>
-    <div class="section-head" style="margin-top:4px"><div class="head-copy"><h2>Principais redes de óticas</h2><div class="cap">Footprint e posicionamento</div></div></div>
-    <div class="steps s3">${F.oticas.rows.map(r=>{const hl=/Chilli/.test(r[0]);return `<div class="step"${hl?' style="border-color:#F1D9DD;background:#FAF3F4"':''}><b${hl?' style="color:var(--red)"':''}>${r[0]}</b><div style="font-size:26px;font-weight:800;letter-spacing:-.5px;margin:4px 0">${r[1]}</div><span class="pill gry">${r[2]}</span><div style="font-size:10.5px;color:var(--muted);margin-top:6px">lojas</div></div>`;}).join("")}</div>
-    <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota} <b>Economics de franquia comparados (investimento, payback, margem, royalties): ver aba Comparáveis › Economics de franquia.</b></div>
+    <div class="card"><h2>Footprint das principais redes</h2><div class="cap">Nº de lojas por rede · Chilli é a menor, mas premium e líder em sol</div>
+      ${svgHCompare(F.oticas.rows.map(r=>({k:r[0],v:parseInt(r[1].replace('.','')),hl:/Chilli/.test(r[0]),lab:r[1]})),{})}
+      <div style="display:flex;gap:8px 20px;flex-wrap:wrap;margin-top:12px;padding-top:11px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)">${F.oticas.rows.map(r=>`<span><b style="color:${/Chilli/.test(r[0])?'var(--red)':'var(--ink)'}">${r[0]}</b> · ${r[2]}</span>`).join("")}</div>
+      <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota} <b>Economics de franquia comparados (investimento, payback, margem, royalties): ver aba Comparáveis › Economics de franquia.</b></div></div>
   </div>`,
 "p-news":()=>{
   const sel={corrobora:["red","corrobora"],contradiz:["amb","contradiz"],contexto:["gry","contexto"]};
