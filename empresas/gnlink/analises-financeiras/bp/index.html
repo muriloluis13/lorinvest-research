@@ -255,15 +255,18 @@ input.tbox{width:100%;max-width:150px}
 .ff-ph{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;color:var(--muted);border:1.5px dashed var(--line);border-radius:6px;padding:3px 14px;background:repeating-linear-gradient(45deg,#F7F9FB,#F7F9FB 6px,#EEF2F7 6px,#EEF2F7 12px)}
 .ff-tick{position:absolute;top:3px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
 .ff-tickmark{position:absolute;top:-6px;width:0;border-left:1px solid var(--line);height:6px}
-/* roadmap do BP — calendário mês×ano de marcos da companhia */
-.rmap{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;table-layout:fixed;min-width:640px}
-.rmap th{background:var(--accent);color:#fff;padding:7px 4px;font-size:12.5px;font-weight:800;text-align:center;border:1px solid #33404F}
-.rmap th.rmap-mcol{background:transparent;border:none;width:40px}
-.rmap td{border:1px solid var(--line);vertical-align:top;padding:3px;height:30px}
-.rmap td.rmap-m{background:#F4F6F9;font-weight:700;color:var(--muted);text-align:center;white-space:nowrap}
-.rmap-chip{display:block;margin:2px 0;padding:3px 6px;border-radius:5px;font-weight:600;line-height:1.2;border-left:3px solid;color:var(--ink);word-break:break-word}
-.rmap-ic{margin-right:3px}
-.rmap-legwrap{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
+/* roadmap do BP — calendário mês×ano de marcos da companhia (visual limpo, sem grade pesada) */
+.rmap{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:660px}
+.rmap thead th{padding:2px 8px 10px;font-size:14px;font-weight:800;color:var(--accent);text-align:center;border-bottom:2px solid #E2E7EE}
+.rmap thead th.rmap-mcol{width:38px;border-bottom:none}
+.rmap thead th.rmap-catch{color:var(--muted)}
+.rmap tbody td{vertical-align:top;padding:4px 7px;border-bottom:1px solid #EFF2F6}
+.rmap tbody td:not(.rmap-m):not(:last-child){border-right:1px solid #F4F7FA}
+.rmap tbody tr:last-child td{border-bottom:none}
+.rmap td.rmap-m{color:var(--muted);font-weight:700;text-align:right;font-size:10px;padding-top:9px;white-space:nowrap}
+.rmap-chip{display:block;margin:4px 0;padding:5px 10px;border-radius:9px;font-weight:600;line-height:1.3;color:#1E2A36;word-break:break-word}
+.rmap-ic{margin-right:5px}
+.rmap-legwrap{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:14px;padding-top:12px;border-top:1px solid #EFF2F6}
 .rmap-leg{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
@@ -4536,8 +4539,8 @@ function renderRoadmapHTML(){
   const colOf=y=> y<baseY?-1 : (y>=CATCH?cols.length : y-baseY);
   const grid={}; for(const e of evs){ const ci=colOf(e.y); if(ci<0) continue; (grid[ci+"_"+e.m]=grid[ci+"_"+e.m]||[]).push(e); }
   const chip=e=>{ const t=RMAP_T[e.type]||RMAP_T.capacidade, yr=(colOf(e.y)===cols.length)?" <b>'"+String(e.y).slice(2)+"</b>":"";
-    return `<span class="rmap-chip" style="background:${t.bg};border-color:${t.c}"><span class="rmap-ic">${t.ic}</span>${e.text}${yr}</span>`; };
-  const head='<tr><th class="rmap-mcol"></th>'+cols.map(y=>`<th>${y}</th>`).join('')+`<th>${CATCH}+</th></tr>`;
+    return `<span class="rmap-chip" style="background:${t.bg}"><span class="rmap-ic">${t.ic}</span>${e.text}${yr}</span>`; };
+  const head='<tr><th class="rmap-mcol"></th>'+cols.map(y=>`<th>${y}</th>`).join('')+`<th class="rmap-catch">${CATCH}+</th></tr>`;
   let body='';
   for(let m=1;m<=12;m++){ let row=`<tr><td class="rmap-m">${MES[m-1]}</td>`;
     for(let ci=0;ci<ncol;ci++){ row+=`<td>${(grid[ci+"_"+m]||[]).map(chip).join('')}</td>`; }
