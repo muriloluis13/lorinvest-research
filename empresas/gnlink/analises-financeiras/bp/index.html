@@ -238,6 +238,23 @@ input.tbox{width:100%;max-width:150px}
 .tvw-lg i{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);font-weight:600}
 .tvw-lg i s{width:11px;height:11px;border-radius:3px;display:inline-block;text-decoration:none}
 @media(max-width:640px){.tvw-row{grid-template-columns:1fr;gap:4px}.tvw-lbl{text-align:left}.tvw-lg{margin-left:0}}
+/* football field de valuation — barras flutuantes por metodologia num eixo comum (R$ mi) */
+.ffield{margin:4px 0 2px;min-width:520px}
+.ff-row{display:grid;grid-template-columns:220px 1fr;align-items:center;gap:12px;min-height:40px}
+.ff-lbl{text-align:right;line-height:1.2}
+.ff-lbl b{font-size:12.5px;color:var(--ink)}
+.ff-lbl span{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+.ff-plot{position:relative;height:36px;border-left:1px solid var(--line)}
+.ff-bar{position:absolute;top:50%;transform:translateY(-50%);height:21px;border-radius:4px;box-shadow:var(--shadow)}
+.ff-v{position:absolute;top:50%;transform:translateY(-50%);font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap}
+.ff-lo{transform:translate(-100%,-50%);padding-right:6px}
+.ff-hi{padding-left:6px}
+.ff-ref{position:absolute;top:0;bottom:0;width:0;border-left:1.5px dashed var(--accent3);z-index:1}
+.ff-reflbl{position:absolute;top:0;font-size:10px;font-weight:700;color:var(--accent3);white-space:nowrap;transform:translateX(-6px)}
+.ff-pt{position:absolute;top:50%;width:14px;height:14px;transform:translate(-50%,-50%) rotate(45deg);border:2px solid #fff;box-shadow:var(--shadow)}
+.ff-ph{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;color:var(--muted);border:1.5px dashed var(--line);border-radius:6px;padding:3px 14px;background:repeating-linear-gradient(45deg,#F7F9FB,#F7F9FB 6px,#EEF2F7 6px,#EEF2F7 12px)}
+.ff-tick{position:absolute;top:3px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
+.ff-tickmark{position:absolute;top:-6px;width:0;border-left:1px solid var(--line);height:6px}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
 .cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
@@ -3249,6 +3266,54 @@ function renderBalanco(){
   return h;
 }
 /* --------------------------------------------------- aba DCF (VPL) — passo a passo até Equity/EV */
+// ===== FOOTBALL FIELD DE VALUATION =====================================================
+// Faixas de Equity Value (R$ mi) por metodologia. Cada helper varia a premissa (Ke/múltiplo) e restaura.
+function footballFieldData(){
+  const num=x=>typeof x==="number"?x:0, n=DB.meses.length, cut=DB.cutoffIdx, mi=v=>v/1e6;
+  function fcfeVpl(ke){ const C=DB.dcfConst,s=C.ke_real; C.ke_real=ke; const v=vplMensal(genConsMensal()); C.ke_real=s; return v; }
+  function divVpl(ke){ const C=DB.dcfConst,s=C.ke_real; C.ke_real=ke; const f=fatorDescMensal(),dv=dividendosSerie().div; let v=0; for(let k=cut+1;k<n;k++) v+=num(dv[k])*num(f[k]); C.ke_real=s; return v; }
+  function exitEq(m){ const s=state.exitMult; state.exitMult=m; const r=exitValuation(); state.exitMult=s; return (r&&r.ok)?r.equityExit:null; }
+  // custo de construção (reposição): CapEx das plantas operacionais ÷ capacidade operacional × capacidade total
+  function capUlt(p){ let s=0; for(const prod of ["GNL","GNC"]){
+    const res=((DB.capacidade||{})[prod]||{})[p]||[]; let mr=0; for(const v of res) if(typeof v==="number"&&v>mr) mr=v;
+    const ph=((DB.capPrem||{})[prod]||{})[p]||[]; let mp=0; for(const e of ph) if(num(e.cap)>mp) mp=num(e.cap);
+    s+=Math.max(mr,mp); } return s; }
+  function capexTot(p){ const a=capexInvestPlanta(p); let t=0; for(let k=0;k<n;k++) t+=num(a[k]); return t; }
+  const OPER=[1,2,3], ALL=[1,2,3,4,5,6];
+  const capOper=OPER.reduce((s,p)=>s+capUlt(p),0), capAll=ALL.reduce((s,p)=>s+capUlt(p),0);
+  const capexOper=OPER.reduce((s,p)=>s+capexTot(p),0), unit=capOper>0?capexOper/capOper:0, constrVal=unit*capAll;
+  const KL=0.10, KH=0.15;
+  const rows=[
+    {label:"DCF FCFE @ Ke", sub:"Ke real "+fmtPct(KL,0)+"–"+fmtPct(KH,0), low:mi(fcfeVpl(KH)), high:mi(fcfeVpl(KL)), color:"#3D4A5C"},
+    {label:"DCF FCFF @ WACC", sub:"WACC — a construir", placeholder:true},
+    {label:"DCF Dividendos @ Ke", sub:"Ke real "+fmtPct(KL,0)+"–"+fmtPct(KH,0), low:mi(divVpl(KH)), high:mi(divVpl(KL)), color:"#4880A8"},
+    {label:"Saída por múltiplo de EBITDA", sub:"9,0x–12,0x · saída "+fmtMesY(state.exitYm), low:mi(exitEq(9)), high:mi(exitEq(12)), color:"#2E7D4F"},
+    {label:"Custo de construção (reposição)", sub:"R$ "+fmt(mi(capexOper),0)+" mi ÷ "+fmt(capOper/1e3,0)+" mil m³/d × "+fmt(capAll/1e3,0)+" mil m³/d", point:mi(constrVal), color:"#C55A17"},
+  ];
+  let vmax=0; for(const r of rows){ if(r.high!=null&&r.high>vmax)vmax=r.high; if(r.point!=null&&r.point>vmax)vmax=r.point; }
+  const xmax=Math.max(200,Math.ceil(vmax*1.1/100)*100);
+  return {rows, xmin:0, xmax, ref:mi(fcfeVpl(0.12)), refLabel:"Caso-base (FCFE @ Ke 12%)"};
+}
+function footballFieldHTML(){
+  const F=footballFieldData(), W=(F.xmax-F.xmin)||1, pct=v=>Math.max(0,Math.min(100,(v-F.xmin)/W*100)), M=v=>fmt(v,0);
+  let rows=`<div class="ff-row"><div class="ff-lbl"></div><div class="ff-plot" style="height:15px;border:none"><span class="ff-reflbl" style="left:${pct(F.ref)}%">${F.refLabel} · R$ ${M(F.ref)} mi</span></div></div>`;
+  for(const r of F.rows){
+    let plot=`<span class="ff-ref" style="left:${pct(F.ref)}%"></span>`;
+    if(r.placeholder){ plot+=`<div class="ff-ph">a construir — reservar WACC</div>`; }
+    else if(r.point!=null){ const p=pct(r.point);
+      plot+=`<span class="ff-pt" style="left:${p}%;background:${r.color}"></span><span class="ff-v ff-hi" style="left:${p}%">R$ ${M(r.point)}</span>`; }
+    else { const lo=pct(r.low), hi=pct(r.high);
+      plot+=`<div class="ff-bar" style="left:${lo}%;width:${Math.max(0.6,hi-lo)}%;background:${r.color}"></div>`
+        +`<span class="ff-v ff-lo" style="left:${lo}%">${M(r.low)}</span><span class="ff-v ff-hi" style="left:${hi}%">${M(r.high)}</span>`; }
+    rows+=`<div class="ff-row"><div class="ff-lbl"><b>${r.label}</b><span>${r.sub}</span></div><div class="ff-plot">${plot}</div></div>`;
+  }
+  let ticks=''; const step=F.xmax<=600?100:200;
+  for(let v=0;v<=F.xmax+1;v+=step){ const p=pct(v); ticks+=`<span class="ff-tickmark" style="left:${p}%"></span><span class="ff-tick" style="left:${p}%">${M(v)}</span>`; }
+  rows+=`<div class="ff-row" style="min-height:22px"><div class="ff-lbl" style="font-size:10px;color:var(--muted);font-weight:700">R$ mi — Equity Value</div><div class="ff-plot" style="height:20px">${ticks}</div></div>`;
+  return `<h3 class="msub">Football field de valuation</h3>`
+    +`<div class="card"><div class="psub" style="margin:0 0 12px">Faixas de <b>Equity Value</b> por metodologia. Linha tracejada vermelha = caso-base (FCFE @ Ke 12%). <b>Custo de construção</b> = valor de reposição (base ativos/EV, não deduz dívida líquida). O <b>DCF FCFF @ WACC</b> está reservado (a construir).</div>`
+    +`<div style="overflow-x:auto"><div class="ffield">${rows}</div></div></div>`;
+}
 function renderDCF(){
   const dcf=dcfConsolidado(), ev=evParts(), C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
   const anos=dcf.anos, gy=dcfConsGenLive(), e=caixaBalancoEngine();
@@ -3264,6 +3329,7 @@ function renderDCF(){
   const xv=exitValuation();
   if(xv.ok) h+=kpi("Implied EV/EBITDA "+(xv.exitYear||''), fmt(xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída)");
   h+='</div>';
+  h+=footballFieldHTML();   // resumo de valuation (football field) por metodologia
   // custo de capital
   const cc=(lbl,val)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:2px">${lbl}</label><div style="font-size:16px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums">${val}</div></div>`;
   h+='<div class="premcard"><div class="ph"><b>Custo de capital &amp; premissas do desconto</b></div><div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';
