@@ -1461,12 +1461,17 @@ const R = {
 
   <div class="subpane" data-p="1">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M9 3v6l-5 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V3M8 3h8"/></svg></span><div class="head-copy"><h2>Metodologia e premissas</h2></div></div>
-    <div class="card"><div class="twrap"><table><tbody>${F.metod.map(r=>`<tr><td class="l" style="font-weight:700;white-space:nowrap">${r[0]}</td><td class="l" style="white-space:normal">${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="card"><h2>Premissas-chave</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px;margin-top:4px">
+      ${F.metod.map(r=>`<div style="border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#FBFBFC"><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">${r[0]}</div><div style="font-size:13px;font-weight:600;margin-top:4px;line-height:1.4">${r[1]}</div></div>`).join("")}
+      </div></div>
   </div>
 
   <div class="subpane" data-p="2">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8M20 12a8 8 0 0 1-8 8 8 8 0 0 1-8-8M9 9l-5 3 5 3M15 9l5 3-5 3"/></svg></span><div class="head-copy"><h2>Notas de reconciliação</h2><div class="cap">Divergências de versão e escolhas de fonte</div></div></div>
-    <div class="card"><ul style="margin:6px 0 0 16px;font-size:12.5px;color:#3A3A3E;line-height:1.6">${F.reconc.map(r=>`<li style="margin-bottom:6px">${r}</li>`).join("")}</ul></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">
+      ${F.reconc.map((r,i)=>`<div class="risk" style="display:flex;gap:10px;align-items:flex-start"><span style="width:21px;height:21px;border-radius:6px;background:#F0F0F2;color:var(--accent);flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;margin-top:1px">${i+1}</span><div class="rd" style="font-size:12px;color:#3A3A3E">${r}</div></div>`).join("")}
+    </div>
   </div>`,
 };
 function stub(t,s){return `<div class="stub"><b>${t}</b><br>Em construção (v2). Subtabs previstos: ${s}.</div>`;}
