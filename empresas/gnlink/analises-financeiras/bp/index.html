@@ -4508,12 +4508,15 @@ const RMAP_T={
 function roadmapEvents(){
   const num=x=>typeof x==="number"?x:0, n=DB.meses.length, cut=DB.cutoffIdx, evs=[];
   const push=(k,type,text)=>{ const pr=DB.meses[k].ym.split("-"); evs.push({y:+pr[0], m:+pr[1], type, text}); };
-  // capacidade / novos projetos (planta operacional tem capacidade no corte; projeto novo começa do zero)
+  // capacidade / novos projetos — varre desde jan do ANO-BASE (inclui degraus JÁ REALIZADOS de 2026, ex.: RN
+  // fev/26, PR jul/26). "Novo projeto" só p/ planta que ainda não está online na data-base (cap≈0 no corte).
+  const baseY=+DB.meses[cut].ym.slice(0,4); let startK=0; for(let k=0;k<n;k++){ if(+DB.meses[k].ym.slice(0,4)>=baseY){ startK=k; break; } }
   for(let p=1;p<=6;p++){ if(!plantOn(p)) continue; const nm=(DB.regioes.find(r=>r.id===p)||{}).nome||CAP_PLANTA[p];
     const g=capacidadePlanta("GNL",p), c=capacidadePlanta("GNC",p);
-    let prev=(g[cut]||0)+(c[cut]||0), firstDone=prev>1000;
-    for(let k=cut+1;k<n;k++){ const cur=(g[k]||0)+(c[k]||0), d=cur-prev;
-      if(!firstDone && cur>1000){ firstDone=true; push(k,"projeto",nm+" online (+"+fmt(cur/1e3,0)+" mil m³/d)"); }
+    const isFuture=((g[cut]||0)+(c[cut]||0))<1000;                                  // AR/SAL: entram depois da data-base
+    let prev=startK>0?((g[startK-1]||0)+(c[startK-1]||0)):0, firstDone=false;
+    for(let k=startK;k<n;k++){ const cur=(g[k]||0)+(c[k]||0), d=cur-prev;
+      if(isFuture && !firstDone && cur>1000){ firstDone=true; push(k,"projeto",nm+" online (+"+fmt(cur/1e3,0)+" mil m³/d)"); }
       else if(d>=10000){ push(k,"capacidade",nm+" +"+fmt(d/1e3,0)+" mil m³/d"); }
       prev=cur; } }
   // dívida (emissões e amortizações grandes)
@@ -4545,12 +4548,9 @@ function renderRoadmapHTML(){
   for(let m=1;m<=12;m++){ let row=`<tr><td class="rmap-m">${MES[m-1]}</td>`;
     for(let ci=0;ci<ncol;ci++){ row+=`<td>${(grid[ci+"_"+m]||[]).map(chip).join('')}</td>`; }
     body+=row+'</tr>'; }
-  const used=[...new Set(evs.map(e=>e.type))].filter(t=>RMAP_T[t]);
-  const leg=used.map(t=>`<span class="rmap-leg"><span class="rmap-ic">${RMAP_T[t].ic}</span>${RMAP_T[t].lbl}</span>`).join('');
   return `<h3 class="msub">Roadmap do Business Plan — próximos 5 anos</h3>`
     +`<div class="card"><div class="psub" style="margin:0 0 8px">Marcos por mês/ano extraídos do modelo (reagem às premissas e ao switch de plantas): novos projetos, adições de capacidade, clientes âncora, emissões/amortizações de dívida, aporte, dividendos e breakeven. A coluna <b>${CATCH}+</b> agrega os eventos de ${CATCH} em diante (com o ano no chip).</div>`
-    +`<div style="overflow-x:auto"><table class="rmap"><thead>${head}</thead><tbody>${body}</tbody></table></div>`
-    +`<div class="rmap-legwrap">${leg}</div></div>`;
+    +`<div style="overflow-x:auto"><table class="rmap"><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
 }
 function renderDashboard(){
   const cut=DB.cutoffIdx, MM=c=>fmt((c?c.v:0)/1e6,0);
