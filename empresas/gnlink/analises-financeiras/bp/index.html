@@ -3913,6 +3913,41 @@ function equityNeeds(){
   let firstK=-1; for(let k=cut+1;k<n;k++){ if(num(ap.aporte[k])>1e5){ firstK=k; break; } }   // 1º aporte material (>R$100 mil)
   return {total, firstYm: firstK>=0?DB.meses[firstK].ym:null};
 }
+// Outputs de retorno & estrutura de capital do Dashboard do modelo 09.07: TIR/MOIC por acionista (do
+// acionistasEngine, @saída), duration de equity/dívida (Macaulay), Debt IRR, breakeven, Max Debt e ND/EBITDA.
+function dashOutputs(){
+  const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx, n=DB.meses.length;
+  const a=acionistasEngine(), de=dividaEngine(), cb=caixaBalancoEngine(), eb=ebitdaSerie(), gen=genConsMensal(), fdesc=fatorDescMensal();
+  function irrM(fl){ let i0=0; while(i0<fl.length&&Math.abs(fl[i0])<1e-9)i0++; const g0=fl.slice(i0); if(g0.length<2)return null;
+    const sc=Math.max.apply(null,g0.map(f=>Math.abs(f)))||1,g=g0.map(f=>f/sc),f=r=>{let s=0;for(let i=0;i<g.length;i++)s+=g[i]/Math.pow(1+r,i);return s;};
+    let lo=-0.99,hi=1,flo=f(lo);if(flo*f(hi)>0)return null;for(let it=0;it<200;it++){const m=(lo+hi)/2,fm=f(m);if(Math.abs(fm)<1e-9)return m;if(flo*fm<0)hi=m;else{lo=m;flo=fm;}}return (lo+hi)/2; }
+  const ann=r=>r!=null?Math.pow(1+r,12)-1:null;
+  // Debt IRR (yield da dívida, perspectiva do credor: −desembolso + serviço)
+  const dflow=[]; for(let k=0;k<n;k++) dflow.push(-(num(de.desemb[k])+num(de.amort[k])+num(de.pagJ[k])));
+  const debtIRR=ann(irrM(dflow));
+  // Debt Duration (Macaulay do serviço da dívida, descontado ao Debt IRR; projeção)
+  const rM=debtIRR!=null?Math.pow(1+debtIRR,1/12)-1:0; let dpv=0,dtpv=0;
+  for(let k=cut+1;k<n;k++){ const svc=-(num(de.pagJ[k])+num(de.amort[k])); const t=k-cut, p=svc/Math.pow(1+rM,t); dpv+=p; dtpv+=t*p; }
+  const debtDur=dpv>0?(dtpv/dpv)/12:null;
+  // Equity Duration (Macaulay do FCFE positivo descontado ao Ke — proxy: o modelo usa dividendos, não modelados aqui)
+  let epv=0,etpv=0; for(let k=cut+1;k<n;k++){ const cf=num(gen[k]); if(cf>0){ const p=cf*num(fdesc[k]), t=k-cut; epv+=p; etpv+=t*p; } }
+  const eqDur=epv>0?(etpv/epv)/12:null;
+  // Breakeven: mês a partir do qual o FCFE acumulado (geração consolidada) fica PERMANENTEMENTE ≥ 0
+  // (usa a última virada de sinal, robusto a picos transitórios de fluxos lumpy — ex.: tranche de dívida).
+  const cums=[]; { let c=0; for(let k=cut+1;k<n;k++){ c+=num(gen[k]); cums.push(c); } }
+  let lastBelow=-1; for(let i=0;i<cums.length;i++){ if(cums[i]<0) lastBelow=i; }
+  const beIdx=lastBelow+1, beK=(lastBelow>=0&&beIdx<cums.length)?(cut+1+beIdx):-1;
+  // Max Debt & Avg ND/EBITDA (próximos 10 anos, 2026–2035): dívida bruta EoP, caixa EoP, EBITDA anual
+  const decIdx=y=>{ for(let k=n-1;k>=0;k--){ if(DB.meses[k].ym===y+"-12") return k; } return -1; };
+  const ebYear=y=>{ let s=0; for(let k=0;k<n;k++){ if(DB.meses[k].ym.slice(0,4)==String(y)) s+=num(eb[k]); } return s; };
+  let maxDebt=0, sND=0, sEB=0, cnt=0;
+  for(let y=2026;y<=2035;y++){ const di=decIdx(y); const gd=di>=0?num(de.saldo[di]):0, ca=di>=0?num(cb.caixa[di]):0, eby=ebYear(y);
+    if(gd>maxDebt)maxDebt=gd; sND+=(gd-ca); sEB+=eby; cnt++; }
+  const avgND=cnt?sND/cnt:0, avgEB=cnt?sEB/cnt:0, ndEbitda=avgEB!==0?avgND/avgEB:null;
+  return {hankoeIRR:a.HK.tirE, copaIRR:a.CP.tirE, hankoeMOIC:a.HK.moicE, copaMOIC:a.CP.moicE,
+          eqDur, debtDur, debtIRR, timeToBE:beK>=0?(beK-cut)/12:null, breakevenYm:beK>=0?DB.meses[beK].ym:null,
+          maxDebt, ndEbitda};
+}
 function _uopTile(cls,val,lbl){ return `<div class="uop-tile ${cls}"><div class="uop-v">R$ ${fmt(val/1e6,1)} mi</div><div class="uop-l">${lbl}</div></div>`; }
 function useOfProceedsHTML(){
   const u=useOfProceeds(), row=(op,tile)=>`<div class="uop-row"><span class="uop-op">${op}</span>${tile}</div>`;
@@ -4073,6 +4108,23 @@ function renderDashboard(){
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   const _en=equityNeeds();
   h+=kpi("Equity Needs (R$ mi)", fmt(_en.total/1e6,0), (_en.firstYm?"1º aporte "+fmtMesY(_en.firstYm)+" · ":"")+"aporte de capital na projeção (p/ caixa mínimo)");
+  h+='</div>';
+  // ---- Retorno aos acionistas & estrutura de capital (outputs do Dashboard do modelo 09.07) ----
+  const _do=dashOutputs();
+  const pct1=v=>v==null?"n.a.":fmtPct(v,1), moicX=v=>v==null?"—":fmt(v,2)+"x", anos=v=>v==null?"—":fmt(v,1)+" anos";
+  h+='<h3 class="msub" style="margin-top:4px">Retorno aos acionistas &amp; estrutura de capital</h3>';
+  h+='<div class="mkpis">';
+  h+=kpi("Hankoe IRR", pct1(_do.hankoeIRR), "TIR @saída (com prêmio Copa)",null,MECH.tir);
+  h+=kpi("Copa IRR", pct1(_do.copaIRR), "TIR @saída (recebe o prêmio)",null,MECH.tir);
+  h+=kpi("Hankoe MOIC", moicX(_do.hankoeMOIC), "múltiplo @saída");
+  h+=kpi("Copa MOIC", moicX(_do.copaMOIC), "múltiplo @saída");
+  h+=kpi("Equity Duration", anos(_do.eqDur), "Macaulay do FCFE (proxy s/ dividendos)");
+  h+=kpi("Debt Duration", anos(_do.debtDur), "Macaulay do serviço da dívida");
+  h+=kpi("Debt IRR", pct1(_do.debtIRR), "yield efetivo da dívida");
+  h+=kpi("Time to breakeven", anos(_do.timeToBE), "até o FCFE acumulado virar +");
+  h+=kpi("Breakeven month", _do.breakevenYm?fmtMesY(_do.breakevenYm):"—", "FCFE acumulado ≥ 0");
+  h+=kpi("Max Debt (R$ mi)", fmt(_do.maxDebt/1e6,0), "dívida bruta máx. (próx. 10 anos)");
+  h+=kpi("Avg. ND/EBITDA", moicX(_do.ndEbitda), "dívida líquida ÷ EBITDA · próx. 10 anos");
   h+='</div>';
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
