@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chilli Beans (New Money) — Guia de Investimento · Akron/Lorinvest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F6F7; --card:#FFFFFF; --ink:#1A1A1A; --muted:#6A6A6E;
+  --accent:#2B2B2E; --accent2:#55565A; --accent3:#E4002B;
+  --red:#E4002B; --neg:#B3261E; --green:#2E7D4F; --amber:#B8860B;
+  --line:#E6E6E9; --chip:#F0F0F2; --graf:#3A3A3E;
+  --shadow:0 1px 2px rgba(26,26,26,.05),0 4px 14px rgba(26,26,26,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.45;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1}
+button{font-family:inherit;cursor:pointer}
+svg text{font-feature-settings:'tnum' 1,'lnum' 1}
+b,strong{font-weight:700}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:#fff;color:var(--ink);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(26,26,26,.05)}
+header::before{content:'';display:block;height:3px;background:linear-gradient(90deg,#1A1A1A,#1A1A1A 55%,var(--red))}
+.hwrap{max-width:1680px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px}
+.logo .mark{width:30px;height:30px;border-radius:8px;background:#1A1A1A;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;position:relative}
+.logo .mark::after{content:'';position:absolute;right:5px;bottom:5px;width:6px;height:6px;border-radius:50%;background:var(--red)}
+.logo .nm{font-weight:800;font-size:15.5px;letter-spacing:-.3px;line-height:1}
+.logo .nm small{display:block;font-weight:600;font-size:9px;letter-spacing:.14em;color:var(--muted);margin-top:3px}
+.hsep{width:1px;height:26px;background:var(--line)}
+.hsub{align-self:center;font-size:10.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+.htitle{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+.hspace{flex:1}
+.hconf{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);padding:4px 10px;border-radius:6px}
+.mob-tab{display:none}
+
+/* ---------- kpis ---------- */
+#kpis{margin:0;padding:14px 18px 4px;max-width:1680px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 15px 13px;position:relative;display:flex;flex-direction:column;min-height:118px;min-width:0}
+.kpi .lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.kpi .val{font-size:23px;font-weight:800;margin-top:8px;letter-spacing:-.6px;line-height:1.1;white-space:nowrap}
+.kpi .sub{margin-top:auto;font-size:10.5px;color:var(--muted);padding-top:6px}
+.kpi.k-feat{background:#1A1A1A;border-color:#1A1A1A}
+.kpi.k-feat .lbl{color:rgba(255,255,255,.6)}
+.kpi.k-feat .val{color:#fff}
+.kpi.k-feat .sub{color:rgba(255,255,255,.72)}
+.kpi.k-feat .val .u{color:var(--red)}
+
+/* ---------- nav tabs ---------- */
+nav#tabs{max-width:1680px;margin:6px auto 0;padding:0 18px;display:flex;gap:1px;border-bottom:2px solid var(--line);flex-wrap:wrap;align-items:flex-end}
+nav#tabs button{background:none;border:none;font-size:12.5px;font-weight:600;color:var(--muted);padding:9px 11px;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:color .15s;white-space:nowrap}
+nav#tabs button:hover{color:var(--accent)}
+nav#tabs button.on{color:var(--ink);border-bottom-color:var(--accent3)}
+.tgrp{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;padding:0 4px 8px;opacity:.85}
+.tgrp i{width:7px;height:7px;border-radius:2px;display:inline-block}
+.tdiv{width:1px;background:var(--line);margin:6px 5px 8px;align-self:stretch}
+
+/* ---------- layout + sidebar ---------- */
+.layout{display:flex;max-width:1680px;margin:0 auto;align-items:flex-start}
+.maincol{flex:1;min-width:0}
+#sidebar{width:212px;flex:none;position:sticky;top:var(--hh,66px);align-self:flex-start;max-height:calc(100vh - var(--hh,66px));overflow-y:auto;padding:8px 8px 26px;border-right:1px solid var(--line);transition:width .18s ease,padding .18s ease}
+body.snav-collapsed #sidebar{width:0;padding:0;overflow:hidden;border-right:none}
+#navlist .grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:13px 10px 5px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+#navlist .grp i{width:7px;height:7px;border-radius:2px;flex:none}
+#navlist button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;border-left:2.5px solid transparent;font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 11px;border-radius:0 7px 7px 0;white-space:nowrap;cursor:pointer;transition:background .12s,color .12s}
+#navlist .nav-ic{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#navlist button:hover{color:var(--accent);background:#F0F0F2}
+#navlist button.on{color:var(--ink);border-left-color:var(--accent3);background:#F4EAEC}
+#navToggle{background:#fff;border:1px solid var(--line);border-radius:8px;font-size:15px;font-weight:700;color:var(--accent);padding:3px 10px;cursor:pointer;line-height:1.2}
+#navToggle:hover{background:#F2F2F4;border-color:var(--accent2)}
+@media(max-width:860px){
+  #sidebar{position:fixed;left:0;top:var(--hh,66px);z-index:60;background:#fff;box-shadow:3px 0 16px rgba(26,26,26,.14);height:calc(100vh - var(--hh,66px));max-height:none}
+  header{background:var(--bg);border-bottom:none;box-shadow:none}
+  header::before{display:none}
+  .hsep,.hconf{display:none}
+  .hwrap>div:not(.logo):not(#navToggle){display:none}
+  .mob-tab{display:block;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:700;color:var(--ink)}
+  .logo{margin-left:6px}
+}
+
+/* ---------- main + cards ---------- */
+main{margin:0;padding:18px 22px 60px}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:17px 19px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h2{font-size:14.5px;font-weight:700;margin-bottom:3px;letter-spacing:-.1px}
+.card .cap{font-size:12.5px;line-height:1.5;color:#5A5A5E;margin-bottom:12px}
+.card .lead{font-size:14px;line-height:1.62;color:var(--ink);margin:2px 0 14px}
+.card.tinted{background:#FAF3F4;border-color:#F1D9DD}
+.card.dark{background:#1A1A1A;border-color:#1A1A1A;color:#fff}
+.card.dark h2{color:#fff}.card.dark .cap{color:rgba(255,255,255,.66)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.row31{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media(max-width:820px){.row2,.row3,.row31{grid-template-columns:1fr}}
+svg{display:block;width:100%;height:auto}
+
+.section-head{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px}
+.section-head .title-icon{flex:none;width:30px;height:30px;border-radius:9px;background:#F4EAEC;color:var(--red);display:flex;align-items:center;justify-content:center;margin-top:1px}
+.section-head .title-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.section-head .head-copy{flex:1;min-width:0}
+.section-head h2{margin-bottom:2px}
+.section-head .tag{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--chip);padding:4px 10px;border-radius:20px;align-self:center}
+
+/* subtabs */
+.subtabs{display:inline-flex;gap:4px;background:#EEEEF0;border:1px solid var(--line);border-radius:10px;padding:4px;margin:0 2px 16px;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtabs button{border:none;background:none;font-size:12.5px;font-weight:700;color:var(--muted);padding:7px 16px;border-radius:7px;cursor:pointer;transition:background .12s,color .12s;flex:0 0 auto;white-space:nowrap}
+.subtabs button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow)}
+.subpane{display:none}.subpane.on{display:block}
+
+/* kv / grids */
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.kv .k{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kv .v{font-size:13.5px;font-weight:600;margin-top:2px}
+.stat4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.stat4 .st{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#FBFBFC}
+.stat4 .st .n{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.stat4 .st .c{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.35}
+@media(max-width:820px){.stat4{grid-template-columns:repeat(2,1fr)}}
+
+/* steps / blocks */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.steps.s3{grid-template-columns:repeat(3,1fr)}
+.steps.s5{grid-template-columns:repeat(5,1fr)}
+.step{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#FBFBFC;position:relative}
+.step .n{font-size:10px;font-weight:700;color:var(--red);letter-spacing:.08em;text-transform:uppercase}
+.step b{display:block;font-size:13px;margin:5px 0 3px}
+.step p{font-size:11.6px;color:#50505A;line-height:1.5}
+@media(max-width:900px){.steps,.steps.s5{grid-template-columns:repeat(2,1fr)}.steps.s3{grid-template-columns:1fr}}
+
+/* tables */
+.twrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-align:right;padding:9px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+th.l,td.l{text-align:left}
+td{font-size:12.5px;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:nth-child(even){background:#FAFAFB}
+tr.tot td{font-weight:700;border-top:2px solid var(--accent2);background:#F5F5F6}
+td.neg{color:var(--neg)}
+.opt table td.l{font-weight:600}
+.opt thead th{text-align:center;color:var(--ink);font-size:11px}
+.opt thead th.hl{color:var(--red)}
+.opt td{text-align:center}
+.opt .colB{background:#FAF3F4}
+
+/* pills / notes */
+.pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-block}
+.pill.red{background:#F4EAEC;color:var(--red)}
+.pill.grn{background:#E7F0EA;color:var(--green)}
+.pill.gry{background:var(--chip);color:var(--muted)}
+.pill.amb{background:#F7EFD9;color:var(--amber)}
+.note{border-left:3px solid var(--accent3);background:#FAF3F4;border-radius:0 10px 10px 0;padding:11px 14px;font-size:12px;color:#5A3B40;margin-top:12px;line-height:1.5}
+.note b{color:var(--red)}
+.note.warn{border-left-color:var(--amber);background:#FBF6E9;color:#6B5417}
+.note.warn b{color:var(--amber)}
+.warn-txt{font-size:11px;color:var(--muted);margin-top:8px}
+
+/* rationale blocks */
+.rat{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.rat .r{border:1px solid var(--line);border-top:3px solid var(--red);border-radius:11px;padding:13px 15px;background:#fff}
+.rat .r .t{font-size:12.5px;font-weight:700;margin-bottom:4px}
+.rat .r p{font-size:11.6px;color:#50505A;line-height:1.5}
+@media(max-width:900px){.rat{grid-template-columns:repeat(2,1fr)}}
+
+/* risks */
+.risks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.risk{border:1px solid var(--line);border-left:3px solid var(--pc,#8A8A8E);border-radius:11px;padding:12px 14px 13px;background:var(--card);box-shadow:var(--shadow)}
+.risk .rh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px}
+.risk .rt{font-size:12.5px;font-weight:700;line-height:1.25}
+.risk .rb{flex-shrink:0;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.risk .rd{font-size:11.5px;color:var(--muted);line-height:1.42}
+
+/* timeline vertical */
+.tml{position:relative;margin:6px 0 2px;padding-left:26px}
+.tml::before{content:'';position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.tml .ev{position:relative;padding:0 0 16px 4px}
+.tml .ev::before{content:'';position:absolute;left:-23px;top:3px;width:11px;height:11px;border-radius:50%;background:#fff;border:2.5px solid var(--accent2)}
+.tml .ev.hot::before{border-color:var(--red);background:var(--red)}
+.tml .ev .yr{font-size:11px;font-weight:700;color:var(--red)}
+.tml .ev .tt{font-size:12.8px;font-weight:600;margin:1px 0 1px}
+.tml .ev .dd{font-size:11.5px;color:var(--muted);line-height:1.45}
+
+/* horizontal chrono */
+.chrono{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;position:relative}
+.chrono .c{border:1px solid var(--line);border-radius:11px;padding:12px 13px;background:#FBFBFC}
+.chrono .c .dt{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em}
+.chrono .c .h{font-size:12.5px;font-weight:700;margin:4px 0 2px}
+.chrono .c p{font-size:11px;color:#50505A;line-height:1.45}
+@media(max-width:900px){.chrono{grid-template-columns:1fr 1fr}}
+
+/* cascade */
+.casc{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.casc .lv{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:11px 14px;background:#fff;position:relative}
+.casc .lv .rk{width:26px;height:26px;flex:none;border-radius:7px;background:#1A1A1A;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.casc .lv.p1{border-color:var(--red);background:#FAF3F4}.casc .lv.p1 .rk{background:var(--red)}
+.casc .lv .nm{font-weight:700;font-size:13px}
+.casc .lv .ds{font-size:11px;color:var(--muted)}
+.casc .arrow{text-align:center;color:var(--muted);font-size:14px;line-height:.6}
+
+/* flow diagram (business model / rollup / sweep) */
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.flow .fn{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:12px 13px;background:#FBFBFC;text-align:center}
+.flow .fn .ft{font-size:12px;font-weight:700}
+.flow .fn .fs{font-size:10.5px;color:var(--muted);margin-top:2px}
+.flow .fa{display:flex;align-items:center;justify-content:center;padding:0 6px;color:var(--red);font-weight:800;font-size:17px}
+@media(max-width:820px){.flow{flex-direction:column}.flow .fa{transform:rotate(90deg);padding:4px 0}}
+
+.src{font-size:10.5px;color:var(--muted);margin-top:9px;font-style:italic}
+.legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:10px}
+.legend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;font-weight:500}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.axt{font-size:11px;fill:var(--muted)}
+.axl{stroke:var(--line);stroke-width:1}
+.stub{border:1px dashed var(--line);border-radius:12px;padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;background:#FBFBFC}
+.stub b{color:var(--accent);font-weight:700}
+#tip{position:fixed;z-index:99;pointer-events:none;background:#1A1A1A;color:#fff;font-size:11px;padding:7px 10px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;max-width:300px;white-space:pre-line;line-height:1.5}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <button id="navToggle" title="Menu">☰</button>
+    <div class="logo">
+      <div class="mark">C</div>
+      <div class="nm">Chilli Beans<small>NEW MONEY · GUIA DE INVESTIMENTO</small></div>
+    </div>
+    <div class="hsep"></div>
+    <div class="hsub">Akron · Lorinvest</div>
+    <div class="mob-tab" id="mobTab">Sumário</div>
+    <div class="hspace"></div>
+    <div class="hconf">Confidencial · Buy-side</div>
+  </div>
+  <div id="kpis"><div class="kpis" id="kpiRow"></div></div>
+  <nav id="tabs"></nav>
+</header>
+
+<div class="layout">
+  <aside id="sidebar"><div id="navlist"></div></aside>
+  <div class="maincol">
+    <main>
+      <section class="panel on" id="p-sum"></section>
+      <section class="panel" id="p-cia"></section>
+      <section class="panel" id="p-setor"></section>
+      <section class="panel" id="p-news"></section>
+      <section class="panel" id="p-sit"></section>
+      <section class="panel" id="p-val"></section>
+      <section class="panel" id="p-risco"></section>
+      <section class="panel" id="p-anexo"></section>
+    </main>
+  </div>
+</div>
+<div id="tip"></div>
+
+<script>
+/* ============================================================= DATA ===== */
+const F = {
+  // ---- KPIs (deck New Money set/26) ----
+  kpis:[
+    {lbl:"Investimento Akron",val:"R$ 4,375 mm",sub:"New Money (de R$ 35 mm)"},
+    {lbl:"TIR — New Money",val:"37% <span class='u'>a.a.</span>",sub:"30 meses",feat:true},
+    {lbl:"MOIC — New Money",val:"1,7x",sub:"mín. contratual 1,5x"},
+    {lbl:"Payback",val:"23 meses",sub:"lucro líq. R$ 2,9 mm"},
+    {lbl:"Exposição Akron (pós)",val:"R$ 8,8 mm",sub:"antiga R$ 4,4 mm + NM 4,375"},
+    {lbl:"Prioridade",val:"Sênior",sub:"1º na cascata + AF ações/marca"},
+  ],
+  snapshot:[
+    {n:"872",c:"lojas (mai/26)"},{n:"26%",c:"share em óculos de sol (vol.)"},
+    {n:"R$ 368 mm",c:"faturamento 2025"},{n:"R$ 997 mm",c:"sell-out da rede 2025"},
+    {n:"256",c:"franqueados"},{n:"100%",c:"lojas franqueadas (asset-light)"},
+    {n:"1998",c:"fundação (Caito Maia)"},{n:"10,4x",c:"dívida líq./EBITDA (as-is)"},
+  ],
+  // ---- return scenarios (New+Old Money, deck p.31) ----
+  scen:[
+    {k:"Base c/ M&A",tir:"65% a.a.",moic:"3,0x",ll:"R$ 18 mm",when:"M&A dez/28",tone:"grn",
+     prem:["EBITDA R$ 53 mm (2027) e R$ 79 mm (2028)","M&A em dez/28 amortiza antecipadamente todos os créditos"]},
+    {k:"Base s/ M&A",tir:"35% a.a.",moic:"2,2x",ll:"R$ 11 mm",when:"pagamentos até 2031",tone:"gry",
+     prem:["Mesmo EBITDA da base, sem M&A","Recebimentos limitados ao New Money e Tranche 1 até ago/31"]},
+    {k:"Conservador",tir:"16% a.a.",moic:"1,3x",ll:"R$ 3 mm",when:"refin. relevante a partir de jul/29",tone:"amb",
+     prem:["EBITDA R$ 40 mm (2027) e R$ 47 mm (2028)","944→814 lojas (-13,8%) em 26; 678 (-16,7%) em 27","Sell-out/loja -24,5% em 26 e -2,0% em 27"]},
+  ],
+  // ---- debt composition (deck p.15) ----
+  debt:{total:551, parts:[
+    {k:"Financeira",v:424,c:"var(--ink)"},{k:"Aval",v:36,c:"var(--graf)"},
+    {k:"Fiscal",v:71,c:"var(--accent2)"},{k:"Fornecedores",v:20,c:"#A9A9AD"}],
+    cred:[{k:"Banco do Brasil",v:96.4,p:"23%"},{k:"Caixa",v:71.6,p:"17%"},{k:"Deb. Vert (Mustang)",v:87.0,p:"21%"}]},
+  // ---- crisis 5 factors (deck p.9) ----
+  crise:[
+    {t:"Endividamento na pandemia",p:"Alavancagem alta com avais a franqueados de alto risco, que inadimpliram."},
+    {t:"Retiradas do sócio",p:"Retiradas elevadas do controlador nos últimos anos, mesmo em cenário desafiador."},
+    {t:"Crédito flexível a franqueados",p:"Vendas a prazo em volumes expressivos; contas a receber inflaram e não performaram."},
+    {t:"Mercado estagnado",p:"Demanda fraca em cenário macro de juros altos."},
+    {t:"Gestão financeira amadora",p:"Práticas contábeis não seguidas; despesa financeira 2025 (R$ 137 mm) > EBITDA (R$ 125 mm)."},
+  ],
+  // ---- crisis chronology (deck p.9) ----
+  chrono:[
+    {dt:"2025",h:"Mandato UBS",p:"Cia contrata o UBS para buscar investidor minoritário — até então, em crescimento."},
+    {dt:"Jan 2026",h:"Inadimplência",p:"Sem novos investidores, a Cia deixa de honrar compromissos com alguns credores."},
+    {dt:"Fev 2026",h:"Quebra de covenants",p:"Sinal de alerta: a Kinea, um dos principais credores, sinaliza interesse em vender seu crédito."},
+    {dt:"Jun 2026",h:"Entrada da Akron",p:"Akron e coinvestidores adquirem os créditos detidos por Kinea e XP."},
+    {dt:"Em curso",h:"Recuperação Extrajudicial",p:"Negociação do Plano de RE, coordenada pelos consultores da Cia e pela Akron."},
+  ],
+  // ---- debenture acquisition (deck p.24) ----
+  acq:{consorcio:[["Akron","25%"],["Jazz","25%"],["Vega","50%"]],
+    steps:[
+      {dt:"29/05/2026",h:"Crédito da Kinea",p:"73% das debêntures por ~R$ 18 mm (@ 27,5% VF)"},
+      {dt:"11/06/2026",h:"Crédito da XP",p:"+3% das debêntures por ~R$ 0,5 mm (@ 20% VF)"},
+    ]},
+  // ---- Options A/B/C (deck p.25) ----
+  opts:{
+    rows:[
+      {l:"New Money",a:"Sem New Money",b:"R$ 35 mm · TIR 37% a.a. · carência 6m juros / 12m amort. (SAC) · prazo 30m",c:"Sem New Money"},
+      {l:"Tranche Roll-Up (operacional)",a:"—",b:"25% do saldo · CDI · carência 12m juros / 24m amort. (SAC) · prazo 48m",c:"—"},
+      {l:"Tranche 1 (operacional)",a:"40% do saldo · CDI · carência 24m juros e amort. (SAC) · prazo 60m",b:"25% do saldo · CDI · carência 24m juros e amort. (SAC) · prazo 60m",c:"20% do saldo · TR+1% a.a. · carência 84m · bullet · prazo 84m"},
+      {l:"Tranche 2 (holding, quase-equity)",a:"60% do saldo · CDI · bullet · prazo 60m",b:"50% do saldo · CDI · bullet · prazo 60m",c:"Sem Tranche 2"},
+      {l:"Deságio implícito na operacional",a:"~60%",b:"~50%",c:"—"},
+    ]},
+  // ---- Option B rationale (deck p.26) ----
+  ratB:[
+    {t:"Prioridade na cascata",p:"New Money em 1º lugar; Roll-Up em 2º, à frente das Tranches 1 e 2."},
+    {t:"Recebimento acelerado",p:"Tranche Roll-Up antecipa 1:1 o valor aportado, com prazo e carências menores (48m vs 60m)."},
+    {t:"Deságio menor",p:"A parte que fica como dívida operacional é 50%, contra 40% dos demais credores."},
+    {t:"Garantias reforçadas",p:"Alienação fiduciária de 100% das ações e da marca."},
+  ],
+  // ---- New Money structure (deck p.27) ----
+  nm:[
+    ["Instrumento","Nota Comercial Pública"],
+    ["Emissora","Mustang 25 Participações Ltda. (CNPJ 20.755.790/0001-22)"],
+    ["Valor líquido","R$ 35,0 mm (exposição Akron R$ 4,375 mm)"],
+    ["Taxa e fee","2,5% a.m. + fee de estruturação 3% (≈ 2,67% a.m.)"],
+    ["Prazo","30 meses (vencimento mar/2029)"],
+    ["Carência","6 meses de juros e 12 meses de principal (SAC)"],
+    ["MOIC mínimo","1,5x"],
+    ["Aval","Antonio Caito Maia Gomes Pereira (sócio controlador)"],
+    ["Garantias reais","Cessão fiduciária de recebíveis + AF de marcas e de ações/quotas das Recuperandas"],
+    ["Índice de cobertura","100% do saldo devedor (em até 180 dias de cada desembolso)"],
+  ],
+  cascade:[
+    {rk:"1",nm:"New Money",ds:"R$ 35 mm · o dinheiro novo, primeiro a receber"},
+    {rk:"2",nm:"Tranche Roll-Up",ds:"crédito antigo antecipado 1:1 (48m, deságio 50%)"},
+    {rk:"3",nm:"1ª Tranche A/B (operacional)",ds:"saldo operacional remanescente (60m)"},
+    {rk:"4",nm:"2ª Tranche A/B (holding)",ds:"quase-equity; bullet, só com evento de liquidez"},
+  ],
+  // ---- EV bridge (deck p.28-29, reconstruído + verificado) ----
+  ev:{cols:["2026 As-Is","2026 Pós-Reestr.","2028"],
+    rows:[
+      {l:"EBITDA (pré-IFRS 16)",v:["53","53","79"]},
+      {l:"(×) Múltiplo",v:["8,0x","8,0x","8,0x"]},
+      {l:"(=) Enterprise Value",v:["424","424","632"],b:1},
+      {l:"(+) Caixa",v:["—","44","10"]},
+      {l:"(=) EV + Caixa",v:["424","468","642"],b:1},
+      {l:"(−) Dívida operacional",v:["(551)","(296)","(267)"],neg:1},
+      {l:"(=) Equity s/ dívida holding",v:["(127)","172","375"],b:1},
+      {l:"DL/EBITDA s/ holding",v:["10,4x","4,8x","3,3x"]},
+      {l:"(−) Dívida holding",v:["—","(259)","(321)"],neg:1},
+      {l:"(=) Equity c/ dívida holding",v:["(127)","(87)","54"],b:1},
+    ]},
+};
+
+/* ---- tab config ---- */
+const TABS = [
+  {id:"p-sum",  label:"Sumário",                 grp:"TESE",         icon:"M4 6h16M4 12h10M4 18h7"},
+  {id:"p-cia",  label:"A Companhia",              grp:"FUNDAMENTOS",  icon:"M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"},
+  {id:"p-setor",label:"Setor",                    grp:"FUNDAMENTOS",  icon:"M3 20h18M5 18V9m4 9V5m4 13v-7m4 7V8"},
+  {id:"p-news", label:"Notícias",                 grp:"FUNDAMENTOS",  icon:"M4 5h13v14H6a2 2 0 0 1-2-2V5zm13 3h3v9a2 2 0 0 1-2 2M7 9h7M7 12h7M7 15h4"},
+  {id:"p-sit",  label:"Situação & Reestruturação",grp:"A OPERAÇÃO",   icon:"M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"},
+  {id:"p-val",  label:"Valuation & Retorno",      grp:"A OPERAÇÃO",   icon:"M4 19V5m0 14h16M8 15l3-4 3 3 4-6"},
+  {id:"p-risco",label:"Riscos & Assunções",       grp:"A OPERAÇÃO",   icon:"M12 3l9 16H3L12 3zm0 6v5m0 3h.01"},
+  {id:"p-anexo",label:"Fontes & Anexos",          grp:"A OPERAÇÃO",   icon:"M7 3h7l5 5v13H7zM14 3v5h5"},
+];
+const GRP_COLOR = {"TESE":"var(--red)","FUNDAMENTOS":"var(--graf)","A OPERAÇÃO":"var(--accent2)"};
+
+/* ============================================================ HELPERS === */
+const $=(s,e=document)=>e.querySelector(s), $$=(s,e=document)=>[...e.querySelectorAll(s)];
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+function tip(e,txt){const t=$("#tip");t.textContent=txt;t.style.display="block";const m=ev=>{t.style.left=(ev.clientX+14)+"px";t.style.top=(ev.clientY+14)+"px";};m(e);e.target.__m=m;e.target.addEventListener("mousemove",m);}
+function untip(e){const t=$("#tip");t.style.display="none";if(e.target.__m)e.target.removeEventListener("mousemove",e.target.__m);}
+const money=v=>v.toLocaleString("pt-BR",{maximumFractionDigits:1});
+
+/* simple vertical bar chart: data=[{k,v,c?}] */
+function svgBars(data,{h=200,unit="",fmt=(v)=>money(v),pad=28}={}){
+  const W=520,H=h,left=8,right=8,top=14,bottom=30;
+  const max=Math.max(...data.map(d=>d.v))*1.12||1;
+  const iw=W-left-right, bw=iw/data.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for(let g=0;g<=3;g++){const y=top+(H-top-bottom)*g/3;const val=max*(1-g/3);
+    s+=`<line class="axl" x1="${left}" y1="${y}" x2="${W-right}" y2="${y}"/>`;
+    s+=`<text class="axt" x="${left}" y="${y-3}">${fmt(val)}</text>`;}
+  data.forEach((d,i)=>{
+    const bh=(d.v/max)*(H-top-bottom);const x=left+i*bw+bw*0.18;const bwid=bw*0.64;const y=H-bottom-bh;
+    s+=`<rect x="${x}" y="${y}" width="${bwid}" height="${bh}" rx="3" fill="${d.c||'var(--ink)'}" data-t="${d.k}: ${fmt(d.v)}${unit}"/>`;
+    s+=`<text class="axt" x="${x+bwid/2}" y="${H-bottom+14}" text-anchor="middle">${d.k}</text>`;
+    s+=`<text x="${x+bwid/2}" y="${y-4}" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">${fmt(d.v)}</text>`;
+  });
+  s+=`</svg>`;return s;
+}
+
+/* horizontal waterfall / composition: items=[{k,v,c}], with total */
+function svgHBars(items,{unit="R$ mm",fmt=money}={}){
+  const max=Math.max(...items.map(d=>d.v))*1.05||1;
+  let s=`<div style="display:flex;flex-direction:column;gap:9px">`;
+  items.forEach(d=>{
+    const w=(d.v/max*100).toFixed(1);
+    s+=`<div style="display:flex;align-items:center;gap:10px">
+      <div style="width:112px;flex:none;font-size:12px;font-weight:600;text-align:right;color:var(--ink)">${d.k}</div>
+      <div style="flex:1;background:#F0F0F2;border-radius:6px;height:22px;position:relative">
+        <div style="width:${w}%;height:100%;background:${d.c};border-radius:6px"></div>
+      </div>
+      <div style="width:70px;flex:none;font-size:12.5px;font-weight:700">${fmt(d.v)}</div></div>`;
+  });
+  s+=`</div>`;return s;
+}
+function bindTips(root){$$("[data-t]",root).forEach(n=>{n.addEventListener("mouseenter",e=>tip(e,n.getAttribute("data-t")));n.addEventListener("mouseleave",untip);n.style.cursor="default";});}
+
+/* ============================================================ RENDER ==== */
+function scenCard(sc){
+  return `<div class="card" style="border-top:3px solid ${sc.tone==='grn'?'var(--green)':sc.tone==='amb'?'var(--amber)':'var(--accent2)'}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0">${sc.k}</h2><span class="pill ${sc.tone}">${sc.when}</span></div>
+    <div class="stat4" style="grid-template-columns:repeat(3,1fr);margin:12px 0 4px">
+      <div class="st"><div class="n" style="color:var(--red)">${sc.tir}</div><div class="c">TIR</div></div>
+      <div class="st"><div class="n">${sc.moic}</div><div class="c">MOIC</div></div>
+      <div class="st"><div class="n">${sc.ll}</div><div class="c">Lucro líquido</div></div>
+    </div>
+    <ul style="margin:8px 0 0 16px;font-size:11.5px;color:#50505A;line-height:1.5">${sc.prem.map(p=>`<li>${p}</li>`).join("")}</ul>
+  </div>`;
+}
+
+const R = {
+"p-sum":()=>`
+  <div class="card dark">
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:2;min-width:260px">
+        <div class="hsub" style="color:var(--red);margin-bottom:6px">A TESE</div>
+        <div style="font-size:19px;font-weight:700;line-height:1.4;letter-spacing:-.2px">
+          O aporte de <b style="color:#fff">New Money de R$ 35 mm</b> cobre a necessidade de caixa da Chilli Beans em 2026.
+          Ao aderir, a Akron ganha <b style="color:#fff">prioridade na cascata</b>, <b style="color:#fff">aceleração</b> e
+          <b style="color:#fff">deságio menor</b> sobre o crédito antigo — condicionado à execução do plano de reestruturação.</div>
+      </div>
+      <div style="flex:1;min-width:210px;border-left:1px solid rgba(255,255,255,.16);padding-left:18px">
+        <div class="hsub" style="color:rgba(255,255,255,.6);margin-bottom:8px">RECOMENDAÇÃO</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">Aderir à Opção B (com New Money)</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.72);line-height:1.5">Assimetria positiva no crédito novo (sênior, garantido, curto) que também melhora a recuperação do crédito antigo. Downside ancorado no cenário conservador (1,3x).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span>
+    <div class="head-copy"><h2>Racional da adesão</h2><div class="cap">Por que o New Money (Opção B) domina as alternativas sem dinheiro novo (A e C)</div></div></div>
+  <div class="rat" style="margin-bottom:14px">${F.ratB.map(r=>`<div class="r"><div class="t">${r.t}</div><p>${r.p}</p></div>`).join("")}</div>
+
+  <div class="row2">
+    <div class="card"><h2>Snapshot da companhia</h2><div class="cap">Rede de óculos líder no Brasil, asset-light — em crise de liquidez e alavancagem</div>
+      <div class="stat4">${F.snapshot.map(s=>`<div class="st"><div class="n">${s.n}</div><div class="c">${s.c}</div></div>`).join("")}</div>
+    </div>
+    <div class="card"><h2>Retorno em uma tela</h2><div class="cap">New Money + crédito antigo, por cenário (deck set/26) — ancorar no conservador</div>
+      <div class="twrap"><table><thead><tr><th class="l">Cenário</th><th>TIR</th><th>MOIC</th><th>Lucro líq.</th></tr></thead><tbody>
+      ${F.scen.map(s=>`<tr><td class="l">${s.k}</td><td>${s.tir}</td><td>${s.moic}</td><td>${s.ll}</td></tr>`).join("")}
+      </tbody></table></div>
+      <div style="margin-top:10px;font-size:12px;color:#50505A"><b>New Money isolado:</b> TIR 37% a.a. · MOIC 1,7x · payback 23m · lucro líq. R$ 2,9 mm.</div>
+    </div>
+  </div>
+
+  <div class="note warn"><b>Confiabilidade do dado.</b> Os números da companhia são pouco confiáveis: auditoria KPMG pendente, DFs 2025 não emitidas e práticas contábeis admitidas como "não seguidas". A Akron normaliza o EBITDA em R$ 53–60 mm (vs ~R$ 125 mm reportado). Todo número aqui traz origem; divergências de versão estão explícitas.</div>
+`,
+
+"p-sit":()=>{
+  const acq=F.acq, opt=F.opts;
+  return `
+  <div class="subtabs" data-sub="sit">
+    <button data-s="0" class="on">A crise & o passivo</button>
+    <button data-s="1">Posição atual</button>
+    <button data-s="2">Plano de RE</button>
+    <button data-s="3">New Money</button>
+    <button data-s="4">Cascata & garantias</button>
+  </div>
+
+  <div class="subpane on" data-p="0">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3zm0 6v5m0 3h.01"/></svg></span>
+      <div class="head-copy"><h2>Os cinco fatores da crise</h2><div class="cap">O que levou a maior rede de óculos do Brasil de "franco crescimento" ao pré-RE</div></div></div>
+    <div class="card"><div class="steps s5">${F.crise.map((c,i)=>`<div class="step"><div class="n">Fator ${i+1}</div><b>${c.t}</b><p>${c.p}</p></div>`).join("")}</div></div>
+
+    <div class="row31">
+      <div class="card"><h2>Cronologia da crise</h2><div class="cap">Do mandato UBS à Recuperação Extrajudicial</div>
+        <div class="chrono">${F.chrono.map((c,i)=>`<div class="c"><div class="dt">${c.dt}</div><div class="h">${c.h}</div><p>${c.p}</p></div>`).join("")}</div></div>
+      <div class="card"><h2>DL/EBITDA</h2><div class="cap">As-is</div>
+        <div style="text-align:center;padding:14px 0">
+          <div style="font-size:46px;font-weight:800;color:var(--red);letter-spacing:-1px">10,4x</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">dívida líquida / EBITDA</div></div>
+        <div class="note">Despesa financeira 2025 (R$ 137 mm) já superava o EBITDA (R$ 125 mm) — estrutura de capital insustentável.</div></div>
+    </div>
+
+    <div class="card"><div class="section-head" style="margin-bottom:8px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V9m4 12V5m4 16v-9m4 9V8"/></svg></span>
+      <div class="head-copy"><h2>Composição do passivo — R$ 551 mm</h2><div class="cap">Por natureza (deck set/26)</div></div></div>
+      ${svgHBars(F.debt.parts)}
+      <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+        <div class="k" style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Principais credores financeiros</div>
+        <div class="kv">${F.debt.cred.map(c=>`<div><div class="v">${c.k}</div><div class="k">R$ ${money(c.v)} mm · ${c.p}</div></div>`).join("")}</div></div>
+    </div>
+  </div>
+
+  <div class="subpane" data-p="1">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <div class="head-copy"><h2>Como a Akron chegou aqui</h2><div class="cap">Aquisição das debêntures da 10ª emissão (Vert/Mustang) via consórcio</div></div></div>
+    <div class="row31">
+      <div class="card">
+        <div class="tml" style="margin-top:2px">
+          ${acq.steps.map(s=>`<div class="ev hot"><div class="yr">${s.dt}</div><div class="tt">${s.h}</div><div class="dd">${s.p}</div></div>`).join("")}
+          <div class="ev"><div class="yr">Resultado</div><div class="tt">84% da emissão · controle (&gt;75%)</div><div class="dd">Com &gt;75% a Akron controla toda e qualquer matéria da emissão. Após operacionalização, a exposição na debênture cai de R$ 4,6 mm para R$ 4,4 mm.</div></div>
+        </div>
+      </div>
+      <div class="card"><h2>Consórcio</h2><div class="cap">Aquisição do crédito da Kinea</div>
+        <div class="twrap"><table><thead><tr><th class="l">Investidor</th><th>Participação</th></tr></thead><tbody>
+        ${acq.consorcio.map(c=>`<tr><td class="l">${c[0]}</td><td>${c[1]}</td></tr>`).join("")}</tbody></table></div>
+        <div class="kv" style="margin-top:12px">
+          <div><div class="k">Valor de face total</div><div class="v">R$ 87 mm</div></div>
+          <div><div class="k">Emissora</div><div class="v">Mustang 25</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">O consórcio adquiriu 73% da emissão (Kinea @ 27,5% VF) e +3% (XP @ 20% VF). Instrumento: debêntures da Vert Securitizadora (10/02/2025) com lastro em Notas Comerciais da Mustang 25. Garantias: aval de Caito Maia + cessão fiduciária de recebíveis (cartão e boletos).</div>
+  </div>
+
+  <div class="subpane" data-p="2">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span>
+      <div class="head-copy"><h2>O Plano de Recuperação Extrajudicial</h2><div class="cap">Reestruturação dos passivos com consolidação substancial das 7 empresas do grupo</div></div>
+      <span class="tag">Adesão: Opção B</span></div>
+    <div class="card opt"><h2>Opções A / B / C do crédito antigo</h2><div class="cap">A Akron adere à <b style="color:var(--red)">Opção B</b> (com New Money) para acelerar o recebimento</div>
+      <div class="twrap"><table><thead><tr><th class="l">Componente</th><th>Opção A<br><span style="font-weight:400;text-transform:none;color:var(--muted)">sem New Money</span></th><th class="hl">Opção B ✓<br><span style="font-weight:400;text-transform:none;color:var(--red)">com New Money</span></th><th>Opção C<br><span style="font-weight:400;text-transform:none;color:var(--muted)">sem New Money</span></th></tr></thead><tbody>
+      ${opt.rows.map(r=>`<tr><td class="l">${r.l}</td><td>${r.a}</td><td class="colB">${r.b}</td><td>${r.c}</td></tr>`).join("")}
+      </tbody></table></div>
+      <div class="note"><b>Nota de reconciliação.</b> Esta tabela usa o deck de set/26 (primário). O Term Sheet jurídico da RE descreve a mesma reestruturação por outro enquadramento ("Credor Parceiro" vs não-parceiro, deságio de 70% para não-parceiros) — divergência de versão, não de fato.</div>
+    </div>
+    <div class="section-head" style="margin-top:6px"><div class="head-copy"><h2>Racional da Opção B</h2></div></div>
+    <div class="rat" style="margin-bottom:14px">${F.ratB.map(r=>`<div class="r"><div class="t">${r.t}</div><p>${r.p}</p></div>`).join("")}</div>
+    <div class="card"><h2>Reestruturação operacional</h2><div class="cap">Condição para a sustentabilidade da Cia até o evento de liquidez (M&A)</div>
+      <div class="kv">
+        <div><div class="v">Políticas comerciais</div><div class="k">revisão de crédito a franqueados</div></div>
+        <div><div class="v">Franqueados problemáticos</div><div class="k">substituição da base inadimplente</div></div>
+        <div><div class="v">Corte de despesas</div><div class="k">G&A, marketing e dividendos</div></div>
+        <div><div class="v">Watchdog independente</div><div class="k">aprovado pelos credores, custeado pela Cia</div></div>
+      </div></div>
+  </div>
+
+  <div class="subpane" data-p="3">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+      <div class="head-copy"><h2>New Money — estrutura</h2><div class="cap">Nota Comercial Pública fundamental para a necessidade de caixa da Cia em 2026</div></div></div>
+    <div class="row2">
+      <div class="card"><h2>Resumo da estrutura</h2>
+        <div class="kv" style="grid-template-columns:1fr">${F.nm.map(r=>`<div style="display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding:7px 0"><div class="k" style="align-self:center">${r[0]}</div><div class="v" style="text-align:right;max-width:60%">${r[1]}</div></div>`).join("")}</div>
+      </div>
+      <div>
+        <div class="card"><h2>Roll-Up 1:1</h2><div class="cap">Cada R$ 1 de New Money acelera R$ 1 de crédito antigo</div>
+          <div class="flow"><div class="fn"><div class="ft">R$ 1 New Money</div><div class="fs">aportado</div></div><div class="fa">→</div><div class="fn"><div class="ft">R$ 1 antigo → Roll-Up</div><div class="fs">48m vs 60m · deságio 50% vs 60%</div></div></div>
+        </div>
+        <div class="card"><h2>Cash sweep</h2><div class="cap">Caixa &gt; R$ 35 mm em verificações trimestrais</div>
+          <div class="flow"><div class="fn"><div class="ft">Excedente &gt; R$ 35 mm</div><div class="fs">apuração trimestral</div></div><div class="fa">→</div><div class="fn"><div class="ft">100% amortiza</div><div class="fs">sendo 75% ao New Money</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subpane" data-p="4">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span>
+      <div class="head-copy"><h2>Cascata de excussão</h2><div class="cap">Ordem de prioridade no recebimento — o New Money recebe primeiro</div></div></div>
+    <div class="card"><div class="casc">
+      ${F.cascade.map((c,i)=>`<div class="lv ${c.rk==='1'?'p1':''}"><div class="rk">${c.rk}</div><div><div class="nm">${c.nm}</div><div class="ds">${c.ds}</div></div></div>${i<F.cascade.length-1?'<div class="arrow">▼</div>':''}`).join("")}
+    </div></div>
+    <div class="card"><h2>Garantias e proteções do New Money</h2>
+      <div class="kv">
+        <div><div class="v">Sênior na cascata</div><div class="k">1º lugar na excussão e no M&A</div></div>
+        <div><div class="v">Cessão fiduciária de recebíveis</div><div class="k">cartão + boletos</div></div>
+        <div><div class="v">AF de marcas e ações/quotas</div><div class="k">alienação fiduciária das Recuperandas</div></div>
+        <div><div class="v">Cobertura 100%</div><div class="k">do saldo devedor em até 180 dias</div></div>
+      </div>
+      <div class="note warn">A robustez das garantias reais depende da performance futura da Cia; o aval do controlador é considerado frágil (ver aba Riscos).</div>
+    </div>
+  </div>
+`;},
+
+// -------- stubs (a construir na v2) --------
+"p-cia":()=>stub("A Companhia","Perfil & modelo · Franquia & unit economics · Base & performance"),
+"p-setor":()=>stub("Setor","Mercado ótico · Óculos de sol · Grau · Óticas & competição"),
+"p-news":()=>stub("Notícias","Feed cronológico + leitura buy-side (14 matérias)"),
+"p-val":()=>{
+  return `<div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span>
+    <div class="head-copy"><h2>Ponte de valor (prévia)</h2><div class="cap">2026 As-Is → 2026 Pós-Reestruturação → 2028 · a RE torna o equity positivo até 2028</div></div></div>
+    <div class="card"><div class="twrap"><table><thead><tr><th class="l">R$ mm</th>${F.ev.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>
+    ${F.ev.rows.map(r=>`<tr class="${r.b?'tot':''}"><td class="l">${r.l}</td>${r.v.map(v=>`<td class="${r.neg?'neg':''}">${v}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div>
+    <div class="src">Reconstruído do deck (pp. 28–29) e verificado por aritmética: EV = EBITDA × 8,0x; EV + Caixa − Dívida = Equity; DL/EBITDA sobre dívida líquida operacional.</div></div>
+    ${stub("Valuation & Retorno (demais seções)","Valuation & peers · Cenários de retorno · Fluxo de caixa · Recovery & breakeven")}`;
+},
+"p-risco":()=>stub("Riscos & Assunções","Riscos & mitigantes · Vetor de assunções (A1–A6)"),
+"p-anexo":()=>stub("Fontes & Anexos","Documentos · Metodologia · Notas de reconciliação"),
+};
+function stub(t,s){return `<div class="stub"><b>${t}</b><br>Em construção (v2). Subtabs previstos: ${s}.</div>`;}
+
+/* ========================================================= NAV / ROUTER = */
+function buildNav(){
+  const tabs=$("#tabs"), nav=$("#navlist");
+  let last=null;
+  TABS.forEach((t,i)=>{
+    if(t.grp!==last){
+      tabs.appendChild(el("div","tgrp",`<i style="background:${GRP_COLOR[t.grp]}"></i>${t.grp}`));
+      if(i>0){}
+      nav.appendChild(el("div","grp",`<i style="background:${GRP_COLOR[t.grp]}"></i>${t.grp}`));
+      last=t.grp;
+    }
+    const b=el("button",i===0?"on":"",t.label);b.dataset.tab=t.id;b.onclick=()=>go(t.id);tabs.appendChild(b);
+    const nb=el("button",i===0?"on":"");nb.dataset.tab=t.id;
+    nb.innerHTML=`<svg class="nav-ic" viewBox="0 0 24 24"><path d="${t.icon}"/></svg><span>${t.label}</span>`;
+    nb.onclick=()=>{go(t.id);if(window.innerWidth<=860)document.body.classList.add("snav-collapsed");};
+    nav.appendChild(nb);
+  });
+}
+const rendered={};
+function go(id){
+  TABS.forEach(t=>{
+    $(`#${t.id}`).classList.toggle("on",t.id===id);
+    $$(`[data-tab="${t.id}"]`).forEach(b=>b.classList.toggle("on",t.id===id));
+  });
+  const p=$(`#${id}`);
+  if(!rendered[id]){p.innerHTML=R[id]();bindTips(p);bindSub(p);rendered[id]=1;}
+  $("#mobTab").textContent=(TABS.find(t=>t.id===id)||{}).label||"";
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function bindSub(root){
+  $$(".subtabs",root).forEach(st=>{
+    const panes=st.parentElement;
+    st.addEventListener("click",e=>{
+      const b=e.target.closest("button");if(!b)return;
+      $$("button",st).forEach(x=>x.classList.toggle("on",x===b));
+      $$(":scope > .subpane",panes).forEach(pn=>pn.classList.toggle("on",pn.dataset.p===b.dataset.s));
+      window.scrollTo({top:0,behavior:"instant"});
+    });
+  });
+}
+function buildKPIs(){
+  $("#kpiRow").innerHTML=F.kpis.map(k=>`<div class="kpi ${k.feat?'k-feat':''}"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div><div class="sub">${k.sub}</div></div>`).join("");
+}
+function setHH(){const h=$("header").offsetHeight;document.documentElement.style.setProperty("--hh",h+"px");}
+
+/* init */
+buildKPIs();buildNav();go("p-sum");setHH();
+window.addEventListener("resize",setHH);
+$("#navToggle").onclick=()=>document.body.classList.toggle("snav-collapsed");
+if(window.innerWidth<=860)document.body.classList.add("snav-collapsed");
+</script>
+</body>
+</html>
