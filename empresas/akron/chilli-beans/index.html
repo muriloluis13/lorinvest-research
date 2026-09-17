@@ -227,6 +227,10 @@ td.neg{color:var(--neg)}
 .org .obox.hl{border-color:var(--red);background:#FAF3F4}.org .obox.hl .on{color:var(--red)}
 .org .obox.av{border-color:var(--accent2);border-style:dashed}
 .org .conn{width:2px;height:16px;background:var(--line)}
+.org .osub{width:100%;max-width:780px;border:1px solid var(--line);border-radius:12px;background:#FBFBFC;padding:12px 12px 6px}
+.org .osub-t{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px;text-align:center}
+.org .osub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:8px}
+.org .osub-grid .obox{min-width:0;box-shadow:none}
 
 /* markup cascade */
 .cascade-m{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
@@ -1068,12 +1072,15 @@ const R = {
         <div class="conn"></div>
         <div class="lvl"><div class="obox"><div class="on">Casa Firme — Holding</div><div class="os">via Fortuna / Sonic 2503</div></div></div>
         <div class="conn"></div>
-        <div class="lvl">
-          <div class="obox hl"><div class="on">Mustang 25</div><div class="os">Emissora</div></div>
-          <div class="obox"><div class="on">Fortuna Comércio</div><div class="os">Operacional</div></div>
-          <div class="obox"><div class="on">Santa Mônica 25</div><div class="os">Operacional</div></div>
-          <div class="obox"><div class="on">Super 25</div><div class="os">E-commerce</div></div>
-          <div class="obox av"><div class="on">Luz Franquias</div><div class="os">Avalista</div></div>
+        <div class="osub">
+          <div class="osub-t">Sociedades do grupo (Recuperandas)</div>
+          <div class="osub-grid">
+            <div class="obox hl"><div class="on">Mustang 25</div><div class="os">Emissora</div></div>
+            <div class="obox"><div class="on">Fortuna Comércio</div><div class="os">Operacional</div></div>
+            <div class="obox"><div class="on">Santa Mônica 25</div><div class="os">Operacional</div></div>
+            <div class="obox"><div class="on">Super 25</div><div class="os">E-commerce</div></div>
+            <div class="obox av"><div class="on">Luz Franquias</div><div class="os">Avalista</div></div>
+          </div>
         </div>
       </div>
       <div class="legend"><span><i style="background:var(--red)"></i>Emissora do New Money</span><span><i style="border:1.5px dashed var(--accent2);background:transparent"></i>Avalista</span></div></div>
