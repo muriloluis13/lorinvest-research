@@ -1271,8 +1271,13 @@ const R = {
       <div class="st"><div class="n" style="color:var(--green)">~R$ 343<span style="font-size:12px"> mm</span></div><div class="c">proceeds do M&A 30%</div></div>
       <div class="st"><div class="n" style="color:var(--red)">8,0x</div><div class="c">EBITDA — múltiplo do modelo</div></div>
     </div>
+    <div class="card"><div class="section-head" style="margin-bottom:10px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Valuation implícito por método — converge em ~R$ 1,5 bi</h2><div class="cap">Métricas diferentes apontam para o mesmo EV — o valuation cotado pelo UBS BB é defensável</div></div></div>
+      ${svgHCompare([{k:"EV/Receita 4,6x",v:1.49},{k:"EV/EBITDA Cia 12x",v:1.50},{k:"EV/EBITDA fwd 11,4x",v:1.49},{k:"UBS BB (cotado)",v:1.50,hl:true}],{fmt:v=>"R$ "+v.toFixed(2).replace('.',',')+" bi"})}
+      <div class="src">EV/EBITDA forward (11,4x sobre EBITDA 2030E ~R$ 131 mm) é o mais relevante; alinhado com Boticário (~10x).</div></div>
     <div class="row2">
-      <div class="card"><h2>Cross-check do valuation UBS BB</h2><div class="twrap"><table><tbody>${F.valUBS.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+      <div class="card"><h2>Do EV ao equity (UBS BB)</h2><div class="cap">R$ mm</div>
+        ${svgWaterfall([{k:"EV total",v:1500,kind:"abs"},{k:"− Dívida líq.",v:-358,kind:"delta"},{k:"Equity",v:1142,kind:"total"}],{h:180,fmt:v=>(v<0?"("+money(-v)+")":money(v))})}
+        <div class="note"><span class="nl">M&A 30%.</span> Proceeds de ~R$ 343 mm (30% × equity R$ 1,14 bi) — amortizam parte da dívida concursal e do bullet.</div></div>
       <div class="card"><h2>Múltiplos implícitos</h2><div class="twrap"><table><thead><tr><th class="l">Métrica</th><th>Múltiplo</th><th class="l">Leitura</th></tr></thead><tbody>${F.valMult.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td><td class="l" style="color:var(--muted);font-size:11.5px">${r[2]}</td></tr>`).join("")}</tbody></table></div></div>
     </div>
     <div class="card"><h2>Peers</h2><div class="cap">Benchmarks globais e Brasil</div><div class="twrap"><table><thead><tr>${F.peers.cols.map((c,i)=>`<th class="${i===0||i===3?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
