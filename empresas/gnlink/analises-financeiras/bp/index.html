@@ -1659,6 +1659,24 @@ function perChart(how){ const B=periodBuckets(); how=how||"sum";
     agg:serie=>B.map(b=>{ const v=aggBucket(serie,b,how); return v==null?0:v; }) }; }
 // sufixo do eixo p/ os gráficos que respeitam a periodicidade ("R$ MM/ano", "…/mês", …)
 function perUnit(){ return {A:"ano",S:"sem",Q:"tri",M:"mês"}[state.per]||"mês"; }
+// rótulos p/ barras EMPILHADAS periódicas: total no topo de cada coluna + valor por segmento (só quando há
+// poucas colunas, senão poluía). Anexa um dataset transparente que empilha no topo p/ carregar o rótulo do total.
+// Retorna [datasets] pronto (com o dataset do total); use plugins:[ChartDataLabels] no Chart.
+function stackDatalabels(ds, labels, stackId, dec){
+  dec=dec!=null?dec:0;
+  const nB=labels.length, seg=nB<=16, totOK=nB<=32;   // segmento só no anual; total no anual/semestral
+  const totals=labels.map((_,bi)=>ds.reduce((s,d)=>s+(+d.data[bi]||0),0));
+  ds.forEach(d=>{ d.datalabels = seg?{color:"#fff",font:{size:9,weight:"bold"},
+      display:c=>{ const v=+c.dataset.data[c.dataIndex]||0, t=totals[c.dataIndex]||0;
+        return Math.abs(t)>0 && Math.abs(v)/Math.abs(t)>=0.08; },
+      formatter:v=>fmt(v,dec)}:{display:false}; });
+  ds.push({label:"__tot", data:labels.map(()=>0), stack:stackId, order:99, backgroundColor:"transparent",
+    datalabels:{align:"end",anchor:"end",color:"#33424F",font:{size:10,weight:"bold"},offset:-2,clamp:true,
+      display:c=>totOK && Math.abs(totals[c.dataIndex])>0.049,
+      formatter:(v,c)=>fmt(totals[c.dataIndex],dec)}});
+  return ds;
+}
+const _noTot=it=>!(it.text||'').startsWith('__');   // esconde o dataset do total da legenda
 // tabela periódica com linha de tipo (Hist/Orç/Forecast) acima das datas.
 // rows: [{lbl, serie:[192], how?, d?, pct?, div?, bold?, perPlanta?:fn(plantaId)->serie}]
 // No CONSOLIDADO, linhas com perPlanta abrem (clique) as linhas de todos os projetos.
@@ -1707,7 +1725,10 @@ function renderReceita(){
   h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "fim do horizonte",null,MECH.receita_liquida);
   h += kpi("Receita atual (últ. realizado)", MM((rc.total[cut]||0)*12), "R$ MM anualizado · "+fmtMes(DB.meses[cut].ym),null,MECH.receita_liquida);
   h += '</div>';
-  h += '<div class="card"><h4>Receita Líquida mensal — '+regName(reg)+' (R$ MM, por componente)</h4><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
+  h += '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
+     + '<h4 style="margin:0">Receita Líquida — '+regName(reg)+' · por '+(REVDIMS.find(d=>d[0]===state.revdim)[1])+' (R$ MM)</h4>'
+     + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Empilhar por</span>'+revdimbarHTML()+'</div>'
+     + '</div><div class="chart-box"><canvas id="cRev"></canvas></div></div>';
   h += revTable(rc, reg);
   return {html:h, rc};
 }
@@ -1867,22 +1888,33 @@ function revDimRows(rc, reg){
   return mods.map(m=>({lbl:m, serie:_cliRevSum(reg,c=>c.entrega===m), d:1, perPlanta:_cliRevPer(c=>c.entrega===m)}))
     .concat([{lbl:"Total (GNL+GNC)", serie:_cliRevSum(reg,()=>true), d:1, bold:true, perPlanta:_cliRevPer(()=>true)}]);
 }
+// linhas do GRÁFICO de receita = mesma dimensão da tabela (produto/planta/cliente/segmento/modalidade),
+// sem a linha de total, com uma cor por segmento (produto reusa as cores dos componentes).
+const REV_CHARTPAL=["#3D4A5C","#E23A2E","#2E7D4F","#C55A17","#4880A8","#7FC6A2","#55677C","#8A6D3B","#9C4DA0","#0E7C86","#B5651D","#5B8C5A"];
+function revChartRows(rc, reg){
+  const rows=revDimRows(rc, reg).filter(r=>!r.bold);
+  const prod=state.revdim==="produto";
+  return rows.map((r,i)=>({lbl:r.lbl, serie:r.serie, col: prod ? (REVCOMP[i]&&REVCOMP[i][2] || REV_CHARTPAL[i%REV_CHARTPAL.length]) : REV_CHARTPAL[i%REV_CHARTPAL.length]}));
+}
 function revTable(rc, reg){
   const dim=state.revdim, ext=(dim==="produto"||dim==="planta");
   return '<h3 class="msub">Receita — por '+(REVDIMS.find(d=>d[0]===dim)[1])+' (R$ MM)</h3>'+
-    revdimbarHTML()+serieTableHTML(revDimRows(rc,reg),"R$ MM")+
+    serieTableHTML(revDimRows(rc,reg),"R$ MM")+
     '<div class="note">Linha superior: <b>Histórico</b> · <b>Orçamento</b> (até dez/26) · <b>Forecast</b> (2027+). '+
     (reg===0?'No consolidado, clique numa linha para abrir os projetos. ':'')+
     (ext?'Inclui serviço/aluguel/outros (por planta).':'Somente GNL+GNC (as parcelas serviço/aluguel/outros são por planta, não por cliente).')+'</div>';
 }
 function drawRev(rc){
-  const P=perChart(), labels=P.labels;
-  const ds=REVCOMP.map(([k,lbl,col])=>({label:lbl, data:P.agg(rc[k]).map(v=>v/1e6),
-    backgroundColor:col, borderColor:col, borderWidth:0, stack:"r"}));
+  const P=perChart(), labels=P.labels, reg=state.regiao;
+  let ds=revChartRows(rc, reg).map(r=>({label:r.lbl, data:P.agg(r.serie).map(v=>v/1e6),
+    backgroundColor:r.col, borderColor:r.col, borderWidth:0, stack:"r"}));
+  ds=stackDatalabels(ds, labels, "r", 0);
   charts.rev=new Chart($("#cRev"),{type:"bar", data:{labels,datasets:ds},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
-        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
+      layout:{padding:{top:16}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5},filter:_noTot}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"},filter:t=>t.dataset.label!=="__tot"}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
@@ -2260,7 +2292,7 @@ function renderHolding(){
   h+=kpi("SG&A holding 2030 (R$ MM)", MM(yTot["2030"]?.v||0), "");
   h+=kpi("SG&A holding "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
   h+='</div>';
-  h+='<div class="card"><h4>SG&A da holding — mensal por componente (R$ MM)</h4><div class="chart-box"><canvas id="cHold"></canvas></div></div>';
+  h+='<div class="card"><h4>SG&A da holding — por componente (R$ MM, custo positivo)</h4><div class="chart-box"><canvas id="cHold"></canvas></div></div>';
   const rows=HOLD_SUB.map(s=>({lbl:HOLD_LABEL[s], serie:HC.comp[s], d:1}))
     .concat([{lbl:"Total SG&A holding", serie:tot, bold:true, d:1}]);
   h+='<h3 class="msub">Componentes (R$ MM)</h3>'+serieTableHTML(rows,"R$ MM");
@@ -2293,11 +2325,15 @@ function renderHolding(){
 }
 function drawHoldStack(HC){
   const P=perChart(), labels=P.labels;
-  const ds=HOLD_SUB.map((s,i)=>({label:HOLD_LABEL[s], data:P.agg(HC.comp[s]).map(v=>v/1e6), backgroundColor:SUBPAL[i%SUBPAL.length], borderWidth:0, stack:"h"}));
+  // custos exibidos como POSITIVOS (convenção do gráfico de OpEx). A série do SG&A holding é negativa (despesa) → inverte o sinal p/ exibir.
+  let ds=HOLD_SUB.map((s,i)=>({label:HOLD_LABEL[s], data:P.agg(HC.comp[s]).map(v=>-v/1e6), backgroundColor:SUBPAL[i%SUBPAL.length], borderWidth:0, stack:"h"}));
+  ds=stackDatalabels(ds, labels, "h", 1);
   charts.hold=new Chart($("#cHold"),{type:"bar",data:{labels,datasets:ds},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},datalabels:{display:false},
-        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
+      layout:{padding:{top:16}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10},filter:_noTot}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"},filter:t=>t.dataset.label!=="__tot"}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
@@ -3553,7 +3589,7 @@ function renderOpexOverview(reg, h){
   h+='<div class="card"><h4>Composição por atividade — '+regName(reg)+' · '+od.perLbl+' (R$ MM)</h4>'
     +'<div class="chart-box" style="height:'+(70+od.comp.length*34)+'px"><canvas id="cOpexComp"></canvas></div></div>';
 
-  h+='<div class="card"><h4>Custos operacionais mensais — '+regName(reg)+' (R$ MM, empilhado)</h4><div class="chart-box"><canvas id="cOpex"></canvas></div></div>';
+  h+='<div class="card"><h4>Custos operacionais — '+regName(reg)+' (R$ MM, empilhado)</h4><div class="chart-box"><canvas id="cOpex"></canvas></div></div>';
   const opRows=COST_ORDER.map(c=>({lbl:COST_LABEL[c], serie:s[c], tip:MECH[c], perPlanta:p=>costSeries(p)[c]}))
     .concat([{lbl:"Custo total",serie:tot,bold:true,tip:MECH.custo_total,perPlanta:p=>custoTotal(p)}]);
   h+='<h3 class="msub">Custos por categoria (R$ MM)</h3>'+serieTableHTML(opRows,"R$ MM");
@@ -3684,11 +3720,14 @@ function renderOpexCat(reg, cat, h){
 }
 function drawOpexStack(s){
   const P=perChart(), labels=P.labels;
-  const ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:P.agg(s[c]).map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
+  let ds=COST_ORDER.map(c=>({label:COST_LABEL[c], data:P.agg(s[c]).map(v=>v/1e6),backgroundColor:COST_PAL[c],borderWidth:0,stack:"c"}));
+  ds=stackDatalabels(ds, labels, "c", 0);
   charts.opex=new Chart($("#cOpex"),{type:"bar",data:{labels,datasets:ds},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5}}},datalabels:{display:false},
-        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"}}},
+      layout:{padding:{top:16}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10.5},filter:_noTot}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,2)+" MM"},filter:t=>t.dataset.label!=="__tot"}},
       scales:{x:{stacked:true,ticks:{maxTicksLimit:14,color:"#5C6B7A"},grid:{display:false}},
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
