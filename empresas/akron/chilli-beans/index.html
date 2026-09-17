@@ -982,8 +982,18 @@ const R = {
       <div class="head-copy"><h2>O Plano de Recuperação Extrajudicial</h2><div class="cap">Reestruturação dos passivos com consolidação substancial das 7 empresas do grupo</div></div>
       <span class="tag">Adesão: Opção B</span></div>
     <div class="card"><h2>Opções A / B / C do crédito antigo</h2><div class="cap">A Akron adere à <b style="color:var(--red)">Opção B</b> — com New Money, ganha aceleração e menor deságio</div>
-      <div class="optcards">${['a','b','c'].map(k=>{const isB=k==='b';const label=k==='a'?'Opção A':k==='b'?'Opção B':'Opção C';const sub=k==='b'?'com New Money':'sem New Money';return `<div class="optcard${isB?' sel':''}"><div class="optcard-h"><div class="oc-t">${label}${isB?' <span class="pill red">✓ Adesão</span>':''}</div><div class="oc-s">${sub}</div></div>${F.opts.rows.map(r=>`<div class="oc-row"><div class="oc-k">${r.l}</div><div class="oc-v">${r[k]}</div></div>`).join("")}</div>`;}).join("")}</div>
+      <div class="optcards">${['a','b','c'].map(k=>{const isB=k==='b';const label=k==='a'?'Opção A':k==='b'?'Opção B':'Opção C';const sub=k==='b'?'com New Money':'sem New Money';const verd={a:'Deságio maior (60%); sem dinheiro novo.',b:'Recebe antes (Roll-Up 1:1) e deságio menor (50%).',c:'Sem Tranche 2; prazos longos (bullet 84m).'}[k];return `<div class="optcard${isB?' sel':''}"><div class="optcard-h"><div class="oc-t">${label}${isB?' <span class="pill red">✓ Adesão</span>':''}</div><div class="oc-s">${sub}</div><div style="font-size:11px;color:${isB?'var(--red)':'#50505A'};margin-top:6px;line-height:1.4;font-weight:${isB?'600':'400'}">${verd}</div></div>${F.opts.rows.map(r=>`<div class="oc-row"><div class="oc-k">${r.l}</div><div class="oc-v">${r[k]}</div></div>`).join("")}</div>`;}).join("")}</div>
       <div class="note"><span class="nl">Reconciliação.</span> Usa o deck de set/26 (primário). O Term Sheet jurídico descreve a mesma reestruturação por outro enquadramento ("Credor Parceiro" vs não-parceiro, deságio de 70%) — divergência de versão, não de fato.</div>
+    </div>
+    <div class="card"><div class="section-head" style="margin-bottom:10px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M5 8h9a3 3 0 0 1 0 6H7m0 0h9"/></svg></span><div class="head-copy"><h2>O ponto econômico — deságio na dívida operacional</h2><div class="cap">Aderir ao New Money (Opção B) reduz o corte de ~60% para ~50%; os demais credores ficam com 60%</div></div></div>
+      <div class="row31" style="align-items:center">
+        <div>${svgHCompare([{k:"Opção A · sem NM",v:60},{k:"Opção B · com NM",v:50,hl:true}],{fmt:v=>"~"+v+"% de corte"})}
+          <div class="src">Opção C tem estrutura diferente (TR + 1% a.a., bullet em 84m), sem deságio direto comparável.</div></div>
+        <div style="text-align:center;background:#E7F0EA;border:1px solid #CFE3D6;border-radius:12px;padding:16px 12px">
+          <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em">Ganho da adesão</div>
+          <div style="font-size:32px;font-weight:800;color:var(--green);letter-spacing:-1px;margin:4px 0">−10 pp</div>
+          <div style="font-size:11px;color:#3A5A44;line-height:1.4">de deságio + Tranche Roll-Up (48m vs 60m) + prioridade na cascata</div></div>
+      </div>
     </div>
     <div class="section-head" style="margin-top:6px"><div class="head-copy"><h2>Racional da Opção B</h2></div></div>
     <div class="rat" style="margin-bottom:14px">${F.ratB.map(r=>`<div class="r"><div class="t">${r.t}</div><p>${r.p}</p></div>`).join("")}</div>
