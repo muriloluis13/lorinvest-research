@@ -4524,11 +4524,11 @@ function roadmapEvents(){
   for(let k=cut+1;k<n;k++){ const ds=num(de.desemb[k]), am=-num(de.amort[k]);
     if(ds>=50e6) push(k,"emissao","Emissão de dívida R$"+fmt(ds/1e6,0)+" mi");
     if(am>=50e6) push(k,"amort","Amortização R$"+fmt(am/1e6,0)+" mi"); }
-  // clientes âncora (pico ≥ 50 mil m³/d) — os 4 maiores
+  // clientes com volume relevante (pico ≥ 15 mil m³/d), no 1º mês de rampa; plano na etiqueta (nomes se repetem entre plantas)
   const cl=[]; for(const cc of DB.clientes){ if(!plantOn(cc.planta)) continue; const v=volClienteSerie(cc);
     let f=-1,pk=0; for(let k=cut+1;k<n;k++){ if((v[k]||0)>pk)pk=v[k]; if(f<0&&(v[k]||0)>3000)f=k; }
-    if(f>=0&&pk>=50000) cl.push({f,pk,nome:cc.nome}); }
-  cl.sort((a,b)=>b.pk-a.pk); for(const cc of cl.slice(0,4)) push(cc.f,"cliente",cc.nome+" ("+fmt(cc.pk/1e3,0)+" mil m³/d)");
+    if(f>=0&&pk>=15000) cl.push({f,pk,nome:cc.nome,pl:CAP_PLANTA[cc.planta]}); }
+  cl.sort((a,b)=>b.pk-a.pk); for(const cc of cl.slice(0,20)) push(cc.f,"cliente",cc.nome+" · "+cc.pl+" ("+fmt(cc.pk/1e3,0)+" mil m³/d)");
   // aporte, dividendos, breakeven
   const ap=aporteMinimoEngine(); for(let k=cut+1;k<n;k++){ if(num(ap.aporte[k])>1e5){ push(k,"aporte","1º aporte de capital"); break; } }
   const dv=dividendosSerie().div; for(let k=cut+1;k<n;k++){ if(num(dv[k])>1e5){ push(k,"dividendo","Início dos dividendos"); break; } }
