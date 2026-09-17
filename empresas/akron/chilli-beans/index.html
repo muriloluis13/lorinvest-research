@@ -1358,14 +1358,15 @@ const R = {
 
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V10m4 10V6m4 14v-8m4 8V8"/></svg></span><div class="head-copy"><h2>Trading comps — múltiplos de pares</h2><div class="cap">Eyewear pure-play (principais) e varejo/franquia BR (contexto) · empresa fechada, sem múltiplo próprio</div></div></div>
-    <div class="card"><h2>Principais comparáveis (eyewear)</h2><div class="cap">EssilorLuxottica · Warby Parker · Safilo</div>
-      <div class="twrap"><table><thead><tr><th class="l">Empresa</th><th>EV/Sales</th><th>EV/EBITDA</th><th>P/E</th><th class="l">Fonte</th></tr></thead><tbody>
-      ${C.tradingMain.map(r=>`<tr><td class="l"><b>${r.e}</b><br><span style="color:var(--muted);font-size:11px">${r.tk}</span></td><td>${r.evs}</td><td>${r.eveb}</td><td>${r.pe}</td>${srcCell(r)}</tr>`).join("")}
-      </tbody></table></div>
-      <div style="margin-top:14px"><div class="cap" style="font-weight:700;color:var(--ink);margin-bottom:8px">EV/Sales dos principais (x)</div>
-      ${svgHCompare([{k:"EssilorLuxottica",v:3.0},{k:"Warby Parker",v:3.0},{k:"Safilo",v:0.8,hl:true}],{fmt:v=>v.toFixed(1).replace('.',',')+"x"})}
-      <div class="src">Safilo (piso) ancora a faixa inferior; EssilorLuxottica e Warby são de escala/estágio distintos da Chilli.</div></div></div>
-    <div class="row3">${C.tradingWhy.map(w=>`<div class="card" style="margin-bottom:0"><h2 style="font-size:13px">${w.e}</h2><p style="font-size:11.8px;color:#50505A;line-height:1.55;margin-top:4px">${w.p}</p></div>`).join("")}</div>
+    <div class="row3">${['EssilorLuxottica','Warby Parker','Safilo'].map(name=>{const m=C.tradingMain.find(x=>x.e===name),w=C.tradingWhy.find(x=>x.e===name);const st=({live:['✓','var(--green)'],chk:['○','var(--amber)']}[m.st]||['·','var(--muted)']);return `<div class="card" style="margin:0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2 style="margin:0;font-size:14px">${m.e}</h2><span style="font-size:10.5px;color:var(--muted)">${m.tk}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:11px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+        ${[['EV/Sales',m.evs],['EV/EBITDA',m.eveb],['P/E',m.pe]].map(x=>`<div><div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700">${x[0]}</div><div style="font-size:15px;font-weight:800;letter-spacing:-.3px">${x[1]}</div></div>`).join("")}
+      </div>
+      <p style="font-size:11.5px;color:#50505A;line-height:1.5">${w.p}</p>
+      <div class="src"><span style="color:${st[1]}">${st[0]}</span> ${m.src}</div></div>`;}).join("")}</div>
+    <div class="card" style="margin-top:14px"><h2>Faixa de múltiplos do setor (EV/EBITDA)</h2><div class="cap">Do piso (Safilo) ao teto (EssilorLuxottica); Warby fica fora, como ativo de crescimento</div>
+      ${svgHCompare([{k:"Safilo · piso",v:7,c:"var(--green)"},{k:"EssilorLuxottica · teto",v:12.4},{k:"Warby · crescimento",v:25,c:"var(--muted)"}],{fmt:v=>v.toFixed(1).replace('.',',')+"x"})}</div>
     <div class="card" style="margin-top:14px"><h2>Secundários / contexto (varejo & franquia BR)</h2>
       <div class="twrap"><table><thead><tr><th class="l">Empresa</th><th>EV/EBITDA</th><th>P/E</th><th class="l">Fonte</th></tr></thead><tbody>
       ${C.tradingSec.map(r=>`<tr><td class="l"><b>${r.e}</b> <span style="color:var(--muted);font-size:11px">${r.tk}</span></td><td>${r.eveb}</td><td>${r.pe}</td>${srcCell(r)}</tr>`).join("")}
@@ -1375,10 +1376,15 @@ const R = {
 
   <div class="subpane" data-p="1">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M8 7h11l-3-3M16 17H5l3 3"/></svg></span><div class="head-copy"><h2>M&A / transações — referência de saída</h2><div class="cap">Deals em eyewear/óticas e franquia de moda</div></div></div>
-    <div class="card"><div class="twrap"><table><thead><tr><th class="l">Alvo</th><th class="l">Comprador</th><th>Ano</th><th class="l">Valor (EV)</th><th class="l">Múltiplo</th><th class="l">Fonte</th></tr></thead><tbody>
-      ${C.ma.map(r=>`<tr><td class="l"><b>${r.alvo}</b></td><td class="l">${r.comp}</td><td>${r.ano}</td><td class="l">${r.ev}</td><td class="l">${r.mult}</td>${srcCell(r)}</tr>`).join("")}
-      </tbody></table></div>
-      <div class="note"><span class="nl">Leitura.</span> ${C.maNote}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:12px">
+      ${C.ma.map(d=>{const hl=/Carol/.test(d.alvo);const st=({live:['✓','var(--green)'],chk:['○','var(--amber)']}[d.st]||['·','var(--muted)']);return `<div class="card" style="margin:0${hl?';border-color:#F1D9DD;background:#FAF3F4':''}">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px"><div style="font-size:13px;font-weight:700;line-height:1.3">${d.alvo}</div>${hl?'<span class="pill red" style="white-space:nowrap">+ direto</span>':''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">${d.comp} · ${d.ano}</div>
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.4px;margin:9px 0 2px;color:${hl?'var(--red)':'var(--ink)'}">${d.ev}</div>
+        <div style="font-size:11px;color:#50505A;line-height:1.4">${d.mult}</div>
+        <div class="src"><span style="color:${st[1]}">${st[0]}</span> ${d.src}</div></div>`;}).join("")}
+    </div>
+    <div class="note"><span class="nl">Leitura.</span> ${C.maNote}</div>
   </div>
 
   <div class="subpane" data-p="2">
