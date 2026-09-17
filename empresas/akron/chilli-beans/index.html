@@ -28,9 +28,8 @@ header::before{content:'';display:block;height:3px;background:linear-gradient(90
 #navToggle{background:#fff;border:1px solid var(--line);border-radius:8px;font-size:15px;font-weight:700;color:var(--accent);padding:3px 10px;cursor:pointer;line-height:1.2;flex:none}
 #navToggle:hover{background:#F2F2F4;border-color:var(--accent2)}
 .logo{display:flex;align-items:center;gap:10px;flex:none}
-.logo .mark{width:30px;height:30px;border-radius:8px;background:#1A1A1A;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;position:relative}
-.logo .mark::after{content:'';position:absolute;right:5px;bottom:5px;width:6px;height:6px;border-radius:50%;background:var(--red)}
-.logo .nm{font-weight:800;font-size:15px;letter-spacing:-.3px;line-height:1}
+.logo .brand{background:#1A1A1A;border-radius:9px;padding:8px 13px;display:flex;align-items:center}
+.logo .brand img{height:18px;width:auto;display:block}
 .hsep{width:1px;height:26px;background:var(--line);flex:none}
 .htit .t{font-size:13.5px;font-weight:700;letter-spacing:-.1px;line-height:1.15}
 .htit .s{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:2px}
@@ -197,6 +196,16 @@ td.neg{color:var(--neg)}
 .flow .fa{display:flex;align-items:center;justify-content:center;padding:0 6px;color:var(--red);font-weight:800;font-size:17px}
 @media(max-width:820px){.flow{flex-direction:column}.flow .fa{transform:rotate(90deg);padding:4px 0}}
 
+/* news feed timeline */
+.newsfeed{position:relative;padding-left:20px;margin-top:10px}
+.newsfeed::before{content:'';position:absolute;left:6px;top:6px;bottom:10px;width:2px;background:var(--line)}
+.nf{position:relative;padding:0 0 15px 10px}
+.nf-dot{position:absolute;left:-15px;top:4px;width:11px;height:11px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 0 1.5px var(--line)}
+.nf-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px}
+.nf-dt{font-weight:700;color:var(--ink);font-size:11px}
+.nf-src{color:var(--muted);font-size:11px}
+.nf-h{font-weight:700;font-size:13px;line-height:1.35;margin-bottom:2px}
+.nf-p{font-size:11.8px;color:#50505A;line-height:1.5}
 .src{font-size:10.5px;color:var(--muted);margin-top:9px;font-style:italic}
 .axt{font-size:11px;fill:var(--muted)}
 .axl{stroke:var(--line);stroke-width:1}
@@ -209,7 +218,7 @@ td.neg{color:var(--neg)}
 <header>
   <div class="hwrap">
     <button id="navToggle" title="Mostrar/ocultar seções">☰</button>
-    <div class="logo"><div class="mark">C</div><div class="nm">Chilli Beans</div></div>
+    <div class="logo"><span class="brand"><img alt="Chilli Beans" src="data:image/svg+xml;base64,PHN2ZyBjbGFzcz0ibG9nbyIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FtYWRhXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTYzIDMzIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxNjMgMzM7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbDojRTMxRTM2O30KCS5zdDF7ZmlsbDojRkZGRkZGO30KCS5zdDJ7ZmlsbDojMDUwNjA2O30KCS5zdDN7ZmlsbDojRTIxRDNEO30KCS5zdDR7ZmlsbDpub25lO3N0cm9rZTojRkZGRkZGO3N0cm9rZS1taXRlcmxpbWl0OjEwO30KPC9zdHlsZT4KPGc+Cgk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMzMuMjIsOC4zOWgtNC42M2MtMC4zNiwwLTAuNjYsMC4yOS0wLjY2LDAuNjZ2NC4zMWMwLDAuMTUtMC4xMiwwLjI2LTAuMjYsMC4yNmgtMi44ICAgYy0wLjE1LDAtMC4yNi0wLjEyLTAuMjYtMC4yNlY5LjA1YzAtMC4zNi0wLjI5LTAuNjYtMC42Ni0wLjY2aC00LjY4Yy0wLjM2LDAtMC42NiwwLjI5LTAuNjYsMC42NlYyMy45YzAsMC4zNiwwLjI5LDAuNjYsMC42NiwwLjY2ICAgaDQuNjhjMC4zNiwwLDAuNjYtMC4yOSwwLjY2LTAuNjZ2LTQuMDhjMC0wLjE1LDAuMTItMC4yNiwwLjI2LTAuMjZoMi44YzAuMTUsMCwwLjI2LDAuMTIsMC4yNiwwLjI2djQuMDggICBjMCwwLjM2LDAuMjksMC42NiwwLjY2LDAuNjZoNC42M2MwLjM2LDAsMC42Ni0wLjI5LDAuNjYtMC42NlY5LjA1QzMzLjg4LDguNjksMzMuNTgsOC4zOSwzMy4yMiw4LjM5Ij48L3BhdGg+Cgk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDEuMzUsOC4zOWgtNC42M2MtMC4zNiwwLTAuNjYsMC4yOS0wLjY2LDAuNjZWMjMuOWMwLDAuMzYsMC4yOSwwLjY2LDAuNjYsMC42Nmg0LjYzICAgYzAuMzYsMCwwLjY2LTAuMjksMC42Ni0wLjY2VjkuMDVDNDIsOC42OCw0MS43MSw4LjM5LDQxLjM1LDguMzkiPjwvcGF0aD4KCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik03Ni4wMSw4LjM5aC00LjYzYy0wLjM2LDAtMC42NiwwLjI5LTAuNjYsMC42NlYyMy45YzAsMC4zNiwwLjI5LDAuNjYsMC42NiwwLjY2aDQuNjMgICBjMC4zNiwwLDAuNjYtMC4yOSwwLjY2LTAuNjZWOS4wNUM3Ni42Nyw4LjY4LDc2LjM4LDguMzksNzYuMDEsOC4zOSI+PC9wYXRoPgoJPHBhdGggY2xhc3M9InN0MSIgZD0iTTU0LjY3LDE5LjU2aC00LjQ5Yy0wLjE1LDAtMC4yNi0wLjEyLTAuMjYtMC4yNlY5LjA1YzAtMC4zNi0wLjI5LTAuNjYtMC42Ni0wLjY2aC00LjYzICAgYy0wLjM2LDAtMC42NiwwLjI5LTAuNjYsMC42NlYyMy45YzAsMC4zNiwwLjI5LDAuNjYsMC42NiwwLjY2aDEwLjAzYzAuMzYsMCwwLjY2LTAuMjksMC42Ni0wLjY2di0zLjY4ICAgQzU1LjMzLDE5Ljg1LDU1LjA0LDE5LjU2LDU0LjY3LDE5LjU2Ij48L3BhdGg+Cgk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNjcuOTksMTkuNTZINjMuNWMtMC4xNSwwLTAuMjYtMC4xMi0wLjI2LTAuMjZWOS4wNWMwLTAuMzYtMC4yOS0wLjY2LTAuNjYtMC42NmgtNC42MyAgIGMtMC4zNiwwLTAuNjYsMC4yOS0wLjY2LDAuNjZWMjMuOWMwLDAuMzYsMC4yOSwwLjY2LDAuNjYsMC42NmgxMC4wM2MwLjM2LDAsMC42Ni0wLjI5LDAuNjYtMC42NnYtMy42OCAgIEM2OC42NSwxOS44NSw2OC4zNiwxOS41Niw2Ny45OSwxOS41NiI+PC9wYXRoPgoJPHBhdGggY2xhc3M9InN0MSIgZD0iTTE1Ni40MywxNC45MmMtMC45NC0wLjUxLTEuNDQtMC43MS0yLjQ2LTEuMDhjLTAuMjktMC4xMS0wLjYyLTAuMjktMC41OC0wLjYzYzAuMDQtMC4yOSwwLjQ4LTAuMzQsMC44MS0wLjMyICAgYzAuMDUsMCwxLjc3LDAuMTIsMy4wMywwLjI1YzAuMzksMC4wNCwwLjcyLTAuMjcsMC43Mi0wLjY1VjkuMTVjMC0wLjM0LTAuMjYtMC42Mi0wLjYtMC42NWMtMS41OS0wLjE0LTUuNzgtMC40My03LjQ3LDAuMTMgICBjLTEuODIsMC42LTMuMTYsMS43LTMuNTQsMy42N2MtMC40MSwyLjE0LDAuMzEsMy44NSwyLjA3LDUuMTVjMC44NywwLjY0LDEuNTMsMS4wMSwyLjUzLDEuNDZjMC4xOSwwLjA4LDAuMzYsMC4yMSwwLjMyLDAuNDggICBjLTAuMDUsMC4zLTAuNDIsMC4zLTAuNjksMC4zYy0xLjIzLTAuMDItMi42LTAuMjUtMy44Ni0wLjQzYy0wLjQtMC4wNi0wLjc1LDAuMjUtMC43NSwwLjY1djMuNzFjMCwwLjM0LDAuMjUsMC42MiwwLjU5LDAuNjUgICBjMS4yNCwwLjEzLDIuODUsMC4zMSwzLjk1LDAuMzhjMi4xMSwwLjEzLDQuMTksMC4wMiw2LjA5LTEuMDZjMC45OS0wLjUzLDEuNy0xLjM3LDIuMTEtMi4zNCAgIEMxNTkuNjksMTguODgsMTU4LjY5LDE2LjE0LDE1Ni40MywxNC45MiI+PC9wYXRoPgoJPHBhdGggY2xhc3M9InN0MSIgZD0iTTEwNi45OCw4LjM5SDk1Ljk5Yy0wLjM2LDAtMC42NiwwLjI5LTAuNjYsMC42NlYyMy45YzAsMC4zNiwwLjI5LDAuNjYsMC42NiwwLjY2aDEwLjk5ICAgYzAuMzYsMCwwLjY2LTAuMjksMC42Ni0wLjY2di0zLjQ1YzAtMC4zNi0wLjI5LTAuNjYtMC42Ni0wLjY2aC01LjQ0Yy0wLjE1LDAtMC4yNi0wLjEyLTAuMjYtMC4yNnYtMS4wNiAgIGMwLTAuMTUsMC4xMi0wLjI2LDAuMjYtMC4yNmg0LjY0YzAuMzYsMCwwLjY2LTAuMjksMC42Ni0wLjY2di0yLjQyYzAtMC4zNi0wLjI5LTAuNjYtMC42Ni0wLjY2aC00LjY0Yy0wLjE1LDAtMC4yNi0wLjEyLTAuMjYtMC4yNiAgIHYtMC44YzAtMC4xNSwwLjEyLTAuMjYsMC4yNi0wLjI2aDUuNDRjMC4zNiwwLDAuNjYtMC4yOSwwLjY2LTAuNjZWOS4wNEMxMDcuNjMsOC42OSwxMDcuMzQsOC4zOSwxMDYuOTgsOC4zOSI+PC9wYXRoPgoJPHBhdGggY2xhc3M9InN0MSIgZD0iTTE1Ljg3LDguMzloLTAuOGMtMy42OCwwLTUuOTYsMC4wMi04LjIzLDEuOTFjLTIuMDcsMS43Mi0yLjkyLDMuNzgtMi45Miw2LjE4bDAsMGMwLDIuNCwwLjg1LDQuNDYsMi45Miw2LjE4ICAgYzIuMjgsMS44OSw0LjU2LDEuOTEsOC4yMywxLjkxaDAuOGMwLjM2LDAsMC42Ni0wLjI5LDAuNjYtMC42NnYtNS4wMmMwLTAuMTUtMC4xMi0wLjI2LTAuMjYtMC4yNmgtMy4zYy0xLjMsMC0yLjI1LTAuOTYtMi4yNS0yLjE0ICAgczAuOTQtMi4xNCwyLjI1LTIuMTRoMy4zYzAuMTUsMCwwLjI2LTAuMTIsMC4yNi0wLjI2VjkuMDdDMTYuNTMsOC42OSwxNi4yMyw4LjM5LDE1Ljg3LDguMzkiPjwvcGF0aD4KCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xMTguODksMTcuNjFoLTEuNjNjLTAuMTcsMC0wLjI5LTAuMTYtMC4yNi0wLjMybDAuNzUtMy4yNmMwLjAzLTAuMTIsMC4xMy0wLjIsMC4yNi0wLjJoMC4xNCAgIGMwLjEyLDAsMC4yMywwLjA4LDAuMjYsMC4ybDAuNzUsMy4yNkMxMTkuMTgsMTcuNDUsMTE5LjA2LDE3LjYxLDExOC44OSwxNy42MSBNMTIyLjQ0LDguODZjLTAuMDgtMC4yOC0wLjM0LTAuNDctMC42My0wLjQ3aC03LjQ5ICAgYy0wLjI5LDAtMC41NCwwLjE5LTAuNjMsMC40N2wtNC40NiwxNC44NWMtMC4xMywwLjQyLDAuMTksMC44NSwwLjYzLDAuODVoNC45NmMwLjMxLDAsMC41Ny0wLjIxLDAuNjQtMC41MWwwLjM0LTEuNDggICBjMC4wMy0wLjEyLDAuMTMtMC4yLDAuMjYtMC4yaDQuMDJjMC4xMiwwLDAuMjMsMC4wOCwwLjI2LDAuMmwwLjM0LDEuNDhjMC4wNywwLjMsMC4zMywwLjUxLDAuNjQsMC41MWg0Ljk3ICAgYzAuNDQsMCwwLjc1LTAuNDIsMC42My0wLjg1TDEyMi40NCw4Ljg2eiI+PC9wYXRoPgoJPHBhdGggY2xhc3M9InN0MSIgZD0iTTg1Ljg2LDIwLjM3aC0wLjcyYy0wLjE1LDAtMC4yNi0wLjEyLTAuMjYtMC4yNnYtMS44N2MwLTAuMTUsMC4xMi0wLjI2LDAuMjYtMC4yNmgwLjc5ICAgYzAuODcsMCwxLjg4LDAuMDgsMS44NiwxLjIyQzg3Ljc4LDIwLjIzLDg2LjkxLDIwLjM3LDg1Ljg2LDIwLjM3IE04NC44OCwxMi4yOWMwLTAuMTUsMC4xMi0wLjI2LDAuMjYtMC4yNmgwLjQ0ICAgYzAuOTQsMCwxLjkzLDAuMDgsMS45MSwxLjI1Yy0wLjAyLDEuMDUtMC44OSwxLjItMS45OCwxLjJoLTAuMzZjLTAuMTUsMC0wLjI2LTAuMTItMC4yNi0wLjI2TDg0Ljg4LDEyLjI5TDg0Ljg4LDEyLjI5eiAgICBNOTAuOCwxNi4zOWMwLjY4LTAuMzgsMS4yLTAuODUsMS41Ni0xLjQxYzAuMzYtMC41NiwwLjU0LTEuMjUsMC41NC0yLjA2YzAtMS40Mi0wLjU0LTIuNTMtMS42My0zLjMyICAgYy0xLjA3LTAuNzktMi41OS0xLjE5LTQuNTQtMS4xOUg3OS42Yy0wLjM2LDAtMC42NiwwLjI5LTAuNjYsMC42NnYxNC44NGMwLDAuMzYsMC4yOSwwLjY2LDAuNjYsMC42Nmg4LjMzICAgYzEuNjQsMCwyLjk2LTAuNCwzLjk1LTEuMmMwLjk4LTAuNzksMS40Ny0xLjg4LDEuNDctMy4yN2MwLTAuODctMC4yMS0xLjU5LTAuNjUtMi4xOEM5Mi4yNiwxNy4zMyw5MS42MywxNi44Miw5MC44LDE2LjM5Ij48L3BhdGg+Cgk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTQzLjM0LDguMzloLTQuNjNjLTAuMzYsMC0wLjY2LDAuMjktMC42NiwwLjY2djQuNzZjMCwwLjEzLTAuMTcsMC4xOC0wLjI0LDAuMDhsLTMuNzEtNS4yNyAgIGMtMC4xMy0wLjE0LTAuMy0wLjIyLTAuNDktMC4yMmgtNC40NmMtMC4zNiwwLTAuNjYsMC4yOS0wLjY2LDAuNjZ2MTQuODVjMCwwLjM2LDAuMjksMC42NiwwLjY2LDAuNjZoNC42MyAgIGMwLjM2LDAsMC42Ni0wLjI5LDAuNjYtMC42NnYtNC43NmMwLTAuMTMsMC4xNy0wLjE4LDAuMjQtMC4wOGwzLjcxLDUuMjhjMC4xMywwLjE0LDAuMywwLjIyLDAuNDksMC4yMmg0LjQ1ICAgYzAuMzYsMCwwLjY2LTAuMjksMC42Ni0wLjY2VjkuMDZDMTQ0LDguNjgsMTQzLjcxLDguMzksMTQzLjM0LDguMzkiPjwvcGF0aD4KPC9nPgo8L3N2Zz4="></span></div>
     <span class="hsep"></span>
     <div class="htit"><div class="t">Guia de Investimento — New Money</div><div class="s">Akron · Lorinvest</div></div>
     <span class="mob-tab" id="mobTab">Sumário</span>
@@ -699,6 +708,38 @@ function svgLine(years,series,{h=210,fmt=money,projFrom=null}={}){
 }
 function yr2(years,i){return years[i];}
 
+/* donut: slices=[{k,v,c}] */
+function svgDonut(slices,{size=150,thick=26,center=""}={}){
+  const tot=slices.reduce((a,s)=>a+s.v,0)||1, r=(size-thick)/2, cx=size/2, cy=size/2, C=2*Math.PI*r;
+  let off=0,seg="";
+  slices.forEach(s=>{const frac=s.v/tot,len=frac*C;
+    seg+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.c}" stroke-width="${thick}" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})" data-t="${s.k}: ${Math.round(frac*100)}%"/>`;off+=len;});
+  const leg=slices.map(s=>`<span><i style="background:${s.c}"></i>${s.k} · ${Math.round(s.v/tot*100)}%</span>`).join("");
+  return `<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap"><svg viewBox="0 0 ${size} ${size}" style="width:${size}px;max-width:40%;flex:none">${seg}${center?`<text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--ink)">${center}</text>`:""}</svg><div class="legend" style="margin:0;flex-direction:column;gap:7px">${leg}</div></div>`;
+}
+/* horizontal comparison bars: rows=[{k,v,c?,hl?,lab?}] */
+function svgHCompare(rows,{fmt=(v)=>money(v),unit=""}={}){
+  const max=Math.max(...rows.map(d=>d.v))*1.02||1;
+  return `<div style="display:flex;flex-direction:column;gap:8px">`+rows.map(d=>{
+    const w=(d.v/max*100).toFixed(1);const col=d.hl?'var(--red)':(d.c||'var(--ink)');
+    return `<div style="display:flex;align-items:center;gap:10px"><div style="width:150px;flex:none;font-size:11.5px;font-weight:${d.hl?'700':'600'};text-align:right;color:${d.hl?'var(--red)':'var(--ink)'}">${d.k}</div><div style="flex:1;background:#F0F0F2;border-radius:6px;height:20px"><div style="width:${w}%;height:100%;background:${col};border-radius:6px;min-width:2px"></div></div><div style="width:66px;flex:none;font-size:12px;font-weight:700">${d.lab||fmt(d.v)}${unit}</div></div>`;
+  }).join("")+`</div>`;
+}
+/* waterfall: steps=[{k,v,kind}] kind: 'abs' (pillar to value) or 'delta' (float) */
+function svgWaterfall(steps,{h=210,fmt=(v)=>money(v)}={}){
+  const W=560,top=18,bottom=42,left=6,right=6;
+  let run=0;const pts=steps.map(s=>{if(s.kind==='total'||s.kind==='abs'){const y0=0,y1=s.v;run=s.v;return {s,lo:Math.min(y0,y1),hi:Math.max(y0,y1),tot:true};}else{const y0=run,y1=run+s.v;run=y1;return {s,lo:Math.min(y0,y1),hi:Math.max(y0,y1),tot:false};}});
+  const vals=pts.flatMap(p=>[p.lo,p.hi]);const max=Math.max(...vals,0)*1.1,min=Math.min(...vals,0)*1.1;
+  const iw=W-left-right,ih=h-top-bottom,bw=iw/steps.length,yy=v=>top+ih*(1-(v-min)/(max-min));
+  let s=`<svg viewBox="0 0 ${W} ${h}">`;s+=`<line class="axl" x1="${left}" y1="${yy(0).toFixed(1)}" x2="${W-right}" y2="${yy(0).toFixed(1)}"/>`;
+  pts.forEach((p,i)=>{const x=left+i*bw+bw*0.2,w=bw*0.6,yh=yy(p.lo),yl=yy(p.hi);
+    const col=p.tot?'var(--ink)':(p.s.v<0?'var(--neg)':'var(--green)');
+    s+=`<rect x="${x.toFixed(1)}" y="${yl.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(2,yh-yl).toFixed(1)}" rx="2" fill="${col}" data-t="${p.s.k}: ${fmt(p.s.v)}"/>`;
+    s+=`<text class="axt" x="${(x+w/2).toFixed(1)}" y="${(yl-4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${fmt(p.s.v)}</text>`;
+    s+=`<text class="axt" x="${(x+w/2).toFixed(1)}" y="${h-bottom+13}" text-anchor="middle">${p.s.k.length>12?p.s.k.slice(0,11)+'…':p.s.k}</text>`;});
+  return s+`</svg>`;
+}
+
 /* ============================================================ RENDER ==== */
 const R = {
 "p-sum":()=>`
@@ -735,10 +776,6 @@ const R = {
       <div style="margin-top:10px;font-size:12px;color:#50505A"><b>New Money isolado:</b> TIR 37% a.a. · MOIC 1,7x · payback 23m · lucro líq. R$ 2,9 mm.</div></div>
   </div>
 
-  <div class="card"><div class="section-head" style="margin-bottom:10px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><div class="head-copy"><h2>Validação da tese</h2><div class="cap">Qualidade da evidência (método Lorinvest) — % favorável global ${F.valid.global}</div></div></div>
-    <div class="row3">${F.valid.blocks.map(b=>`<div class="st" style="border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:#FBFBFC"><div style="display:flex;justify-content:space-between;align-items:baseline"><div class="c" style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">${b.k}</div><div style="font-size:11px;color:var(--muted)">n=${b.tot}</div></div><div class="n" style="font-size:26px;font-weight:800;color:var(--red);margin-top:6px">${b.fav}</div><div class="c" style="font-size:10.5px;color:var(--muted);margin-top:2px">favoráveis · ${b.det}</div></div>`).join("")}</div>
-    <div class="note"><span class="nl">Método.</span> ${F.valid.nota}</div></div>
-
   <div class="note warn"><span class="nl">Confiabilidade do dado.</span> Os números da companhia são pouco confiáveis: auditoria KPMG pendente, DFs 2025 não emitidas e práticas contábeis admitidas como "não seguidas". A Akron normaliza o EBITDA em R$ 53–60 mm (vs ~R$ 125 mm reportado). Todo número aqui traz origem; divergências de versão estão explícitas.</div>
 `,
 
@@ -770,7 +807,7 @@ const R = {
 
     <div class="card"><div class="section-head" style="margin-bottom:10px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V9m4 12V5m4 16v-9m4 9V8"/></svg></span>
       <div class="head-copy"><h2>Composição do passivo — R$ 551 mm</h2><div class="cap">Por natureza (deck set/26)</div></div></div>
-      ${svgHBars(F.debt.parts)}
+      ${svgDonut(F.debt.parts,{center:"R$ 551 mm"})}
       <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
         <div class="k" style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Principais credores financeiros</div>
         <div class="kv">${F.debt.cred.map(c=>`<div><div class="v">${c.k}</div><div class="k">R$ ${money(c.v)} mm · ${c.p}</div></div>`).join("")}</div></div>
@@ -901,8 +938,12 @@ const R = {
         ${svgLine([...F.fin.years,...F.finProj.years],[{k:"EBITDA",color:"var(--red)",data:[...F.fin.ebitda,...F.finProj.ebitda]}],{projFrom:F.fin.years.length-1})}
         <div class="note warn"><span class="nl">Descontinuidade.</span> EBITDA reportado 2025 (R$ 124,7 mm) impactado por write-off de R$ 88,5 mm de recebíveis; a base Akron 2026+ é normalizada (R$ 53 mm).</div></div>
     </div>
-    <div class="card"><h2>EBITDA — qual número?</h2><div class="cap">A base de EBITDA muda materialmente o valuation</div>
-      <div class="twrap"><table><tbody>${F.ebitdaQ.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="row2">
+      <div class="card"><h2>Composição do sell-out (2025)</h2><div class="cap">Mix da rede por bandeira</div>
+        ${svgDonut([{k:"Loja Vermelha",v:66,c:"var(--red)"},{k:"Ótica",v:23,c:"var(--ink)"},{k:"Outros / e-comm",v:11,c:"#A9A9AD"}],{center:"R$ 997 mm"})}</div>
+      <div class="card"><h2>EBITDA — qual número?</h2><div class="cap">A base de EBITDA muda materialmente o valuation</div>
+        <div class="twrap"><table><tbody>${F.ebitdaQ.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+    </div>
   </div>`,
 "p-setor":()=>`
   <div class="subtabs"><button data-s="0" class="on">Mercado ótico</button><button data-s="1">Óculos de sol</button><button data-s="2">Grau</button><button data-s="3">Óticas & competição</button></div>
@@ -950,18 +991,11 @@ const R = {
     <div class="head-copy"><h2>Evidência externa — leitura buy-side</h2><div class="cap">O que a imprensa corrobora, contradiz ou acrescenta à narrativa da Cia (14 matérias, fev/23 → set/26)</div></div></div>
   <div class="row2" style="margin-bottom:14px">${F.newsLeitura.map(l=>`<div class="card" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="margin:0">${l.t}</h2><span class="pill ${sel[l.s][0]}">${sel[l.s][1]}</span></div><p style="font-size:12.5px;color:#3A3A3E;line-height:1.55;margin-top:8px">${l.p}</p></div>`).join("")}</div>
 
-  <div class="card"><h2>Linha do tempo de notícias</h2><div class="cap">Mais recentes primeiro · fonte pública (não-NDA)</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
-    ${[...F.news].reverse().map(n=>`<div style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#FBFBFC">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
-        <span style="font-size:11px;font-weight:700;color:var(--red)">${n.dt}</span>
-        <span style="font-size:11px;color:var(--muted)">· ${n.src}</span>
-        <span class="pill gry" style="font-size:9.5px">${n.tag}</span>
-        <span class="pill ${sel[n.sel][0]}" style="font-size:9.5px">${sel[n.sel][1]}</span>
-      </div>
-      <div style="font-size:13px;font-weight:700;line-height:1.35;margin-bottom:3px">${n.h}</div>
-      <div style="font-size:11.8px;color:#50505A;line-height:1.5">${n.p}</div>
-    </div>`).join("")}
+  <div class="card"><h2>Linha do tempo de notícias</h2><div class="cap">Mais recentes primeiro · fonte pública (não-NDA) · cor do marcador = corrobora / contradiz / contexto</div>
+    <div class="newsfeed">
+    ${[...F.news].reverse().map(n=>{const col=n.sel==='corrobora'?'var(--red)':n.sel==='contradiz'?'var(--amber)':'var(--accent2)';return `<div class="nf"><span class="nf-dot" style="background:${col}"></span>
+      <div class="nf-meta"><span class="nf-dt">${n.dt}</span><span class="nf-src">· ${n.src}</span><span class="pill gry" style="font-size:9.5px">${n.tag}</span><span class="pill ${sel[n.sel][0]}" style="font-size:9.5px">${sel[n.sel][1]}</span></div>
+      <div class="nf-h">${n.h}</div><div class="nf-p">${n.p}</div></div>`;}).join("")}
     </div></div>`;
 },
 "p-val":()=>{
@@ -980,6 +1014,9 @@ const R = {
     <div class="card"><h2>Peers</h2><div class="cap">Benchmarks globais e Brasil</div><div class="twrap"><table><thead><tr>${F.peers.cols.map((c,i)=>`<th class="${i===0||i===3?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
       ${F.peers.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0||i===3?'l':''}" ${i===3?'style="color:var(--muted);font-size:11.5px;white-space:normal;min-width:200px"':''}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
       <div class="note warn"><span class="nl">EBITDA — qual número?</span> ${F.ebitdaQ2}</div></div>
+    <div class="card"><h2>EV/EBITDA — pares vs Chilli implícita</h2><div class="cap">Onde o múltiplo do modelo da Chilli (8,0x) se posiciona vs o setor</div>
+      ${svgHCompare([{k:"Warby Parker",v:25},{k:"EssilorLuxottica",v:12.4},{k:"Vivara",v:11.1},{k:"Chilli @ modelo",v:8,hl:true,lab:"8,0x"},{k:"Safilo",v:7},{k:"Azzas 2154",v:3.9}],{fmt:v=>v.toFixed(1).replace('.',',')+'x'})}
+      <div class="src">Múltiplos aproximados — fontes na aba Comparáveis. Chilli: 8,0x EBITDA pré-IFRS 16 (modelo).</div></div>
   </div>
 
   <div class="subpane" data-p="5">
@@ -990,6 +1027,8 @@ const R = {
       <div class="card"><h2>Retorno vs custo de capital</h2><div class="cap">Capital investido R$ 486 mm (equity 105 + dívida líq. 381)</div>
         <div class="stat4" style="grid-template-columns:1fr 1fr;margin-top:2px">${F.roic.ret.map(r=>`<div class="st"><div class="n" style="font-size:20px;${r.k.startsWith('EVA')||r.k.startsWith('Hurdle')?'color:var(--red)':''}">${r.v}</div><div class="c" style="font-weight:700;color:var(--ink)">${r.k}</div><div class="c">${r.sub}</div></div>`).join("")}</div></div>
     </div>
+    <div class="card"><h2>ROIC vs custo de capital</h2><div class="cap">O retorno sobre o capital não cobre o hurdle da casa — nem no pró-forma</div>
+      ${svgHCompare([{k:"ROIC atual",v:7.3},{k:"ROIC pró-forma",v:11.9},{k:"Hurdle Lorinvest",v:22,hl:true}],{fmt:v=>v.toFixed(1).replace('.',',')+"%"})}</div>
     <div class="note"><span class="nl">Leitura.</span> ${F.roic.insight}</div>
     <div class="card"><h2>Value-drivers por bucket</h2><div class="cap">Faixas pessimista · base · otimista (método Lorinvest — 5 buckets)</div>
       <div class="twrap"><table><thead><tr><th class="l">Bucket / driver</th><th>Pess.</th><th>Base</th><th>Otim.</th></tr></thead><tbody>
@@ -999,6 +1038,9 @@ const R = {
 
   <div class="subpane" data-p="1">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span><div class="head-copy"><h2>Ponte de valor</h2><div class="cap">2026 As-Is → 2026 Pós-Reestruturação → 2028 · a RE torna o equity positivo até 2028</div></div></div>
+    <div class="card"><h2>Como o equity fica positivo em 2028</h2><div class="cap">Ponte Enterprise Value → equity (R$ mm)</div>
+      ${svgWaterfall([{k:"EV 2028",v:632,kind:"abs"},{k:"+ Caixa",v:10,kind:"delta"},{k:"− Dív. op.",v:-267,kind:"delta"},{k:"− Dív. holding",v:-321,kind:"delta"},{k:"Equity",v:54,kind:"total"}],{fmt:v=>(v<0?"("+money(-v)+")":money(v))})}
+      <div class="src">EV = EBITDA R$ 79 mm × 8,0x. Em 2026 as-is, o mesmo cálculo dá equity negativo (−R$ 127 mm) — a reestruturação é o que vira o sinal.</div></div>
     <div class="card"><div class="twrap"><table><thead><tr><th class="l">R$ mm</th>${F.ev.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>
       ${F.ev.rows.map(r=>`<tr class="${r.b?'tot':''}"><td class="l">${r.l}</td>${r.v.map(v=>`<td class="${r.neg?'neg':''}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
       <div class="src">Reconstruído do deck (pp. 28–29) e verificado por aritmética: EV = EBITDA × 8,0x; EV + Caixa − Dívida = Equity; DL/EBITDA sobre dívida líquida operacional.</div></div>
@@ -1009,6 +1051,10 @@ const R = {
     <div class="row3">${F.scen.map(sc=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2 style="margin:0">${sc.k}</h2><span class="pill ${sc.tone}">${sc.when}</span></div>
       <div class="stat4" style="grid-template-columns:repeat(3,1fr);margin:12px 0 8px"><div class="st"><div class="n" style="color:var(--red)">${sc.tir}</div><div class="c">TIR</div></div><div class="st"><div class="n">${sc.moic}</div><div class="c">MOIC</div></div><div class="st"><div class="n" style="font-size:16px">${sc.ll}</div><div class="c">Lucro líq.</div></div></div>
       <ul style="margin:4px 0 0 16px;font-size:11.5px;color:#50505A;line-height:1.5">${sc.prem.map(p=>`<li>${p}</li>`).join("")}</ul></div>`).join("")}</div>
+    <div class="row2">
+      <div class="card"><h2>TIR por cenário (New + Old Money)</h2>${svgHCompare([{k:"Base c/ M&A",v:65,c:"var(--green)"},{k:"Base s/ M&A",v:35},{k:"Conservador",v:16,c:"var(--amber)"}],{fmt:v=>v+"% a.a."})}</div>
+      <div class="card"><h2>MOIC por cenário</h2>${svgHCompare([{k:"Base c/ M&A",v:3.0,c:"var(--green)"},{k:"Base s/ M&A",v:2.2},{k:"Conservador",v:1.3,c:"var(--amber)"}],{fmt:v=>v.toFixed(1).replace('.',',')+"x"})}</div>
+    </div>
     <div class="note"><span class="nl">New Money isolado.</span> TIR 37% a.a. · MOIC 1,7x · payback 23 meses · lucro líquido R$ 2,9 mm.</div>
   </div>
 
@@ -1030,6 +1076,8 @@ const R = {
     <div class="card"><div class="twrap"><table><thead><tr>${F.recovery.cols.map((c,i)=>`<th class="${i===0?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
       ${F.recovery.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
       <div class="note"><span class="nl">Contexto.</span> Matriz do Memo IC (mai/26), referente à compra da debênture @ ~25% do face. O preço de entrada baixo absorve o risco até um cenário de RJ com recovery de 25% (breakeven). Não confundir com as métricas do New Money.</div></div>
+    <div class="card"><h2>MOIC por cenário de saída</h2><div class="cap">Compra da debênture @ ~25% face — capital preservado até o breakeven (RJ 25%)</div>
+      ${svgHCompare([{k:"Cura integral",v:5.3,c:"var(--green)"},{k:"Haircut bullet 10%",v:4.6,c:"var(--green)"},{k:"Haircut bullet 30%",v:4.0},{k:"Haircut bullet 50%",v:3.3},{k:"RJ recovery 40%",v:1.6},{k:"RJ 25% (breakeven)",v:1.0,hl:true},{k:"Default total",v:0.2,c:"var(--neg)"}],{fmt:v=>v.toFixed(1).replace('.',',')+"x"})}</div>
   </div>`;
 },
 "p-comp":()=>{
@@ -1074,7 +1122,10 @@ const R = {
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 9h18M9 3v18M4 3h16v18H4z"/></svg></span><div class="head-copy"><h2>Economics de franquia — benchmark operacional</h2><div class="cap">Investimento, payback, margem e royalties vs redes comparáveis</div></div></div>
     <div class="card"><div class="twrap"><table><thead><tr><th class="l">Marca</th><th class="l">Investimento</th><th>Payback</th><th>Margem líq.</th><th class="l">Royalties</th><th class="l">Fonte</th></tr></thead><tbody>
       ${C.fr.map(r=>`<tr><td class="l"><b>${r.m}</b></td><td class="l">${r.inv}</td><td>${r.pb}</td><td>${r.mg}</td><td class="l">${r.roy}</td>${srcCell(r)}</tr>`).join("")}
-      </tbody></table></div></div>
+      </tbody></table></div>
+      <div style="margin-top:14px"><div class="cap" style="font-weight:700;color:var(--ink);margin-bottom:8px">Investimento inicial médio por marca (R$ mil)</div>
+      ${svgHCompare([{k:"Óticas Carol",v:265},{k:"Óticas Diniz",v:265},{k:"Chilli Beans",v:242,hl:true},{k:"O Boticário",v:175},{k:"Cacau Show",v:155}],{fmt:v=>"R$ "+v+"k"})}
+      <div class="src">Ponto médio das faixas divulgadas; marcas com "○" ainda a confirmar (ver coluna Fonte).</div></div></div>
     <div class="card"><h2>Setor de franquias (ABF · 2024)</h2><div class="stat4" style="margin-top:2px">${C.abf.map(a=>`<div class="st"><div class="n">${a.n}</div><div class="c">${a.c}</div></div>`).join("")}</div>
       <div class="note"><span class="nl">Leitura.</span> ${C.frNote}</div></div>
   </div>
@@ -1089,6 +1140,12 @@ const R = {
 
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3zm0 6v5m0 3h.01"/></svg></span><div class="head-copy"><h2>Principais riscos</h2><div class="cap">Ordenados por severidade — tom conservador</div></div></div>
+    <div class="stat4" style="margin-bottom:14px">
+      <div class="st"><div class="n" style="color:var(--red)">${F.riscos.filter(r=>r.b==='Alto').length}</div><div class="c">riscos de severidade alta</div></div>
+      <div class="st"><div class="n" style="color:var(--amber)">${F.riscos.filter(r=>r.b==='Médio').length}</div><div class="c">riscos de severidade média</div></div>
+      <div class="st"><div class="n">${F.gov.length}</div><div class="c">bandeiras de governança</div></div>
+      <div class="st"><div class="n" style="color:var(--green)">${F.mitig.length}</div><div class="c">mitigantes identificados</div></div>
+    </div>
     <div class="risks">${F.riscos.map(r=>`<div class="risk"><div class="rh"><div class="rt">${r.t}</div><span class="rb" ${rb(r.b)}>${r.b}</span></div><div class="rd">${r.p}</div></div>`).join("")}</div>
     <div class="card" style="margin-top:14px"><h2>Governança & bandeiras</h2><div class="cap">Sinais de governança levantados nos fatos verificados</div>
       <div class="risks">${F.gov.map(g=>`<div class="risk"><div class="rh"><div class="rt">${g.t}</div><span class="rb" style="${g.b==='pos'?'background:#E7F0EA;color:var(--green)':'background:#F4EAEC;color:var(--red)'}">${g.b==='pos'?'sinal +':'bandeira'}</span></div><div class="rd">${g.p}</div></div>`).join("")}</div></div>
@@ -1106,7 +1163,10 @@ const R = {
 
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5"/></svg></span><div class="head-copy"><h2>Documentos e fontes</h2><div class="cap">Base da análise</div></div></div>
-    <div class="card"><div class="twrap"><table><tbody>${F.fontes.map(r=>`<tr><td class="l" style="font-weight:700;white-space:nowrap">${r[0]}</td><td class="l" style="white-space:normal">${r[1]}</td></tr>`).join("")}</tbody></table></div>
+    <div class="card"><h2>Base documental</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px">
+      ${F.fontes.map(r=>`<div style="border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#FBFBFC"><div style="font-size:12.5px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:2px;background:var(--red);flex:none"></span>${r[0]}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.5">${r[1]}</div></div>`).join("")}
+      </div>
       <div class="note warn"><span class="nl">Confidencialidade.</span> Material sob NDA (Itaú BBA) e apresentação de uso exclusivo da Akron. As matérias da aba Notícias são de fonte pública. Uso interno — não distribuir externamente.</div></div>
   </div>
 
