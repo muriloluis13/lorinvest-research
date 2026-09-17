@@ -4163,13 +4163,13 @@ function useOfProceedsNTM(){
   const sumW=a=>{ let s=0; for(let k=k1;k<=k2;k++) s+=num(a[k]); return s; };
   const fco=sumW(cb.fco), desemb=sumW(de.desemb), aporte=sumW(ap.aporte);
   const capex=sumW(cx.capPlanta)+sumW(cx.capCliente), juros=-sumW(de.pagJ), amort=-sumW(de.amort), div=sumW(dv.div);
+  const netDebt=desemb-amort;   // dívida líquida: captação − amortização (mostra só o efeito líquido)
   const F=[], U=[];
   if(fco>=0) F.push({lbl:"Geração operacional", val:fco}); else U.push({lbl:"Consumo operacional", val:-fco});
-  F.push({lbl:"Captação de dívida", val:desemb});
+  if(netDebt>=0) F.push({lbl:"Captação líquida de dívida", val:netDebt}); else U.push({lbl:"Amortização líquida de dívida", val:-netDebt});
   F.push({lbl:"Aporte de capital", val:aporte});
   U.push({lbl:"Investimentos (CapEx)", val:capex});
   U.push({lbl:"Juros", val:juros});
-  U.push({lbl:"Amortização de dívida", val:amort});
   U.push({lbl:"Dividendos", val:div});
   const sF=F.reduce((s,x)=>s+x.val,0), sU=U.reduce((s,x)=>s+x.val,0), dc=sF-sU;   // Δcaixa (plug que fecha Fontes=Usos)
   if(dc>=0) U.push({lbl:"Variação de caixa", val:dc}); else F.push({lbl:"Variação de caixa", val:-dc});
