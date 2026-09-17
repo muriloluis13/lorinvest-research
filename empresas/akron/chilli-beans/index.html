@@ -451,6 +451,11 @@ const F = {
         {l:"(=) FC para servir a dívida",v:[-27.8,28.3,26.1,28.9,33.7,55.0],b:1},
         {l:"Alavancagem (DL/EBITDA)",v:["13,0x","11,9x","11,1x","9,9x","9,2x","9,4x"],pct:1},
       ]}},
+  debtDyn:[
+    {k:"Base c/ M&A",tone:"grn",p:"Carências (6m juros / 12m principal no New Money; 24m nas Tranches) protegem o caixa em 2026-27. O <b>M&A em dez/28</b> antecipa a amortização de todos os créditos — encerra o serviço da dívida cedo."},
+    {k:"Base s/ M&A",tone:"gry",p:"Recebimentos limitados ao <b>New Money</b> e à <b>Tranche 1</b> até ago/31; a <b>Tranche 2 (holding)</b> é bullet e só é paga em evento de liquidez. Alavancagem cai de ~8,1x (2026) para ~4,1x (2031)."},
+    {k:"Conservador",tone:"amb",p:"Recebimentos limitados até jul/29, quando a <b>necessidade de refinanciamento fica relevante e recorrente</b>, combinada à alta alavancagem (mantém-se ~9x). Cenário depende de captações elevadas."},
+  ],
   recovery:{cols:["Cenário de saída","Recovery s/ face","Recebido (R$ mm)","MOIC"],
     rows:[
       ["Cura integral (100%)","100%","84,1","5,3x"],
@@ -873,8 +878,11 @@ const R = {
       <div class="subtabs"><button data-s="0" class="on">Cenário base</button><button data-s="1">Conservador</button></div>
       <div class="subpane on" data-p="0">${cfTable(F.cf.base)}</div>
       <div class="subpane" data-p="1">${cfTable(F.cf.cons)}</div>
-      <div class="src">Linhas operacionais até o fluxo de caixa para servir a dívida; o serviço da dívida por tranche está no modelo (anexo). Alavancagem = dívida líquida / EBITDA.</div>
+      <div class="src">Linhas operacionais até o fluxo de caixa para servir a dívida, recompostas do deck e verificadas por aritmética. Alavancagem = dívida líquida / EBITDA.</div>
     </div>
+    <div class="card"><h2>Dinâmica do serviço da dívida — por cenário</h2><div class="cap">Como o fluxo para servir a dívida é consumido (premissas do deck, p. 31)</div>
+      <div class="row3">${F.debtDyn.map(d=>`<div style="border:1px solid var(--line);border-radius:11px;padding:13px 15px;background:#FBFBFC"><div style="font-size:12.5px;font-weight:700;margin-bottom:6px">${d.k}</div><p style="font-size:11.8px;color:#50505A;line-height:1.55">${d.p}</p></div>`).join("")}</div>
+      <div class="note"><span class="nl">Nota.</span> O detalhamento das amortizações por tranche (Opção A/B/C, Roll-Up, New Money) consta do modelo de set/26, não replicado aqui por não ser recuperável de forma verificável das fontes disponíveis.</div></div>
   </div>
 
   <div class="subpane" data-p="4">
