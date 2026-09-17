@@ -260,6 +260,34 @@ td.neg{color:var(--neg)}
 @media(max-width:820px){.fmts{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.fmts{grid-template-columns:1fr}}
 
+/* option comparison cards */
+.optcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.optcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.optcard.sel{border-color:var(--red);background:#FDF6F7;box-shadow:var(--shadow)}
+.optcard-h{padding:12px 14px;border-bottom:1px solid var(--line)}
+.optcard.sel .optcard-h{background:#FAF3F4}
+.oc-t{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.oc-s{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+.oc-row{padding:9px 14px;border-bottom:1px solid var(--line)}
+.oc-row:last-child{border:none}
+.oc-k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.oc-v{font-size:11.3px;line-height:1.4;color:var(--ink)}
+@media(max-width:820px){.optcards{grid-template-columns:1fr}}
+
+/* control / segmented bar */
+.ctrlbar{position:relative;height:32px;border-radius:8px;overflow:hidden;background:#EDEDF0;display:flex;margin:12px 0 6px}
+.ctrlbar .seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap}
+.ctrlbar .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
+.ctrlbar .thrl{position:absolute;top:-16px;font-size:9.5px;font-weight:700;color:var(--ink);transform:translateX(-50%);white-space:nowrap}
+
+/* term sheet */
+.ts-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;background:#1A1A1A;border-radius:11px;margin-bottom:12px}
+.ts-head .tv{font-size:18px;font-weight:800;color:#fff}
+.ts-head .tl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.6)}
+.tsrow{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding:8px 2px}
+.tsrow .k{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);align-self:center;flex:none;max-width:42%}
+.tsrow .v{font-size:12.5px;font-weight:600;text-align:right}
+
 /* news feed timeline */
 .newsfeed{position:relative;padding-left:20px;margin-top:10px}
 .newsfeed::before{content:'';position:absolute;left:6px;top:6px;bottom:10px;width:2px;background:var(--line)}
@@ -270,6 +298,9 @@ td.neg{color:var(--neg)}
 .nf-src{color:var(--muted);font-size:11px}
 .nf-h{font-weight:700;font-size:13px;line-height:1.35;margin-bottom:2px}
 .nf-p{font-size:11.8px;color:#50505A;line-height:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:10px}
+.legend span{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none;font-style:normal}
 .src{font-size:10.5px;color:var(--muted);margin-top:9px;font-style:italic}
 .axt{font-size:11px;fill:var(--muted)}
 .axl{stroke:var(--line);stroke-width:1}
@@ -881,64 +912,76 @@ const R = {
 
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3zm0 6v5m0 3h.01"/></svg></span>
-      <div class="head-copy"><h2>Os cinco fatores da crise</h2><div class="cap">O que levou a maior rede de óculos do Brasil, em franco crescimento, ao pré-RE</div></div></div>
-    <div class="card"><div class="steps s5">${F.crise.map((c,i)=>`<div class="step"><div class="n">Fator ${i+1}</div><b>${c.t}</b><p>${c.p}</p></div>`).join("")}</div></div>
-
-    <div class="row31">
-      <div class="card"><h2>Cronologia da crise</h2><div class="cap">Do mandato UBS à Recuperação Extrajudicial</div>
-        <div class="chrono">${F.chrono.map(c=>`<div class="c"><div class="dt">${c.dt}</div><div class="h">${c.h}</div><p>${c.p}</p></div>`).join("")}</div></div>
-      <div class="card"><h2>Alavancagem as-is</h2>
-        <div style="text-align:center;padding:14px 0">
-          <div style="font-size:46px;font-weight:800;color:var(--red);letter-spacing:-1px">10,4x</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">dívida líquida / EBITDA</div></div>
-        <div class="note"><span class="nl">Nota.</span> A despesa financeira de 2025 (R$ 137 mm) já superava o EBITDA (R$ 125 mm) — estrutura de capital insustentável.</div></div>
+      <div class="head-copy"><h2>A crise e o passivo</h2><div class="cap">De franco crescimento à insolvência — a origem da tese</div></div></div>
+    <div class="stat4" style="margin-bottom:14px">
+      <div class="st"><div class="n" style="color:var(--red)">10,4x</div><div class="c">dívida líquida / EBITDA (as-is)</div></div>
+      <div class="st"><div class="n">R$ 551 mm</div><div class="c">passivo total</div></div>
+      <div class="st"><div class="n" style="color:var(--red)">213 d</div><div class="c">prazo médio de recebimento (2025)</div></div>
+      <div class="st"><div class="n">137 &gt; 125</div><div class="c">desp. financeira &gt; EBITDA (R$ mm)</div></div>
     </div>
+    <div class="card"><h2>Os cinco fatores da crise</h2><div class="cap">O que levou a maior rede de óculos do Brasil ao pré-RE</div>
+      <div class="steps s5">${F.crise.map((c,i)=>`<div class="step"><div class="n">Fator ${i+1}</div><b>${c.t}</b><p>${c.p}</p></div>`).join("")}</div></div>
+
+    <div class="card"><div class="section-head" style="margin-bottom:12px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><div class="head-copy"><h2>Cronologia da crise</h2><div class="cap">Do mandato UBS à Recuperação Extrajudicial</div></div></div>
+      <div class="tlwrap"><div class="tline">${F.chrono.map((c,i)=>`<div class="tnode" style="--dc:${i<2?'var(--accent2)':'var(--red)'}"><div class="ty">${c.dt}</div><div class="tt"><b style="color:var(--ink)">${c.h}.</b> ${c.p}</div></div>`).join("")}</div></div></div>
 
     <div class="card"><div class="section-head" style="margin-bottom:10px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V9m4 12V5m4 16v-9m4 9V8"/></svg></span>
       <div class="head-copy"><h2>Composição do passivo — R$ 551 mm</h2><div class="cap">Por natureza (deck set/26)</div></div></div>
-      ${svgDonut(F.debt.parts,{center:"R$ 551 mm"})}
-      <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-        <div class="k" style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Principais credores financeiros</div>
-        <div class="kv">${F.debt.cred.map(c=>`<div><div class="v">${c.k}</div><div class="k">R$ ${money(c.v)} mm · ${c.p}</div></div>`).join("")}</div></div>
+      <div class="row2" style="align-items:center">
+        <div>${svgDonut(F.debt.parts,{center:"R$ 551 mm"})}</div>
+        <div><div class="k" style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Principais credores financeiros (dos R$ 424 mm)</div>
+          ${svgHCompare(F.debt.cred.map(c=>({k:c.k,v:c.v,lab:"R$ "+money(c.v)+" mm"})),{})}
+          <div class="src">BB e Caixa somam ~R$ 168 mm (40% do bancário) — decisivos para a adesão à RE.</div></div>
+      </div>
     </div>
   </div>
 
   <div class="subpane" data-p="1">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
       <div class="head-copy"><h2>Como a Akron chegou aqui</h2><div class="cap">Aquisição das debêntures da 10ª emissão (Vert/Mustang) via consórcio</div></div></div>
-    <div class="row31">
-      <div class="card"><div class="tml" style="margin-top:2px">
-        ${acq.steps.map(s=>`<div class="ev hot"><div class="yr">${s.dt}</div><div class="tt">${s.h}</div><div class="dd">${s.p}</div></div>`).join("")}
-        <div class="ev"><div class="yr">Resultado</div><div class="tt">84% da emissão · controle (&gt;75%)</div><div class="dd">Com &gt;75% a Akron controla toda e qualquer matéria da emissão. Após operacionalização, a exposição na debênture cai de R$ 4,6 mm para R$ 4,4 mm.</div></div>
-      </div></div>
-      <div class="card"><h2>Consórcio</h2><div class="cap">Aquisição do crédito da Kinea</div>
-        <div class="twrap"><table><thead><tr><th class="l">Investidor</th><th>Participação</th></tr></thead><tbody>
-        ${acq.consorcio.map(c=>`<tr><td class="l">${c[0]}</td><td>${c[1]}</td></tr>`).join("")}</tbody></table></div>
-        <div class="kv" style="margin-top:12px">
-          <div><div class="k">Valor de face total</div><div class="v">R$ 87 mm</div></div>
-          <div><div class="k">Emissora</div><div class="v">Mustang 25</div></div></div></div>
+    <div class="card"><h2>Controle da emissão</h2><div class="cap">Comprando Kinea + XP, o consórcio ultrapassa o quórum de 75% e controla toda e qualquer matéria</div>
+      <div class="ctrlbar">
+        <div class="seg" style="width:73%;background:var(--red)">Kinea 73%</div>
+        <div class="seg" style="width:3%;background:var(--graf)"></div>
+        <div class="seg" style="width:24%;background:#DADADE;color:var(--muted)">Outros 24%</div>
+        <div class="thr" style="left:75%"></div><div class="thrl" style="left:75%">75% · controle</div>
+      </div>
+      <div class="legend"><span><i style="background:var(--red)"></i>Kinea @ 27,5% VF</span><span><i style="background:var(--graf)"></i>XP @ 20% VF (3%)</span><span><i style="background:#DADADE"></i>demais debenturistas</span></div>
+      <div class="stat4" style="margin-top:14px">
+        <div class="st"><div class="n">84%</div><div class="c">da emissão detida</div></div>
+        <div class="st"><div class="n">R$ 87 mm</div><div class="c">valor de face total</div></div>
+        <div class="st"><div class="n">R$ 4,6→4,4<span style="font-size:12px"> mm</span></div><div class="c">exposição Akron na debênture</div></div>
+        <div class="st"><div class="n">Mustang 25</div><div class="c">emissora</div></div>
+      </div>
     </div>
-    <div class="note"><span class="nl">Detalhe.</span> O consórcio adquiriu 73% da emissão (Kinea @ 27,5% VF) e +3% (XP @ 20% VF). Instrumento: debêntures da Vert Securitizadora (10/02/2025) com lastro em Notas Comerciais da Mustang 25. Garantias: aval de Caito Maia + cessão fiduciária de recebíveis (cartão e boletos).</div>
+    <div class="row2">
+      <div class="card"><h2>Passo a passo da aquisição</h2>
+        <div class="tml" style="margin-top:6px">
+        ${acq.steps.map(s=>`<div class="ev hot"><div class="yr">${s.dt}</div><div class="tt">${s.h}</div><div class="dd">${s.p}</div></div>`).join("")}
+        <div class="ev"><div class="yr">Resultado</div><div class="tt">Controle total da emissão</div><div class="dd">Com &gt;75%, a Akron decide qualquer matéria — posição para coordenar a RE.</div></div>
+      </div></div>
+      <div class="card"><h2>Consórcio de aquisição</h2><div class="cap">Crédito da Kinea, rateado</div>
+        ${svgDonut(F.acq.consorcio.map(c=>({k:c[0],v:parseInt(c[1]),c:c[0]==='Akron'?'var(--red)':c[0]==='Jazz'?'var(--ink)':'#A9A9AD'})),{center:"R$ 18 mm"})}</div>
+    </div>
+    <div class="note"><span class="nl">Detalhe.</span> Instrumento: debêntures da Vert Securitizadora (10/02/2025) com lastro em Notas Comerciais da Mustang 25. Garantias: aval de Caito Maia + cessão fiduciária de recebíveis (cartão e boletos).</div>
   </div>
 
   <div class="subpane" data-p="2">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span>
       <div class="head-copy"><h2>O Plano de Recuperação Extrajudicial</h2><div class="cap">Reestruturação dos passivos com consolidação substancial das 7 empresas do grupo</div></div>
       <span class="tag">Adesão: Opção B</span></div>
-    <div class="card opt"><h2>Opções A / B / C do crédito antigo</h2><div class="cap">A Akron adere à <b style="color:var(--red)">Opção B</b> (com New Money) para acelerar o recebimento</div>
-      <div class="twrap"><table><thead><tr><th class="l">Componente</th><th>Opção A<br><span style="font-weight:400;text-transform:none;color:var(--muted)">sem New Money</span></th><th class="hl">Opção B ✓<br><span style="font-weight:400;text-transform:none;color:var(--red)">com New Money</span></th><th>Opção C<br><span style="font-weight:400;text-transform:none;color:var(--muted)">sem New Money</span></th></tr></thead><tbody>
-      ${opt.rows.map(r=>`<tr><td class="l">${r.l}</td><td>${r.a}</td><td class="colB">${r.b}</td><td>${r.c}</td></tr>`).join("")}
-      </tbody></table></div>
-      <div class="note"><span class="nl">Reconciliação.</span> Esta tabela usa o deck de set/26 (primário). O Term Sheet jurídico descreve a mesma reestruturação por outro enquadramento ("Credor Parceiro" vs não-parceiro, deságio de 70% para não-parceiros) — divergência de versão, não de fato.</div>
+    <div class="card"><h2>Opções A / B / C do crédito antigo</h2><div class="cap">A Akron adere à <b style="color:var(--red)">Opção B</b> — com New Money, ganha aceleração e menor deságio</div>
+      <div class="optcards">${['a','b','c'].map(k=>{const isB=k==='b';const label=k==='a'?'Opção A':k==='b'?'Opção B':'Opção C';const sub=k==='b'?'com New Money':'sem New Money';return `<div class="optcard${isB?' sel':''}"><div class="optcard-h"><div class="oc-t">${label}${isB?' <span class="pill red">✓ Adesão</span>':''}</div><div class="oc-s">${sub}</div></div>${F.opts.rows.map(r=>`<div class="oc-row"><div class="oc-k">${r.l}</div><div class="oc-v">${r[k]}</div></div>`).join("")}</div>`;}).join("")}</div>
+      <div class="note"><span class="nl">Reconciliação.</span> Usa o deck de set/26 (primário). O Term Sheet jurídico descreve a mesma reestruturação por outro enquadramento ("Credor Parceiro" vs não-parceiro, deságio de 70%) — divergência de versão, não de fato.</div>
     </div>
     <div class="section-head" style="margin-top:6px"><div class="head-copy"><h2>Racional da Opção B</h2></div></div>
     <div class="rat" style="margin-bottom:14px">${F.ratB.map(r=>`<div class="r"><div class="t">${r.t}</div><p>${r.p}</p></div>`).join("")}</div>
     <div class="card"><h2>Reestruturação operacional</h2><div class="cap">Condição para a sustentabilidade da Cia até o evento de liquidez (M&A)</div>
-      <div class="kv">
-        <div><div class="v">Políticas comerciais</div><div class="k">revisão de crédito a franqueados</div></div>
-        <div><div class="v">Franqueados problemáticos</div><div class="k">substituição da base inadimplente</div></div>
-        <div><div class="v">Corte de despesas</div><div class="k">G&A, marketing e dividendos</div></div>
-        <div><div class="v">Watchdog independente</div><div class="k">aprovado pelos credores, custeado pela Cia</div></div>
+      <div class="steps">
+        <div class="step"><b>Políticas comerciais</b><p>revisão de crédito a franqueados</p></div>
+        <div class="step"><b>Franqueados problemáticos</b><p>substituição da base inadimplente</p></div>
+        <div class="step"><b>Corte de despesas</b><p>G&A, marketing e dividendos</p></div>
+        <div class="step"><b>Watchdog independente</b><p>aprovado pelos credores, custeado pela Cia</p></div>
       </div></div>
     <div class="card"><h2>Enquadramento jurídico — "Credor Parceiro" (Term Sheet)</h2><div class="cap">Como o Plano de RE trata os credores no instrumento legal (complementa as Opções A/B/C do deck)</div>
       <p style="font-size:12.5px;color:#3A3A3E;line-height:1.55;margin-bottom:12px">${F.credorP.def}</p>
@@ -953,14 +996,20 @@ const R = {
   <div class="subpane" data-p="3">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
       <div class="head-copy"><h2>New Money — estrutura</h2><div class="cap">Nota Comercial Pública fundamental para a necessidade de caixa da Cia em 2026</div></div></div>
+    <div class="stat4" style="margin-bottom:14px">
+      <div class="st"><div class="n">R$ 35<span style="font-size:12px"> mm</span></div><div class="c">valor líquido</div></div>
+      <div class="st"><div class="n" style="color:var(--red)">R$ 4,375<span style="font-size:12px"> mm</span></div><div class="c">parcela Akron</div></div>
+      <div class="st"><div class="n">2,5%<span style="font-size:12px"> a.m.</span></div><div class="c">taxa + fee 3%</div></div>
+      <div class="st"><div class="n">30 m</div><div class="c">prazo · venc. mar/29</div></div>
+    </div>
     <div class="row2">
-      <div class="card"><h2>Resumo da estrutura</h2>
-        <div style="margin-top:6px">${F.nm.map(r=>`<div style="display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding:8px 0"><div class="k" style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);align-self:center;flex:none;max-width:40%">${r[0]}</div><div class="v" style="font-size:12.5px;font-weight:600;text-align:right">${r[1]}</div></div>`).join("")}</div></div>
+      <div class="card"><div class="ts-head"><div><div class="tl">Nota Comercial Pública · Sênior</div><div class="tv">R$ 35 mm</div></div></div>
+        ${F.nm.map(r=>`<div class="tsrow"><div class="k">${r[0]}</div><div class="v">${r[1]}</div></div>`).join("")}</div>
       <div>
-        <div class="card"><h2>Roll-Up 1:1</h2><div class="cap">Cada R$ 1 de New Money acelera R$ 1 de crédito antigo</div>
-          <div class="flow"><div class="fn"><div class="ft">R$ 1 New Money</div><div class="fs">aportado</div></div><div class="fa">→</div><div class="fn"><div class="ft">R$ 1 antigo → Roll-Up</div><div class="fs">48m vs 60m · deságio 50% vs 60%</div></div></div></div>
+        <div class="card"><h2>Roll-Up 1:1</h2><div class="cap">Cada R$ 1 de New Money acelera R$ 1 de crédito antigo para uma tranche mais rápida</div>
+          <div class="cascade-m"><div class="cm"><div class="cmt">R$ 1 New Money</div><div class="cmv">aportado</div><div class="cms">dinheiro novo</div></div><div class="cmar">→</div><div class="cm" style="background:#FAF3F4;border-color:#F1D9DD"><div class="cmt">R$ 1 crédito antigo</div><div class="cmv">→ Roll-Up</div><div class="cms">48m vs 60m · deságio 50% vs 60%</div></div></div></div>
         <div class="card"><h2>Cash sweep</h2><div class="cap">Caixa acima de R$ 35 mm em verificações trimestrais</div>
-          <div class="flow"><div class="fn"><div class="ft">Excedente &gt; R$ 35 mm</div><div class="fs">apuração trimestral</div></div><div class="fa">→</div><div class="fn"><div class="ft">100% amortiza</div><div class="fs">sendo 75% ao New Money</div></div></div></div>
+          <div class="cascade-m"><div class="cm"><div class="cmt">Excedente &gt; R$ 35 mm</div><div class="cmv">apuração trimestral</div><div class="cms">caixa livre acima do piso</div></div><div class="cmar">→</div><div class="cm" style="background:#FAF3F4;border-color:#F1D9DD"><div class="cmt">100% amortiza</div><div class="cmv">75%</div><div class="cms">do excedente vai ao New Money</div></div></div></div>
       </div>
     </div>
   </div>
@@ -972,11 +1021,11 @@ const R = {
       ${F.cascade.map((c,i)=>`<div class="lv ${c.rk==='1'?'p1':''}"><div class="rk">${c.rk}</div><div><div class="nm">${c.nm}</div><div class="ds">${c.ds}</div></div></div>${i<F.cascade.length-1?'<div class="arrow">▼</div>':''}`).join("")}
     </div></div>
     <div class="card"><h2>Garantias e proteções do New Money</h2>
-      <div class="kv">
-        <div><div class="v">Sênior na cascata</div><div class="k">1º lugar na excussão e no M&A</div></div>
-        <div><div class="v">Cessão fiduciária de recebíveis</div><div class="k">cartão + boletos</div></div>
-        <div><div class="v">AF de marcas e ações/quotas</div><div class="k">alienação fiduciária das Recuperandas</div></div>
-        <div><div class="v">Cobertura 100%</div><div class="k">do saldo devedor em até 180 dias</div></div>
+      <div class="steps">
+        <div class="step"><div class="n">Prioridade</div><b>Sênior na cascata</b><p>1º lugar na excussão e no M&A</p></div>
+        <div class="step"><div class="n">Recebíveis</div><b>Cessão fiduciária</b><p>cartão + boletos das Recuperandas</p></div>
+        <div class="step"><div class="n">Ativos</div><b>AF de marcas e ações/quotas</b><p>alienação fiduciária de 100%</p></div>
+        <div class="step"><div class="n">Cobertura</div><b>100% do saldo</b><p>em até 180 dias de cada desembolso</p></div>
       </div>
       <div class="note warn"><span class="nl">Ressalva.</span> A robustez das garantias reais depende da performance futura da Cia; o aval do controlador é considerado frágil (ver aba Riscos).</div>
     </div>
