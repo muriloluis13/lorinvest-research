@@ -255,6 +255,16 @@ input.tbox{width:100%;max-width:150px}
 .ff-ph{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;color:var(--muted);border:1.5px dashed var(--line);border-radius:6px;padding:3px 14px;background:repeating-linear-gradient(45deg,#F7F9FB,#F7F9FB 6px,#EEF2F7 6px,#EEF2F7 12px)}
 .ff-tick{position:absolute;top:3px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
 .ff-tickmark{position:absolute;top:-6px;width:0;border-left:1px solid var(--line);height:6px}
+/* roadmap do BP — calendário mês×ano de marcos da companhia */
+.rmap{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;table-layout:fixed;min-width:640px}
+.rmap th{background:var(--accent);color:#fff;padding:7px 4px;font-size:12.5px;font-weight:800;text-align:center;border:1px solid #33404F}
+.rmap th.rmap-mcol{background:transparent;border:none;width:40px}
+.rmap td{border:1px solid var(--line);vertical-align:top;padding:3px;height:30px}
+.rmap td.rmap-m{background:#F4F6F9;font-weight:700;color:var(--muted);text-align:center;white-space:nowrap}
+.rmap-chip{display:block;margin:2px 0;padding:3px 6px;border-radius:5px;font-weight:600;line-height:1.2;border-left:3px solid;color:var(--ink);word-break:break-word}
+.rmap-ic{margin-right:3px}
+.rmap-legwrap{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
+.rmap-leg{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
 .cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
@@ -4480,6 +4490,65 @@ function vplOperacional(wacc){
   let npv=0; for(let k=cut+1;k<ro.length;k++){ if(typeof ro[k]==="number") npv+=ro[k]/Math.pow(1+mr,k-cut); }
   return npv;
 }
+// ===== ROADMAP DO BP (calendário mês×ano de marcos) ====================================
+const RMAP_T={
+  projeto:{c:"#123C6B",bg:"#E1EAF5",ic:"🚀",lbl:"Novo projeto"},
+  capacidade:{c:"#2E7D4F",bg:"#E6F0E8",ic:"🏭",lbl:"Adição de capacidade"},
+  cliente:{c:"#4880A8",bg:"#E9F0F6",ic:"👥",lbl:"Cliente âncora"},
+  emissao:{c:"#C55A17",bg:"#FBEBD8",ic:"💵",lbl:"Emissão de dívida"},
+  amort:{c:"#B23A3A",bg:"#FBE2E0",ic:"💸",lbl:"Amortização de dívida"},
+  aporte:{c:"#6C4FA0",bg:"#ECE6F5",ic:"📈",lbl:"Aporte de capital"},
+  dividendo:{c:"#1E7A46",bg:"#E1EFE7",ic:"💰",lbl:"Dividendos"},
+  breakeven:{c:"#13202E",bg:"#E7EAEE",ic:"⚑",lbl:"Breakeven"},
+};
+// extrai os marcos do modelo (reagem a premissas/switch). Retorna [{y,m,type,text}].
+function roadmapEvents(){
+  const num=x=>typeof x==="number"?x:0, n=DB.meses.length, cut=DB.cutoffIdx, evs=[];
+  const push=(k,type,text)=>{ const pr=DB.meses[k].ym.split("-"); evs.push({y:+pr[0], m:+pr[1], type, text}); };
+  // capacidade / novos projetos (planta operacional tem capacidade no corte; projeto novo começa do zero)
+  for(let p=1;p<=6;p++){ if(!plantOn(p)) continue; const nm=(DB.regioes.find(r=>r.id===p)||{}).nome||CAP_PLANTA[p];
+    const g=capacidadePlanta("GNL",p), c=capacidadePlanta("GNC",p);
+    let prev=(g[cut]||0)+(c[cut]||0), firstDone=prev>1000;
+    for(let k=cut+1;k<n;k++){ const cur=(g[k]||0)+(c[k]||0), d=cur-prev;
+      if(!firstDone && cur>1000){ firstDone=true; push(k,"projeto",nm+" online (+"+fmt(cur/1e3,0)+" mil m³/d)"); }
+      else if(d>=10000){ push(k,"capacidade",nm+" +"+fmt(d/1e3,0)+" mil m³/d"); }
+      prev=cur; } }
+  // dívida (emissões e amortizações grandes)
+  const de=dividaEngine();
+  for(let k=cut+1;k<n;k++){ const ds=num(de.desemb[k]), am=-num(de.amort[k]);
+    if(ds>=50e6) push(k,"emissao","Emissão de dívida R$"+fmt(ds/1e6,0)+" mi");
+    if(am>=50e6) push(k,"amort","Amortização R$"+fmt(am/1e6,0)+" mi"); }
+  // clientes âncora (pico ≥ 50 mil m³/d) — os 4 maiores
+  const cl=[]; for(const cc of DB.clientes){ if(!plantOn(cc.planta)) continue; const v=volClienteSerie(cc);
+    let f=-1,pk=0; for(let k=cut+1;k<n;k++){ if((v[k]||0)>pk)pk=v[k]; if(f<0&&(v[k]||0)>3000)f=k; }
+    if(f>=0&&pk>=50000) cl.push({f,pk,nome:cc.nome}); }
+  cl.sort((a,b)=>b.pk-a.pk); for(const cc of cl.slice(0,4)) push(cc.f,"cliente",cc.nome+" ("+fmt(cc.pk/1e3,0)+" mil m³/d)");
+  // aporte, dividendos, breakeven
+  const ap=aporteMinimoEngine(); for(let k=cut+1;k<n;k++){ if(num(ap.aporte[k])>1e5){ push(k,"aporte","1º aporte de capital"); break; } }
+  const dv=dividendosSerie().div; for(let k=cut+1;k<n;k++){ if(num(dv[k])>1e5){ push(k,"dividendo","Início dos dividendos"); break; } }
+  const be=dashOutputs().breakevenYm; if(be){ const pr=be.split("-"); evs.push({y:+pr[0], m:+pr[1], type:"breakeven", text:"Breakeven do FCFE"}); }
+  return evs;
+}
+function renderRoadmapHTML(){
+  const evs=roadmapEvents(), cut=DB.cutoffIdx, baseY=+DB.meses[cut].ym.slice(0,4);
+  const cols=[]; for(let y=baseY;y<baseY+5;y++) cols.push(y);   // 5 anos
+  const CATCH=baseY+5, ncol=cols.length+1, MES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const colOf=y=> y<baseY?-1 : (y>=CATCH?cols.length : y-baseY);
+  const grid={}; for(const e of evs){ const ci=colOf(e.y); if(ci<0) continue; (grid[ci+"_"+e.m]=grid[ci+"_"+e.m]||[]).push(e); }
+  const chip=e=>{ const t=RMAP_T[e.type]||RMAP_T.capacidade, yr=(colOf(e.y)===cols.length)?" <b>'"+String(e.y).slice(2)+"</b>":"";
+    return `<span class="rmap-chip" style="background:${t.bg};border-color:${t.c}"><span class="rmap-ic">${t.ic}</span>${e.text}${yr}</span>`; };
+  const head='<tr><th class="rmap-mcol"></th>'+cols.map(y=>`<th>${y}</th>`).join('')+`<th>${CATCH}+</th></tr>`;
+  let body='';
+  for(let m=1;m<=12;m++){ let row=`<tr><td class="rmap-m">${MES[m-1]}</td>`;
+    for(let ci=0;ci<ncol;ci++){ row+=`<td>${(grid[ci+"_"+m]||[]).map(chip).join('')}</td>`; }
+    body+=row+'</tr>'; }
+  const used=[...new Set(evs.map(e=>e.type))].filter(t=>RMAP_T[t]);
+  const leg=used.map(t=>`<span class="rmap-leg"><span class="rmap-ic">${RMAP_T[t].ic}</span>${RMAP_T[t].lbl}</span>`).join('');
+  return `<h3 class="msub">Roadmap do Business Plan — próximos 5 anos</h3>`
+    +`<div class="card"><div class="psub" style="margin:0 0 8px">Marcos por mês/ano extraídos do modelo (reagem às premissas e ao switch de plantas): novos projetos, adições de capacidade, clientes âncora, emissões/amortizações de dívida, aporte, dividendos e breakeven. A coluna <b>${CATCH}+</b> agrega os eventos de ${CATCH} em diante (com o ano no chip).</div>`
+    +`<div style="overflow-x:auto"><table class="rmap"><thead>${head}</thead><tbody>${body}</tbody></table></div>`
+    +`<div class="rmap-legwrap">${leg}</div></div>`;
+}
 function renderDashboard(){
   const cut=DB.cutoffIdx, MM=c=>fmt((c?c.v:0)/1e6,0);
   const yRec=anoSum(receitaComp(0).total), yCT=anoSum(custoTotal(0)), yRO=anoSum(resultadoOperacionalSerie()),
@@ -4540,6 +4609,7 @@ function renderDashboard(){
   t+=rowT("Receita (GNL+GNC+extras)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO)+rowT("EBITDA",yEB,true)+rowT("Lucro líquido",yLL)+'</tbody></table></div>';
   h+='<div class="card"><h4>DRE resumida por ano (R$ MM)</h4>'+t+'</div>';
   h+='<div class="note"><b>A DRE inteira já está por fórmula viva</b>, validada 1:1 — Receita → Custo → EBITDA → Depreciação → Result. Financeiro → Impostos → <b>Lucro Líquido</b> (impostos ao vivo por máquina de prejuízo fiscal de 2 entidades). Falta só o módulo de <b>DCF</b> (investimento inicial, capital de giro, valor terminal) para o VPL/TIR plenos — a prévia acima é o resultado operacional descontado.</div>';
+  h+=renderRoadmapHTML();   // roadmap do BP (calendário mês×ano de marcos)
   h+=useOfProceedsHTML();   // Fontes & Usos (Use of Proceeds) — retrato do realizado até a data-base (no fim da aba, meia tela)
   return h;
 }
