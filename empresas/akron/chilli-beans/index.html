@@ -214,7 +214,6 @@ td.neg{color:var(--neg)}
     <div class="htit"><div class="t">Guia de Investimento — New Money</div><div class="s">Akron · Lorinvest</div></div>
     <span class="mob-tab" id="mobTab">Sumário</span>
     <div class="hspace"></div>
-    <div class="hconf">Confidencial · Buy-side</div>
   </div>
 </header>
 
@@ -327,6 +326,190 @@ const F = {
       {l:"(−) Dívida holding",v:["—","(259)","(321)"],neg:1},
       {l:"(=) Equity c/ dívida holding",v:["(127)","(87)","54"],b:1},
     ]},
+
+  /* ---- A Companhia ---- */
+  ciaPerfil:["Fundada em 1998 por Caito Maia; hoje a maior rede de óculos do Brasil.",
+    "Líder em óculos de sol, com 26% de share em volume — único mercado relevante não dominado pela Ray-Ban. Também vende relógios.",
+    "Marca top of mind; collabs com grandes marcas.",
+    "Modelo asset-light: 100% das lojas franqueadas; armações adquiridas na China.",
+    "Elevada margem operacional; resultado drenado pela estrutura financeira."],
+  ciaDest:[{n:"28 anos",c:"de história"},{n:"872",c:"lojas (mai/26)"},{n:"+2,2 mm",c:"óculos vendidos/ano"},{n:"256",c:"franqueados"}],
+  socios:[
+    {nm:"Caito Maia",role:"Fundador e controlador (99,99%)",p:"Ex-músico, iniciou-se em óculos para complementar renda. Aos 57, é o \"rosto\" da marca, palestrante e apresentador do Shark Tank Brasil. O sócio se confunde com a marca — interdependência que merece atenção (risco de pessoa-chave)."},
+  ],
+  orgstruct:["Caito Maia — 99,99%","→ Fortuna Comércio / Sonic 2503 Participações","→ Casa Firme (Holding)","→ Mustang 25 Participações (emissora do New Money e das debêntures)","→ Super 25, Santa Mônica 25, Luz Franquias (avalista)"],
+  modelo:[{t:"Fábrica (China)",s:"100% das armações importadas"},{t:"Chilli",s:"markup ~3x"},{t:"Franqueado",s:"markup ~3x"},{t:"Consumidor",s:"varejo"}],
+  modeloNota:"Outras receitas: e-commerce, taxa de abertura de franquia e rebate na venda de lentes. Não há cobrança de royalties sobre a receita do franqueado.",
+  ciclo:[{d:"D0",t:"Pedido à fábrica (China)"},{d:"D105",t:"Chegada ao Brasil"},{d:"D135",t:"Entrada no estoque"},{d:"D165",t:"Venda ao franqueado · paga fornecedor"},{d:"D285",t:"Franqueado paga a Chilli"}],
+  cicloNota:"Ciclo de ~285 dias (9,5 meses). O fornecedor é pago 120 dias antes do recebimento do franqueado — descasamento de caixa que chegou a 200 dias no ápice da crise.",
+  franquia:{cols:["Formato","Investimento","Área mín.","Payback","Margem líq.","Markup"],
+    rows:[
+      ["Quiosque (Vermelha)","a partir de R$ 170 mil","—","24-36 m","12-15%","2,74-3x"],
+      ["Loja de rua (Vermelha)","a partir de R$ 190 mil","9 m²","24-36 m","12-15%","2,74-3x"],
+      ["Loja de shopping (Vermelha)","a partir de R$ 270 mil","35 m²","24-36 m","12-15%","2,74-3x"],
+      ["Eco Chilli (container)","a partir de R$ 300 mil","15 m²","24-36 m","12-15%","2,74-3x"],
+      ["Ótica — rua","a partir de R$ 270 mil","45 m²","24-36 m","12-15%","—"],
+      ["Ótica — shopping","a partir de R$ 315 mil","35 m²","24-36 m","12-15%","—"],
+    ]},
+  franquiaNota:"Economics divulgados pela franqueadora. FNP (propaganda) de 3% sobre o faturamento; sem royalties.",
+  storebase:{years:["2021","2022","2023","2024","2025","mai/26"],
+    verm:[776,767,751,716,648,612], otica:[165,232,244,237,214,200], eco:[19,35,56,70,82,60],
+    tot:[960,1034,1051,1023,944,872]},
+  storebaseNota:"Saneamento da base para reduzir a inadimplência. Churn 2026: 9,0% (85 fechamentos sobre base de 944).",
+  fin:{years:["2021","2022","2023","2024","2025"],
+    recliq:[221.6,275.8,299.9,303.6,323.4],
+    ebitda:[39.7,71.9,86.6,118.8,124.7], mg:[18,26,29,39,39],
+    ll:[9.0,18.9,20.8,20.4,8.3],
+    dlebitda:[1.4,2.3,2.4,1.7,2.9]},
+  finProj:{years:["2026E","2027E","2028E","2029E","2030E","2031E"],ebitda:[53.0,66.2,79.0,93.0,108.6,118.9]},
+  ebitdaQ:[["Reportado pela Cia (2025)","~R$ 125 mm"],["Base Akron (normalizado, 2026+)","R$ 53 mm"],["Cenário conservador","R$ 40 mm"]],
+
+  /* ---- Setor ---- */
+  setorMkt:{years:["2020","2021","2022","2023","2024","2025E","2030E"],
+    total:[21,24,26,28,29,31,40],
+    nota:"Mercado ótico total (R$ bi). CAGR 2020-25 +8,0% a.a. (corrente); 2025-30E +5,1% a.a. (real). 3 produtos: lentes de grau, armações de grau e óculos de sol."},
+  setorVol:[{n:"104,6 mm",c:"unidades/ano (varejo formal)"},{n:"69,2 mm",c:"lentes"},{n:"27,9 mm",c:"armações de grau"},{n:"7,5 mm",c:"óculos de sol"}],
+  sol:{share:[{k:"Chilli Beans",v:26.0,c:"var(--red)"},{k:"Ray-Ban",v:8.0,c:"var(--ink)"}],
+    ticket:{years:["2020","2021","2022","2023","2024","2025E"],v:[308,308,350,350,405,405]},
+    dif:[["Marca","líder em volume (26% vs 8% Ray-Ban) e em valor (24,1% vs 21,0%)"],["Escassez programada","giro semanal de coleções sustenta impulso e recompra"],["Capilaridade","612 lojas vermelhas + 45 pontos internacionais"]],
+    nota:"Mercado formal de sol: R$ 2,9 bi e 7,5 mm de unidades. Categoria de menor crescimento do eyewear; 79% das vendas nas óticas, e-commerce só 2,6%."},
+  solThreat:"Smart glasses: Ray-Ban/Meta venderam 7 mm de unidades globalmente em 2025 (3x o acumulado 2023-24). Nova categoria, hoje controlada pela EssilorLuxottica.",
+  grau:{drivers:[{n:"82 mm",c:"brasileiros usam óculos/lentes"},{n:"45%",c:"da população fora da rotina oftalmológica"},{n:"25%",c:"da população tem miopia"},{n:"+85%",c:"crescimento da miopia >6 até 2040"}],
+    nota:"Demanda crescente (envelhecimento + tempo de tela). Armações extremamente pulverizadas: as 15 maiores marcas somam 16% do valor; marcas próprias e sem marca = 84%. A Chilli lidera à frente de grifes e é o único varejista relevante a vender marca própria em escala."},
+  oticas:{cols:["Rede","Lojas","Posicionamento","Investimento","Payback"],
+    rows:[
+      ["Óticas Carol","1.408","Intermediário","R$ 290 mil (40 m²)","18 m"],
+      ["Óticas Diniz","1.200","Intermediário","R$ 180-350 mil","12-18 m"],
+      ["Ótica Chilli Beans","200","Premium","R$ 270-315 mil","24-36 m"],
+    ],
+    nota:"As principais redes somam apenas 7% dos PDVs do país. Óticas concentram 88,5% do valor do grau; e-commerce 0,7%. A EssilorLuxottica comprou a Óticas Carol (2017) e opera a GrandVision."},
+
+  /* ---- Notícias ---- */
+  newsLeitura:[
+    {t:"Confiabilidade / governança",s:"contradiz",p:"Narrativa pública oscilante: negação enfática de RJ (\"recuperação judicial é uma coisa, extrajudicial é outra\"), versões conflitantes sobre o cargo de Dela Togna (co-CEO × VP) em ~70 min, reclamação de vazamento. Reforça a bandeira de confiabilidade dos números."},
+    {t:"Corrobora a deterioração",s:"corrobora",p:"Faturamento dos franqueados −12,3% jan-jul/26 (R$ 380 mm vs R$ 423 mm); linha vermelha −9,3%; dívida ~R$ 600 mm no fim de 2025; balanços 2025 não auditados."},
+    {t:"Contexto do valuation / M&A",s:"contexto",p:"UBS BB contratado (nov/25) para vender 30% @ EV R$ 1,5 bi; conversas paralisadas com a escalada da crise. Liga direto à aba Valuation."},
+    {t:"Estratégia e competição",s:"contexto",p:"Dependência 100% China (virada USD→yuan); expansão internacional (Caribe, Miami); ChilliPay/embedded finance com a Zoop; novo rival Yoface (óculos 3D sob demanda, ex-executivo da Chilli)."},
+  ],
+  news:[
+    {dt:"25/02/23",src:"InvestNews",tag:"Marca",sel:"contexto",h:"Como a Chilli Beans ultrapassou a Ray-Ban no Brasil",p:"Trajetória de Caito Maia e a liderança em óculos de sol; migração de 110 lojas próprias para franquias; lançamento da ótica na pandemia (miopia)."},
+    {dt:"12/08/25",src:"Brasil de Fato",tag:"Estratégia",sel:"contexto",h:"'A ideia é nunca mais usar dólar', diz Caito Maia",p:"Decisão de transacionar em yuan com a China (100% dos produtos importados) no contexto do tarifaço. Dependência total da cadeia chinesa."},
+    {dt:"27/11/25",src:"NeoFeed",tag:"M&A",sel:"contexto",h:"Chilli Beans contrata UBS BB para vender 30%",p:"Fatia primária e secundária, valuation ~R$ 1,5 bi (movimenta até R$ 500 mm). Receita ~R$ 350 mm, EBITDA ~R$ 130 mm, ~1,4 mil lojas."},
+    {dt:"25/03/26",src:"Exame",tag:"Estratégia",sel:"contexto",h:"Chilli Beans quer dominar óticas e abre capital",p:"Venda de 30% via UBS BB para acelerar óticas (miopia); expansão no Caribe e formatos novos (Chilli Moov). Faturamento 2025 R$ 1,2 bi (+~4%)."},
+    {dt:"25/03/26",src:"Exame",tag:"Financeiro",sel:"contexto",h:"'Esse país não vive mais um ano com juros do jeito que estão'",p:"Crítica ao macro; internacional cresceu 23% em 2025 (US$ 6 mm, 16 países); crescimento cauteloso no Brasil (eleição + Copa)."},
+    {dt:"28/03/26",src:"Exame",tag:"Internacional",sel:"contexto",h:"Por que a Chilli Beans decidiu pousar no Caribe?",p:"Rep. Dominicana, Porto Rico, Jamaica, Barbados; 20 operações em 5 anos. Aposta no grau: \"ficar tão grande em grau quanto somos em sol\"."},
+    {dt:"02/07/26",src:"Exame",tag:"Internacional",sel:"contexto",h:"Chilli Beans expande nos EUA com loja em Miami",p:"Dadeland Mall; plano de 60 pontos até 2030 via master franqueadora (WBB). Meta global: 140 PDVs em 22 países, US$ 3,5 mm até 2030."},
+    {dt:"11/08/26",src:"Pipeline Valor",tag:"Competição",sel:"contexto",h:"Um rival para a Chilli Beans: a aposta de Paulo Morais",p:"Yoface — óculos 3D sob demanda, fundada por ex-executivo da Chilli (Ivan Cavilha); R$ 500 mil de Carol Paiffer. Reduz estoque e desperdício."},
+    {dt:"18/08/26",src:"Exame",tag:"Estratégia",sel:"contexto",h:"Chilli Beans lança maquininha própria (ChilliPay) e prepara crédito",p:"Adquirência própria com a Zoop nas 1.100 lojas; visibilidade do fluxo de caixa no PDV; próximo passo é conta digital e crédito a franqueados (embedded finance)."},
+    {dt:"31/08/26",src:"NeoFeed",tag:"Crise",sel:"corrobora",h:"Chilli Beans analisa recuperação judicial e anuncia novo CEO",p:"Dela Togna como coCEO com equipe jurídica/reestruturação; \"documentos na mesa de Maia\". Dívida bruta R$ 216 mm (23) → R$ 290 mm (24, não auditado) → ~R$ 600 mm (fim 25)."},
+    {dt:"31/08/26",src:"NeoFeed",tag:"Governança",sel:"contradiz",h:"As várias versões da Chilli Beans sobre o novo executivo e a crise",p:"Em ~70 min a empresa oscilou entre \"co-CEO\" e \"vice-presidente\". Maia admite crise (\"fazendo milagre\"), nega RJ e distingue de RE. Reclama do vazamento."},
+    {dt:"31/08/26",src:"InvestNews",tag:"Crise",sel:"corrobora",h:"Caito Maia recruta 'co-CEO' para lidar com a crise",p:"Dela Togna (ex-Galeazzi) assume 1º/out. Debêntures R$ 100 mm (mar/25, CDI+3,90%, Vert) para reperfilamento; negociação amigável com bancos."},
+    {dt:"31/08/26",src:"Veja",tag:"Crise",sel:"corrobora",h:"O que está por trás da chegada de André Dela Togna",p:"Hipótese de recuperação extrajudicial (fontes). Franqueados: R$ 380 mm jan-jul (−12,3%); linha vermelha R$ 275 mm (−9,3%); tradicionais R$ 98 mm (−12,9%)."},
+    {dt:"01/09/26",src:"Times Brasil / CNBC",tag:"Crise",sel:"corrobora",h:"O que aconteceu com a Chilli Beans? Entenda a crise",p:"Explicação didática: dívida R$ 216 mm (23) → R$ 290 mm (24, sem auditoria); episódios de inadimplência na debênture; empresa nega RJ e negocia acordo direto com bancos."},
+  ],
+
+  /* ---- Valuation & peers ---- */
+  valUBS:[["EV total (UBS BB)","R$ 1,5 bi"],["(−) Dívida líquida","~R$ 358 mm"],["(=) Equity implícito","~R$ 1,14 bi"],["M&A 30% → proceeds","~R$ 343 mm"]],
+  valMult:[["EV / Receita líq. 2025 (R$ 323 mm)","4,6x","alinhado com EssilorLuxottica (~4x)"],
+    ["EV / EBITDA Cia 2025 (R$ 125 mm)","12,0x","alinhado com Boticário (10-12x)"],
+    ["EV / EBITDA Akron-realista (R$ 60 mm)","25,0x","esticado; reflete turnaround"],
+    ["EV / EBITDA 2030E (R$ 131 mm)","11,4x","alinhado com peers no forward"]],
+  peers:{cols:["Peer","EV/Sales","EV/EBITDA","Comentário"],
+    rows:[
+      ["EssilorLuxottica","~4,0x","~18-20x","Líder global integrado; benchmark premium"],
+      ["Warby Parker (EUA)","~2,5x","~30x","DTC + lojas próprias; ainda escalando"],
+      ["Safilo (Itália)","~0,5x","~7-8x","Modelo de licença — mais próximo no DNA"],
+      ["Grupo Boticário","n.m.","~10-12x","Franquia asset-light BR (privada)"],
+      ["Renner / Riachuelo","0,7-1,2x","6-8x","Varejo moda verticalizado (parcial)"],
+      ["Restoque (Le Lis)","~0,7x","~5-7x","Varejo moda em distress — referência de downside"],
+    ]},
+  ebitdaQ2:"A Akron normaliza o EBITDA em R$ 53 mm (base) / R$ 40 mm (conservador), contra ~R$ 125 mm reportado pela Cia — DFs 2023-24 \"embora auditadas, não confiáveis\", estoque livre e práticas contábeis problemáticas.",
+  cf:{years:["2026","2027","2028","2029","2030","2031"],
+    base:{
+      rows:[
+        {l:"EBITDA (pré-IFRS 16)",v:[53.0,66.2,79.0,93.0,108.6,118.9],b:1},
+        {l:"Margem",v:["21,0%","24,9%","27,8%","29,5%","31,3%","31,5%"],pct:1},
+        {l:"(−) Impostos",v:["—",-0.9,-1.3,-5.9,-8.0,-4.3]},
+        {l:"(−) Juros de antecipação de receb.",v:[-12.0,-6.6,-5.0,-2.8,"—","—"]},
+        {l:"(−) Fornecedores represados",v:[-16.0,-4.0,"—","—","—","—"]},
+        {l:"(+/−) Capital de giro",v:[-45.3,8.6,-9.5,-18.5,-28.1,-7.9]},
+        {l:"(=) Fluxo de caixa operacional",v:[-20.3,63.4,63.2,65.9,72.6,106.7],b:1},
+        {l:"(−) CapEx e intangível",v:[-9.5,-10.0,-10.6,-11.8,-13.0,-14.1]},
+        {l:"(=) FC para servir a dívida",v:[-29.8,53.4,52.5,54.0,59.6,92.6],b:1},
+        {l:"Alavancagem (DL/EBITDA)",v:["8,1x","6,9x","6,0x","5,2x","4,5x","4,1x"],pct:1},
+      ]},
+    cons:{
+      rows:[
+        {l:"EBITDA (pré-IFRS 16)",v:[33.2,40.2,47.3,57.5,68.4,75.6],b:1},
+        {l:"Margem",v:["16,7%","20,0%","22,7%","24,7%","26,6%","27,0%"],pct:1},
+        {l:"(−) Impostos",v:["—",-0.1,-0.3,-0.7,-0.7,-0.4]},
+        {l:"(−) Juros de antecipação de receb.",v:[-9.5,-5.0,-3.7,-2.1,"—","—"]},
+        {l:"(−) Fornecedores represados",v:[-16.0,-4.0,"—","—","—","—"]},
+        {l:"(+/−) Capital de giro",v:[-28.1,4.8,-9.3,-17.2,-24.4,-9.7]},
+        {l:"(=) Fluxo de caixa operacional",v:[-20.4,35.9,33.9,37.6,43.3,65.4],b:1},
+        {l:"(−) CapEx e intangível",v:[-7.4,-7.5,-7.8,-8.7,-9.6,-10.5]},
+        {l:"(=) FC para servir a dívida",v:[-27.8,28.3,26.1,28.9,33.7,55.0],b:1},
+        {l:"Alavancagem (DL/EBITDA)",v:["13,0x","11,9x","11,1x","9,9x","9,2x","9,4x"],pct:1},
+      ]}},
+  recovery:{cols:["Cenário de saída","Recovery s/ face","Recebido (R$ mm)","MOIC"],
+    rows:[
+      ["Cura integral (100%)","100%","84,1","5,3x"],
+      ["Reperfilamento c/ haircut bullet 10%","~88%","73","4,6x"],
+      ["Reperfilamento c/ haircut bullet 30%","~76%","63","4,0x"],
+      ["Reperfilamento c/ haircut bullet 50%","~63%","52","3,3x"],
+      ["RJ com recovery 40%","40%","25","1,6x"],
+      ["RJ com recovery 25% (breakeven)","25%","16","1,0x"],
+      ["Default total (worst case)","5%","3","0,2x"],
+    ]},
+
+  /* ---- Riscos ---- */
+  riscos:[
+    {t:"Confiabilidade dos números",b:"Alto",p:"DFs 2025 não emitidas; auditoria KPMG pendente; práticas contábeis \"não seguidas\" admitidas (antecipação de royalties, C a R não performado). Estoque em 140 dias (vs 80-112 histórico) sugere write-down potencial."},
+    {t:"Aval frágil",b:"Alto",p:"Indícios de que o sócio não tem patrimônio relevante no Brasil (imóveis já vinculados ao BB); a Akron trata a cessão fiduciária formal como próxima de \"clean\"."},
+    {t:"Garantias dependem de performance",b:"Alto",p:"A robustez das garantias reais (recebíveis, marca) depende da continuidade operacional da Cia pós-RE."},
+    {t:"Operacional (base de franqueados)",b:"Médio",p:"Dúvidas quanto à manutenção da base de franqueados após a RE; faturamento dos franqueados já cai −12,3% (jan-jul/26)."},
+    {t:"Dependência de BB + Caixa",b:"Médio",p:"BB (R$ 96 mm) e Caixa (R$ 72 mm) são decisivos para a adesão ao plano. A Akron relata \"entrada boa\" no BB — a validar via canais oficiais."},
+    {t:"Necessidade de capital adicional",b:"Médio",p:"Sem o New Money, o plano trava. No conservador, refinanciamento relevante e recorrente a partir de jul/29."},
+    {t:"Partes relacionadas",b:"Médio",p:"Empréstimos a partes relacionadas R$ 74,5 mm (2025); dívida tomada na Cia para recomprar a participação do Gávea — sem contrapartida operacional."},
+  ],
+  mitig:[
+    "Prioridade sênior na cascata (New Money recebe primeiro) + AF de 100% das ações e da marca.",
+    "Roll-Up 1:1 e cash sweep aceleram o recebimento e reduzem o deságio do crédito antigo.",
+    "Posição relevante (>75% da emissão) dá controle das matérias da RE.",
+    "Preço de entrada baixo no crédito antigo absorve grande parte do risco (breakeven em RJ recovery 25%).",
+    "Gatilho real de M&A (UBS BB, EV R$ 1,5 bi) como evento de liquidez para a Tranche 2.",
+  ],
+  vetor:{cols:["#","Assunção","Confiança","Threshold-de-reversão"],
+    rows:[
+      ["A1","RE materializa com adesão de BB + Caixa (≥44% combinados)","Média (70%)","Se BB ou Caixa vender a terceiro hostil, vira RJ → recovery cai p/ 25-40%; TIR cai a 15-25%."],
+      ["A2","Negociação de juros antes da carência total (após mês 12)","Média","Se carência total for mantida, TIR do crédito antigo cai; duration sobe."],
+      ["A3","EBITDA normalizado R$ 53-60 mm é o número correto (vs R$ 125 mm da Cia)","Alta (80%)","Se EBITDA real < R$ 40 mm, capacidade de pagamento comprometida; risco de RJ sobe."],
+      ["A4","Bullet/Tranche 2 reperfilado ou pago via M&A (não 100% cash)","Alta","Haircut adicional já precificado no base; M&A melhora o resultado."],
+      ["A5","Necessidade de caixa 2026 suprida pelo New Money (R$ 35 mm)","Média (60%)","Sem o aporte, fornecedores travam suprimentos; gatilho do cenário conservador."],
+      ["A6","M&A 30% (EV R$ 1,5 bi → ~R$ 343 mm) em 12-18 meses","Média (60%)","Valuation defensável no forward (11,4x EBITDA 2030E). Atraso/desconto >30% exige reperfilamento."],
+    ]},
+  fontes:[
+    ["Deck","akron_20260916_Chilli_New Money (set/26) — fonte primária da operação"],
+    ["Teaser","Itaú BBA (abr/26) — ativo, estrutura da emissão"],
+    ["Modelo","Chilli Beans - Modelo de Reestruturação (vMN, mai/26) — DRE/balanço 2021-25, dívida"],
+    ["Guidance","Chilli_Beans_Guidance.xlsx — fatos, retornos, peers, ROIC, recovery"],
+    ["Memo IC v3","(mai/26) — decisão anterior (compra da debênture @25% face); peers e recovery"],
+    ["Term Sheet RE","enquadramento jurídico (Credor Parceiro, cash sweep, watchdog)"],
+    ["Notícias","chilli_beans_noticias.docx — 14 matérias públicas (fev/23-set/26)"],
+  ],
+  metod:[
+    ["Múltiplo de referência","8,0x EBITDA (pré-IFRS 16) na ponte de EV"],
+    ["EBITDA base","R$ 53 mm (2026) — normalizado pela Akron"],
+    ["Indexador principal","CDI (Focus mai/26: 13,5% em 26 · 12,0% em 27 · 10,5% em 28 · 9,5% em 29+)"],
+    ["Hurdle Lorinvest","22% a.a. (referência de valor)"],
+    ["New Money","2,5% a.m. + fee 3% · SAC · 30 meses"],
+  ],
+  reconc:[
+    "Tabelas do deck (ponte de EV, fluxo de caixa, resumo) vieram embaralhadas no OCR — recompostas dos Excels e verificadas por aritmética.",
+    "Opções A/B/C (deck set/26) vs \"Credor Parceiro\" (Term Sheet): versões diferentes; deck é primário.",
+    "Métricas do crédito antigo: o Memo (mai/26) trata da compra da debênture @25% face (MOIC ~6,7x); o deck (set/26) consolida New + Old em 2,2x-3,0x. Instrumentos e datas distintos.",
+    "EBITDA: Cia reporta ~R$ 125 mm; Akron trabalha com R$ 53 mm (base) / R$ 40 mm (conservador).",
+  ],
 };
 
 const TABS = [
@@ -359,6 +542,49 @@ function svgHBars(items,{fmt=money}={}){
   return s+`</div>`;
 }
 function bindTips(root){$$("[data-t]",root).forEach(n=>{n.addEventListener("mouseenter",e=>tip(e,n.getAttribute("data-t")));n.addEventListener("mouseleave",untip);n.style.cursor="default";});}
+
+/* vertical bars: data=[{k,v}] */
+function svgBars(data,{h=210,unit="",color="var(--ink)",fmt=money}={}){
+  const W=560,top=16,bottom=28,left=6,right=6;
+  const max=Math.max(...data.map(d=>d.v))*1.15||1, iw=W-left-right, bw=iw/data.length;
+  let s=`<svg viewBox="0 0 ${W} ${h}" role="img">`;
+  for(let g=0;g<=3;g++){const y=top+(h-top-bottom)*g/3;s+=`<line class="axl" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/>`;}
+  data.forEach((d,i)=>{const bh=(d.v/max)*(h-top-bottom),x=left+i*bw+bw*0.2,w=bw*0.6,y=h-bottom-bh;
+    s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${d.c||color}" data-t="${d.k}: ${fmt(d.v)}${unit}"/>`;
+    s+=`<text class="axt" x="${(x+w/2).toFixed(1)}" y="${h-bottom+13}" text-anchor="middle">${d.k}</text>`;
+    s+=`<text x="${(x+w/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">${fmt(d.v)}</text>`;});
+  return s+`</svg>`;
+}
+/* stacked bars: years[], series=[{k,color,data[]}] */
+function svgStacked(years,series,{h=230,totals=null}={}){
+  const W=560,top=18,bottom=28,left=6,right=6;
+  const sums=years.map((_,i)=>series.reduce((a,s)=>a+s.data[i],0));
+  const max=Math.max(...sums)*1.14||1, iw=W-left-right, bw=iw/years.length;
+  let s=`<svg viewBox="0 0 ${W} ${h}" role="img">`;
+  for(let g=0;g<=3;g++){const y=top+(h-top-bottom)*g/3;s+=`<line class="axl" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/>`;}
+  years.forEach((yr,i)=>{let acc=0;const x=left+i*bw+bw*0.2,w=bw*0.6;
+    series.forEach(se=>{const bh=(se.data[i]/max)*(h-top-bottom),y=h-bottom-acc-bh;
+      s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${bh.toFixed(1)}" fill="${se.color}" data-t="${yr} · ${se.k}: ${money(se.data[i])}"/>`;acc+=bh;});
+    const tv=totals?totals[i]:sums[i];
+    s+=`<text x="${(x+w/2).toFixed(1)}" y="${(h-bottom-acc-5).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">${money(tv)}</text>`;
+    s+=`<text class="axt" x="${(x+w/2).toFixed(1)}" y="${h-bottom+13}" text-anchor="middle">${yr}</text>`;});
+  return s+`</svg>`;
+}
+/* line: years[], series=[{k,color,data[]}] with optional projFrom index */
+function svgLine(years,series,{h=210,fmt=money,projFrom=null}={}){
+  const W=560,top=16,bottom=26,left=30,right=10;
+  const all=series.flatMap(s=>s.data), max=Math.max(...all)*1.12||1, min=Math.min(0,...all);
+  const iw=W-left-right, ih=h-top-bottom, xx=i=>left+iw*i/(years.length-1), yy=v=>top+ih*(1-(v-min)/(max-min));
+  let s=`<svg viewBox="0 0 ${W} ${h}" role="img">`;
+  for(let g=0;g<=3;g++){const val=min+(max-min)*(1-g/3),y=top+ih*g/3;s+=`<line class="axl" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/><text class="axt" x="0" y="${(y-2).toFixed(1)}">${fmt(val)}</text>`;}
+  if(projFrom!=null){const px=xx(projFrom);s+=`<rect x="${px.toFixed(1)}" y="${top}" width="${(W-right-px).toFixed(1)}" height="${ih}" fill="#F0F0F2" opacity=".5"/>`;}
+  years.forEach((yr,i)=>s+=`<text class="axt" x="${xx(i).toFixed(1)}" y="${h-8}" text-anchor="middle">${yr}</text>`);
+  series.forEach(se=>{const pts=se.data.map((v,i)=>`${xx(i).toFixed(1)},${yy(v).toFixed(1)}`).join(" ");
+    s+=`<polyline points="${pts}" fill="none" stroke="${se.color}" stroke-width="2.4" stroke-linejoin="round"/>`;
+    se.data.forEach((v,i)=>s+=`<circle cx="${xx(i).toFixed(1)}" cy="${yy(v).toFixed(1)}" r="3" fill="${se.color}" data-t="${yr2(years,i)} · ${se.k}: ${fmt(v)}"/>`);});
+  return s+`</svg>`;
+}
+function yr2(years,i){return years[i];}
 
 /* ============================================================ RENDER ==== */
 const R = {
@@ -506,19 +732,193 @@ const R = {
   </div>
 `;},
 
-"p-cia":()=>stub("A Companhia","Perfil & modelo · Franquia & unit economics · Base & performance"),
-"p-setor":()=>stub("Setor","Mercado ótico · Óculos de sol · Grau · Óticas & competição"),
-"p-news":()=>stub("Notícias","Feed cronológico + leitura buy-side (14 matérias)"),
-"p-val":()=>`
-  <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span>
-    <div class="head-copy"><h2>Ponte de valor (prévia)</h2><div class="cap">2026 As-Is → 2026 Pós-Reestruturação → 2028 · a RE torna o equity positivo até 2028</div></div></div>
-  <div class="card"><div class="twrap"><table><thead><tr><th class="l">R$ mm</th>${F.ev.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>
-  ${F.ev.rows.map(r=>`<tr class="${r.b?'tot':''}"><td class="l">${r.l}</td>${r.v.map(v=>`<td class="${r.neg?'neg':''}">${v}</td>`).join("")}</tr>`).join("")}
-  </tbody></table></div>
-  <div class="src">Reconstruído do deck (pp. 28–29) e verificado por aritmética: EV = EBITDA × 8,0x; EV + Caixa − Dívida = Equity; DL/EBITDA sobre dívida líquida operacional.</div></div>
-  ${stub("Valuation & Retorno (demais seções)","Valuation & peers · Cenários de retorno · Fluxo de caixa · Recovery & breakeven")}`,
-"p-risco":()=>stub("Riscos & Assunções","Riscos & mitigantes · Vetor de assunções (A1–A6)"),
-"p-anexo":()=>stub("Fontes & Anexos","Documentos · Metodologia · Notas de reconciliação"),
+"p-cia":()=>`
+  <div class="subtabs"><button data-s="0" class="on">Perfil & modelo</button><button data-s="1">Franquia & unit economics</button><button data-s="2">Base & performance</button></div>
+
+  <div class="subpane on" data-p="0">
+    <div class="row31">
+      <div class="card"><h2>Visão geral</h2><ul style="margin:8px 0 0 16px;font-size:13px;color:#3A3A3E;line-height:1.6">${F.ciaPerfil.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+      <div class="card"><h2>Destaques</h2><div class="stat4" style="grid-template-columns:1fr 1fr;margin-top:4px">${F.ciaDest.map(d=>`<div class="st"><div class="n">${d.n}</div><div class="c">${d.c}</div></div>`).join("")}</div></div>
+    </div>
+    <div class="card"><div class="section-head" style="margin-bottom:8px"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg></span><div class="head-copy"><h2>O sócio — Caito Maia</h2><div class="cap">Risco de pessoa-chave</div></div></div>
+      <p style="font-size:13px;color:#3A3A3E;line-height:1.6">${F.socios[0].p}</p></div>
+    <div class="row2">
+      <div class="card"><h2>Estrutura societária</h2><div class="cap">Controle e veículos do grupo</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">${F.orgstruct.map((o,i)=>`<div style="font-size:12.5px;padding:8px 12px;background:#FBFBFC;border:1px solid var(--line);border-radius:8px;margin-left:${i*14}px">${o}</div>`).join("")}</div></div>
+      <div>
+        <div class="card"><h2>Modelo de negócio</h2><div class="cap">Markup em cadeia até o consumidor</div>
+          <div class="flow">${F.modelo.map((m,i)=>`<div class="fn"><div class="ft">${m.t}</div><div class="fs">${m.s}</div></div>${i<F.modelo.length-1?'<div class="fa">→</div>':''}`).join("")}</div>
+          <div class="note"><span class="nl">Nota.</span> ${F.modeloNota}</div></div>
+      </div>
+    </div>
+    <div class="card"><h2>Ciclo financeiro — 285 dias</h2><div class="cap">Do pedido na China ao recebimento do franqueado</div>
+      <div class="flow" style="gap:0">${F.ciclo.map((c,i)=>`<div class="fn"><div class="ft">${c.d}</div><div class="fs">${c.t}</div></div>${i<F.ciclo.length-1?'<div class="fa">›</div>':''}`).join("")}</div>
+      <div class="note warn"><span class="nl">Descasamento.</span> ${F.cicloNota}</div></div>
+  </div>
+
+  <div class="subpane" data-p="1">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 9h18M9 3v18M4 3h16v18H4z"/></svg></span><div class="head-copy"><h2>Modelos de franquia</h2><div class="cap">Quatro formatos de Loja Vermelha + dois de Ótica</div></div></div>
+    <div class="card"><div class="twrap"><table><thead><tr>${F.franquia.cols.map((c,i)=>`<th class="${i===0?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
+      ${F.franquia.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="note"><span class="nl">Nota.</span> ${F.franquiaNota}</div></div>
+  </div>
+
+  <div class="subpane" data-p="2">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Base de lojas e performance</h2><div class="cap">Saneamento da rede e evolução financeira</div></div></div>
+    <div class="card"><h2>Evolução da base de lojas</h2><div class="cap">Por formato (2021 → mai/26)</div>
+      ${svgStacked(F.storebase.years,[{k:"Vermelhas",color:"var(--red)",data:F.storebase.verm},{k:"Óticas",color:"var(--ink)",data:F.storebase.otica},{k:"Eco / Intl",color:"#A9A9AD",data:F.storebase.eco}],{totals:F.storebase.tot})}
+      <div class="legend"><span><i style="background:var(--red)"></i>Vermelhas</span><span><i style="background:var(--ink)"></i>Óticas</span><span><i style="background:#A9A9AD"></i>Eco / Intl</span></div>
+      <div class="note"><span class="nl">Nota.</span> ${F.storebaseNota}</div></div>
+    <div class="row2">
+      <div class="card"><h2>Receita líquida (R$ mm)</h2><div class="cap">2021–2025 · fonte: modelo (Quadros PPT)</div>
+        ${svgBars(F.fin.years.map((y,i)=>({k:y,v:F.fin.recliq[i]})),{color:"var(--ink)"})}</div>
+      <div class="card"><h2>EBITDA (R$ mm)</h2><div class="cap">Reportado (2021–25) e base Akron (2026E+)</div>
+        ${svgLine([...F.fin.years,...F.finProj.years],[{k:"EBITDA",color:"var(--red)",data:[...F.fin.ebitda,...F.finProj.ebitda]}],{projFrom:F.fin.years.length-1})}
+        <div class="note warn"><span class="nl">Descontinuidade.</span> EBITDA reportado 2025 (R$ 124,7 mm) impactado por write-off de R$ 88,5 mm de recebíveis; a base Akron 2026+ é normalizada (R$ 53 mm).</div></div>
+    </div>
+    <div class="card"><h2>EBITDA — qual número?</h2><div class="cap">A base de EBITDA muda materialmente o valuation</div>
+      <div class="twrap"><table><tbody>${F.ebitdaQ.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+  </div>`,
+"p-setor":()=>`
+  <div class="subtabs"><button data-s="0" class="on">Mercado ótico</button><button data-s="1">Óculos de sol</button><button data-s="2">Grau</button><button data-s="3">Óticas & competição</button></div>
+
+  <div class="subpane on" data-p="0">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Mercado ótico brasileiro</h2><div class="cap">Lentes de grau, armações de grau e óculos de sol</div></div></div>
+    <div class="card"><h2>Faturamento total (R$ bi)</h2><div class="cap">2020 → 2030E</div>
+      ${svgBars(F.setorMkt.years.map((y,i)=>({k:y,v:F.setorMkt.total[i]})),{color:"var(--ink)",fmt:v=>v})}
+      <div class="note"><span class="nl">Nota.</span> ${F.setorMkt.nota}</div></div>
+    <div class="card"><h2>Volume anual (2025E)</h2><div class="stat4" style="margin-top:4px">${F.setorVol.map(v=>`<div class="st"><div class="n">${v.n}</div><div class="c">${v.c}</div></div>`).join("")}</div></div>
+  </div>
+
+  <div class="subpane" data-p="1">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="7" cy="14" r="4"/><circle cx="17" cy="14" r="4"/><path d="M11 13h2M2 10h3M19 10h3"/></svg></span><div class="head-copy"><h2>Óculos de sol — liderança da Chilli</h2><div class="cap">Segmento de origem da marca; líder em volume, 3x o share da Ray-Ban</div></div></div>
+    <div class="row2">
+      <div class="card"><h2>Share em volume (2024)</h2>${svgBars(F.sol.share,{fmt:v=>v.toFixed(0)+"%"})}
+        <div class="note"><span class="nl">Nota.</span> ${F.sol.nota}</div></div>
+      <div class="card"><h2>Ticket médio (R$)</h2><div class="cap">Óculos de sol</div>${svgBars(F.sol.ticket.years.map((y,i)=>({k:y,v:F.sol.ticket.v[i]})),{color:"var(--ink)",fmt:v=>"R$ "+v})}</div>
+    </div>
+    <div class="card"><h2>Diferenciais competitivos</h2><div class="kv">${F.sol.dif.map(d=>`<div><div class="v">${d[0]}</div><div class="k" style="text-transform:none;font-weight:500;font-size:11.5px;letter-spacing:0">${d[1]}</div></div>`).join("")}</div>
+      <div class="note warn"><span class="nl">Ameaça.</span> ${F.solThreat}</div></div>
+  </div>
+
+  <div class="subpane" data-p="2">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><div class="head-copy"><h2>Armações e lentes de grau</h2><div class="cap">Vetor de crescimento — envelhecimento e tempo de tela</div></div></div>
+    <div class="card"><h2>Drivers de demanda</h2><div class="stat4" style="margin-top:4px">${F.grau.drivers.map(d=>`<div class="st"><div class="n">${d.n}</div><div class="c">${d.c}</div></div>`).join("")}</div>
+      <div class="note"><span class="nl">Nota.</span> ${F.grau.nota}</div></div>
+  </div>
+
+  <div class="subpane" data-p="3">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg></span><div class="head-copy"><h2>Óticas — panorama competitivo</h2><div class="cap">Redes principais e economics de franquia</div></div></div>
+    <div class="card"><div class="twrap"><table><thead><tr>${F.oticas.cols.map((c,i)=>`<th class="${i===0?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
+      ${F.oticas.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota}</div></div>
+  </div>`,
+"p-news":()=>{
+  const sel={corrobora:["red","corrobora"],contradiz:["amb","contradiz"],contexto:["gry","contexto"]};
+  return `
+  <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5zm13 3h3v9a2 2 0 0 1-2 2M7 9h7M7 12h7M7 15h4"/></svg></span>
+    <div class="head-copy"><h2>Evidência externa — leitura buy-side</h2><div class="cap">O que a imprensa corrobora, contradiz ou acrescenta à narrativa da Cia (14 matérias, fev/23 → set/26)</div></div></div>
+  <div class="row2" style="margin-bottom:14px">${F.newsLeitura.map(l=>`<div class="card" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="margin:0">${l.t}</h2><span class="pill ${sel[l.s][0]}">${sel[l.s][1]}</span></div><p style="font-size:12.5px;color:#3A3A3E;line-height:1.55;margin-top:8px">${l.p}</p></div>`).join("")}</div>
+
+  <div class="card"><h2>Linha do tempo de notícias</h2><div class="cap">Mais recentes primeiro · fonte pública (não-NDA)</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+    ${[...F.news].reverse().map(n=>`<div style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#FBFBFC">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
+        <span style="font-size:11px;font-weight:700;color:var(--red)">${n.dt}</span>
+        <span style="font-size:11px;color:var(--muted)">· ${n.src}</span>
+        <span class="pill gry" style="font-size:9.5px">${n.tag}</span>
+        <span class="pill ${sel[n.sel][0]}" style="font-size:9.5px">${sel[n.sel][1]}</span>
+      </div>
+      <div style="font-size:13px;font-weight:700;line-height:1.35;margin-bottom:3px">${n.h}</div>
+      <div style="font-size:11.8px;color:#50505A;line-height:1.5">${n.p}</div>
+    </div>`).join("")}
+    </div></div>`;
+},
+"p-val":()=>{
+  const cfTable=(sc)=>`<div class="twrap"><table><thead><tr><th class="l">R$ mm</th>${F.cf.years.map(y=>`<th>${y}</th>`).join("")}</tr></thead><tbody>
+    ${sc.rows.map(r=>`<tr class="${r.b?'tot':''}"><td class="l">${r.l}</td>${r.v.map(v=>{const neg=(typeof v==='number'&&v<0)||(typeof v==='string'&&v.startsWith('('));const disp=(typeof v==='number')?(v<0?'('+money(-v)+')':money(v)):v;return `<td class="${neg&&!r.pct?'neg':''}">${disp}</td>`;}).join("")}</tr>`).join("")}
+    </tbody></table></div>`;
+  return `
+  <div class="subtabs"><button data-s="0" class="on">Valuation & peers</button><button data-s="1">Ponte de EV</button><button data-s="2">Cenários de retorno</button><button data-s="3">Fluxo de caixa</button><button data-s="4">Recovery & breakeven</button></div>
+
+  <div class="subpane on" data-p="0">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Valuation de referência (UBS BB) & peers</h2><div class="cap">EV total R$ 1,5 bi (mandato de venda de 30%) — gatilho real de M&A para a saída</div></div></div>
+    <div class="row2">
+      <div class="card"><h2>Cross-check do valuation UBS BB</h2><div class="twrap"><table><tbody>${F.valUBS.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+      <div class="card"><h2>Múltiplos implícitos</h2><div class="twrap"><table><thead><tr><th class="l">Métrica</th><th>Múltiplo</th><th class="l">Leitura</th></tr></thead><tbody>${F.valMult.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td><td class="l" style="color:var(--muted);font-size:11.5px">${r[2]}</td></tr>`).join("")}</tbody></table></div></div>
+    </div>
+    <div class="card"><h2>Peers</h2><div class="cap">Benchmarks globais e Brasil</div><div class="twrap"><table><thead><tr>${F.peers.cols.map((c,i)=>`<th class="${i===0||i===3?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
+      ${F.peers.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0||i===3?'l':''}" ${i===3?'style="color:var(--muted);font-size:11.5px;white-space:normal;min-width:200px"':''}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="note warn"><span class="nl">EBITDA — qual número?</span> ${F.ebitdaQ2}</div></div>
+  </div>
+
+  <div class="subpane" data-p="1">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></span><div class="head-copy"><h2>Ponte de valor</h2><div class="cap">2026 As-Is → 2026 Pós-Reestruturação → 2028 · a RE torna o equity positivo até 2028</div></div></div>
+    <div class="card"><div class="twrap"><table><thead><tr><th class="l">R$ mm</th>${F.ev.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>
+      ${F.ev.rows.map(r=>`<tr class="${r.b?'tot':''}"><td class="l">${r.l}</td>${r.v.map(v=>`<td class="${r.neg?'neg':''}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="src">Reconstruído do deck (pp. 28–29) e verificado por aritmética: EV = EBITDA × 8,0x; EV + Caixa − Dívida = Equity; DL/EBITDA sobre dívida líquida operacional.</div></div>
+  </div>
+
+  <div class="subpane" data-p="2">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Cenários de retorno</h2><div class="cap">New Money + crédito antigo (deck set/26) — ancorar no conservador</div></div></div>
+    <div class="row3">${F.scen.map(sc=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2 style="margin:0">${sc.k}</h2><span class="pill ${sc.tone}">${sc.when}</span></div>
+      <div class="stat4" style="grid-template-columns:repeat(3,1fr);margin:12px 0 8px"><div class="st"><div class="n" style="color:var(--red)">${sc.tir}</div><div class="c">TIR</div></div><div class="st"><div class="n">${sc.moic}</div><div class="c">MOIC</div></div><div class="st"><div class="n" style="font-size:16px">${sc.ll}</div><div class="c">Lucro líq.</div></div></div>
+      <ul style="margin:4px 0 0 16px;font-size:11.5px;color:#50505A;line-height:1.5">${sc.prem.map(p=>`<li>${p}</li>`).join("")}</ul></div>`).join("")}</div>
+    <div class="note"><span class="nl">New Money isolado.</span> TIR 37% a.a. · MOIC 1,7x · payback 23 meses · lucro líquido R$ 2,9 mm.</div>
+  </div>
+
+  <div class="subpane" data-p="3">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></span><div class="head-copy"><h2>Fluxo de caixa projetado</h2><div class="cap">2026–2031 · números recompostos do modelo/deck e verificados</div></div></div>
+    <div class="card">
+      <div class="subtabs"><button data-s="0" class="on">Cenário base</button><button data-s="1">Conservador</button></div>
+      <div class="subpane on" data-p="0">${cfTable(F.cf.base)}</div>
+      <div class="subpane" data-p="1">${cfTable(F.cf.cons)}</div>
+      <div class="src">Linhas operacionais até o fluxo de caixa para servir a dívida; o serviço da dívida por tranche está no modelo (anexo). Alavancagem = dívida líquida / EBITDA.</div>
+    </div>
+  </div>
+
+  <div class="subpane" data-p="4">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3zm0 6v5m0 3h.01"/></svg></span><div class="head-copy"><h2>Recovery & breakeven</h2><div class="cap">Análise de recuperação do crédito antigo (debênture) — referência de downside</div></div></div>
+    <div class="card"><div class="twrap"><table><thead><tr>${F.recovery.cols.map((c,i)=>`<th class="${i===0?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
+      ${F.recovery.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="note"><span class="nl">Contexto.</span> Matriz do Memo IC (mai/26), referente à compra da debênture @ ~25% do face. O preço de entrada baixo absorve o risco até um cenário de RJ com recovery de 25% (breakeven). Não confundir com as métricas do New Money.</div></div>
+  </div>`;
+},
+"p-risco":()=>{
+  const rb=b=>b==="Alto"?'style="background:#F4EAEC;color:var(--red)"':'style="background:#F7EFD9;color:var(--amber)"';
+  return `
+  <div class="subtabs"><button data-s="0" class="on">Riscos & mitigantes</button><button data-s="1">Vetor de assunções</button></div>
+
+  <div class="subpane on" data-p="0">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3zm0 6v5m0 3h.01"/></svg></span><div class="head-copy"><h2>Principais riscos</h2><div class="cap">Ordenados por severidade — tom conservador</div></div></div>
+    <div class="risks">${F.riscos.map(r=>`<div class="risk"><div class="rh"><div class="rt">${r.t}</div><span class="rb" ${rb(r.b)}>${r.b}</span></div><div class="rd">${r.p}</div></div>`).join("")}</div>
+    <div class="card" style="margin-top:14px"><h2>Mitigantes</h2><ul style="margin:8px 0 0 16px;font-size:12.5px;color:#3A3A3E;line-height:1.6">${F.mitig.map(m=>`<li>${m}</li>`).join("")}</ul></div>
+  </div>
+
+  <div class="subpane" data-p="1">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><div class="head-copy"><h2>Vetor de assunções materiais</h2><div class="cap">Cada assunção da tese com sua confiança e o gatilho que a reverte</div></div></div>
+    <div class="card"><div class="twrap"><table><thead><tr>${F.vetor.cols.map((c,i)=>`<th class="${i===0?'':(i===3?'l':'l')}" ${i===0?'style="text-align:center"':''}>${c}</th>`).join("")}</tr></thead><tbody>
+      ${F.vetor.rows.map(r=>`<tr><td style="text-align:center;font-weight:700">${r[0]}</td><td class="l" style="white-space:normal;min-width:200px">${r[1]}</td><td class="l">${r[2]}</td><td class="l" style="white-space:normal;min-width:260px;color:var(--muted);font-size:11.5px">${r[3]}</td></tr>`).join("")}</tbody></table></div></div>
+  </div>`;
+},
+"p-anexo":()=>`
+  <div class="subtabs"><button data-s="0" class="on">Documentos</button><button data-s="1">Metodologia</button><button data-s="2">Notas de reconciliação</button></div>
+
+  <div class="subpane on" data-p="0">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5"/></svg></span><div class="head-copy"><h2>Documentos e fontes</h2><div class="cap">Base da análise</div></div></div>
+    <div class="card"><div class="twrap"><table><tbody>${F.fontes.map(r=>`<tr><td class="l" style="font-weight:700;white-space:nowrap">${r[0]}</td><td class="l" style="white-space:normal">${r[1]}</td></tr>`).join("")}</tbody></table></div>
+      <div class="note warn"><span class="nl">Confidencialidade.</span> Material sob NDA (Itaú BBA) e apresentação de uso exclusivo da Akron. As matérias da aba Notícias são de fonte pública. Uso interno — não distribuir externamente.</div></div>
+  </div>
+
+  <div class="subpane" data-p="1">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M9 3v6l-5 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V3M8 3h8"/></svg></span><div class="head-copy"><h2>Metodologia e premissas</h2></div></div>
+    <div class="card"><div class="twrap"><table><tbody>${F.metod.map(r=>`<tr><td class="l" style="font-weight:700;white-space:nowrap">${r[0]}</td><td class="l" style="white-space:normal">${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+  </div>
+
+  <div class="subpane" data-p="2">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8M20 12a8 8 0 0 1-8 8 8 8 0 0 1-8-8M9 9l-5 3 5 3M15 9l5 3-5 3"/></svg></span><div class="head-copy"><h2>Notas de reconciliação</h2><div class="cap">Divergências de versão e escolhas de fonte</div></div></div>
+    <div class="card"><ul style="margin:6px 0 0 16px;font-size:12.5px;color:#3A3A3E;line-height:1.6">${F.reconc.map(r=>`<li style="margin-bottom:6px">${r}</li>`).join("")}</ul></div>
+  </div>`,
 };
 function stub(t,s){return `<div class="stub"><b>${t}</b><br>Em construção (v2). Subtabs previstos: ${s}.</div>`;}
 
