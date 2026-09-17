@@ -514,7 +514,64 @@ const F = {
     "Opções A/B/C (deck set/26) vs \"Credor Parceiro\" (Term Sheet): versões diferentes; deck é primário.",
     "Métricas do crédito antigo: o Memo (mai/26) trata da compra da debênture @25% face (MOIC ~6,7x); o deck (set/26) consolida New + Old em 2,2x-3,0x. Instrumentos e datas distintos.",
     "EBITDA: Cia reporta ~R$ 125 mm; Akron trabalha com R$ 53 mm (base) / R$ 40 mm (conservador).",
+    "ROIC, value-drivers e validação da tese vêm do Guidance/Memo (análise de atratividade de mai/26); refletem os fundamentos da companhia (hurdle Lorinvest 22%).",
   ],
+
+  /* ---- Validação da tese (Guidance · Dashboard de Validação) ---- */
+  valid:{
+    blocks:[
+      {k:"Fatos verificados",tot:61,fav:"67%",det:"24 positivos · 17 mistos · 20 negativos"},
+      {k:"Hipóteses (issue tree)",tot:24,fav:"58%",det:"11 positivos · 3 mistos · 2 negativos · 8 em aberto"},
+      {k:"Testes de coerência",tot:23,fav:"13%",det:"3 positivos · 15 mistos (check manual) · 5 negativos"},
+    ],
+    global:"53,7%",
+    nota:"Método Lorinvest: fatos datados com fonte e sinal + issue tree de hipóteses + testes de coerência (Damodaran 3P). Em coerência, só \"positivo\" conta como favorável; \"misto\" é checagem manual pendente."},
+
+  /* ---- ROIC build-up (Guidance) ---- */
+  roic:{
+    build:[
+      ["PDVs (pontos de venda)","908 lojas"],
+      ["× Produtividade / PDV","R$ 1.042 mil/ano"],
+      ["(=) Sell-out varejo","R$ 946 mm"],
+      ["÷ Mark-up (2,90x)","→ Receita bruta R$ 327 mm"],
+      ["(−) Descontos (22,25%)","(=) Receita líquida R$ 254 mm"],
+      ["(=) EBITDA (margem 25%)","R$ 63 mm"],
+      ["(−) D&A ≈ CapEx (asset-light)","(=) EBIT R$ 53 mm"],
+      ["(−) Imposto (34%)","(=) NOPAT R$ 35 mm"],
+    ],
+    ret:[
+      {k:"ROIC — capital atual",v:"7,3%",sub:"NOPAT ÷ capital investido (R$ 486 mm)"},
+      {k:"ROIC — pró-forma (CG saneado)",v:"11,9%",sub:"capital normalizado R$ 298 mm"},
+      {k:"Hurdle Lorinvest",v:"22,0%",sub:"custo de capital de referência"},
+      {k:"EVA atual",v:"−R$ 72 mm",sub:"destrói valor ao hurdle"},
+    ],
+    insight:"Mesmo com o capital de giro saneado, o ROIC pró-forma (11,9%) fica abaixo do hurdle de 22% — o negócio não cobre o custo de capital ao hurdle da casa. Isso reforça a natureza da tese: é uma oportunidade de <b>crédito</b> (sênior, garantido, curto), não de equity."},
+  drivers:[
+    {b:"Macro",items:[["Selic média 26-28","13,5%","11,5%","9,5%"],["CDI médio 26-28","13,4%","11,4%","9,4%"],["Inadimplência PJ varejo","7,5%","5,5%","4,0%"]]},
+    {b:"Mercado",items:[["Share sol (volume)","24%","26%","27%"],["Cresc. mercado sol","4,0%","6,5%","8,5%"],["Cresc. mercado grau","6,0%","8,0%","10,0%"]]},
+    {b:"Operacional",items:[["Margem EBITDA 2026","22%","25%","28%"],["PMR 2026 (dias)","180","120","100"],["Inadimplência franqueados","30%","20%","10%"]]},
+    {b:"Capital",items:[["CapEx anual (R$ mm)","8","10","12"],["Liberação de CG (R$ mm)","100","188","220"],["Estoque inicial (R$ mm)","55","63","75"]]},
+    {b:"Estrutura / Risco",items:[["Hurdle Lorinvest","18%","22%","28%"],["Adesão de credores à RE","45%","65%","85%"],["Recovery em RJ","25%","40%","55%"]]},
+  ],
+
+  /* ---- Governança & bandeiras (Fatos) ---- */
+  gov:[
+    {t:"Partes relacionadas",b:"neg",p:"Empréstimos a partes relacionadas de R$ 74,5 mm (2025). O controlador tomou dívida na própria Cia para recomprar a participação do Gávea — sem contrapartida operacional."},
+    {t:"Sobre-estoque",b:"neg",p:"Estoque em ~140 dias de custo (vs 80-112 histórico) — risco de write-down na revisão das DFs 2025."},
+    {t:"Ciclo de recebíveis deteriorado",b:"neg",p:"PMR saltou de 153 (2024) para 213 dias (2025); contas a receber +70% no ano; 65% do saldo já vencido em abr/26."},
+    {t:"Práticas contábeis",b:"neg",p:"Cia admite práticas \"não seguidas\" (antecipação de royalties, C a R não performado). DFs 2025 auditadas ainda não emitidas."},
+    {t:"Covenant descumprido",b:"neg",p:"ND/EBITDA ≤ 3,0x (debênture) — projeção 2026 de ~8,1x; despesa financeira 2025 (R$ 137 mm) > EBITDA (R$ 125 mm)."},
+    {t:"Profissionalização (sinal +)",b:"pos",p:"Contratação de novo CFO (Glauco Desiderio; ex-Dasa, Cosan, Netshoes) e do CRO/co-CEO André Dela Togna para conduzir a reestruturação."},
+  ],
+
+  /* ---- Term Sheet: Credor Parceiro (enquadramento jurídico) ---- */
+  credorP:{
+    def:"O PRE dá tratamento diferenciado ao \"Credor Parceiro\": credor concursal que, após o plano, (a) concede Novo Crédito de ao menos 15% do seu saldo sujeito ao PRE, e/ou (b) mantém serviço financeiro essencial (gestão de depósitos judiciais).",
+    novo:[["Prazo","36 meses"],["Juros","CDI + 5% a.a., mensais desde o início"],["Principal","30 PMTs após 6 meses de carência"]],
+    parceiro:[["Prazo total","5 anos"],["Carência","24 meses total (juros incorporados ao principal)"],["Amortização","0,8% do principal/mês após carência, até o mês 59; bullet no mês 60"],["Correção","CDI + 1% a.a."],["Garantias","mantidas"]],
+    naoParc:[["Deságio","70%"],["Carência","5 anos total (P+J)"],["Amortização","linear em 5 anos após carência"],["Correção","IPCA + 1% a.a."]],
+    extra:"Consolidação substancial das 7 empresas do grupo. Cash sweep proporcional aos Credores Parceiros (caixa livre mínimo definido; apuração mensal). Operação monitorada por watchdog independente, aprovado pelos credores e custeado pela Cia.",
+  },
 };
 
 const TABS = [
@@ -627,6 +684,10 @@ const R = {
       <div style="margin-top:10px;font-size:12px;color:#50505A"><b>New Money isolado:</b> TIR 37% a.a. · MOIC 1,7x · payback 23m · lucro líq. R$ 2,9 mm.</div></div>
   </div>
 
+  <div class="card"><div class="section-head" style="margin-bottom:10px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><div class="head-copy"><h2>Validação da tese</h2><div class="cap">Qualidade da evidência (método Lorinvest) — % favorável global ${F.valid.global}</div></div></div>
+    <div class="row3">${F.valid.blocks.map(b=>`<div class="st" style="border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:#FBFBFC"><div style="display:flex;justify-content:space-between;align-items:baseline"><div class="c" style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">${b.k}</div><div style="font-size:11px;color:var(--muted)">n=${b.tot}</div></div><div class="n" style="font-size:26px;font-weight:800;color:var(--red);margin-top:6px">${b.fav}</div><div class="c" style="font-size:10.5px;color:var(--muted);margin-top:2px">favoráveis · ${b.det}</div></div>`).join("")}</div>
+    <div class="note"><span class="nl">Método.</span> ${F.valid.nota}</div></div>
+
   <div class="note warn"><span class="nl">Confiabilidade do dado.</span> Os números da companhia são pouco confiáveis: auditoria KPMG pendente, DFs 2025 não emitidas e práticas contábeis admitidas como "não seguidas". A Akron normaliza o EBITDA em R$ 53–60 mm (vs ~R$ 125 mm reportado). Todo número aqui traz origem; divergências de versão estão explícitas.</div>
 `,
 
@@ -702,6 +763,14 @@ const R = {
         <div><div class="v">Corte de despesas</div><div class="k">G&A, marketing e dividendos</div></div>
         <div><div class="v">Watchdog independente</div><div class="k">aprovado pelos credores, custeado pela Cia</div></div>
       </div></div>
+    <div class="card"><h2>Enquadramento jurídico — "Credor Parceiro" (Term Sheet)</h2><div class="cap">Como o Plano de RE trata os credores no instrumento legal (complementa as Opções A/B/C do deck)</div>
+      <p style="font-size:12.5px;color:#3A3A3E;line-height:1.55;margin-bottom:12px">${F.credorP.def}</p>
+      <div class="row3">
+        <div class="card" style="margin:0;background:#FBFBFC"><h2 style="font-size:13px">Novo Crédito (DIP)</h2>${F.credorP.novo.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0"><span class="k" style="font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em">${r[0]}</span><span style="font-size:12px;font-weight:600;text-align:right">${r[1]}</span></div>`).join("")}</div>
+        <div class="card" style="margin:0;background:#FAF3F4"><h2 style="font-size:13px">Credor Parceiro</h2>${F.credorP.parceiro.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0"><span class="k" style="font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em">${r[0]}</span><span style="font-size:12px;font-weight:600;text-align:right">${r[1]}</span></div>`).join("")}</div>
+        <div class="card" style="margin:0;background:#FBFBFC"><h2 style="font-size:13px">Credor não-parceiro</h2>${F.credorP.naoParc.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0"><span class="k" style="font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em">${r[0]}</span><span style="font-size:12px;font-weight:600;text-align:right">${r[1]}</span></div>`).join("")}</div>
+      </div>
+      <div class="note"><span class="nl">Complemento.</span> ${F.credorP.extra}</div></div>
   </div>
 
   <div class="subpane" data-p="3">
@@ -844,7 +913,7 @@ const R = {
     ${sc.rows.map(r=>`<tr class="${r.b?'tot':''}"><td class="l">${r.l}</td>${r.v.map(v=>{const neg=(typeof v==='number'&&v<0)||(typeof v==='string'&&v.startsWith('('));const disp=(typeof v==='number')?(v<0?'('+money(-v)+')':money(v)):v;return `<td class="${neg&&!r.pct?'neg':''}">${disp}</td>`;}).join("")}</tr>`).join("")}
     </tbody></table></div>`;
   return `
-  <div class="subtabs"><button data-s="0" class="on">Valuation & peers</button><button data-s="1">Ponte de EV</button><button data-s="2">Cenários de retorno</button><button data-s="3">Fluxo de caixa</button><button data-s="4">Recovery & breakeven</button></div>
+  <div class="subtabs"><button data-s="0" class="on">Valuation & peers</button><button data-s="5">ROIC & drivers</button><button data-s="1">Ponte de EV</button><button data-s="2">Cenários de retorno</button><button data-s="3">Fluxo de caixa</button><button data-s="4">Recovery & breakeven</button></div>
 
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Valuation de referência (UBS BB) & peers</h2><div class="cap">EV total R$ 1,5 bi (mandato de venda de 30%) — gatilho real de M&A para a saída</div></div></div>
@@ -855,6 +924,21 @@ const R = {
     <div class="card"><h2>Peers</h2><div class="cap">Benchmarks globais e Brasil</div><div class="twrap"><table><thead><tr>${F.peers.cols.map((c,i)=>`<th class="${i===0||i===3?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
       ${F.peers.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0||i===3?'l':''}" ${i===3?'style="color:var(--muted);font-size:11.5px;white-space:normal;min-width:200px"':''}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
       <div class="note warn"><span class="nl">EBITDA — qual número?</span> ${F.ebitdaQ2}</div></div>
+  </div>
+
+  <div class="subpane" data-p="5">
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>ROIC → EVA e value-drivers</h2><div class="cap">Lente de valor da casa (ROIC tree) — fundamentos da companhia, hurdle Lorinvest 22%</div></div></div>
+    <div class="row2">
+      <div class="card"><h2>Build-up da receita ao NOPAT</h2><div class="cap">Da rede de PDVs ao lucro operacional (2026, base)</div>
+        <div class="twrap"><table><tbody>${F.roic.build.map(r=>`<tr><td class="l">${r[0]}</td><td class="l">${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
+      <div class="card"><h2>Retorno vs custo de capital</h2><div class="cap">Capital investido R$ 486 mm (equity 105 + dívida líq. 381)</div>
+        <div class="stat4" style="grid-template-columns:1fr 1fr;margin-top:2px">${F.roic.ret.map(r=>`<div class="st"><div class="n" style="font-size:20px;${r.k.startsWith('EVA')||r.k.startsWith('Hurdle')?'color:var(--red)':''}">${r.v}</div><div class="c" style="font-weight:700;color:var(--ink)">${r.k}</div><div class="c">${r.sub}</div></div>`).join("")}</div></div>
+    </div>
+    <div class="note"><span class="nl">Leitura.</span> ${F.roic.insight}</div>
+    <div class="card"><h2>Value-drivers por bucket</h2><div class="cap">Faixas pessimista · base · otimista (método Lorinvest — 5 buckets)</div>
+      <div class="twrap"><table><thead><tr><th class="l">Bucket / driver</th><th>Pess.</th><th>Base</th><th>Otim.</th></tr></thead><tbody>
+      ${F.drivers.map(d=>`<tr class="tot"><td class="l" colspan="4">${d.b}</td></tr>`+d.items.map(it=>`<tr><td class="l">${it[0]}</td><td>${it[1]}</td><td>${it[2]}</td><td>${it[3]}</td></tr>`).join("")).join("")}
+      </tbody></table></div></div>
   </div>
 
   <div class="subpane" data-p="1">
@@ -900,6 +984,8 @@ const R = {
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3zm0 6v5m0 3h.01"/></svg></span><div class="head-copy"><h2>Principais riscos</h2><div class="cap">Ordenados por severidade — tom conservador</div></div></div>
     <div class="risks">${F.riscos.map(r=>`<div class="risk"><div class="rh"><div class="rt">${r.t}</div><span class="rb" ${rb(r.b)}>${r.b}</span></div><div class="rd">${r.p}</div></div>`).join("")}</div>
+    <div class="card" style="margin-top:14px"><h2>Governança & bandeiras</h2><div class="cap">Sinais de governança levantados nos fatos verificados</div>
+      <div class="risks">${F.gov.map(g=>`<div class="risk"><div class="rh"><div class="rt">${g.t}</div><span class="rb" style="${g.b==='pos'?'background:#E7F0EA;color:var(--green)':'background:#F4EAEC;color:var(--red)'}">${g.b==='pos'?'sinal +':'bandeira'}</span></div><div class="rd">${g.p}</div></div>`).join("")}</div></div>
     <div class="card" style="margin-top:14px"><h2>Mitigantes</h2><ul style="margin:8px 0 0 16px;font-size:12.5px;color:#3A3A3E;line-height:1.6">${F.mitig.map(m=>`<li>${m}</li>`).join("")}</ul></div>
   </div>
 
