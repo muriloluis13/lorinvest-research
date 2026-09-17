@@ -1629,6 +1629,10 @@ function anoSum(arr){ // R$/mês -> R$/ano por ano
 }
 // valor R$ MM formatado; "—" quando o ano não tem dado (ex.: projeção ainda não portada)
 function yrMM(cell, d=1){ return (cell && cell.nData>0) ? fmt(cell.v/1e6, d) : "—"; }
+// último valor do ano (p/ estoques: saldo/imobilizado EoP) — {ano:{v,proj,nData}}
+function anoLast(arr){ const o={}, cut=DB.cutoffIdx;
+  DB.meses.forEach((m,i)=>{ const y=m.ym.slice(0,4); if(typeof arr[i]==="number"){ (o[y]=o[y]||{v:0,proj:false,nData:0}); o[y].v=arr[i]; o[y].nData++; if(i>cut) o[y].proj=true; } });
+  return o; }
 
 /* ---- periodicidade (Anual/Semestral/Trimestral/Mensal) + tipo Hist/Orç/Forecast ---- */
 const PERS=[["A","Anual"],["S","Semestral"],["Q","Trimestral"],["M","Mensal"]];
@@ -3321,6 +3325,23 @@ function renderCapex(){
   h+=kpi("Depreciação "+lastY+" (R$ MM)", yrMM(yDep[lastY],0), "vintages de "+LIFE+" meses",null,MECH.depreciacao);
   h+=kpi("Imobilizado líquido "+lastY+" (R$ MM)", fmt(imob[lastK]/1e6,0), "saldo no fim do horizonte",null,MECH.depreciacao);
   h+='</div>';
+  h+='<div class="card"><h4>CapEx, depreciação e imobilizado líquido — Consolidado (R$ MM/ano)</h4><div class="chart-box"><canvas id="cCapex"></canvas></div></div>';
+  const _yInv=anoSum(invCons), _yDep=anoSum(dep.map(v=>-num(v))), _yImob=anoLast(imob),
+        _ksC=[...new Set(DB.meses.map(m=>m.ym.slice(0,4)))].sort();
+  const drawCapex=()=>{ const el=document.getElementById('cCapex'); if(!el||typeof Chart==='undefined') return;
+    const vv=(o,y)=>(o[y]&&o[y].nData>0)?o[y].v/1e6:null, projY=y=>+y>2026;
+    const dlB=col=>({anchor:"end",align:"end",color:col,font:{size:8,weight:"bold"},display:c=>{const v=c.dataset.data[c.dataIndex];return v!=null&&Math.abs(v)>=3;},formatter:v=>v==null?"":fmt(v,0)});
+    charts.capex=new Chart(el,{type:"bar",data:{labels:_ksC,datasets:[
+      {type:"bar",label:"CapEx (investimento)",data:_ksC.map(y=>vv(_yInv,y)),backgroundColor:"#3D4A5C",yAxisID:"y",order:3,datalabels:dlB("#3D4A5C")},
+      {type:"bar",label:"Depreciação",data:_ksC.map(y=>vv(_yDep,y)),backgroundColor:"#C55A17cc",yAxisID:"y",order:2,datalabels:dlB("#C55A17")},
+      {type:"line",label:"Imobilizado líquido (EoP)",data:_ksC.map(y=>vv(_yImob,y)),borderColor:"#2E7D4F",backgroundColor:"#2E7D4F",borderWidth:2,pointRadius:2,tension:.2,yAxisID:"y",order:1,
+        datalabels:{align:"top",anchor:"center",color:"#2E7D4F",font:{size:8,weight:"bold"},display:c=>c.dataset.data[c.dataIndex]!=null,formatter:v=>v==null?"":fmt(v,0)}},
+    ]},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},layout:{padding:{top:18}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,0)+" MM"}}},
+      scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},y:{grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A"},title:{display:true,text:"R$ MM"}}}}}); };
   // premissas editáveis
   const rowE=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
   h+='<div class="premcard"><div class="ph"><b>Premissas de CapEx</b></div>';
@@ -3343,7 +3364,7 @@ function renderCapex(){
   h+='<h3 class="msub">CapEx, depreciação e imobilizado</h3>';
   h+=serieTableHTML(rows,"R$ MM");
   h+='<div class="note">Clique em <b>CapEx (investimento)</b> p/ abrir por planta. Investimento = plano de capex por planta (cronograma, premissa da base). Depreciação = soma dos <i>vintages</i> ativos (linear em '+LIFE+' meses desde o início da operação de cada ativo) + amortização do intangível da holding. Imobilizado líquido = custo acumulado − depreciação acumulada (entra no Balanço). Desligar uma planta no cenário remove seu capex/depreciação/imobilizado.</div>';
-  return {html:h};
+  return {html:h, draw:drawCapex};
 }
 /* --------------------------------------------------- aba Dívida */
 function renderDivida(){
@@ -3357,6 +3378,23 @@ function renderDivida(){
   h+=kpi("Dívida ("+fmtMesY(DB.meses[cut].ym)+")","R$ "+fmt(saldo[cut]/1e6,0)+" mi","saldo no último realizado",null,MECH.vpl);
   h+=kpi("Juros (total projeção)","R$ "+fmt(totJuros/1e6,0)+" mi", "despesa de juros acumulada (competência)",null,MECH.vpl);
   h+='</div>';
+  h+='<div class="card"><h4>Saldo devedor, desembolsos e amortização — Consolidado (R$ MM/ano)</h4><div class="chart-box"><canvas id="cDivida"></canvas></div></div>';
+  const _yDes=anoSum(desemb), _yAm=anoSum(amort), _ySal=anoLast(saldo),
+        _ksD=[...new Set(DB.meses.map(m=>m.ym.slice(0,4)))].sort();
+  const drawDivida=()=>{ const el=document.getElementById('cDivida'); if(!el||typeof Chart==='undefined') return;
+    const vv=(o,y)=>(o[y]&&o[y].nData>0)?o[y].v/1e6:null;
+    const dlB=col=>({anchor:"end",align:"end",color:col,font:{size:8,weight:"bold"},display:c=>{const v=c.dataset.data[c.dataIndex];return v!=null&&Math.abs(v)>=3;},formatter:v=>v==null?"":fmt(v,0)});
+    charts.divida=new Chart(el,{type:"bar",data:{labels:_ksD,datasets:[
+      {type:"bar",label:"Desembolsos",data:_ksD.map(y=>vv(_yDes,y)),backgroundColor:"#2E7D4Fcc",yAxisID:"y",order:3,datalabels:dlB("#2E7D4F")},
+      {type:"bar",label:"Amortização",data:_ksD.map(y=>vv(_yAm,y)),backgroundColor:"#C55A17cc",yAxisID:"y",order:2,datalabels:dlB("#C55A17")},
+      {type:"line",label:"Saldo devedor (EoP)",data:_ksD.map(y=>vv(_ySal,y)),borderColor:"#3D4A5C",backgroundColor:"#3D4A5C",borderWidth:2,pointRadius:2,tension:.2,yAxisID:"y",order:1,
+        datalabels:{align:"top",anchor:"center",color:"#3D4A5C",font:{size:8,weight:"bold"},display:c=>c.dataset.data[c.dataIndex]!=null,formatter:v=>v==null?"":fmt(v,0)}},
+    ]},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},layout:{padding:{top:18}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,0)+" MM"}}},
+      scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},y:{grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A"},title:{display:true,text:"R$ MM"}}}}}); };
   const L={how:"sum",d:1,div:1e6}, P={how:"last",d:1,div:1e6};
   const instChildren=de.R.map((r,i)=>{ const pl=(DB.dividaGpr&&DB.dividaGpr[i])||0;
     return {lbl:"Instrumento "+(i+1)+" ("+(pl?(CAP_PLANTA[pl]||"?"):"Holding")+")", serie:r.saldoFim, how:"last", div:1e6}; });
@@ -3388,7 +3426,7 @@ function renderDivida(){
   h+=premCtrl("Seguro BA","% a.a.", (cfg.seg_rate_ba||0)*100, v=>{ if(DB.divida.cfg) DB.divida.cfg.seg_rate_ba=(+v)/100; }, {dec:3,min:0,max:5,step:0.05});
   h+='</div></div>';
   h+='<div class="note" style="margin-top:12px">A <b>cobertura do caixa mínimo</b> (aporte de capital ou dívida rolling do modelo 09.07) fica na aba <b>DCF (VPL)</b> — é onde a escolha de financiamento afeta o Equity Value.</div>';
-  return {html:h};
+  return {html:h, draw:drawDivida};
 }
 function renderResumo(){
   const reg=state.regiao, cut=DB.cutoffIdx;
@@ -3479,14 +3517,19 @@ function drawResumo(ks,rl,eb,mg){
   // séries só onde há dado (projeção não portada = gap, não zero falso)
   const vv=(o,y)=> (o[y]&&o[y].nData>0) ? o[y].v/1e6 : null;
   const marg=ks.map(y=> (rl[y]&&rl[y].nData>0 && rl[y].v/1e6>10) ? mg(y)*100 : null);
+  const dlBar=(col)=>({anchor:"end",align:"end",offset:0,color:col,font:{size:8.5,weight:"bold"},
+      display:c=>c.dataset.data[c.dataIndex]!=null, formatter:v=>v==null?"":fmt(v,0)});
   charts.resumo=new Chart($("#cResumo"),{type:"bar",
     data:{labels:ks,datasets:[
-      {type:"bar",label:"Receita Líquida (R$ MM)",data:ks.map(y=>vv(rl,y)),backgroundColor:PAL[4]+"cc",yAxisID:"y",order:3},
-      {type:"bar",label:"EBITDA (R$ MM)",data:ks.map(y=>vv(eb,y)),backgroundColor:PAL[2],yAxisID:"y",order:2},
-      {type:"line",label:"Margem EBITDA (%)",data:marg,borderColor:PAL[1],borderWidth:2,pointRadius:2,spanGaps:true,yAxisID:"y1",order:1,tension:.2},
+      {type:"bar",label:"Receita Líquida (R$ MM)",data:ks.map(y=>vv(rl,y)),backgroundColor:PAL[4]+"cc",yAxisID:"y",order:3,datalabels:dlBar("#3D4A5C")},
+      {type:"bar",label:"EBITDA (R$ MM)",data:ks.map(y=>vv(eb,y)),backgroundColor:PAL[2],yAxisID:"y",order:2,datalabels:dlBar("#2E7D4F")},
+      {type:"line",label:"Margem EBITDA (%)",data:marg,borderColor:PAL[1],borderWidth:2,pointRadius:2,spanGaps:true,yAxisID:"y1",order:1,tension:.2,
+        datalabels:{align:"top",anchor:"center",color:PAL[1],font:{size:8.5,weight:"bold"},display:c=>c.dataset.data[c.dataIndex]!=null,formatter:v=>v==null?"":fmt(v,0)+"%"}},
     ]},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"nearest",intersect:false},
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
+      layout:{padding:{top:18}},
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
         tooltip:{callbacks:{label:c=>c.dataset.label+": "+(c.dataset.yAxisID==="y1"?(c.parsed.y==null?"—":fmt(c.parsed.y,1)+"%"):"R$ "+fmt(c.parsed.y,0)+" MM")}}},
       scales:{x:{grid:{display:false},ticks:{color:"#5C6B7A"}},
               y:{position:"left",title:{display:true,text:"R$ MM/ano"},grid:{color:"#EEF1F5"}},
@@ -4301,6 +4344,12 @@ function renderAcionistas(){
   // fluxo de aportes por acionista, por ano (histórico + projeção)
   const byY={}; for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), vh=num(a.apH[k]), vc=num(a.apC[k]); if(vh>1||vc>1){ (byY[y]=byY[y]||{h:0,c:0}); byY[y].h+=vh; byY[y].c+=vc; } }
   const yrs=Object.keys(byY).map(Number).sort((x,y)=>x-y);
+  // dados do gráfico: aportes (−) e dividendos (+) por acionista, por ano — timeline contínua até o fim (2038)
+  const _dv=dividendosSerie().div, cByY={};
+  for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), d=num(_dv[k]);
+    (cByY[y]=cByY[y]||{aH:0,aC:0,dH:0,dC:0}); cByY[y].aH+=num(a.apH[k]); cByY[y].aC+=num(a.apC[k]); cByY[y].dH+=d*a.hk; cByY[y].dC+=d*a.cp; }
+  const _act=Object.keys(cByY).map(Number).filter(y=>{ const o=cByY[y]; return (o.aH+o.aC+o.dH+o.dC)>1e4; }).sort((x,y)=>x-y);
+  const cyrs=[]; if(_act.length){ for(let y=_act[0]; y<=_act[_act.length-1]; y++) cyrs.push(y); }
   if(yrs.length){
     h+='<h3 class="msub">Fluxo de aportes por acionista (R$ mi/ano) — histórico + projeção</h3>';
     h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ mi</th>'+yrs.map(y=>`<th class="${y>2026?'o':''}">${y}</th>`).join('')+'<th>Total</th></tr></thead><tbody>';
@@ -4308,16 +4357,23 @@ function renderAcionistas(){
     h+=rw("Hankoe",y=>byY[y].h||0)+rw("Copa Energia",y=>byY[y].c||0)+rw("Total",y=>(byY[y].h||0)+(byY[y].c||0),true);
     h+='</tbody></table></div>';
     h+='<div class="note" style="margin-top:0">Colunas em <b>laranja</b> = projeção (&gt; '+fmtMesY(DB.meses[cut].ym)+'). Histórico: cronograma real da aba Exposição; projeção: aporte de caixa mínimo rateado pela participação.</div>';
-    h+='<div class="card"><h4>Aportes por acionista (R$ mi/ano)</h4><div class="chart-box" style="max-width:820px"><canvas id="cAcio"></canvas></div></div>';
+    h+='<div class="card"><h4>Aportes (−) e dividendos (+) por acionista (R$ mi/ano)</h4><div class="chart-box" style="max-width:900px"><canvas id="cAcio"></canvas></div></div>';
+    h+='<div class="note" style="margin-top:0">Fluxo do acionista ao longo do tempo: <b>aportes</b> abaixo do zero (saída de caixa), <b>dividendos</b> acima (retorno). Dividendos rateados pela participação (Hankoe '+fmtPct(a.hk,0)+' / Copa '+fmtPct(a.cp,0)+').</div>';
   }
-  return {html:h, draw:()=>{ const el=document.getElementById('cAcio'); if(!el||typeof Chart==='undefined'||!yrs.length) return;
-    charts.acio=new Chart(el,{type:"bar",data:{labels:yrs.map(String),datasets:[
-      {label:"Hankoe",data:yrs.map(y=>(byY[y].h||0)/1e6),backgroundColor:PAL[0],borderWidth:0,stack:"a"},
-      {label:"Copa Energia",data:yrs.map(y=>(byY[y].c||0)/1e6),backgroundColor:PAL[1],borderWidth:0,stack:"a"}]},
+  return {html:h, draw:()=>{ const el=document.getElementById('cAcio'); if(!el||typeof Chart==='undefined'||!cyrs.length) return;
+    const mi=v=>v/1e6, seg=8;   // rótulo só quando |valor| ≥ ~R$ 8 mi (evita poluição)
+    const dl=(col)=>({color:col,font:{size:8.5,weight:"bold"},display:c=>Math.abs(c.dataset.data[c.dataIndex]||0)>=seg,formatter:v=>v?fmt(v,0):""});
+    charts.acio=new Chart(el,{type:"bar",data:{labels:cyrs.map(String),datasets:[
+      {label:"Aporte Hankoe",data:cyrs.map(y=>-mi(cByY[y].aH||0)),backgroundColor:PAL[0],borderWidth:0,stack:"a",datalabels:dl("#fff")},
+      {label:"Aporte Copa",data:cyrs.map(y=>-mi(cByY[y].aC||0)),backgroundColor:PAL[1],borderWidth:0,stack:"a",datalabels:dl("#fff")},
+      {label:"Dividendo Hankoe",data:cyrs.map(y=>mi(cByY[y].dH||0)),backgroundColor:"#2E7D4F",borderWidth:0,stack:"a",datalabels:dl("#fff")},
+      {label:"Dividendo Copa",data:cyrs.map(y=>mi(cByY[y].dC||0)),backgroundColor:"#7FC6A2",borderWidth:0,stack:"a",datalabels:dl("#1E3A2A")}]},
+      plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
       options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
-        plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},datalabels:{display:false},
-          tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(c.parsed.y,1)+" mi"}}},
-        scales:{x:{stacked:true,grid:{display:false},ticks:{color:"#5C6B7A"}},y:{stacked:true,grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A"},title:{display:true,text:"R$ mi/ano"}}}}});
+        plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
+          tooltip:{callbacks:{label:c=>c.dataset.label+": R$ "+fmt(Math.abs(c.parsed.y),1)+" mi"}}},
+        scales:{x:{stacked:true,grid:{display:false},ticks:{color:"#5C6B7A"}},
+          y:{stacked:true,grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A"},title:{display:true,text:"R$ mi/ano"}}}}});
   }};
 }
 // prévia operacional (receita GNL+GNC portada − custo total portado); projeção
