@@ -931,7 +931,7 @@ const R = {
       <div class="st"><div class="n">137 &gt; 125</div><div class="c">desp. financeira &gt; EBITDA (R$ mm)</div></div>
     </div>
     <div class="card"><h2>Os cinco fatores da crise</h2><div class="cap">O que levou a maior rede de óculos do Brasil ao pré-RE</div>
-      <div class="steps s5">${F.crise.map((c,i)=>`<div class="step"><div class="n">Fator ${i+1}</div><b>${c.t}</b><p>${c.p}</p></div>`).join("")}</div></div>
+      <div class="steps s5">${F.crise.map((c,i)=>`<div class="step"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">${i+1}</span><b style="font-size:12.5px;line-height:1.2">${c.t}</b></div><p>${c.p}</p></div>`).join("")}</div></div>
 
     <div class="card"><div class="section-head" style="margin-bottom:12px"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><div class="head-copy"><h2>Cronologia da crise</h2><div class="cap">Do mandato UBS à Recuperação Extrajudicial</div></div></div>
       <div class="tlwrap"><div class="tline">${F.chrono.map((c,i)=>`<div class="tnode" style="--dc:${i<2?'var(--accent2)':'var(--red)'}"><div class="ty">${c.dt}</div><div class="tt"><b style="color:var(--ink)">${c.h}.</b> ${c.p}</div></div>`).join("")}</div></div></div>
