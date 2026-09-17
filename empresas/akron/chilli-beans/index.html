@@ -1173,9 +1173,16 @@ const R = {
   </div>`,
 "p-news":()=>{
   const sel={corrobora:["red","corrobora"],contradiz:["amb","contradiz"],contexto:["gry","contexto"]};
+  const cnt=s=>F.news.filter(n=>n.sel===s).length;
   return `
   <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5zm13 3h3v9a2 2 0 0 1-2 2M7 9h7M7 12h7M7 15h4"/></svg></span>
     <div class="head-copy"><h2>Evidência externa — leitura buy-side</h2><div class="cap">O que a imprensa corrobora, contradiz ou acrescenta à narrativa da Cia (14 matérias, fev/23 → set/26)</div></div></div>
+  <div class="stat4" style="margin-bottom:14px">
+    <div class="st"><div class="n">14</div><div class="c">matérias · fev/23–set/26</div></div>
+    <div class="st"><div class="n" style="color:var(--red)">${cnt('corrobora')}</div><div class="c">corroboram a deterioração</div></div>
+    <div class="st"><div class="n" style="color:var(--amber)">${cnt('contradiz')}</div><div class="c">contradizem a narrativa oficial</div></div>
+    <div class="st"><div class="n">${cnt('contexto')}</div><div class="c">contexto / estratégia</div></div>
+  </div>
   <div class="row2" style="margin-bottom:14px">${F.newsLeitura.map(l=>`<div class="card" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="margin:0">${l.t}</h2><span class="pill ${sel[l.s][0]}">${sel[l.s][1]}</span></div><p style="font-size:12.5px;color:#3A3A3E;line-height:1.55;margin-top:8px">${l.p}</p></div>`).join("")}</div>
 
   <div class="card"><h2>Linha do tempo de notícias</h2><div class="cap">Mais recentes primeiro · fonte pública (não-NDA) · cor do marcador = corrobora / contradiz / contexto</div>
