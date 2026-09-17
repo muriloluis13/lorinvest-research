@@ -1194,6 +1194,12 @@ const R = {
 
   <div class="subpane on" data-p="0">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Valuation de referência (UBS BB) & peers</h2><div class="cap">EV total R$ 1,5 bi (mandato de venda de 30%) — gatilho real de M&A para a saída</div></div></div>
+    <div class="stat4" style="margin-bottom:14px">
+      <div class="st"><div class="n">R$ 1,5<span style="font-size:12px"> bi</span></div><div class="c">EV total (UBS BB)</div></div>
+      <div class="st"><div class="n">~R$ 1,14<span style="font-size:12px"> bi</span></div><div class="c">equity implícito</div></div>
+      <div class="st"><div class="n" style="color:var(--green)">~R$ 343<span style="font-size:12px"> mm</span></div><div class="c">proceeds do M&A 30%</div></div>
+      <div class="st"><div class="n" style="color:var(--red)">8,0x</div><div class="c">EBITDA — múltiplo do modelo</div></div>
+    </div>
     <div class="row2">
       <div class="card"><h2>Cross-check do valuation UBS BB</h2><div class="twrap"><table><tbody>${F.valUBS.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</tbody></table></div></div>
       <div class="card"><h2>Múltiplos implícitos</h2><div class="twrap"><table><thead><tr><th class="l">Métrica</th><th>Múltiplo</th><th class="l">Leitura</th></tr></thead><tbody>${F.valMult.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td><td class="l" style="color:var(--muted);font-size:11.5px">${r[2]}</td></tr>`).join("")}</tbody></table></div></div>
@@ -1279,7 +1285,10 @@ const R = {
     <div class="card"><h2>Principais comparáveis (eyewear)</h2><div class="cap">EssilorLuxottica · Warby Parker · Safilo</div>
       <div class="twrap"><table><thead><tr><th class="l">Empresa</th><th>EV/Sales</th><th>EV/EBITDA</th><th>P/E</th><th class="l">Fonte</th></tr></thead><tbody>
       ${C.tradingMain.map(r=>`<tr><td class="l"><b>${r.e}</b><br><span style="color:var(--muted);font-size:11px">${r.tk}</span></td><td>${r.evs}</td><td>${r.eveb}</td><td>${r.pe}</td>${srcCell(r)}</tr>`).join("")}
-      </tbody></table></div></div>
+      </tbody></table></div>
+      <div style="margin-top:14px"><div class="cap" style="font-weight:700;color:var(--ink);margin-bottom:8px">EV/Sales dos principais (x)</div>
+      ${svgHCompare([{k:"EssilorLuxottica",v:3.0},{k:"Warby Parker",v:3.0},{k:"Safilo",v:0.8,hl:true}],{fmt:v=>v.toFixed(1).replace('.',',')+"x"})}
+      <div class="src">Safilo (piso) ancora a faixa inferior; EssilorLuxottica e Warby são de escala/estágio distintos da Chilli.</div></div></div>
     <div class="row3">${C.tradingWhy.map(w=>`<div class="card" style="margin-bottom:0"><h2 style="font-size:13px">${w.e}</h2><p style="font-size:11.8px;color:#50505A;line-height:1.55;margin-top:4px">${w.p}</p></div>`).join("")}</div>
     <div class="card" style="margin-top:14px"><h2>Secundários / contexto (varejo & franquia BR)</h2>
       <div class="twrap"><table><thead><tr><th class="l">Empresa</th><th>EV/EBITDA</th><th>P/E</th><th class="l">Fonte</th></tr></thead><tbody>
@@ -1303,6 +1312,15 @@ const R = {
       </tbody></table></div>
       <div class="note warn"><span class="nl">Ressalva.</span> Tok&Stok/Mobly entra apenas como <b>data point de recovery em varejo</b> — <b>não</b> é comparável de negócio da Chilli (móveis/e-commerce vs eyewear/franquia).</div>
       <div class="note"><span class="nl">Leitura.</span> ${C.recNote}</div></div>
+    <div class="card"><h2>Espectro de recovery em RJ/RE de varejo BR</h2><div class="cap">Do pior (falência) ao melhor (cura) — a Chilli tende à faixa quirografária</div>
+      <div style="display:flex;border-radius:8px;overflow:hidden;height:34px;margin:12px 0 8px;font-size:10.5px;font-weight:700;color:#fff;text-align:center">
+        <div style="width:22%;background:var(--neg);display:flex;align-items:center;justify-content:center">Falência ~0%</div>
+        <div style="width:20%;background:var(--amber);display:flex;align-items:center;justify-content:center">RJ 25-40%</div>
+        <div style="width:38%;background:var(--graf);display:flex;align-items:center;justify-content:center">Reperfilamento 40-90%</div>
+        <div style="width:20%;background:var(--green);display:flex;align-items:center;justify-content:center">Cura 100%</div>
+      </div>
+      <div class="legend"><span><i style="background:var(--neg)"></i>Saraiva → falência</span><span><i style="background:var(--amber)"></i>Americanas → deságio 50-80%</span></div>
+      <div class="note"><span class="nl">Chilli.</span> Ativo central intangível (marca + rede), garantia real escassa → tende ao quirografário; recovery em VP mais próximo do piso, salvo venda como <i>going concern</i> (múltiplo tipo Óticas Carol = teto).</div></div>
   </div>
 
   <div class="subpane" data-p="3">
@@ -1341,8 +1359,9 @@ const R = {
 
   <div class="subpane" data-p="1">
     <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><div class="head-copy"><h2>Vetor de assunções materiais</h2><div class="cap">Cada assunção da tese com sua confiança e o gatilho que a reverte</div></div></div>
-    <div class="card"><div class="twrap"><table><thead><tr>${F.vetor.cols.map((c,i)=>`<th class="${i===0?'':(i===3?'l':'l')}" ${i===0?'style="text-align:center"':''}>${c}</th>`).join("")}</tr></thead><tbody>
-      ${F.vetor.rows.map(r=>`<tr><td style="text-align:center;font-weight:700">${r[0]}</td><td class="l" style="white-space:normal;min-width:200px">${r[1]}</td><td class="l">${r[2]}</td><td class="l" style="white-space:normal;min-width:260px;color:var(--muted);font-size:11.5px">${r[3]}</td></tr>`).join("")}</tbody></table></div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px">
+      ${F.vetor.rows.map(r=>{const cc=/Alta/.test(r[2])?'grn':/Média/.test(r[2])?'amb':'gry';return `<div class="risk"><div class="rh"><div class="rt"><span style="color:var(--red);font-weight:800">${r[0]}</span> · ${r[1]}</div><span class="pill ${cc}" style="white-space:nowrap">${r[2]}</span></div><div class="rd"><b style="color:var(--ink)">Reverte se:</b> ${r[3]}</div></div>`;}).join("")}
+    </div>
   </div>`;
 },
 "p-anexo":()=>`
