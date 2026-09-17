@@ -1022,6 +1022,9 @@ def extract_balanco(wb):
     # participação dos acionistas (Exposição!D5/D6 do 09.07): Hankoe/Lorinvest 64%, Copa Energia 36%
     out["dcf_const"]["acio_hankoe"] = 0.64
     out["dcf_const"]["acio_copa"] = 0.36
+    # dividendos (09.07): payout (Dashboard!C332=100%) e mês de pagamento (C331=3, março)
+    out["dcf_const"]["div_payout"] = 1.0
+    out["dcf_const"]["div_month"] = 3
     return out
 
 

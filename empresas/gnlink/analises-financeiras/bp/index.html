@@ -2701,6 +2701,29 @@ function aporteMinimoEngine(){
   }
   return (_aporteCache={minCash, target, aporte, adj, cum, cut});
 }
+// Dividendos (mecânica do 09.07, Consolidated!316): pagos 1×/ano no mês de pagamento (Dashboard!C331=março),
+// = MAX(0, MIN(caixa acima do mínimo, lucros retidos disponíveis)) × payout (C332=100%). Reduz caixa e lucros
+// acumulados (overlay sobre o motor base — não realimenta o rendimento; efeito 2ª ordem documentado). É a
+// distribuição do FCFE (não muda o FCFE/VPL). Alimenta a Equity Duration e a linha de dividendos da DFC.
+let _divCache=null;
+function dividendosSerie(){
+  if(_divCache) return _divCache;
+  const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx, n=DB.meses.length, C=DB.dcfConst||{};
+  const payout=(C.div_payout!=null?C.div_payout:1), payMonth=(C.div_month||3);
+  const cb=caixaBalancoEngine(), minCash=caixaMinimoSerie();
+  const div=new Array(n).fill(0), cum=new Array(n).fill(0); let cumDiv=0;
+  for(let k=cut+1;k<n;k++){
+    if(+DB.meses[k].ym.slice(5)===payMonth && payout>0){
+      const cashNow=num(cb.caixa[k])-cumDiv;                    // caixa corrente (líquido de dividendos já pagos)
+      const availCash=Math.max(0, cashNow-num(minCash[k]));     // caixa acima do mínimo
+      const availRet=Math.max(0, num(cb.lucroAcum[k])-cumDiv);  // lucros retidos disponíveis
+      const d=Math.max(0, Math.min(availCash, availRet))*payout;
+      div[k]=d; cumDiv+=d;
+    }
+    cum[k]=cumDiv;
+  }
+  return (_divCache={div, cum, payout, payMonth, total:cumDiv});
+}
 // Geração consolidada MENSAL com o switch de plantas cascateando por TODO o consolidado (capex/IR/dívida
 // inclusive). Reconstrução: base − Σ(geração pré-imposto das plantas desligadas pelo usuário) + Δ do IR
 // consolidado VIVO (máquina de prejuízo fiscal). No cenário-base ⇒ = geração bruta (nada muda). Valida
@@ -2769,6 +2792,10 @@ function fiscalWcPanelHTML(){
   h+='</div><div class="premgrp">Reserva legal (patrimônio líquido)</div>'+grid;
   h+=premCtrl("Alíquota da reserva legal","% do lucro", (B.resLegalRate!=null?B.resLegalRate:0.05)*100, v=>{ DB.balanco.const.resLegalRate=(+v)/100; }, {dec:1,min:0,max:20,step:0.5});
   h+=premCtrl("Teto da reserva","% do capital", (B.resLegalCap!=null?B.resLegalCap:0.20)*100, v=>{ DB.balanco.const.resLegalCap=(+v)/100; }, {dec:0,min:0,max:100,step:5});
+  h+='</div><div class="premgrp">Dividendos (mecânica 09.07)</div>'+grid;
+  const DC=DB.dcfConst||{};
+  h+=premCtrl("Payout de dividendos","% do distribuível", (DC.div_payout!=null?DC.div_payout:1)*100, v=>{ DB.dcfConst.div_payout=Math.max(0,Math.min(1,(+v)/100)); }, {dec:0,min:0,max:100,step:5});
+  h+=premCtrl("Mês de pagamento","mês", (DC.div_month||3), v=>{ DB.dcfConst.div_month=Math.max(1,Math.min(12,Math.round(+v))); }, {dec:0,min:1,max:12,step:1});
   h+='</div></div>';
   return h;
 }
@@ -3029,9 +3056,14 @@ function renderBalanco(){
   // overlay do aporte de capital (modo 'aporte'): tampa o caixa ao mínimo e sobe o Capital (PL) pelo aporte
   // acumulado — identidade preservada (Ativo e PL sobem o mesmo cum). Fora do FCFE (DCF/Equity Value intactos).
   const _numB=x=>typeof x==="number"?x:0;
-  const _apo=(state.minCashMode==='aporte')?aporteMinimoEngine():null, _cum=_apo?_apo.cum:null;
-  const AD=s=> _cum? s.map((v,k)=>_numB(v)+_numB(_cum[k])) : s;
-  const caixaS=AD(e.caixa), ativoCircS=AD(e.ativoCirc), totAtivoS=AD(e.totAtivo), capitalS=AD(e.capital), plS=AD(e.pl);
+  const _apo=(state.minCashMode==='aporte')?aporteMinimoEngine():null, _acum=_apo?_apo.cum:null;
+  const _div=dividendosSerie(), _dcum=_div.cum;   // dividendos acumulados (reduzem caixa e lucros retidos)
+  const _aj=k=>(_acum?_numB(_acum[k]):0)-_numB(_dcum[k]);   // ajuste no caixa/ativo: +aporte −dividendos
+  const caixaS=e.caixa.map((v,k)=>_numB(v)+_aj(k)), ativoCircS=e.ativoCirc.map((v,k)=>_numB(v)+_aj(k)),
+        totAtivoS=e.totAtivo.map((v,k)=>_numB(v)+_aj(k)),
+        capitalS=e.capital.map((v,k)=>_numB(v)+(_acum?_numB(_acum[k]):0)),
+        lucroAcumS=e.lucroAcum.slice(),   // base (a linha de dividendos aparece separada no PL)
+        plS=e.pl.map((v,k)=>_numB(v)+_aj(k));
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
   let h=`<div class="pglead"><b>Balanço Patrimonial · Fluxo de Caixa (DFC)</b> — todas as linhas por fórmula viva (receita/custo/dívida/capex/lucro líquido), com a identidade <b>Ativo = Passivo + PL</b> fechando e a <b>DFC</b> reconciliando o caixa. O <b>VPL/DCF</b> e o Equity/Enterprise Value estão na aba <b>DCF (VPL)</b>.</div>`;
   h+='<div class="mkpis">';
@@ -3076,8 +3108,9 @@ function renderBalanco(){
     {lbl:"Total de Passivos",serie:e.totPass,...L,bold:true},
     {lbl:"Patrimônio Líquido",serie:plS,...L,bold:true,tip:MECH.lucro_liquido,children:[
       {lbl:"Capital social",serie:e.capital},
-      ...(_apo?[{lbl:"(+) Aporte p/ caixa mínimo (acionista)",serie:_cum}]:[]),
+      ...(_apo?[{lbl:"(+) Aporte p/ caixa mínimo (acionista)",serie:_acum}]:[]),
       {lbl:"Lucros/prejuízos acumulados",serie:e.lucroAcum},
+      ...(_div.total>1?[{lbl:"(−) Dividendos acumulados",serie:_dcum.map(x=>-x)}]:[]),
       {lbl:"Reserva legal",serie:e.resLegal},
     ]},
   ];
@@ -3089,8 +3122,8 @@ function renderBalanco(){
   const de=dividaEngine();
   const wcChange=e.dWC.map((v,k)=> num(v)+num(e.r368[k])+num(e.r374[k]));   // Δ capital de giro (DFM)
   const F={how:"sum",d:1,div:1e6}, P={how:"last",d:1,div:1e6};
-  const caixaIniS = e.caixaIni.map((v,k)=> _cum? (k>0?_numB(caixaS[k-1]):_numB(v)) : _numB(v));
-  const varCaixaS = e.varCaixa.map((v,k)=> _cum? _numB(v)+_numB(_apo.aporte[k]) : _numB(v));
+  const caixaIniS = e.caixaIni.map((v,k)=> k>0?_numB(caixaS[k-1]):_numB(v));
+  const varCaixaS = e.varCaixa.map((v,k)=> _numB(v)+(_apo?_numB(_apo.aporte[k]):0)-_numB(_div.div[k]));
   const dfcRows=[
     {lbl:"Caixa no início do período",serie:caixaIniS,how:"first",d:1,div:1e6},
     {lbl:"Fluxo de Caixa Operacional",serie:e.fco,...F,bold:true,children:[
@@ -3107,6 +3140,7 @@ function renderBalanco(){
       {lbl:"Rendimento de aplicações",serie:e.dfm385},
     ]},
     ...(_apo?[{lbl:"(+) Aporte de capital (acionista)",serie:_apo.aporte,...F,bold:true}]:[]),
+    ...(_div.total>1?[{lbl:"(−) Dividendos pagos (acionistas)",serie:_div.div.map(x=>-x),...F,bold:true}]:[]),
     {lbl:"Ajustes / outras variações",serie:e.ajuste,...F},
     {lbl:"Variação de caixa no período",serie:varCaixaS,...F,bold:true},
     {lbl:"Caixa no fim do período",serie:caixaS,...P,bold:true},
@@ -3614,6 +3648,7 @@ function clearAllCaches(){
   _dcfBaseCache=null;   // referências do cenário-base do DCF (re-capturadas por dcfSwitchBase)
   _minCashCache=null;   // motor da dívida rolling de caixa mínimo
   _aporteCache=null;    // motor do aporte de capital p/ caixa mínimo
+  _divCache=null;       // motor de dividendos (09.07)
 }
 function premApply(i,val){ _liveCancel(); const f=_premReg[i]; if(!f) return;
   const keep=document.activeElement && document.activeElement.id==='pr'+i;   // mantém foco → setas ←/→ do teclado seguem funcionando
@@ -3929,9 +3964,11 @@ function dashOutputs(){
   const rM=debtIRR!=null?Math.pow(1+debtIRR,1/12)-1:0; let dpv=0,dtpv=0;
   for(let k=cut+1;k<n;k++){ const svc=-(num(de.pagJ[k])+num(de.amort[k])); const t=k-cut, p=svc/Math.pow(1+rM,t); dpv+=p; dtpv+=t*p; }
   const debtDur=dpv>0?(dtpv/dpv)/12:null;
-  // Equity Duration (Macaulay do FCFE positivo descontado ao Ke — proxy: o modelo usa dividendos, não modelados aqui)
-  let epv=0,etpv=0; for(let k=cut+1;k<n;k++){ const cf=num(gen[k]); if(cf>0){ const p=cf*num(fdesc[k]), t=k-cut; epv+=p; etpv+=t*p; } }
-  const eqDur=epv>0?(etpv/epv)/12:null;
+  // Equity Duration (Macaulay dos DIVIDENDOS descontados ao Ke — mecânica do 09.07). Fallback p/ FCFE se payout=0.
+  const dvs=dividendosSerie(); let epv=0,etpv=0;
+  for(let k=cut+1;k<n;k++){ const d=num(dvs.div[k]); if(d>0){ const p=d*num(fdesc[k]), t=k-cut; epv+=p; etpv+=t*p; } }
+  if(epv<=0){ for(let k=cut+1;k<n;k++){ const cf=num(gen[k]); if(cf>0){ const p=cf*num(fdesc[k]), t=k-cut; epv+=p; etpv+=t*p; } } }
+  const eqDur=epv>0?(etpv/epv)/12:null, divTotal=dvs.total;
   // Breakeven: mês a partir do qual o FCFE acumulado (geração consolidada) fica PERMANENTEMENTE ≥ 0
   // (usa a última virada de sinal, robusto a picos transitórios de fluxos lumpy — ex.: tranche de dívida).
   const cums=[]; { let c=0; for(let k=cut+1;k<n;k++){ c+=num(gen[k]); cums.push(c); } }
@@ -3946,7 +3983,7 @@ function dashOutputs(){
   const avgND=cnt?sND/cnt:0, avgEB=cnt?sEB/cnt:0, ndEbitda=avgEB!==0?avgND/avgEB:null;
   return {hankoeIRR:a.HK.tirE, copaIRR:a.CP.tirE, hankoeMOIC:a.HK.moicE, copaMOIC:a.CP.moicE,
           eqDur, debtDur, debtIRR, timeToBE:beK>=0?(beK-cut)/12:null, breakevenYm:beK>=0?DB.meses[beK].ym:null,
-          maxDebt, ndEbitda};
+          maxDebt, ndEbitda, divTotal};
 }
 function _uopTile(cls,val,lbl){ return `<div class="uop-tile ${cls}"><div class="uop-v">R$ ${fmt(val/1e6,1)} mi</div><div class="uop-l">${lbl}</div></div>`; }
 function useOfProceedsHTML(){
@@ -4118,7 +4155,8 @@ function renderDashboard(){
   h+=kpi("Copa IRR", pct1(_do.copaIRR), "TIR @saída (recebe o prêmio)",null,MECH.tir);
   h+=kpi("Hankoe MOIC", moicX(_do.hankoeMOIC), "múltiplo @saída");
   h+=kpi("Copa MOIC", moicX(_do.copaMOIC), "múltiplo @saída");
-  h+=kpi("Equity Duration", anos(_do.eqDur), "Macaulay do FCFE (proxy s/ dividendos)");
+  h+=kpi("Equity Duration", anos(_do.eqDur), "Macaulay dos dividendos (Ke)");
+  h+=kpi("Dividendos (projeção)", "R$ "+fmt(_do.divTotal/1e6,0)+" mi", "distribuídos aos acionistas (09.07)");
   h+=kpi("Debt Duration", anos(_do.debtDur), "Macaulay do serviço da dívida");
   h+=kpi("Debt IRR", pct1(_do.debtIRR), "yield efetivo da dívida");
   h+=kpi("Time to breakeven", anos(_do.timeToBE), "até o FCFE acumulado virar +");
