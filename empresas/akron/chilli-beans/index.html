@@ -1136,28 +1136,62 @@ const R = {
   <div class="subtabs"><button data-s="0" class="on">Mercado ótico</button><button data-s="1">Óculos de sol</button><button data-s="2">Grau</button><button data-s="3">Óticas & competição</button></div>
 
   <div class="subpane on" data-p="0">
-    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></span><div class="head-copy"><h2>Mercado ótico brasileiro</h2><div class="cap">Lentes de grau, armações de grau e óculos de sol</div></div></div>
-    <div class="card"><h2>Faturamento total (R$ bi)</h2><div class="cap">2020 → 2030E</div>
-      ${svgBars(F.setorMkt.years.map((y,i)=>({k:y,v:F.setorMkt.total[i]})),{color:"var(--ink)",fmt:v=>v})}
-      <div class="note"><span class="nl">Nota.</span> ${F.setorMkt.nota}</div></div>
-    <div class="card"><h2>Volume anual (2025E)</h2><div class="stat4" style="margin-top:4px">${F.setorVol.map(v=>`<div class="st"><div class="n">${v.n}</div><div class="c">${v.c}</div></div>`).join("")}</div></div>
+    <div class="hero">
+      <div class="hl">O setor</div>
+      <div class="ht">Mercado ótico brasileiro</div>
+      <div class="hd">Três categorias — lentes de grau, armações de grau e óculos de sol — num mercado que cresce acima do PIB. O sol é o menor e mais maduro; o grau é o vetor de crescimento (envelhecimento + tempo de tela). A Chilli é líder no sol e desafiante no grau.</div>
+      <div class="hstats">
+        <div class="hs"><div class="n">R$ 42<span class="u"> bi</span></div><div class="c">TAM eyewear + relógios</div></div>
+        <div class="hs"><div class="n">+8,0<span class="u">%</span></div><div class="c">CAGR 2020-25</div></div>
+        <div class="hs"><div class="n">+5,1<span class="u">%</span></div><div class="c">CAGR 2025-30E (real)</div></div>
+        <div class="hs"><div class="n">104,6<span class="u"> mm</span></div><div class="c">unidades/ano (varejo formal)</div></div>
+      </div>
+    </div>
+    <div class="row31">
+      <div class="card"><h2>Faturamento total (R$ bi)</h2><div class="cap">2020 → 2030E · lentes + armações + sol</div>
+        ${svgBars(F.setorMkt.years.map((y,i)=>({k:y,v:F.setorMkt.total[i]})),{color:"var(--ink)",fmt:v=>v})}</div>
+      <div class="card"><h2>Composição por volume</h2><div class="cap">unidades (2025E)</div>
+        ${svgDonut([{k:"Lentes",v:69.2,c:"var(--ink)"},{k:"Armações grau",v:27.9,c:"var(--graf)"},{k:"Óculos de sol",v:7.5,c:"var(--red)"}],{center:"104,6 mm"})}</div>
+    </div>
+    <div class="note"><span class="nl">Nota.</span> ${F.setorMkt.nota} Há ainda +53 mm de óculos falsos/ilegais vendidos por ano — o sol é a categoria mais afetada pelo mercado ilegal.</div>
   </div>
 
   <div class="subpane" data-p="1">
-    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="7" cy="14" r="4"/><circle cx="17" cy="14" r="4"/><path d="M11 13h2M2 10h3M19 10h3"/></svg></span><div class="head-copy"><h2>Óculos de sol — liderança da Chilli</h2><div class="cap">Segmento de origem da marca; líder em volume, 3x o share da Ray-Ban</div></div></div>
-    <div class="row2">
-      <div class="card"><h2>Share em volume (2024)</h2>${svgBars(F.sol.share,{fmt:v=>v.toFixed(0)+"%"})}
-        <div class="note"><span class="nl">Nota.</span> ${F.sol.nota}</div></div>
-      <div class="card"><h2>Ticket médio (R$)</h2><div class="cap">Óculos de sol</div>${svgBars(F.sol.ticket.years.map((y,i)=>({k:y,v:F.sol.ticket.v[i]})),{color:"var(--ink)",fmt:v=>"R$ "+v})}</div>
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><circle cx="7" cy="14" r="4"/><circle cx="17" cy="14" r="4"/><path d="M11 13h2M2 10h3M19 10h3"/></svg></span><div class="head-copy"><h2>Óculos de sol — liderança da Chilli</h2><div class="cap">Segmento de origem da marca; único mercado relevante não dominado pela Ray-Ban</div></div></div>
+    <div class="card"><div class="row2" style="align-items:center">
+      <div style="display:flex;gap:10px;align-items:stretch">
+        <div style="flex:1;text-align:center;background:#FAF3F4;border:1px solid #F1D9DD;border-radius:12px;padding:16px 10px">
+          <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em">Chilli Beans</div>
+          <div style="font-size:34px;font-weight:800;color:var(--red);letter-spacing:-1px;margin:4px 0">26%</div>
+          <div style="font-size:10.5px;color:var(--muted)">share em volume (2024)</div></div>
+        <div style="display:flex;align-items:center;font-size:14px;font-weight:800;color:var(--muted)">vs</div>
+        <div style="flex:1;text-align:center;background:#FBFBFC;border:1px solid var(--line);border-radius:12px;padding:16px 10px">
+          <div style="font-size:11px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.05em">Ray-Ban</div>
+          <div style="font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-1px;margin:4px 0">8%</div>
+          <div style="font-size:10.5px;color:var(--muted)">share em volume (2024)</div></div>
+      </div>
+      <div><h2 style="margin-bottom:6px">Mais de 3x o share do 2º colocado</h2>
+        <p style="font-size:12.5px;color:#3A3A3E;line-height:1.55">Em valor, a Chilli também lidera (24,1% vs 21,0% da Ray-Ban — Euromonitor 2024). É o único mercado relevante de óculos onde a Ray-Ban não é líder.</p>
+        <div class="src">Mercado formal de sol: R$ 2,9 bi e 7,5 mm de unidades · 79% das vendas nas óticas, e-commerce só 2,6%.</div></div>
+    </div></div>
+    <div class="row31">
+      <div class="card"><h2>Ticket médio — óculos de sol (R$)</h2>${svgBars(F.sol.ticket.years.map((y,i)=>({k:y,v:F.sol.ticket.v[i]})),{color:"var(--ink)",fmt:v=>"R$ "+v})}</div>
+      <div class="card"><h2>Share em volume</h2>${svgHCompare(F.sol.share.map(s=>({k:s.k,v:s.v,c:s.c,hl:s.k==='Chilli Beans'})),{fmt:v=>v.toFixed(0)+"%"})}</div>
     </div>
-    <div class="card"><h2>Diferenciais competitivos</h2><div class="kv">${F.sol.dif.map(d=>`<div><div class="v">${d[0]}</div><div class="k" style="text-transform:none;font-weight:500;font-size:11.5px;letter-spacing:0">${d[1]}</div></div>`).join("")}</div>
-      <div class="note warn"><span class="nl">Ameaça.</span> ${F.solThreat}</div></div>
+    <div class="section-head" style="margin-top:4px"><div class="head-copy"><h2>Diferenciais competitivos</h2></div></div>
+    <div class="steps s3">${F.sol.dif.map((d,i)=>`<div class="step"><div class="n">${['Marca','Escassez programada','Capilaridade'][i]}</div><b>${d[0]}</b><p>${d[1]}</p></div>`).join("")}</div>
+    <div class="note warn"><span class="nl">Ameaça — smart glasses.</span> ${F.solThreat}</div>
   </div>
 
   <div class="subpane" data-p="2">
-    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><div class="head-copy"><h2>Armações e lentes de grau</h2><div class="cap">Vetor de crescimento — envelhecimento e tempo de tela</div></div></div>
-    <div class="card"><h2>Drivers de demanda</h2><div class="stat4" style="margin-top:4px">${F.grau.drivers.map(d=>`<div class="st"><div class="n">${d.n}</div><div class="c">${d.c}</div></div>`).join("")}</div>
-      <div class="note"><span class="nl">Nota.</span> ${F.grau.nota}</div></div>
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><div class="head-copy"><h2>Armações e lentes de grau</h2><div class="cap">O vetor de crescimento do setor — e a aposta estratégica da Chilli</div></div></div>
+    <div class="card"><h2>Drivers de demanda</h2><div class="cap">Envelhecimento populacional e tempo de tela sustentam o crescimento</div>
+      <div class="stat4" style="margin-top:4px">${F.grau.drivers.map(d=>`<div class="st"><div class="n">${d.n}</div><div class="c">${d.c}</div></div>`).join("")}</div></div>
+    <div class="steps s3">
+      <div class="step"><div class="n">Demanda</div><b>Estrutural e crescente</b><p>Envelhecimento + tempo de tela; 45% da população ainda fora da rotina oftalmológica — mercado potencial adicional.</p></div>
+      <div class="step"><div class="n">Estrutura</div><b>Mercado pulverizado</b><p>As 15 maiores marcas de armação somam só 16% do valor; marcas próprias e sem marca respondem por 84%.</p></div>
+      <div class="step"><div class="n">Posição</div><b>Chilli lidera com marca própria</b><p>À frente de grifes (Ray-Ban, Vogue, Nike) e único varejista relevante a vender marca própria em escala.</p></div>
+    </div>
   </div>
 
   <div class="subpane" data-p="3">
@@ -1166,10 +1200,9 @@ const R = {
       <div class="st"><div class="n">7%</div><div class="c">dos PDVs do país nas principais redes</div></div>
       <div class="st"><div class="n">88,5%</div><div class="c">do valor do grau vendido em óticas</div></div>
       <div class="st"><div class="n">0,7%</div><div class="c">e-commerce (grau)</div></div></div></div>
-    <div class="card"><h2>Principais redes de óticas</h2><div class="cap">Footprint e posicionamento</div>
-      <div class="twrap"><table><thead><tr><th class="l">Rede</th><th>Lojas</th><th class="l">Posicionamento</th></tr></thead><tbody>
-      ${F.oticas.rows.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td><td class="l">${r[2]}</td></tr>`).join("")}</tbody></table></div>
-      <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota} <b>Economics de franquia comparados (investimento, payback, margem, royalties): ver aba Comparáveis › Economics de franquia.</b></div></div>
+    <div class="section-head" style="margin-top:4px"><div class="head-copy"><h2>Principais redes de óticas</h2><div class="cap">Footprint e posicionamento</div></div></div>
+    <div class="steps s3">${F.oticas.rows.map(r=>{const hl=/Chilli/.test(r[0]);return `<div class="step"${hl?' style="border-color:#F1D9DD;background:#FAF3F4"':''}><b${hl?' style="color:var(--red)"':''}>${r[0]}</b><div style="font-size:26px;font-weight:800;letter-spacing:-.5px;margin:4px 0">${r[1]}</div><span class="pill gry">${r[2]}</span><div style="font-size:10.5px;color:var(--muted);margin-top:6px">lojas</div></div>`;}).join("")}</div>
+    <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota} <b>Economics de franquia comparados (investimento, payback, margem, royalties): ver aba Comparáveis › Economics de franquia.</b></div>
   </div>`,
 "p-news":()=>{
   const sel={corrobora:["red","corrobora"],contradiz:["amb","contradiz"],contexto:["gry","contexto"]};
