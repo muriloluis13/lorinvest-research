@@ -279,6 +279,7 @@ input.tbox{width:100%;max-width:150px}
 .cli-tag.t-noliq{color:var(--muted)}
 .cli-tag.t-cif{color:#2E7D4F;border-color:#BFE0C8}
 .cli-tag.t-fob{color:#C55A17;border-color:#F0D3BE}
+.cli-tag.t-hist{color:#8A6D3B;border-color:#E6D7B8;background:#FBF6E9}
 .clicard-stats{margin-top:auto;border-top:1px solid var(--line);padding-top:9px;display:flex;flex-direction:column;gap:5px}
 .clicard-stat{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11.5px}
 .clicard-stat .k{color:var(--muted)}
@@ -2022,6 +2023,7 @@ function cliCard(c){
             : c.custo_mol==0 ? '<span class="cli-tag t-noliq">S/ liquef.</span>' : '';
   const ent = (c.entrega==='CIF') ? '<span class="cli-tag t-cif">CIF</span>'
             : (c.entrega==='FOB') ? '<span class="cli-tag t-fob">FOB</span>' : '';
+  const hist = cliSoHistorico(c) ? '<span class="cli-tag t-hist">só histórico</span>' : '';
   const media = logo
     ? `<img src="${logo}" alt="Logo ${(c.nome||'').replace(/"/g,'')}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'clicard-ini\\'>${cliIni(c)}</div>'+this.parentNode.querySelector('.clicard-prod').outerHTML">`
     : `<div class="clicard-ini">${cliIni(c)}</div>`;
@@ -2030,7 +2032,7 @@ function cliCard(c){
     <div class="clicard-logo">${media}${isEdited(c)?'<span class="clicard-edit" title="editado"></span>':''}<span class="clicard-prod ${pcls}">${prod||'—'}</span></div>
     <div class="clicard-body">
       <div class="clicard-name">${c.nome||c.id}</div>
-      <div class="clicard-meta">${seg}${liq}${ent}</div>
+      <div class="clicard-meta">${seg}${liq}${ent}${hist}</div>
       <dl class="clicard-stats">
         <div class="clicard-stat"><span class="k">Vol. máx</span><span class="v">${vol}<span style="font-weight:400;color:var(--muted);font-size:9.5px"> m³/d</span></span></div>
         <div class="clicard-stat"><span class="k">Preço</span><span class="v">${preco}</span></div>
@@ -2051,12 +2053,36 @@ function concomPeak(list){
   if(best>=0) for(const o of series){ if((o.s[best]||0)>1e-6){ nAt++; const p=(o.c.produto||'').toUpperCase(); if(p==='GNL')nGNL++; else if(p==='GNC')nGNC++; } }
   return {vol:bestv>0?bestv:0, k:best, ym:best>=0?DB.meses[best].ym:null, nAt, nGNL, nGNC};
 }
+// cliente INFLUENCIA a projeção? = tem volume OU receita projetada (k>corte) no cenário atual.
+let _cliProjCache={};
+function cliProjetivo(c){
+  if(_cliProjCache[c.id]!=null) return _cliProjCache[c.id];
+  const cut=DB.cutoffIdx, n=DB.meses.length; let r=false;
+  const v=volClienteSerie(c); for(let k=cut+1;k<n;k++){ if((v[k]||0)>1){ r=true; break; } }
+  if(!r){ const rv=revClienteSerie(c); for(let k=cut+1;k<n;k++){ if(Math.abs(rv[k]||0)>1){ r=true; break; } } }
+  return (_cliProjCache[c.id]=r);
+}
+// cliente "só histórico" = não influencia a projeção E não é um contrato FUTURO com volume (ex.: cliente de
+// planta desligada, que voltaria a influenciar se a planta fosse ligada). Contrato encerrado no realizado →
+// o valor já está colado na base, sem interatividade. Estes ficam ocultos por padrão.
+function cliSoHistorico(c){
+  if(cliProjetivo(c)) return false;
+  const fimYM = c.fim_contrato ? String(c.fim_contrato).slice(0,7) : null;
+  const futuroComVol = (+c.volmax||0)>0 && fimYM && fimYM > DB.meses[DB.cutoffIdx].ym;   // contrato futuro (planta talvez desligada)
+  return !futuroComVol;
+}
+function toggleCliHist(){ state.cliHist=!state.cliHist; render(); }
 function renderClientes(){
+  _cliProjCache={};
   let h = `<div class="pglead">Premissas por cliente/contrato — curva de volume, datas, preço, indexação, custos, distância e capex (como na aba <b>Clientes</b> do modelo). Clique num card para editar; a <b>curva de volume</b> re-projeta o BP ao vivo.</div>`;
   h += `<div class="frow" style="max-width:440px"><label>Buscar</label><input id="cliQ" value="${state.cliQ||''}" placeholder="nome, planta ou segmento…" oninput="onCliSearch(this.value)"></div>`;
   const q=(state.cliQ||"").toLowerCase();
   const match=c=> !q || (c.nome||'').toLowerCase().includes(q) || (regShort(c.planta)||'').toLowerCase().includes(q) || (c.segmento||'').toLowerCase().includes(q) || (c.produto||'').toLowerCase().includes(q);
-  const filtered=DB.clientes.filter(match);
+  const matched=DB.clientes.filter(match);
+  // por padrão só os clientes que influenciam a projeção; os "só-histórico" ficam ocultos (toggle)
+  const nHist=matched.filter(cliSoHistorico).length;
+  const filtered = state.cliHist ? matched : matched.filter(c=>!cliSoHistorico(c));
+  if(nHist>0) h += `<div class="note" style="margin:2px 0 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span><b>${nHist}</b> cliente(s) só-histórico ${state.cliHist?'exibidos':'ocultos'} — contrato encerrado no realizado, sem efeito na projeção (valores já colados na base).</span><button class="btn-reset" style="position:static" onclick="toggleCliHist()">${state.cliHist?'ocultar':'mostrar'}</button></div>`;
   // preço médio ponderado pelo volume máx
   const wavg=list=>{ let num=0,den=0; for(const c of list){ if(c.preco!=null && +c.volmax){ num+=(+c.preco)*(+c.volmax); den+=(+c.volmax); } } return den>0?num/den:null; };
   const pmed=wavg(filtered);
