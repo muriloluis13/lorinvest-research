@@ -4201,14 +4201,12 @@ function useOfProceedsHTML(){
     {lbl:"Juros",val:u.juros},{lbl:"SG&A Holding",val:u.sgaHold},{lbl:"OpEx e outros",val:u.opexOutros}].filter(x=>x.val>1e4), UOP_UCOL);
   const ntmF=_uopColor(ntm.F, UOP_FCOL), ntmU=_uopColor(ntm.U, UOP_UCOL);
   _uopPending=()=>{ drawUopChart("cUopCum",cumF,cumU); drawUopChart("cUopNtm",ntmF,ntmU); };
-  const card=(id,ttl,base,sub)=>`<div class="card"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:2px">`
+  const card=(id,ttl,base)=>`<div class="card"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">`
     +`<h4 style="margin:0">${ttl}</h4><span class="uop-base">${base}</span></div>`
-    +`<div class="psub" style="margin:0 0 6px">${sub}</div><div class="chart-box" style="height:340px"><canvas id="${id}"></canvas></div></div>`;
+    +`<div class="chart-box" style="height:340px"><canvas id="${id}"></canvas></div></div>`;
   return `<h3 class="msub">Fontes &amp; Usos — Use of Proceeds</h3><div class="uop2">`
-    +card("cUopCum","Acumulado até a data-base","base "+fmtMesY(u.baseYm),
-        "Origem e aplicação do capital <b>acumulado</b> (realizado). Fontes = capital próprio + dívida líquida; Usos = CapEx planta/cliente + juros + SG&amp;A holding + OpEx e outros.")
-    +card("cUopNtm","Próximos 12 meses","NTM · "+fmtMesY(ntm.fromYm)+"–"+fmtMesY(ntm.toYm),
-        "Fluxo de caixa <b>projetado</b> à frente. Fontes = geração operacional + captação de dívida + aporte; Usos = investimentos + juros + amortização + dividendos. A variação de caixa fecha Fontes = Usos.")
+    +card("cUopCum","Acumulado até a data-base","base "+fmtMesY(u.baseYm))
+    +card("cUopNtm","Próximos 12 meses","NTM · "+fmtMesY(ntm.fromYm)+"–"+fmtMesY(ntm.toYm))
     +`</div>`;
 }
 // ===== ACIONISTAS: participação (FATO), cronograma real de aportes por acionista, TIR/MOIC (DCF e saída) =====
