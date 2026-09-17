@@ -1231,12 +1231,20 @@ const R = {
   </div>
   <div class="row2" style="margin-bottom:14px">${F.newsLeitura.map(l=>`<div class="card" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="margin:0">${l.t}</h2><span class="pill ${sel[l.s][0]}">${sel[l.s][1]}</span></div><p style="font-size:12.5px;color:#3A3A3E;line-height:1.55;margin-top:8px">${l.p}</p></div>`).join("")}</div>
 
-  <div class="card"><h2>Linha do tempo de notícias</h2><div class="cap">Mais recentes primeiro · fonte pública (não-NDA) · cor do marcador = corrobora / contradiz / contexto</div>
-    <div class="newsfeed">
-    ${[...F.news].reverse().map(n=>{const col=n.sel==='corrobora'?'var(--red)':n.sel==='contradiz'?'var(--amber)':'var(--accent2)';return `<div class="nf"><span class="nf-dot" style="background:${col}"></span>
+  ${(()=>{
+    const item=n=>{const col=n.sel==='corrobora'?'var(--red)':n.sel==='contradiz'?'var(--amber)':'var(--accent2)';return `<div class="nf"><span class="nf-dot" style="background:${col}"></span>
       <div class="nf-meta"><span class="nf-dt">${n.dt}</span><span class="nf-src">· ${n.src}</span><span class="pill gry" style="font-size:9.5px">${n.tag}</span><span class="pill ${sel[n.sel][0]}" style="font-size:9.5px">${sel[n.sel][1]}</span></div>
-      <div class="nf-h">${n.h}</div><div class="nf-p">${n.p}</div></div>`;}).join("")}
-    </div></div>`;
+      <div class="nf-h">${n.h}</div><div class="nf-p">${n.p}</div></div>`;};
+    const isCrise=n=>/31\/08\/26|01\/09\/26/.test(n.dt);
+    const crise=F.news.filter(isCrise).reverse(), pre=F.news.filter(n=>!isCrise(n)).reverse();
+    const phase=(c,t,s)=>`<div style="display:flex;align-items:center;gap:8px;margin:${t?'2px':'20px'} 0 10px"><span style="width:9px;height:9px;border-radius:2px;background:${c};flex:none"></span><span style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink)">${s}</span></div>`;
+    return `<div class="card"><h2>Linha do tempo de notícias</h2><div class="cap">Mais recentes primeiro · fonte pública · cor do marcador = corrobora / contradiz / contexto</div>
+      ${phase('var(--red)',true,'A crise vem a público · ago–set/26')}
+      <div class="newsfeed">${crise.map(item).join("")}</div>
+      ${phase('var(--accent2)',false,'Estratégia, expansão e sinais · fev/23 – ago/26')}
+      <div class="newsfeed">${pre.map(item).join("")}</div>
+    </div>`;
+  })()}`;
 },
 "p-val":()=>{
   const cfTable=(sc)=>`<div class="twrap"><table><thead><tr><th class="l">R$ mm</th>${F.cf.years.map(y=>`<th>${y}</th>`).join("")}</tr></thead><tbody>
