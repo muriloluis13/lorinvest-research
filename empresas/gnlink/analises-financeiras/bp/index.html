@@ -3279,7 +3279,8 @@ function footballFieldData(){
     const ph=((DB.capPrem||{})[prod]||{})[p]||[]; let mp=0; for(const e of ph) if(num(e.cap)>mp) mp=num(e.cap);
     s+=Math.max(mr,mp); } return s; }
   function capexTot(p){ const a=capexInvestPlanta(p); let t=0; for(let k=0;k<n;k++) t+=num(a[k]); return t; }
-  const OPER=[1,2,3], ALL=[1,2,3,4,5,6];
+  // reage ao switch de plantas: só as plantas LIGADAS entram (operacionais = PR/BA/RN; total = todas ligadas).
+  const OPER=[1,2,3].filter(plantOn), ALL=[1,2,3,4,5,6].filter(plantOn);
   const capOper=OPER.reduce((s,p)=>s+capUlt(p),0), capAll=ALL.reduce((s,p)=>s+capUlt(p),0);
   const capexOper=OPER.reduce((s,p)=>s+capexTot(p),0), unit=capOper>0?capexOper/capOper:0, constrVal=unit*capAll;
   const KL=0.10, KH=0.15;
