@@ -933,10 +933,15 @@ const R = {
   </div>
 
   <div class="subpane" data-p="3">
-    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg></span><div class="head-copy"><h2>Óticas — panorama competitivo</h2><div class="cap">Redes principais e economics de franquia</div></div></div>
-    <div class="card"><div class="twrap"><table><thead><tr>${F.oticas.cols.map((c,i)=>`<th class="${i===0?'l':''}">${c}</th>`).join("")}</tr></thead><tbody>
-      ${F.oticas.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-      <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota}</div></div>
+    <div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg></span><div class="head-copy"><h2>Óticas — estrutura do canal</h2><div class="cap">Footprint competitivo das redes (economics comparados na aba Comparáveis)</div></div></div>
+    <div class="card"><h2>Estrutura do canal óptico</h2><div class="stat4" style="grid-template-columns:repeat(3,1fr);margin-top:2px">
+      <div class="st"><div class="n">7%</div><div class="c">dos PDVs do país nas principais redes</div></div>
+      <div class="st"><div class="n">88,5%</div><div class="c">do valor do grau vendido em óticas</div></div>
+      <div class="st"><div class="n">0,7%</div><div class="c">e-commerce (grau)</div></div></div></div>
+    <div class="card"><h2>Principais redes de óticas</h2><div class="cap">Footprint e posicionamento</div>
+      <div class="twrap"><table><thead><tr><th class="l">Rede</th><th>Lojas</th><th class="l">Posicionamento</th></tr></thead><tbody>
+      ${F.oticas.rows.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td><td class="l">${r[2]}</td></tr>`).join("")}</tbody></table></div>
+      <div class="note"><span class="nl">Nota.</span> ${F.oticas.nota} <b>Economics de franquia comparados (investimento, payback, margem, royalties): ver aba Comparáveis › Economics de franquia.</b></div></div>
   </div>`,
 "p-news":()=>{
   const sel={corrobora:["red","corrobora"],contradiz:["amb","contradiz"],contexto:["gry","contexto"]};
