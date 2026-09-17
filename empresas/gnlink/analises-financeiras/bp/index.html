@@ -216,6 +216,24 @@ input.tbox{width:100%;max-width:150px}
 .uop-tile.t-blue{background:#E1EAF5}
 .uop-tile.t-teal{background:#E1EFED}
 @media(max-width:640px){.uop{grid-template-columns:1fr}}
+/* switch de período dos gráficos de OpEx (NTM + anos) — mesma pílula, quebra em várias linhas */
+.perbar.opexper{display:flex;flex-wrap:wrap;margin-bottom:0}
+/* gráfico "Visão Societária × Gerencial" (bridge de 2 barras horizontais) */
+.tvw{margin:2px 0}
+.tvw-row{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:12px;margin:10px 0}
+.tvw-lbl{text-align:right;line-height:1.25}
+.tvw-lbl b{font-size:13px;color:var(--ink);font-style:italic}
+.tvw-lbl span{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+.tvw-bar{display:flex;height:52px;border-radius:9px;overflow:hidden;box-shadow:var(--shadow)}
+.tvw-seg{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;overflow:hidden;padding:0 4px;min-width:0;border-right:1px solid rgba(255,255,255,.28)}
+.tvw-seg:last-child{border-right:none}
+.tvw-seg b{font-size:11.5px;font-weight:700;font-style:italic;line-height:1.15;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tvw-seg span{font-size:11px;font-weight:800;opacity:.95;margin-top:1px}
+.tvw-seg.hl{outline:2px solid var(--accent2);outline-offset:-2px}
+.tvw-lg{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 2px 162px}
+.tvw-lg i{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);font-weight:600}
+.tvw-lg i s{width:11px;height:11px;border-radius:3px;display:inline-block;text-decoration:none}
+@media(max-width:640px){.tvw-row{grid-template-columns:1fr;gap:4px}.tvw-lbl{text-align:left}.tvw-lg{margin-left:0}}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
 .cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
@@ -331,7 +349,7 @@ const ABAS = [
 ];
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco","capex","divida"]);  // têm seletor de periodicidade
 
-const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2030-12", exitMult:10, minCashMode:"aporte"};   // cobertura do caixa mínimo: 'aporte'(default)|'debt'|'none'
+const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2030-12", exitMult:10, minCashMode:"aporte", opexPer:"NTM"};   // cobertura do caixa mínimo: 'aporte'(default)|'debt'|'none'
 // SWITCH de planta ligada/desligada (cenário): desliga TUDO daquela planta do consolidado — capacidade,
 // volume, receita, custos, SG&A planta, capex/depreciação/imobilizado, dívida da planta. A HOLDING
 // (SG&A da holding + dívidas da holding) fica fixa, independente dos switches.
@@ -3510,11 +3528,105 @@ function renderOpexOverview(reg, h){
   h+=kpi("Custo total "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "",null,MECH.custo_total);
   const gas2027=anoSum(s.gas)["2027"]?.v||0; h+=kpi("Gás / custo total", fmt(100*gas2027/(yTot["2027"]?.v||1),0)+"%", "2027");
   h+='</div>';
+
+  // ---- dois gráficos "à la Petrobras" (período selecionável: NTM + anos) ----
+  const od=opexViewData(reg);   // {ks, perLbl, cpv, hold, tot, cats{}, ger[], comp[]}
+  h+='<div class="card">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">';
+  h+='<h4 style="margin:0">OPEX — '+regName(reg)+' · <span style="color:var(--accent2)">'+od.perLbl+'</span> (R$ MM)</h4>';
+  h+='<div><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:8px">Período</span>'+opexPerBar()+'</div>';
+  h+='</div>';
+  // gráfico 1: Visão Societária × Visão Gerencial (mesmo total, duas leituras)
+  h+='<div style="font-size:12.5px;font-weight:700;color:var(--muted);margin:2px 0 6px">Visão societária × visão gerencial — mesmo total, R$ '+MM(od.tot)+' MM</div>';
+  h+=opexTwoViewHTML(od, MM);
+  h+='</div>';
+  // gráfico 2: composição por atividade (barras horizontais com os VALORES nas pontas)
+  h+='<div class="card"><h4>Composição por atividade — '+regName(reg)+' · '+od.perLbl+' (R$ MM)</h4>'
+    +'<div class="chart-box" style="height:'+(70+od.comp.length*34)+'px"><canvas id="cOpexComp"></canvas></div></div>';
+
   h+='<div class="card"><h4>Custos operacionais mensais — '+regName(reg)+' (R$ MM, empilhado)</h4><div class="chart-box"><canvas id="cOpex"></canvas></div></div>';
   const opRows=COST_ORDER.map(c=>({lbl:COST_LABEL[c], serie:s[c], tip:MECH[c], perPlanta:p=>costSeries(p)[c]}))
     .concat([{lbl:"Custo total",serie:tot,bold:true,tip:MECH.custo_total,perPlanta:p=>custoTotal(p)}]);
   h+='<h3 class="msub">Custos por categoria (R$ MM)</h3>'+serieTableHTML(opRows,"R$ MM");
-  return {html:h, draw:()=>drawOpexStack(s)};
+  return {html:h, draw:()=>{ drawOpexStack(s); drawOpexComp(od); }};
+}
+/* período dos gráficos de OpEx: NTM (12 meses após a data-base) OU um ano 2023..2038 */
+function opexYears(){ const y=[]; DB.meses.forEach(m=>{ const a=m.ym.slice(0,4); if(!y.includes(a)) y.push(a); }); return y.sort(); }
+function opexPerBar(){
+  const opts=["NTM"].concat(opexYears());
+  return '<div class="perbar opexper">'+opts.map(p=>`<button onclick="setOpexPer('${p}')" class="${state.opexPer===p?'on':''}">${p}</button>`).join('')+'</div>';
+}
+function setOpexPer(p){ state.opexPer=p; render(); }
+function opexPerMonths(){
+  const cut=DB.cutoffIdx, n=DB.meses.length, a=[];
+  if(state.opexPer==="NTM"){ for(let k=cut+1;k<=Math.min(cut+12,n-1);k++) a.push(k); return a; }
+  DB.meses.forEach((m,k)=>{ if(m.ym.slice(0,4)===state.opexPer) a.push(k); }); return a;
+}
+function opexPerLabel(){
+  if(state.opexPer!=="NTM") return state.opexPer;
+  const ks=opexPerMonths(); if(!ks.length) return "NTM";
+  return "NTM ("+fmtMes(DB.meses[ks[0]].ym)+"–"+fmtMes(DB.meses[ks[ks.length-1]].ym)+")";
+}
+// soma de uma série mensal sobre os meses do período
+function _sumMeses(serie, ks){ let s=0; for(const k of ks) if(typeof serie[k]==="number") s+=serie[k]; return s; }
+// dados dos dois gráficos: as 7 categorias do custo operacional (sempre positivas), somadas no período.
+// A SG&A da holding vive na aba Holding (e é negativa na banda de ramp 2026-27) → fica fora destes gráficos.
+function opexViewData(reg){
+  const ks=opexPerMonths(), s=costSeries(reg);
+  const cats={}; for(const c of COST_ORDER) cats[c]=_sumMeses(s[c], ks);
+  const tot = COST_ORDER.reduce((t,c)=>t+cats[c], 0);       // custo total operacional (bottom-up)
+  // visão SOCIETÁRIA (leitura de DRE, 2 blocos): CPV (produção/processamento) + Despesas (logística & SG&A)
+  const cpv = cats.gas+cats.liquefacao+cats.compressao+cats.terminal+cats.regas;
+  const desp = cats.distribuicao+cats.sga;
+  const soc=[
+    {lbl:"CPV — produção", v:cpv, col:"#3D4A5C"},
+    {lbl:"Desp. — logística & SG&A", v:desp, col:"#8A6D3B"},
+  ].filter(x=>x.v>0);
+  // visão GERENCIAL (por natureza/atividade) — mesmo total
+  const ger=[
+    {lbl:"Matéria-prima (gás)", v:cats.gas, col:COST_PAL.gas, hl:true},
+    {lbl:"Liquefação", v:cats.liquefacao, col:COST_PAL.liquefacao},
+    {lbl:"Compr. & Terminal", v:cats.compressao+cats.terminal, col:COST_PAL.compressao},
+    {lbl:"Logística", v:cats.distribuicao, col:COST_PAL.distribuicao},
+    {lbl:"Regás", v:cats.regas, col:COST_PAL.regas},
+    {lbl:"SG&A planta", v:cats.sga, col:COST_PAL.sga},
+  ].filter(x=>x.v>0.05e6);
+  // composição por atividade (gráfico 2): as 7 categorias, ordenado desc
+  const comp=COST_ORDER.map(c=>({lbl:COST_LABEL[c], v:cats[c], col:COST_PAL[c]})).filter(x=>x.v>0);
+  comp.sort((a,b)=>b.v-a.v);
+  return {ks, perLbl:opexPerLabel(), tot, cats, soc, ger, comp};
+}
+// gráfico 1: duas barras horizontais proporcionais (societária × gerencial), rótulo à esquerda
+function opexTwoViewHTML(od, MM){
+  const T=od.tot||1;
+  const soc=od.soc;
+  const seg=x=>{ const pct=100*x.v/T; const wide=pct>=11;
+    return `<div class="tvw-seg${x.hl?' hl':''}" style="width:${pct}%;background:${x.col}" title="${x.lbl}: R$ ${MM(x.v)} MM (${fmt(pct,1)}%)">`
+      +(wide?`<b>${x.lbl}</b><span>${MM(x.v)}</span>`:'')+`</div>`; };
+  let h='<div class="tvw">';
+  h+=`<div class="tvw-row"><div class="tvw-lbl"><b>Visão Societária</b><span>R$ ${MM(od.tot)} MM</span></div><div class="tvw-bar">${soc.map(seg).join('')}</div></div>`;
+  h+=`<div class="tvw-row"><div class="tvw-lbl"><b>Visão Gerencial</b><span>R$ ${MM(od.tot)} MM</span></div><div class="tvw-bar">${od.ger.map(seg).join('')}</div></div>`;
+  h+='</div>';
+  // legenda (societária + gerencial, sem repetir cores)
+  const lg=soc.concat(od.ger);
+  h+='<div class="tvw-lg">'+lg.map(x=>`<i><s style="background:${x.col}"></s>${x.lbl}</i>`).join('')+'</div>';
+  return h;
+}
+// gráfico 2: barras horizontais com os VALORES (R$ MM) nas pontas (em vez dos nomes)
+function drawOpexComp(od){
+  const cv=$("#cOpexComp"); if(!cv) return;
+  const labels=od.comp.map(x=>x.lbl), data=od.comp.map(x=>x.v/1e6), cols=od.comp.map(x=>x.col);
+  charts.opexComp=new Chart(cv,{type:"bar",
+    data:{labels,datasets:[{data,backgroundColor:cols,borderWidth:0,borderRadius:4,
+      datalabels:{anchor:"end",align:"end",clamp:true,color:"#33424F",font:{size:11.5,weight:"bold"},
+        formatter:v=>"R$ "+fmt(v,1)}}]},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,animation:false,
+      layout:{padding:{right:52}},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>"R$ "+fmt(c.parsed.x,2)+" MM"}}},
+      scales:{x:{beginAtZero:true,ticks:{color:"#5C6B7A",callback:v=>fmtNum(v)},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM"}},
+              y:{ticks:{color:"#33424F",font:{size:11.5,weight:"600"}},grid:{display:false}}}}});
 }
 function renderOpexCat(reg, cat, h){
   const M=OPEX_MECH[cat], tot=costCatSerie(reg,cat), yTot=anoSum(tot), ks=Object.keys(yTot).sort(), MM=v=>fmt(v/1e6,1);
