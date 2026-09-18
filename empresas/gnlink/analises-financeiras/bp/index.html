@@ -372,6 +372,7 @@ const ABAS = [
     {id:"balanco",   nome:"Balanço & DFC",   regiao:false, fase:null},
     {id:"dcf",       nome:"DCF",             regiao:false, fase:null},
     {id:"acionistas",nome:"Acionistas",     regiao:false, fase:null},
+    {id:"roadmap",   nome:"Roadmap",         regiao:false, fase:null},
   ]},
   {grp:"Modelagem", items:[
     {id:"volume",   nome:"Volume",          regiao:true,  fase:null},
@@ -923,6 +924,7 @@ function render(opts){
   if(aba.id==="resumo"){
     const r=renderResumo(); _setMain(html+r.html); wireSubtabs(); if(r.draw) r.draw(); return;
   }
+  if(aba.id==="roadmap"){ _setMain(html + renderRoadmapHTML()); return; }
   if(aba.id==="balanco"){ _setMain(html + renderBalanco()); return; }
   if(aba.id==="dcf"){ _setMain(html + renderDCF()); return; }
   if(aba.id==="acionistas"){ const r=renderAcionistas(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
@@ -4558,9 +4560,8 @@ function renderRoadmapHTML(){
     return `<div class="tl-ev"><span class="tl-ic" style="background:${t.bg};border-color:${t.c}">${t.ic}</span>`
       +`<div class="tl-txt"><span class="mo">${mo}</span><b>${e.title}</b>${e.detail?`<span class="det">${e.detail}</span>`:''}</div></div>`; };
   const colsHtml=byCol.map(a=>`<div class="tl-col">${a.length?a.map(card).join(''):'<div class="tl-empty">—</div>'}</div>`).join('');
-  return `<h3 class="msub">Roadmap do Business Plan — próximos 5 anos</h3>`
-    +`<div class="card"><div class="psub" style="margin:0 0 12px">Marcos por ano (o mês fica na etiqueta), extraídos do modelo — reagem às premissas e ao switch de plantas: novos projetos, adições de capacidade, clientes, dívida, aporte, dividendos e breakeven. A coluna <b>${CATCH}+</b> agrega os eventos de ${CATCH} em diante.</div>`
-    +`<div class="tl-wrap" style="--n:${ncol}"><div style="overflow-x:auto"><div class="tl-band">${band}</div><div class="tl-cols">${colsHtml}</div></div></div></div>`;
+  return `<div class="pglead"><b>Roadmap do Business Plan</b> — marcos dos <b>próximos 5 anos</b> por ano (o mês fica na etiqueta), extraídos do modelo e <b>vivos</b> (reagem às premissas e ao switch de plantas): novos projetos, adições de capacidade, clientes, emissões/amortizações de dívida, aporte, dividendos e breakeven. A coluna <b>${CATCH}+</b> agrega os eventos de ${CATCH} em diante.</div>`
+    +`<div class="card"><div class="tl-wrap" style="--n:${ncol}"><div style="overflow-x:auto"><div class="tl-band">${band}</div><div class="tl-cols">${colsHtml}</div></div></div></div>`;
 }
 function renderDashboard(){
   const cut=DB.cutoffIdx, MM=c=>fmt((c?c.v:0)/1e6,0);
@@ -4622,7 +4623,6 @@ function renderDashboard(){
   t+=rowT("Receita (GNL+GNC+extras)",yRec)+rowT("Custo total",yCT)+rowT("Resultado operacional",yRO)+rowT("EBITDA",yEB,true)+rowT("Lucro líquido",yLL)+'</tbody></table></div>';
   h+='<div class="card"><h4>DRE resumida por ano (R$ MM)</h4>'+t+'</div>';
   h+='<div class="note"><b>A DRE inteira já está por fórmula viva</b>, validada 1:1 — Receita → Custo → EBITDA → Depreciação → Result. Financeiro → Impostos → <b>Lucro Líquido</b> (impostos ao vivo por máquina de prejuízo fiscal de 2 entidades). Falta só o módulo de <b>DCF</b> (investimento inicial, capital de giro, valor terminal) para o VPL/TIR plenos — a prévia acima é o resultado operacional descontado.</div>';
-  h+=renderRoadmapHTML();   // roadmap do BP (calendário mês×ano de marcos)
   h+=useOfProceedsHTML();   // Fontes & Usos (Use of Proceeds) — retrato do realizado até a data-base (no fim da aba, meia tela)
   return h;
 }
