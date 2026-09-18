@@ -1024,9 +1024,8 @@ function baseLineOpts(){
             y:{ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"}}}};
 }
 
-/* ===================================================== motor de volume (B) ==
-   Réplica de Receita!<mes><cliente>: estágio S6..S1 ativo -> override near-term
-   -> * fatorOperacao[planta] * fatorSensib[planta]. Volume em m³/dia. ========= */
+/* motor de volume (B): réplica de Receita!<mês><cliente>: estágio S6..S1 ativo → override near-term
+   → × fatorOperação[planta] × fatorSensib[planta]. Volume em m³/dia. */
 function stageVol(cli, ordv){
   for(let s=5;s>=1;s--){ const st=cli.stages[s];
     if(st.vol>0 && st.ini!=null && ordv>=st.ini && ordv<=st.fim) return st.vol; }
@@ -1071,10 +1070,8 @@ function volAgg(regiao, produto){
   return proj.map((v,k)=> k<=cut ? hist[k] : v);
 }
 
-/* ===================================================== motor de preço/receita (C)
-   Receita R$ = preço_indexado × volume × dias.  Preço indexado (Variável):
-   IPCA 100% -> precoBase × FATOR IPCA PURO (bump anual no aniversário por IPCA 12m).
-   Brent PR/RN/Sal -> residual×fatorIPCA + pct×Brent(ciclo)×Dólar(ciclo)/26,8081.  === */
+/* motor de preço/receita (C): Receita R$ = preço indexado × volume × dias. Preço (Variável): IPCA 100% =
+   precoBase × fator IPCA (bump anual no aniversário); Brent = residual × fator IPCA + molécula da planta. */
 const BRENT_PCT = {"Brent PR":0.125, "Brent RN":0.103, "Brent Sal":0.06};   // (legado; não usado — ver precoSerie)
 const BRENT_SEED_CUT = 47;   // k43..47 (ago-dez/26) = semente de orçamento do preço Brent (fórmula assume em jan/27)
 function precoFactorArr(cid){
@@ -1285,8 +1282,7 @@ function molFatorSerie(p, macro){
   }
   return f;
 }
-// custo da molécula AO VIVO por planta (R$/m³) = componente-base(premissa) × fator(macro).
-// 100% por fórmula: reproduz realizado (fator=1) e projeção (reage a Brent/IPCA/Dólar).
+// molécula AO VIVO (R$/m³) = componente-base(premissa) × fator(macro); realizado (fator=1) + projeção viva.
 let _molLiveCache={};
 function moleculaLive(p){
   if(_molLiveCache[p]) return _molLiveCache[p];
@@ -1295,8 +1291,7 @@ function moleculaLive(p){
   const out = base.map((b,k)=> (typeof b==="number"?b:0)*f[k]);
   return (_molLiveCache[p]=out);
 }
-// Molécula que indexa o PREÇO Brent (rows 254-259) = base × fator_reajuste, SEM o fator de
-// desconto acumulado do CUSTO do gás (RN=0,9). Difere de moleculaLive só onde há esse desconto (RN).
+// Molécula do PREÇO Brent (rows 254-259) = base × fator, SEM o desconto acumulado do CUSTO (RN=0,9). Difere só em RN.
 let _molPriceCache={};
 function priceMolecula(p){
   if(_molPriceCache[p]) return _molPriceCache[p];
