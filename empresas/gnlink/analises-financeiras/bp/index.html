@@ -1343,11 +1343,9 @@ function gasAgg(regiao){
 const OPEX_CATS = ["liquefacao","compressao","terminal","sga","distribuicao","regas"];
 const OPEX_LABEL = {liquefacao:"Liquefação", compressao:"Compressão", terminal:"Terminal",
                     sga:"SG&A planta", distribuicao:"Logística", regas:"Regás"};
-/* ===== port fiel: LOGÍSTICA / DISTRIBUIÇÃO (por cliente) =====================
-   6 sub-linhas: Frete Fixo + Frete Variável + Aluguel + Cavalo + Ociosos + Sinergia.
-   Nº de carretas(cliente) = volume/cap × (dist×2/450 + descarga/24) × op; arredondado =
-   ROUNDUP por grupo (planta×tipo) re-rateado. Volume vem do motor JS (reage às alavancas).
-   Validado 1:1 vs golden (logistica_ref.py). Ver MECANICAS.md.  ==================== */
+/* LOGÍSTICA (por cliente): 6 sub-linhas (Frete Fixo/Var + Aluguel + Cavalo + Ociosos + Sinergia).
+   Nº carretas = volume/cap × (dist×2/450 + descarga/24) × op, ROUNDUP por grupo (planta×tipo).
+   Validado 1:1 (logistica_ref.py). Ver MECANICAS.md. */
 let _logCache={};
 function logisticaSerie(){
   const key = G.volMult+"|"+G.precoMult+"|"+G.molMult;
@@ -1414,12 +1412,9 @@ function logisticaCompAgg(regiao){   // {subkey:[192]} somado na região
     for(const p of plantas){ const cp=comp[p]; if(!cp) continue; const a=cp[s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }   // pula planta sem dados (ex.: "Outro" id 7)
   return out;
 }
-/* ===== port fiel: REGÁS (por cliente) =======================================
-   Componentes: Aluguel de equipamento + Furui (leasing 18 bar + preparação) +
-   Assistência técnica (+ Montagem e Insumos = 0 hoje). Nº de equipamentos(cliente) =
-   ROUNDUP(volume ÷ capacidade × dias de estoque) × op, zero se FOB. Furui leasing
-   recalculado ao vivo (43 US$/dia × dólar × 10 equip × dias) — reage ao câmbio.
-   Validado 1:1 vs golden (regas_ref.py). Ver MECANICAS.md.  ==================== */
+/* REGÁS (por cliente): Aluguel de equipamento + Furui (leasing 18 bar + preparação) + Assistência técnica.
+   Nº equipamentos = ROUNDUP(volume ÷ cap × dias de estoque) × op, zero se FOB. Furui leasing ao vivo
+   (43 US$/dia × dólar × 10 equip × dias) reage ao câmbio. Validado 1:1 (regas_ref.py). Ver MECANICAS.md. */
 function roundupX(x){ if(!(x>0)) return 0; const r=Math.floor(x); return (r>=1 && (x-r)<1e-9)?r:r+1; }
 let _regCache={};
 function regasSerie(){
@@ -1481,10 +1476,8 @@ function regasCompAgg(regiao){
     for(const p of plantas){ const cp=comp[p]; if(!cp) continue; const a=cp[s]; for(let k=0;k<n;k++) out[s][k]+=a[k]; } }   // pula planta sem dados (ex.: "Outro" id 7)
   return out;
 }
-/* ===== port fiel: COMPRESSÃO e TERMINAL (por planta, simples) ================
-   Compressão = (data ≥ início) ? tarifa/mês : 0 × op × IPCA (só RN, 20k a partir de
-   ago/27). Terminal = tarifa × volume GNL da planta × dias (só PE, 0,30/m³·dia, sem
-   IPCA). Validados vs golden (opex_por_cat.csv). ============================= */
+/* COMPRESSÃO e TERMINAL (por planta): Compressão = tarifa/mês × op × IPCA na janela (só RN, 20k desde
+   ago/27). Terminal = tarifa × volume GNL × dias (só PE, 0,30/m³·dia, sem IPCA). Validados (opex_por_cat.csv). */
 function compressaoSerie(){
   const n=DB.meses.length, mo=DB.monthsOrd, corr=DB.seriesOpex.corr556||[], out={};
   for(let p=1;p<=6;p++){ const c=DB.compTerm[p]||{}, op=DB.fatores.operacao[p]||[], s=new Array(n).fill(0);
@@ -1500,12 +1493,9 @@ function terminalSerie(){
     out[p]=s; }
   return out;
 }
-/* ===== port fiel: SG&A DE PLANTA (11 componentes por planta) =================
-   Salários + Seguros(op+equip, prêmio periódico) + Assistência(lump mês 10) +
-   Serviços + Viagens + Projetos-Eng(gatilho ocupação≥95%) + Regulatório(a cada 3m) +
-   Segurança(patrim+ocup+trab a cada 6m) + Contingência(const) + Frota + Outros(0).
-   Fórmula vale de jan/27 (k48+); ago-dez/26 (k43..48) = semente hardcode. Validado
-   1:1 vs golden na região paramétrica (sga_ref.py). ============================= */
+/* SG&A DE PLANTA (11 componentes/planta): Salários + Seguros + Assistência(mês 10) + Serviços + Viagens +
+   Projetos-Eng(ocup≥95%) + Regulatório(3m) + Segurança(6m) + Contingência + Frota + Outros(0). Fórmula vale
+   de jan/27 (k48+); ago-dez/26 = semente hardcode. Validado 1:1 na região paramétrica (sga_ref.py). */
 const SGA_SUB=["salarios","seguros","assist","servicos","viagens","projetos","regulatorio","seguranca","contingencia","frota","outros"];
 let _sgaCache={};
 function sgaSerie(){
@@ -1572,9 +1562,8 @@ function opexExGas(regiao){  // soma das categorias (sem gás)
   for(const cat of OPEX_CATS){ const s=opexCatAgg(regiao,cat); for(let k=0;k<n;k++) acc[k]+=s[k]; }
   return acc;
 }
-/* ===== port fiel: LIQUEFAÇÃO (sub-linha a sub-linha) =========================
-   Energia (eletricidade MW + gerador) + Insumos(6) + O&M + Perdas + Purga.
-   Valida 1:1 contra o subtotal extraído (DB.opexCat.liquefacao). ============== */
+/* LIQUEFAÇÃO (sub-linha a sub-linha): Energia (MW + gerador) + Insumos(6) + O&M + Perdas + Purga.
+   Valida 1:1 contra o subtotal extraído (DB.opexCat.liquefacao). */
 const CRYO_BP=[1,2,3,4], CRYO_MW=[0.55,0.89,1.43,1.97], CRYO_CAP=19800;  // Base Premissas L48:O51
 function machineMW(vol){ if(!(vol>0)) return 0; const n=vol/CRYO_CAP;
   for(let i=0;i<CRYO_BP.length;i++) if(CRYO_BP[i]>=n) return CRYO_MW[i];
