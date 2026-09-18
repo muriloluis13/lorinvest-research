@@ -393,9 +393,8 @@ const ABAS = [
 const MODELAGEM_ABAS = new Set(["volume","resumo","receita","opex","holding","balanco","capex","divida"]);  // têm seletor de periodicidade
 
 const state = {aba:"dashboard", regiao:0, cliSel:null, cliQ:"", cliMsg:"", ocat:"", per:"A", revdim:"produto", voldim:"produto", volHor:"full", volExp:false, cliCollapsed:{}, plantOff:{}, exitYm:"2030-12", exitMult:10, minCashMode:"aporte", opexPer:"NTM"};   // cobertura do caixa mínimo: 'aporte'(default)|'debt'|'none'
-// SWITCH de planta ligada/desligada (cenário): desliga TUDO daquela planta do consolidado — capacidade,
-// volume, receita, custos, SG&A planta, capex/depreciação/imobilizado, dívida da planta. A HOLDING
-// (SG&A da holding + dívidas da holding) fica fixa, independente dos switches.
+// SWITCH de planta (cenário): desliga TUDO da planta no consolidado (capac./volume/receita/custos/SG&A/
+// capex/dívida). A HOLDING (SG&A + dívidas da matriz) fica fixa.
 function plantOn(p){ return !(state.plantOff && state.plantOff[+p]); }
 function _actP(regiao){ return regiao===0 ? DB.regioes.filter(r=>plantOn(r.id)).map(r=>r.id) : (plantOn(regiao)?[regiao]:[]); }
 function togglePlant(p){ state.plantOff[p]=!state.plantOff[p]; clearAllCaches(); render(); }
@@ -507,11 +506,8 @@ const MECH={
 };
 const abaById = id => ABAS.flatMap(g=>g.items).find(a=>a.id===id);
 
-/* Deriva as séries de indexação a partir das 7 séries BRUTAS da aba Macro
-   (SELIC/IPCA/CDI a.m.; Brent/HH/Dólar; CPI a.m.). Reproduz as fórmulas do modelo:
-   - média(m-2,m-3,m-4) → Brent/HH/Dólar (Macro r15/r17/r21)
-   - acumulado 12m PRODUCT(1+x)-1 → IPCA janela [k-13,k-2] (r9); SELIC/CDI/CPI [k-11,k] (r7/r11/r25)
-   Validado 1:1 vs o modelo (as antigas linhas extraídas da Variável). Única fonte = Macro. */
+/* Índices derivados das 7 séries BRUTAS da Macro (fórmulas do modelo, validado 1:1; Macro = fonte única):
+   média(m-2,m-3,m-4)→Brent/HH/Dólar (r15/17/21); acum 12m→IPCA [k-13,k-2] (r9), SELIC/CDI/CPI [k-11,k] (r7/11/25). */
 function deriveIdxFromMacro(macro){
   const raw = id => { const s=(macro[id]||{vals:[]}).vals; return s.map(x=> typeof x==="number"?x:null); };
   const ipca=raw("ipca"), brent=raw("brent"), dolar=raw("dolar"), hh=raw("henryhub"), cpi=raw("cpi"), selic=raw("selic"), cdi=raw("cdi");
@@ -851,10 +847,8 @@ function wireSubtabs(){
 /* ------------------------------------------------------------- render ---- */
 function updateTopKpi(){ const el=$("#hkpiEVval"); if(!el) return;
   try{ const ev=evParts().ev; el.textContent="R$ "+fmt(ev/1e6,0)+" mi"; }catch(_){ el.textContent="—"; } }
-// Recompute AO VIVO durante o arraste do slider: um render() normal recria o #main inteiro, o que
-// desconecta o slider arrastado e mata a captura do ponteiro (o arraste para). Aqui, quando há um elemento
-// a "preservar", trocamos só os nós de SAÍDA do #main e mantemos intacto o sub-nó que contém o slider ativo
-// — a captura sobrevive e o arraste continua disparando. Fallback: innerHTML cheio (se a estrutura mudou).
+// Recompute ao vivo no arraste: render() recria #main e mata a captura do slider. Se há `_preserveEl`,
+// troca só os nós irmãos e mantém o sub-nó do slider ativo → arraste sobrevive. Fallback: innerHTML cheio.
 let _preserveEl=null;
 function _setMain(fullHTML){
   const m=$("#main"), preserve=_preserveEl;
@@ -866,8 +860,7 @@ function _setMain(fullHTML){
   }
   m.innerHTML=fullHTML;
 }
-// throttle por requestAnimationFrame: no máx. 1 recompute por frame durante o arraste. `fn` aplica a
-// premissa (lê o valor atual do slider no disparo); `el` é preservado no re-render p/ o arraste continuar.
+// throttle por rAF: no máx. 1 recompute/frame no arraste. `fn` aplica a premissa; `el` é preservado no render.
 let _liveRAF=0, _liveArgs=null;
 function _liveThrottle(fn, el){
   _liveArgs={fn:fn, el:el};
@@ -1227,12 +1220,9 @@ function receitaComp(regiao){
 /* ==================================================== motor de custo do gás (D)
    Custo do gás (R$/mês) = Σ_planta [volume(com molécula) × dias × custo_molécula].
    custo_molécula[planta] é driver macro extraído (Variável 254-259 com piso/teto). = */
-/* ===================================================== motor da MOLÉCULA (item 4b)
-   custo_molécula[p] = componente-base × FATOR de reajuste (IPCA/Brent/Dólar/composto).
-   O FATOR é reproduzido ao vivo em JS (reage a Brent/IPCA/Dólar); a componente-base
-   (custo-base × descontos, independente de macro) = golden ÷ fator_base — o que garante
-   igualdade EXATA ao modelo no cenário-base e sensibilidade correta à macro. Config em
-   Variável 184-232 (LET recursivo). Ver MECANICAS.md.  ================================ */
+/* motor da MOLÉCULA (item 4b): custo_molécula[p] = componente-base × FATOR de reajuste (IPCA/Brent/Dólar).
+   FATOR reproduzido ao vivo (reage a Brent/IPCA/Dólar); componente-base (custo-base × descontos) = premissa.
+   Config em Variável 184-232 (LET recursivo). Ver MECANICAS.md. */
 function molCfgP(p){                                   // config da planta p (1..6)
   const M=DB.molPrem, i=p-1; if(!M||!M.custoBase) return null;
   return { custoBase:+M.custoBase[i], indic:String(M.indicador[i]||""),
@@ -2415,17 +2405,13 @@ function ebitdaSerie(){
   for(let k=0;k<n;k++) out[k]= k<=cut ? ((typeof eb[k]==="number")?eb[k]:null) : (ro[k]+(hs[k]||0));
   return out;
 }
-/* ---------------- DRE abaixo do EBITDA (Depreciação/EBIT/Result. Financeiro/Impostos/Lucro Líquido) ----
-   Depreciação e Result. Financeiro = cronogramas dos módulos de CAPEX e DÍVIDA (drivers/premissas fixas
-   dos planos de investimento/financiamento — não reagem às alavancas operacionais). IMPOSTOS é computado
-   AO VIVO: máquina de prejuízo fiscal (NOL) de DUAS entidades/CNPJ sobre o EBT — por isso o imposto ≠
-   alíquota×EBT e reage às premissas. Validado 1:1 vs golden (dre_below_ref.py). ===================== */
+/* DRE abaixo do EBITDA (Deprec./EBIT/Result. Fin./Impostos/Lucro Líq.). Deprec. e Result. Fin. = cronogramas
+   dos módulos CAPEX/DÍVIDA (fixos). IMPOSTOS ao vivo: máquina de prejuízo fiscal (NOL) de 2 entidades sobre o
+   EBT (imposto ≠ alíquota×EBT). Validado 1:1 (dre_below_ref.py). */
 function _dbSer(key){ const cut=DB.cutoffIdx, d=(DB.dreBelow&&DB.dreBelow[key])||[], n=DB.meses.length, out=new Array(n).fill(null);
   for(let k=0;k<n;k++){ const v=d[k]; if(typeof v==="number") out[k]=v; } return out; }
-/* ---- MÓDULO DE CAPEX: depreciação e imobilizado POR FÓRMULA (plano de investimento + vida útil).
-   Depreciação linear por vintage: cada investimento B no mês j deprecia B/240 durante 240 meses a
-   partir de max(data_j, início-op da planta). Intangível da holding = amortização em pool (120m).
-   Validado 1:1 vs modelo (capex_ref.py). ================================================= */
+/* MÓDULO CAPEX: depreciação/imobilizado POR FÓRMULA. Deprec. linear por vintage: cada invest. B deprecia
+   B/240 por 240m desde max(data, início-op). Intangível holding = pool 120m. Validado 1:1 (capex_ref.py). */
 let _capexCache=null;
 function capexEngine(){
   if(_capexCache) return _capexCache;
@@ -2486,10 +2472,9 @@ function depreciacaoSerie(){                             // DFM103: realizado da
   return out;
 }
 function imobilizadoSerie(){ return capexEngine().dfm144; }        // Ativo Imobilizado líquido (balanço)
-/* ---- MÓDULO DE DÍVIDA: juros e saldo devedor POR FÓRMULA a partir dos termos de cada instrumento
-   (desembolso, SAC/PRICE, índice IPCA/CDI, spread, amortização, gate de pagamento). Juros = saldo×taxa;
-   saldo devedor = Σ Final do período (passivo). BA/RN têm amortização/pagamento COLADOS (override no
-   Excel) → usados como premissa. Validado 1:1 vs modelo (divida_ref.py). ========================= */
+/* MÓDULO DÍVIDA: juros e saldo devedor POR FÓRMULA dos termos (desembolso, SAC/PRICE, índice IPCA/CDI,
+   spread, gate de pagamento). Juros = saldo×taxa. BA/RN têm amort./pagamento COLADOS (override) → premissa.
+   Validado 1:1 (divida_ref.py). */
 let _dividaCache=null;
 function _monthSerial(k){ const p=DB.meses[k].ym.split("-"); return Math.round((Date.UTC(+p[0],+p[1]-1,1)-Date.UTC(1899,11,30))/86400000); }
 function dividaEngine(){
@@ -2572,16 +2557,13 @@ function dividaEngine(){
 }
 function jurosDividaSerie(){ return dividaEngine().juros; }         // Dívida!20 (despesa de juros, >0)
 function saldoDividaSerie(){ return dividaEngine().saldo; }         // saldo devedor (Passivo do balanço)
-/* ---- MÓDULO CAIXA / FLUXO DE CAIXA + BALANÇO + DCF. Waterfall de caixa, capital de giro (níveis
-   = driver×prazo/30), DFM385 (=Caixa[k-1]×G383×CDI), resultado financeiro completo, máquinas de
-   estado do PL, somas do balanço (Ativo=Passivo+PL), VPL/TIR — tudo POR FÓRMULA a partir dos meus
-   módulos vivos + os insumos colados (aba Balanco). Validado 1:1 (caixa_balanco_ref.py). ======= */
+/* MÓDULO CAIXA + BALANÇO + DCF: waterfall de caixa, capital de giro (nível=driver×prazo/30), rendimento
+   DFM385 (=Caixa[k-1]×G383×CDI), resultado financeiro, PL (máquinas de estado), balanço (Ativo=Passivo+PL)
+   e VPL/TIR — POR FÓRMULA dos módulos vivos + insumos colados (aba Balanco). Validado 1:1 (caixa_balanco_ref.py). */
 let _cbCache=null;
-// Motor caixa/balanço/DCF numa ÚNICA passada para frente. A máquina fiscal (IR de competência + de caixa)
-// é INTEGRADA ao waterfall: o imposto de cada mês usa o resultado financeiro construído do CAIXA DO MÊS
-// ANTERIOR — o rendimento (DFM385) referencia o Caixa BoP = EoP do mês anterior — então NÃO há
-// circularidade (nada de duas passadas / versão colada). baseMode=true captura o baseline congelado do
-// IR/lucro no boot (usado como âncora 1:1: no default o Δ vivo é 0).
+// Passada ÚNICA p/ frente. Máquina fiscal (IR competência+caixa) INTEGRADA ao waterfall: o imposto do mês k
+// usa o resfin do CAIXA[k-1] (o rendimento DFM385 referencia o Caixa BoP) → sem circularidade (nada de duas
+// passadas). baseMode=true congela o baseline de IR/lucro no boot (âncora 1:1: default Δ=0).
 function caixaBalancoEngine(baseMode){
   if(!baseMode && _cbCache) return _cbCache;
   const n=DB.meses.length, cut=DB.cutoffIdx, B=DB.balanco||{}, C=(B.const||{}), num=x=>typeof x==="number"?x:0;
@@ -3050,12 +3032,9 @@ function exitValuation(){
   return {ok:true, exitK, exitYm:state.exitYm, ltm, nMonths:nm, months, disc, pvEbitda, evExit, equityExit,
           impliedEvEbitda, netDebt, mult, ke, evDcf:ev.ev, equityDcf:ev.equity, exitYear:exOrd!=null?Math.floor(exOrd/12):null};
 }
-/* ====== DRE / DFC POR PROJETO (DCF por Projeto) — validado 1:1 vs modelo (perproj_ref.py) ==========
-   EBITDA(p)=Resultado Operacional por planta (vivo); ΔCapital de Giro(p)=ΔWC consol × (RL_p/RL_consol);
-   Impostos(p)=IR/CSLL consol × (RL_p/RL_consol); Capex(p)=−(inv1_p+inv2_p) do módulo de capex;
-   FC Financeiro(p)=bloco de dívida por planta (Desemb+Amort+Juros+Outras, colado — plano de
-   financiamento). Geração(p)=EBITDA+ΔWC+Impostos+Capex+FCFin. Flag de planta ativa/inativa zera o bloco
-   (Terminal PE inativo). Quirk: Impostos do SAL usa o flag da Argentina. */
+/* DRE / DFC POR PROJETO — validado 1:1 (perproj_ref.py). EBITDA(p)=RO da planta (vivo); ΔWC(p) e Impostos(p)
+   = consol × (RL_p/RL_consol); Capex(p)=−(inv1+inv2); FC Fin(p)=bloco de dívida da planta (colado).
+   Geração(p)=EBITDA+ΔWC+Impostos+Capex+FCFin. Flag zera planta inativa. Quirk: Impostos do SAL usa flag da AR. */
 const PERPROJ=[["PR",1],["BA",2],["RN",3],["PE",4],["AR",5],["SAL",6]];
 let _perProjCache=null;
 function perProjEngine(){
