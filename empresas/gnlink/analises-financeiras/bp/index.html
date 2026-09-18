@@ -2510,17 +2510,15 @@ function dividaEngine(){
     return o;
   }
   const R=insts.map(run);
-  // switch de planta: cada instrumento é de uma planta (1=PR,2=BA,3=RN) ou da holding (0). Desligar a
-  // planta zera seus instrumentos; a dívida da HOLDING fica fixa. saldoFull = sem gate (p/ ratio do balanço).
+  // switch: instrumento de 1 planta (1=PR/2=BA/3=RN) ou holding(0); planta off zera; holding fixa. saldoFull = sem gate.
   const gpr=DB.dividaGpr||[], instOn=i=>{ const pl=gpr[i]||0; return pl===0 || plantOn(pl); };
   const agg=f=>{ const a=new Array(n).fill(0); for(let i=0;i<R.length;i++){ if(!instOn(i)) continue; for(let k=0;k<n;k++) a[k]+=R[i][f][k]; } return a; };
   const aggFull=f=>{ const a=new Array(n).fill(0); for(const r of R) for(let k=0;k<n;k++) a[k]+=r[f][k]; return a; };
   const juros=agg("despJuros"), saldo=agg("saldoFim"), iof=agg("iof"),
         desemb=agg("desemb"), amort=agg("amort"), pagJ=agg("pagJuros");
   const saldoFull=aggFull("saldoFim"), debtRatio=saldoFull.map((v,k)=> Math.abs(v)>1e-6 ? saldo[k]/v : 1);
-  // SEGURO da dívida por bloco (Dívida r67/76/85…): TRIMESTRAL = −(principal do bloco em aberto)
-  // × ((1+taxa)^(3/12)−1), meses múltiplos de 3, até a data-fim. Principal do bloco = Σ_i aloc[i]×
-  // (desemb+amort). Só BA (col F) e RN (col G) têm taxa>0 e dívida; PR (taxa 0) e demais = 0.
+  // SEGURO por bloco (Dívida r67/76/85), TRIMESTRAL = −(principal em aberto)×((1+taxa)^(3/12)−1), meses múlt.
+  // de 3 até a data-fim. Só BA/RN têm taxa>0 (PR=0).
   function blocoSeguro(gk, rate, end){
     const qr=Math.pow(1+(rate!=null?rate:0),3/12)-1, seg=new Array(n).fill(0); let cum=0;
     for(let k=0;k<n;k++){ let flow=0; for(let i=0;i<insts.length;i++){ if(!instOn(i)) continue; const g=insts[i][gk]||0; if(g) flow+=g*(R[i].desemb[k]+R[i].amort[k]); }
@@ -2531,14 +2529,12 @@ function dividaEngine(){
   // taxa/data-fim do seguro vêm 100% da planilha (cfg_seg_rate_*/seg_end_*); sem valor hardcoded no JS.
   const segRN=blocoSeguro("g_rn", +cfg.seg_rate_rn||0, +cfg.seg_end_rn||0);
   const segBA=blocoSeguro("g_ba", +cfg.seg_rate_ba||0, +cfg.seg_end_ba||0);
-  // imp37 (Impostos!37 = reclass. RN do resultado financeiro) = −(juros_RN + IOF_RN + seguro_RN).
-  // IOF/comissão/taxa = 0 no cenário; seguro_RN = −r85. Validado 1:1 vs Impostos!37.
+  // imp37 (Impostos!37, reclass. RN do resfin) = −(juros_RN + IOF_RN + seguro_RN). Seguro_RN = −r85. Validado 1:1.
   const imp37=new Array(n).fill(0);
   for(let i=0;i<insts.length;i++){ const g=insts[i].g_rn||0; if(!g||!instOn(i)) continue;
     for(let k=0;k<n;k++) imp37[k]+= -(g*(R[i].despJuros[k]+R[i].iof[k])); }
   for(let k=0;k<n;k++) imp37[k]+= -segRN[k];   // −r85 (seguro negativo → soma +)
-  // seguro total (BA+RN) — componente FÓRMULA do Div26; o resto do Div26 (comissão colada + IOF)
-  // é montado no caixaBalancoEngine: Div26 = comissão(premissa) + seguros(vivo) + IOF(vivo). Validado 1:1.
+  // seguro total (BA+RN) = parte FÓRMULA do Div26 (resto: comissão premissa + IOF, montado no caixaBalancoEngine). Validado 1:1.
   const seguros=new Array(n); for(let k=0;k<n;k++) seguros[k]=segBA[k]+segRN[k];
   return (_dividaCache={juros, saldo, iof, imp37, seguros, desemb, amort, pagJ, R, insts, debtRatio});
 }
