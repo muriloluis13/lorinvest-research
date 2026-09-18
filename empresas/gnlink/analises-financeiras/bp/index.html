@@ -2596,8 +2596,8 @@ function caixaBalancoEngine(baseMode){
       const uA=pA>0?Math.min(pA*E34,stockA):0; stockA=stockA-uA+(pA<0?-pA:0); const bA=Math.max(pA-uA,0), tA=bA*(E30+E31)+Math.max(bA-E33,0)*E32;
       const uB=pB>0?Math.min(pB*E34,stockB):0; stockB=stockB-uB+(pB<0?-pB:0); const bB=Math.max(pB-uB,0), tB=bB*(E30+E31)+Math.max(bB-E33,0)*E32;
       const taxTot=tA+tB, dPrev=d142; d142=Math.max(dPrev-uB,0);
-      const accr= -taxTot + (d142-dPrev);                                                // DFM116 (competência)
-      const cashLive= -taxTotPrev + (d142-dPrev);                                        // DFM195 (caixa) — defasa 1 mês
+      const accr= -taxTot + (dPrev-d142);                                                // DFM116 (competência): baixa do ativo fiscal diferido REDUZ o imposto (sinal corrigido 2026-09-18)
+      const cashLive= -taxTotPrev + (dPrev-d142);                                        // DFM195 (caixa) — defasa 1 mês; diferido reduz o imposto pago
       taxTotPrev=taxTot; accrualArr[k]=accr; cashIRArr[k]=cashLive;
       // IR de caixa efetivo = colado (âncora 1:1) + Δ vivo; lucro líquido vivo = EBIT + resfin + accr.
       cashEff = baseMode ? num(irColado[k]) : num(irColado[k]) + (cashLive - (irBase?num(irBase[k]):cashLive));
