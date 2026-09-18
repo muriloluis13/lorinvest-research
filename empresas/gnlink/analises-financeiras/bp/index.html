@@ -239,8 +239,9 @@ input.tbox{width:100%;max-width:150px}
 .tvw-lg i s{width:11px;height:11px;border-radius:3px;display:inline-block;text-decoration:none}
 @media(max-width:640px){.tvw-row{grid-template-columns:1fr;gap:4px}.tvw-lbl{text-align:left}.tvw-lg{margin-left:0}}
 /* football field de valuation — barras flutuantes por metodologia num eixo comum (R$ mi) */
-.ffield{margin:4px 0 2px;min-width:520px}
-.ff-row{display:grid;grid-template-columns:220px 1fr;align-items:center;gap:12px;min-height:40px}
+.ffield{margin:4px 0 2px;overflow:hidden}
+.ff-row{display:grid;grid-template-columns:210px 1fr;align-items:center;gap:12px;min-height:40px}
+@media(max-width:640px){.ff-row{grid-template-columns:130px 1fr;gap:8px}.ff-lbl b{font-size:11px}.ff-lbl span{font-size:9.5px}}
 .ff-lbl{text-align:right;line-height:1.2}
 .ff-lbl b{font-size:12.5px;color:var(--ink)}
 .ff-lbl span{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
@@ -3327,11 +3328,13 @@ function footballFieldHTML(){
     rows+=`<div class="ff-row"><div class="ff-lbl"><b>${r.label}</b><span>${r.sub}</span></div><div class="ff-plot">${plot}</div></div>`;
   }
   let ticks=''; const step=F.xmax<=600?100:200;
-  for(let v=0;v<=F.xmax+1;v+=step){ const p=pct(v); ticks+=`<span class="ff-tickmark" style="left:${p}%"></span><span class="ff-tick" style="left:${p}%">${M(v)}</span>`; }
+  for(let v=0;v<=F.xmax+1;v+=step){ const p=pct(v);
+    const tf = v===0 ? 'translateX(0)' : (p>=99.5 ? 'translateX(-100%)' : 'translateX(-50%)');   // não deixa o 1º/último rótulo vazar
+    ticks+=`<span class="ff-tickmark" style="left:${p}%"></span><span class="ff-tick" style="left:${p}%;transform:${tf}">${M(v)}</span>`; }
   rows+=`<div class="ff-row" style="min-height:22px"><div class="ff-lbl" style="font-size:10px;color:var(--muted);font-weight:700">R$ mi — Equity Value</div><div class="ff-plot" style="height:20px">${ticks}</div></div>`;
   return `<h3 class="msub">Football field de valuation</h3>`
     +`<div class="card"><div class="psub" style="margin:0 0 12px">Faixas de <b>Equity Value</b> por metodologia. Linha tracejada vermelha = caso-base (FCFE @ Ke 12%). <b>Custo de construção</b> = valor de reposição − dívida líquida (base Equity). O <b>DCF FCFF @ WACC</b> está reservado (a construir).</div>`
-    +`<div style="overflow-x:auto"><div class="ffield">${rows}</div></div></div>`;
+    +`<div class="ffield">${rows}</div></div>`;
 }
 function renderDCF(){
   const dcf=dcfConsolidado(), ev=evParts(), C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
