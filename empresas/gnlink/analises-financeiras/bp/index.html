@@ -3181,10 +3181,11 @@ function renderBalanco(){
     ]},
     {lbl:"Total de Passivos",serie:e.totPass,...L,bold:true},
     {lbl:"Patrimônio Líquido",serie:plS,...L,bold:true,tip:MECH.lucro_liquido,children:[
-      // Capital social numa linha só (aporte de caixa mínimo embutido); Reservas de lucros = lucros/prejuízos
-      // acumulados + reserva legal − dividendos acumulados (net).
+      // Capital social numa linha só (aporte de caixa mínimo embutido); reserva legal em linha própria;
+      // Reservas de lucros = lucros/prejuízos acumulados − dividendos acumulados (net).
       {lbl:"Capital social",serie:capitalS},
-      {lbl:"Reservas de lucros",serie:e.lucroAcum.map((v,k)=> num(v)+num(e.resLegal[k])-num(_dcum[k]))},
+      {lbl:"Reserva legal",serie:e.resLegal},
+      {lbl:"Reservas de lucros",serie:e.lucroAcum.map((v,k)=> num(v)-num(_dcum[k]))},
     ]},
   ];
   h+=fiscalWcPanelHTML();   // premissas fiscais (impostos) + capital de giro editáveis
