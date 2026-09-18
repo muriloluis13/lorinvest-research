@@ -3327,18 +3327,21 @@ function costOfCapitalData(){
   const C=DB.dcfConst||{}, num=x=>typeof x==="number"?x:0, n=DB.meses.length, cut=DB.cutoffIdx;
   const keReal=(C.ke_real!=null?C.ke_real:0.12);
   const kdReal=(C.kd_real!=null?C.kd_real:((1+(C.kd_pre||0.121))/(1+0.035)-1));   // spread real da dívida (default do kd_pre a 3,5% de inflação)
-  const tax=(C.ir!=null?C.ir:0.34);
   const ip=DB.idx.ipca_m||[], de=dividaEngine(), cb=caixaBalancoEngine();
+  // alíquota implícita de IR/CSLL por ano, direto do DRE: imposto de competência / LAIR (EBIT + resultado financeiro)
+  const imp=impostosSerie(), eb=ebitSerie(), rf=resultadoFinanceiroSerie(), taxAgg={};
+  DB.meses.forEach((m,k)=>{ const y=m.ym.slice(0,4); (taxAgg[y]=taxAgg[y]||{tax:0,ebt:0}); taxAgg[y].tax+=-num(imp[k]); taxAgg[y].ebt+=num(eb[k])+num(rf[k]); });
+  const taxEffY=y=>{ const a=taxAgg[String(y)]; if(!a||a.ebt<=0) return 0; return Math.max(0,a.tax/a.ebt); };
   const baseY=+DB.meses[cut].ym.slice(0,4), lastY=+DB.meses[n-1].ym.slice(0,4), years=[];
   for(let y=baseY;y<=lastY;y++) years.push(y);
   const eoY=y=>{ for(let k=n-1;k>=0;k--){ if(DB.meses[k].ym===y+"-12") return k; } return -1; };
   const ipcaY=y=>{ let p=1,nd=0; DB.meses.forEach((m,k)=>{ if(m.ym.slice(0,4)==String(y)&&typeof ip[k]==="number"){ p*=(1+ip[k]); nd++; } }); return nd>=12?p-1:0; };
-  const rows=years.map(y=>{ const ipca=ipcaY(y);
+  const rows=years.map(y=>{ const ipca=ipcaY(y), tax=taxEffY(y);
     const keNom=(1+keReal)*(1+ipca)-1, kdNom=(1+kdReal)*(1+ipca)-1, kdPos=kdNom*(1-tax);
     const k=eoY(y), D=k>=0?Math.max(0,num(de.saldo[k])):0, E=k>=0?Math.max(0,num(cb.pl[k])):0, V=D+E||1;
     const dv=D/V, ev=E/V, wacc=ev*keNom+dv*kdPos;
-    return {y, ipca, keReal, keNom, kdNom, kdPos, D, E, dv, ev, wacc}; });
-  return {keReal, kdReal, tax, rows};
+    return {y, ipca, keReal, keNom, kdNom, tax, kdPos, D, E, dv, ev, wacc}; });
+  return {keReal, kdReal, rows};
 }
 function renderCustoCapital(){
   const D=costOfCapitalData(), rows=D.rows, ys=rows.map(r=>r.y), r0=rows[0], rl=rows[rows.length-1];
@@ -3348,12 +3351,11 @@ function renderCustoCapital(){
   h+=kpi("WACC "+r0.y, fmtPct(r0.wacc,1), "D/V "+fmtPct(r0.dv,0)+" · E/V "+fmtPct(r0.ev,0));
   h+=kpi("WACC "+rl.y, fmtPct(rl.wacc,1), "D/V "+fmtPct(rl.dv,0)+" (desalavancado)");
   h+='</div>';
-  h+='<div class="premcard"><div class="ph"><b>Premissas de custo de capital</b></div>';
+  h+='<div class="premcard"><div class="ph"><b>Premissas de custo de capital</b><span class="hspace"></span><button class="btn-reset" onclick="resetCoc()">restaurar</button></div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">';
   h+=premCtrl("Ke real (a.a.)","%", D.keReal*100, v=>{ const x=(+v)/100; if(x>0) DB.dcfConst.ke_real=x; }, {dec:1,min:5,max:25,step:0.25});
   h+=premCtrl("Custo da dívida real (a.a.)","%", D.kdReal*100, v=>{ const x=(+v)/100; if(x>=0) DB.dcfConst.kd_real=x; }, {dec:1,min:0,max:20,step:0.25});
-  h+=premCtrl("IR/CSLL (benefício fiscal)","%", D.tax*100, v=>{ DB.dcfConst.ir=(+v)/100; }, {dec:0,min:0,max:50,step:1});
-  h+='</div><div class="psub">Ke nominal = (1+Ke real)·(1+inflação) − 1. Kd pós-imposto = Kd nominal·(1−IR). WACC = E/V·Ke + D/V·Kd pós, com E/V e D/V da estrutura de capital (PL e dívida bruta) de cada ano.</div></div>';
+  h+='</div><div class="psub">Ke nominal = (1+Ke real)·(1+inflação) − 1. Kd pós-imposto = Kd nominal·(1−alíquota implícita do ano). O benefício fiscal usa a alíquota implícita de IR/CSLL de cada ano do DRE (imposto de competência ÷ LAIR), 0% nos anos de prejuízo. WACC = E/V·Ke + D/V·Kd pós, com E/V e D/V da estrutura de capital (PL e dívida bruta) de cada ano.</div></div>';
   h+='<div class="card"><h4>Custo de capital &amp; estrutura de capital ao longo dos anos</h4><div class="chart-box"><canvas id="cCoc"></canvas></div></div>';
   const pctRow=(lbl,fn,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const x of rows) r+=`<td>${fmtPct(fn(x),1)}</td>`; return r+'</tr>'; };
   const miRow=(lbl,fn)=>{ let r=`<tr><td class="l">${lbl}</td>`; for(const x of rows) r+=`<td>${fmt(fn(x),0)}</td>`; return r+'</tr>'; };
@@ -3362,6 +3364,7 @@ function renderCustoCapital(){
   t+=pctRow("Ke real",x=>x.keReal);
   t+=pctRow("Ke nominal",x=>x.keNom,true);
   t+=pctRow("Kd pré-imposto",x=>x.kdNom);
+  t+=pctRow("Alíquota implícita IR/CSLL",x=>x.tax);
   t+=pctRow("Kd pós-imposto",x=>x.kdPos);
   t+=miRow("Dívida bruta (R$ mi)",x=>x.D/1e6);
   t+=miRow("Patrimônio líquido (R$ mi)",x=>x.E/1e6);
@@ -3995,6 +3998,7 @@ function snapshotPrem(){
               keReal:(DB.dcfConst&&DB.dcfConst.ke_real) };
 }
 function resetKe(){ if(_premOrig&&_premOrig.keReal!=null) DB.dcfConst.ke_real=_premOrig.keReal; clearAllCaches(); render(); }
+function resetCoc(){ if(_premOrig&&_premOrig.keReal!=null) DB.dcfConst.ke_real=_premOrig.keReal; delete DB.dcfConst.kd_real; clearAllCaches(); render(); }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
