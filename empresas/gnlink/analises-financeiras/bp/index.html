@@ -2010,9 +2010,7 @@ function drawVol(canvasId){
   });
 }
 
-/* ====================================================== aba Clientes ======
-   Parametrização das premissas por cliente (curva de volume, datas, preço,
-   custos, etc). Editar a curva de volume re-projeta o motor ao vivo. ======== */
+/* aba Clientes: premissas por cliente (curva de volume, datas, preço, custos). Editar a curva re-projeta ao vivo. */
 const regShort = id => (DB.regioes.find(r=>r.id===id)||{}).codigo || "—";
 function isEdited(c){ const b=(DB.clientesBase||[]).find(x=>x.id===c.id); return b && JSON.stringify(b)!==JSON.stringify(c); }
 
@@ -4333,10 +4331,8 @@ function useOfProceedsHTML(){
     +card("cUopNtm","Próximos 12 meses","NTM · "+fmtMesY(ntm.fromYm)+"–"+fmtMesY(ntm.toYm))
     +`</div>`;
 }
-// ===== ACIONISTAS: participação (FATO), cronograma real de aportes por acionista, TIR/MOIC (DCF e saída) =====
-// Participação (Exposição!D5/D6, FATO societário) e o cronograma histórico EXATO de aportes por acionista
-// (aba Acionistas, extraída da Exposição): Lorinvest/Hankoe aportou ~R$101mi ao longo de 2022-24; Copa entrou
-// em ago/25 com lump de R$100mi por 36%. Como entrada e valuation diferem, TIR/MOIC DIVERGEM entre os dois.
+// ACIONISTAS: participação (FATO, Exposição!D5/D6) + cronograma real de aportes (aba Acionistas): Hankoe ~R$101mi
+// em 2022-24; Copa lump R$100mi em ago/25 por 36%. Entrada/valuation diferentes → TIR/MOIC DIVERGEM.
 function acionistasEngine(){
   const num=x=>typeof x==="number"?x:0, cut=DB.cutoffIdx, n=DB.meses.length, C=DB.dcfConst||{};
   const hk=(C.acio_hankoe!=null?C.acio_hankoe:0.64), cp=(C.acio_copa!=null?C.acio_copa:0.36);
@@ -4354,17 +4350,15 @@ function acionistasEngine(){
     f=r=>{let s=0;for(let i=0;i<g.length;i++)s+=g[i]/Math.pow(1+r,i);return s;}; let lo=-0.99,hi=1,flo=f(lo),fhi=f(hi);
     if(flo*fhi>0)return null; for(let it=0;it<200;it++){const m=(lo+hi)/2,fm=f(m); if(Math.abs(fm)<1e-9)return m; if(flo*fm<0){hi=m;fhi=fm;}else{lo=m;flo=fm;}} return (lo+hi)/2; }
   const ann=r=>r!=null?Math.pow(1+r,12)-1:null, sumR=(a,i,j)=>{let s=0;for(let k=i;k<=j;k++)s+=num(a[k]);return s;};
-  // ---- Prêmio da Copa na venda (drag-along, Cláusula 11 / Anexo 11.1.1): a Copa (Ofertada) recebe, por ação,
-  // o MAIOR entre (a) 11× EBITDA (EV) − dívida líquida e (b) 20% de prêmio sobre o preço da oferta. Hankoe
-  // (Ofertante) paga o prêmio → residual. Waterfall NOMINAL no mês de saída (venda). Termos = fato do contrato.
+  // Prêmio da Copa na venda (drag-along, Anexo 11.1.1): Copa recebe MAX[(a) 11×EBITDA−dívida líq., (b) +20%
+  // sobre a oferta]; Hankoe paga o prêmio (residual). Waterfall NOMINAL no mês de saída. Termos = contrato.
   const FLOOR_MULT=11, PREMIUM=0.20; let wf=null;
   if(xv&&xv.ok){ const ltm=num(xv.ltm), nd=num(xv.netDebt), eqNom=ltm*num(xv.mult)-nd, floorEq=Math.max(0,FLOOR_MULT*ltm-nd);
     const copaPro=eqNom*cp, copaFloor=floorEq*cp, copaPrem=(1+PREMIUM)*copaPro, copaGet=Math.max(copaFloor,copaPrem);
     wf={FLOOR_MULT,PREMIUM,mult:num(xv.mult),ltm,nd,eqNom,floorEq,copaPro,copaFloor,copaPrem,copaGet,hankoeGet:eqNom-copaGet,
         hankoePro:eqNom*hk,premio:copaGet-copaPro,binding:copaFloor>copaPrem?'floor':'premium'}; }
-  // retorno por acionista. @DCF: investe o histórico e marca a mercado ao Equity Value do DCF na data-base
-  // (realização "hoje", sem aporte futuro). @saída: investe histórico+futuro e VENDE no exit, recebendo o
-  // valor CONTRATUAL do waterfall (Copa com prêmio, Hankoe residual) — valores NOMINAIS no mês de saída.
+  // retorno por acionista. @DCF: marca o histórico ao Equity Value do DCF na data-base (sem futuro).
+  // @saída: histórico+futuro, vende no exit pelo valor CONTRATUAL do waterfall (Copa c/ prêmio; nominal).
   function ret(apS, share, firstK, exitGetNom, exitProNom){
     const histS=sumR(apS,0,cut), futToExit=(exitK>cut)?sumR(apS,cut+1,exitK):0, futAll=sumR(apS,cut+1,n-1);
     const fD=[]; for(let k=0;k<=cut;k++){ let v=-apS[k]; if(k===cut) v+=eqDCF*share; fD.push(v); }
