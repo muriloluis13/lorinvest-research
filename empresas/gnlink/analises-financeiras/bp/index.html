@@ -3227,6 +3227,7 @@ function renderBalanco(){
 function footballFieldData(){
   const num=x=>typeof x==="number"?x:0, n=DB.meses.length, cut=DB.cutoffIdx, mi=v=>v/1e6;
   function fcfeVpl(ke){ const C=DB.dcfConst,s=C.ke_real; C.ke_real=ke; const v=vplMensal(genConsMensal()); C.ke_real=s; return v; }
+  function fcffEq(ke){ const C=DB.dcfConst,s=C.ke_real; C.ke_real=ke; const v=dcfFCFF().equity; C.ke_real=s; return v; }   // Ke → WACC-alvo → Equity FCFF
   function divVpl(ke){ const C=DB.dcfConst,s=C.ke_real; C.ke_real=ke; const f=fatorDescMensal(),dv=dividendosSerie().div; let v=0; for(let k=cut+1;k<n;k++) v+=num(dv[k])*num(f[k]); C.ke_real=s; return v; }
   function exitEq(m){ const s=state.exitMult; state.exitMult=m; const r=exitValuation(); state.exitMult=s; return (r&&r.ok)?r.equityExit:null; }
   // custo de construção (reposição): CapEx das plantas operacionais ÷ capacidade operacional × capacidade total
@@ -3244,7 +3245,7 @@ function footballFieldData(){
   const KL=0.10, KH=0.15;
   const rows=[
     {label:"DCF FCFE @ Ke", sub:"Ke real "+fmtPct(KL,0)+"–"+fmtPct(KH,0), low:mi(fcfeVpl(KH)), high:mi(fcfeVpl(KL)), color:"#3D4A5C"},
-    {label:"DCF FCFF @ WACC", sub:"WACC — a construir", placeholder:true},
+    {label:"DCF FCFF @ WACC", sub:"WACC-alvo · Ke real "+fmtPct(KL,0)+"–"+fmtPct(KH,0), low:mi(fcffEq(KH)), high:mi(fcffEq(KL)), color:"#7A5CA8"},
     {label:"DCF Dividendos @ Ke", sub:"Ke real "+fmtPct(KL,0)+"–"+fmtPct(KH,0), low:mi(divVpl(KH)), high:mi(divVpl(KL)), color:"#4880A8"},
     {label:"Saída por múltiplo de EBITDA", sub:"9,0x–12,0x · saída "+fmtMesY(state.exitYm), low:mi(exitEq(9)), high:mi(exitEq(12)), color:"#2E7D4F"},
     {label:"Custo de construção (reposição)", sub:"", point:mi(constrVal), color:"#C55A17"},
@@ -3336,26 +3337,59 @@ function costOfCapitalData(){
   for(let y=baseY;y<=lastY;y++) years.push(y);
   const eoY=y=>{ for(let k=n-1;k>=0;k--){ if(DB.meses[k].ym===y+"-12") return k; } return -1; };
   const ipcaY=y=>{ let p=1,nd=0; DB.meses.forEach((m,k)=>{ if(m.ym.slice(0,4)==String(y)&&typeof ip[k]==="number"){ p*=(1+ip[k]); nd++; } }); return nd>=12?p-1:0; };
+  // estrutura de capital-ALVO (constante) para o WACC do FCFF — evita o WACC deprimido dos primeiros anos
+  // (PL achatado pelo prejuízo → dívida ~94% do capital contábil). Editável; default D/V 30%.
+  const dvTgt=(C.dv_target!=null?C.dv_target:0.30), evTgt=1-dvTgt;
   const rows=years.map(y=>{ const ipca=ipcaY(y), tax=taxEffY(y);
     const keNom=(1+keReal)*(1+ipca)-1, kdNom=(1+kdReal)*(1+ipca)-1, kdPos=kdNom*(1-tax);
     const k=eoY(y), D=k>=0?Math.max(0,num(de.saldo[k])):0, E=k>=0?Math.max(0,num(cb.pl[k])):0, V=D+E||1;
-    const dv=D/V, ev=E/V, wacc=ev*keNom+dv*kdPos;
-    return {y, ipca, keReal, keNom, kdNom, tax, kdPos, D, E, dv, ev, wacc}; });
-  return {keReal, kdReal, rows};
+    const dv=D/V, ev=E/V, wacc=ev*keNom+dv*kdPos;      // WACC contábil (estrutura ano a ano)
+    const waccT=evTgt*keNom+dvTgt*kdPos;               // WACC-alvo (estrutura constante → desconto do FCFF)
+    return {y, ipca, keReal, keNom, kdNom, tax, kdPos, D, E, dv, ev, wacc, waccT}; });
+  return {keReal, kdReal, dvTgt, rows};
+}
+// ---- FCFF (desalavancado) & DCF por FCFF @ WACC-alvo ----------------------------------
+// Ponte padrão FCFE→FCFF: FCFF = FCFE − captação líquida + juros pagos após imposto. O escudo usa a
+// alíquota implícita do ano (mesma do Kd pós-imposto) → quando a empresa não paga imposto (prejuízo/NOL)
+// o juro entra quase cheio. Desconto ao WACC-ALVO (estrutura constante); Equity FCFF = EV − dívida líquida.
+function fcffMensalSerie(){
+  const n=DB.meses.length, num=x=>typeof x==="number"?x:0, de=dividaEngine(), fcfe=genConsMensal();
+  const coc=costOfCapitalData(), tByY={}; coc.rows.forEach(r=>tByY[r.y]=r.tax);
+  const out=new Array(n).fill(0);
+  for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), t=tByY[y]!=null?tByY[y]:0;
+    const netBorrow=num(de.desemb[k])+num(de.amort[k]);        // captação − amortização
+    const afterTaxInt=(-num(de.pagJ[k]))*(1-t);                // juros pagos (−pagJ>0), pós-imposto
+    out[k]=num(fcfe[k]) - netBorrow + afterTaxInt; }
+  return out;
+}
+function waccMensalSerie(){
+  const coc=costOfCapitalData(), n=DB.meses.length, byY={}; coc.rows.forEach(r=>byY[r.y]=r.waccT);
+  const last=coc.rows.length?coc.rows[coc.rows.length-1].waccT:0.12, out=new Array(n);
+  for(let k=0;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4), w=byY[y]!=null?byY[y]:last; out[k]=Math.pow(1+Math.max(w,0),1/12)-1; }
+  return out;
+}
+function fatorDescWACC(){ const n=DB.meses.length, cut=DB.cutoffIdx, r=waccMensalSerie(), f=new Array(n).fill(0);
+  let prod=1; for(let k=cut+1;k<n;k++){ prod*=(1+r[k]); f[k]=1/prod; } if(cut>=0&&cut<n) f[cut]=1; return f; }
+function dcfFCFF(){
+  const n=DB.meses.length, cut=DB.cutoffIdx, num=x=>typeof x==="number"?x:0;
+  const fcff=fcffMensalSerie(), f=fatorDescWACC(); let ev=0; for(let k=cut+1;k<n;k++) ev+=num(fcff[k])*num(f[k]);
+  const ep=evParts(), netDebt=num(ep.grossDebt)-num(ep.cash);   // dívida líquida na data-base
+  return {ev, grossDebt:ep.grossDebt, cash:ep.cash, netDebt, equity:ev-netDebt, fcff, f};
 }
 function renderCustoCapital(){
   const D=costOfCapitalData(), rows=D.rows, ys=rows.map(r=>r.y), r0=rows[0], rl=rows[rows.length-1];
   let h='<div class="mkpis">';
   h+=kpi("Ke real (a.a.)", fmtPct(D.keReal,1), "constante · parte real do custo de equity");
   h+=kpi("Ke nominal "+r0.y, fmtPct(r0.keNom,1), "real + inflação ("+fmtPct(r0.ipca,1)+")");
-  h+=kpi("WACC "+r0.y, fmtPct(r0.wacc,1), "D/V "+fmtPct(r0.dv,0)+" · E/V "+fmtPct(r0.ev,0));
-  h+=kpi("WACC "+rl.y, fmtPct(rl.wacc,1), "D/V "+fmtPct(rl.dv,0)+" (desalavancado)");
+  h+=kpi("WACC contábil "+r0.y, fmtPct(r0.wacc,1), "D/V "+fmtPct(r0.dv,0)+" · E/V "+fmtPct(r0.ev,0));
+  h+=kpi("WACC-alvo (médio)", fmtPct(rows.reduce((s,r)=>s+r.waccT,0)/(rows.length||1),1), "estrutura-alvo D/V "+fmtPct(D.dvTgt,0)+" · desconto do FCFF");
   h+='</div>';
   h+='<div class="premcard"><div class="ph"><b>Premissas de custo de capital</b><span class="hspace"></span><button class="btn-reset" onclick="resetCoc()">restaurar</button></div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">';
   h+=premCtrl("Ke real (a.a.)","%", D.keReal*100, v=>{ const x=(+v)/100; if(x>0) DB.dcfConst.ke_real=x; }, {dec:1,min:5,max:25,step:0.25});
   h+=premCtrl("Custo da dívida real (a.a.)","%", D.kdReal*100, v=>{ const x=(+v)/100; if(x>=0) DB.dcfConst.kd_real=x; }, {dec:1,min:0,max:20,step:0.25});
-  h+='</div><div class="psub">Ke nominal = (1+Ke real)·(1+inflação) − 1. Kd pós-imposto = Kd nominal·(1−alíquota implícita do ano). O benefício fiscal usa a alíquota implícita de IR/CSLL de cada ano do DRE (imposto de competência ÷ LAIR), 0% nos anos de prejuízo. WACC = E/V·Ke + D/V·Kd pós, com E/V e D/V da estrutura de capital (PL e dívida bruta) de cada ano.</div></div>';
+  h+=premCtrl("D/V alvo (WACC do FCFF)","%", D.dvTgt*100, v=>{ const x=(+v)/100; if(x>=0&&x<1) DB.dcfConst.dv_target=x; }, {dec:0,min:0,max:80,step:5});
+  h+='</div><div class="psub">Ke nominal = (1+Ke real)·(1+inflação) − 1. Kd pós-imposto = Kd nominal·(1−alíquota implícita do ano), com a alíquota implícita de IR/CSLL de cada ano do DRE (competência ÷ LAIR), 0% nos anos de prejuízo. <b>WACC contábil</b> usa E/V e D/V da estrutura de cada ano (PL e dívida bruta). O <b>WACC-alvo</b> — usado para descontar o FCFF — usa o D/V alvo constante acima, evitando o WACC deprimido dos primeiros anos, quando o PL está achatado pelo prejuízo.</div></div>';
   h+='<div class="card"><h4>Custo de capital &amp; estrutura de capital ao longo dos anos</h4><div class="chart-box"><canvas id="cCoc"></canvas></div></div>';
   const pctRow=(lbl,fn,bold)=>{ let r=`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td>`; for(const x of rows) r+=`<td>${fmtPct(fn(x),1)}</td>`; return r+'</tr>'; };
   const miRow=(lbl,fn)=>{ let r=`<tr><td class="l">${lbl}</td>`; for(const x of rows) r+=`<td>${fmt(fn(x),0)}</td>`; return r+'</tr>'; };
@@ -3370,7 +3404,8 @@ function renderCustoCapital(){
   t+=miRow("Patrimônio líquido (R$ mi)",x=>x.E/1e6);
   t+=pctRow("D/V (peso dívida)",x=>x.dv);
   t+=pctRow("E/V (peso equity)",x=>x.ev);
-  t+=pctRow("WACC",x=>x.wacc,true);
+  t+=pctRow("WACC contábil (estrutura do ano)",x=>x.wacc,true);
+  t+=pctRow("WACC-alvo (D/V "+fmtPct(D.dvTgt,0)+" · FCFF)",x=>x.waccT,true);
   t+='</tbody></table></div>';
   h+='<h3 class="msub">Custo de capital ano a ano</h3>'+t;
   return {html:h, draw:()=>drawCostCapital(D)};
@@ -3382,7 +3417,8 @@ function drawCostCapital(D){
     {type:"bar",label:"E/V (equity)",data:pct(r=>r.ev),backgroundColor:"#CBD6E2",stack:"s",yAxisID:"y1",order:5},
     {type:"bar",label:"D/V (dívida)",data:pct(r=>r.dv),backgroundColor:"#9AAEC2",stack:"s",yAxisID:"y1",order:5},
     {type:"line",label:"Ke nominal",data:pct(r=>r.keNom),borderColor:"#3D4A5C",borderWidth:2,pointRadius:2,tension:.2,yAxisID:"y",order:1},
-    {type:"line",label:"WACC",data:pct(r=>r.wacc),borderColor:"#E23A2E",borderWidth:2.6,pointRadius:2,tension:.2,yAxisID:"y",order:1},
+    {type:"line",label:"WACC contábil",data:pct(r=>r.wacc),borderColor:"#E23A2E",borderWidth:2.6,pointRadius:2,tension:.2,yAxisID:"y",order:1},
+    {type:"line",label:"WACC-alvo (FCFF)",data:pct(r=>r.waccT),borderColor:"#7A5CA8",borderWidth:2,pointRadius:0,tension:.2,yAxisID:"y",order:1},
     {type:"line",label:"Kd pós-imposto",data:pct(r=>r.kdPos),borderColor:"#2E7D4F",borderWidth:1.6,borderDash:[5,4],pointRadius:0,tension:.2,yAxisID:"y",order:2},
   ]},
   options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
@@ -3408,6 +3444,26 @@ function renderDCF(){
   if(xv.ok) h+=kpi("Implied EV/EBITDA "+(xv.exitYear||''), fmt(xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída)");
   h+='</div>';
   h+=footballFieldHTML();   // resumo de valuation (football field) por metodologia
+  // ---- Valuation por FCFF @ WACC-alvo ----
+  { const ff=dcfFCFF(), coc2=costOfCapitalData(), waccTByY={}; coc2.rows.forEach(r=>waccTByY[r.y]=r.waccT);
+    const waccAvg=coc2.rows.reduce((s,r)=>s+r.waccT,0)/(coc2.rows.length||1);
+    h+='<h3 class="msub">Valuation por FCFF @ WACC-alvo</h3>';
+    h+='<div class="mkpis">';
+    h+=kpi("Enterprise Value (FCFF)", "R$ "+fmt(ff.ev/1e6,0)+" mi", "FCFF descontado ao WACC-alvo");
+    h+=kpi("(−) Dívida líquida", "R$ "+fmt(ff.netDebt/1e6,0)+" mi", "dívida bruta − caixa · base "+fmtMesY(DB.meses[cut].ym));
+    h+=kpi("Equity Value (FCFF)", "R$ "+fmt(ff.equity/1e6,0)+" mi", "EV − dívida líquida · FCFE @Ke = R$ "+fmt(dcf.vpl/1e6,0)+" mi");
+    h+=kpi("WACC-alvo (médio)", fmtPct(waccAvg,1), "estrutura-alvo D/V "+fmtPct(coc2.dvTgt,0));
+    h+='</div>';
+    const fcffByY={}, fcdByY={};
+    for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4); fcffByY[y]=(fcffByY[y]||0)+num(ff.fcff[k]); fcdByY[y]=(fcdByY[y]||0)+num(ff.fcff[k])*num(ff.f[k]); }
+    const yF=anos.filter(y=>y!=null&&y>=dcf.anchorY);
+    let tf='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">R$ MM</th>'+yF.map(y=>`<th class="o">${y}</th>`).join('')+'</tr></thead><tbody>';
+    tf+='<tr class="tot"><td class="l">FCFF (desalavancado)</td>'+yF.map(y=>`<td class="o">${fmt((fcffByY[y]||0)/1e6,0)}</td>`).join('')+'</tr>';
+    tf+='<tr><td class="l">WACC-alvo (% a.a.)</td>'+yF.map(y=>`<td class="o">${fmtPct(waccTByY[y]||0,1)}</td>`).join('')+'</tr>';
+    tf+='<tr class="tot"><td class="l">FCFF descontado</td>'+yF.map(y=>`<td class="o">${fmt((fcdByY[y]||0)/1e6,0)}</td>`).join('')+'</tr>';
+    tf+='</tbody></table></div>';
+    h+=tf+'<div class="psub" style="margin-top:4px">FCFF = FCFE − captação líquida + juros pagos após imposto (escudo pela alíquota implícita do ano). Descontado ao WACC-alvo (estrutura constante), evitando o WACC deprimido dos primeiros anos (PL achatado pelo prejuízo). Reconcilia com o FCFE @ Ke quando o D/V-alvo ≈ estrutura de mercado normalizada.</div>';
+  }
   // custo de capital
   const cc=(lbl,val)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:2px">${lbl}</label><div style="font-size:16px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums">${val}</div></div>`;
   h+='<div class="premcard"><div class="ph"><b>Custo de capital &amp; premissas do desconto</b></div><div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';
@@ -3998,7 +4054,7 @@ function snapshotPrem(){
               keReal:(DB.dcfConst&&DB.dcfConst.ke_real) };
 }
 function resetKe(){ if(_premOrig&&_premOrig.keReal!=null) DB.dcfConst.ke_real=_premOrig.keReal; clearAllCaches(); render(); }
-function resetCoc(){ if(_premOrig&&_premOrig.keReal!=null) DB.dcfConst.ke_real=_premOrig.keReal; delete DB.dcfConst.kd_real; clearAllCaches(); render(); }
+function resetCoc(){ if(_premOrig&&_premOrig.keReal!=null) DB.dcfConst.ke_real=_premOrig.keReal; delete DB.dcfConst.kd_real; delete DB.dcfConst.dv_target; clearAllCaches(); render(); }
 function clearAllCaches(){
   _molLiveCache={}; _molPriceCache={}; _logCache={}; _regCache={};
   _sgaCache={}; _capexCache=null; _dividaCache=null; _cbCache=null; _perProjCache=null;
