@@ -3382,7 +3382,6 @@ function renderDCF(){
   t+='</tbody></table></div>';
   h+='<h3 class="msub">Fluxo de caixa consolidado &amp; desconto (R$ MM/ano)</h3>'+t;
   h+='<div class="note"><b>Desconto mensal sobre fluxos futuros</b> (novo modelo): o fator de cada mês k é 1/∏(1+Ke_mensal) da data-base (jul/26) até k, e o VPL soma só os meses de projeção (Orçado). O <b>Ke mensal</b> parte do Ke real ('+fmtPct(dcf.keReal,1)+' a.a.) convertido a mês e grosseado pela inflação mensal (nominal). A tabela agrega o desconto mensal em anos; o "—" marca anos sem fluxo futuro. <b>Σ FC Descontado = Equity Value</b>.</div>';
-  // ponte
   h+='<h3 class="msub">Ponte Equity Value → Enterprise Value</h3>';
   const br=(lbl,val,bold)=>`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td><td style="text-align:right">${val}</td></tr>`;
   h+='<div class="tblwrap" style="max-width:480px"><table class="mtbl"><thead><tr><th class="l">R$ MM</th><th style="text-align:right">Valor</th></tr></thead><tbody>';
@@ -3391,7 +3390,6 @@ function renderDCF(){
   h+=br("(−) Caixa ("+fmtMesY(DB.meses[cut].ym)+")", fmt(-ev.cash/1e6,0));
   h+=br("(=) Enterprise Value", fmt(ev.ev/1e6,0), true);
   h+='</tbody></table></div>';
-  // ---- Saída por múltiplo de EBITDA (exit) ----
   h+='<h3 class="msub">Valuation por múltiplo de EBITDA (saída)</h3>';
   h+='<div class="premcard"><div class="ph"><b>Premissas de saída</b></div>';
   h+='<div class="psub">Valuation alternativo: EBITDA dos 12 meses anteriores ao <b>mês de saída</b> × <b>múltiplo de EBITDA</b>, trazido a valor presente (Ke) da data-base ao mês de saída = Enterprise Value; menos a dívida líquida da data-base = Equity Value. Também gera o <b>Implied EV/EBITDA</b> do DCF.</div>';
