@@ -1932,7 +1932,6 @@ function revDimRows(rc, reg){
   if(dim==="segmento"){ const segs=["Industrial","Distribuidora","Posto"];
     return segs.map(s=>({lbl:s, serie:_cliRevSum(reg,c=>c.segmento===s), d:1, perPlanta:_cliRevPer(c=>c.segmento===s)}))
       .concat([{lbl:"Total (GNL+GNC)", serie:_cliRevSum(reg,()=>true), d:1, bold:true, perPlanta:_cliRevPer(()=>true)}]); }
-  // modalidade
   const mods=["CIF","FOB"];
   return mods.map(m=>({lbl:m, serie:_cliRevSum(reg,c=>c.entrega===m), d:1, perPlanta:_cliRevPer(c=>c.entrega===m)}))
     .concat([{lbl:"Total (GNL+GNC)", serie:_cliRevSum(reg,()=>true), d:1, bold:true, perPlanta:_cliRevPer(()=>true)}]);
@@ -1971,8 +1970,6 @@ function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div cla
 
 // cores por categoria de dimensão (projeto usa a cor da planta; senão cicla a paleta)
 const VOL_PROJCOL={"Paraná":"#16283C","Bahia":"#C55A17","Rio Grande do Norte":"#4880A8","Terminal PE":"#55677C","Argentina":"#2E7D4F","Projeto SAL":"#7FC6A2","Outro":"#8C9BAB"};
-// gráfico de volume: COLUNA EMPILHADA por dimensão (produto/projeto/cliente/segmento/modalidade),
-// no período selecionado, + LINHA PRETA TRACEJADA da capacidade das plantas (mil m³/dia).
 // janela de visualização (só mensal/trimestral): próximos N meses a partir do último realizado
 const VOL_HOR={m12:12, m24:24, y5:60, y10:120, full:null};
 function volBuckets(){
@@ -3255,7 +3252,6 @@ function renderBalanco(){
   h+='<h3 class="msub">Balanço Patrimonial (R$ MM, saldo no fim do período)</h3>';
   h+='<div class="note" style="margin:0 0 8px">Clique numa linha em <b>negrito</b> (Ativo/Passivo Circulante, Não Circulante, Patrimônio Líquido) para <b>abrir/recolher</b> o detalhamento de cada conta. Ativo Imobilizado vem do módulo de capex; a dívida (CP+LP) traz o saldo devedor por fórmula; PL = capital + lucros acumulados + reserva legal. A identidade Ativo = Passivo + PL fecha a ~0,01%.</div>';
   h+=serieTableHTML(rows,"R$ MM");
-  // ---- Demonstração do Fluxo de Caixa (método indireto) ----
   const de=dividaEngine();
   const wcChange=e.dWC.map((v,k)=> num(v)+num(e.r368[k])+num(e.r374[k]));   // Δ capital de giro (DFM)
   const F={how:"sum",d:1,div:1e6}, P={how:"last",d:1,div:1e6};
@@ -3527,7 +3523,6 @@ function renderDivida(){
   h+='<h3 class="msub">Dívida — saldo &amp; serviço (R$ MM)</h3>';
   h+=serieTableHTML(rows,"R$ MM");
   h+='<div class="note">Clique em <b>Saldo devedor</b> p/ abrir por instrumento. Cada instrumento: desembolso (tranches), <b>SAC</b> ou <b>PRICE</b>, indexação (IPCA Macro / CDI) + spread, gate de amortização (período + carência). BA e RN têm amortização/pagamento colados (override do plano de financiamento). Juros de competência (despesa da DRE) ≠ juros pagos (caixa).</div>';
-  // premissas editáveis por instrumento (spread + indexador) + seguros
   const cfg=de.insts.cfg||{};
   h+='<h3 class="msub">Premissas por instrumento (editável)</h3>';
   let pt='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Instrumento</th><th>Planta</th><th>Tipo</th><th style="text-align:right">Spread (% a.a.)</th><th>Indexador</th></tr></thead><tbody>';
@@ -4419,7 +4414,6 @@ function renderAcionistas(){
   h+=kpi("Equity Value @saída (R$ mi)", M(a.eqExit), a.exitYm?("múltiplo de EBITDA · "+fmtMesY(a.exitYm)):"",null,MECH.vpl);
   h+=kpi("Equity Needs (R$ mi)", M(a.aporteFut), "aporte de capital na projeção");
   h+='</div>';
-  // cap table (FATOS societários)
   h+='<h3 class="msub">Cap table (fato societário)</h3>';
   h+='<div class="tblwrap"><table class="mtbl"><thead><tr><th class="l">Acionista</th><th>Participação</th><th>Entrada</th><th>Valuation entrada (R$ mi)</th><th>Aporte histórico (R$ mi)</th><th>Aporte futuro (R$ mi)</th><th>Aporte total (R$ mi)</th></tr></thead><tbody>';
   const rowCT=(nm,s)=>`<tr><td class="l">${nm}</td><td>${fmtPct(s.share,0)}</td><td>${emY(s.entryK)}</td><td>${M(s.entryVal)}</td><td>${M(s.histS)}</td><td>${M(s.futAll)}</td><td>${M(s.histS+s.futAll)}</td></tr>`;
