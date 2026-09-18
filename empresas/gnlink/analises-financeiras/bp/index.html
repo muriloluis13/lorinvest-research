@@ -255,19 +255,22 @@ input.tbox{width:100%;max-width:150px}
 .ff-ph{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;color:var(--muted);border:1.5px dashed var(--line);border-radius:6px;padding:3px 14px;background:repeating-linear-gradient(45deg,#F7F9FB,#F7F9FB 6px,#EEF2F7 6px,#EEF2F7 12px)}
 .ff-tick{position:absolute;top:3px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
 .ff-tickmark{position:absolute;top:-6px;width:0;border-left:1px solid var(--line);height:6px}
-/* roadmap do BP — calendário mês×ano de marcos da companhia (visual limpo, sem grade pesada) */
-.rmap{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:660px}
-.rmap thead th{padding:2px 8px 10px;font-size:14px;font-weight:800;color:var(--accent);text-align:center;border-bottom:2px solid #E2E7EE}
-.rmap thead th.rmap-mcol{width:38px;border-bottom:none}
-.rmap thead th.rmap-catch{color:var(--muted)}
-.rmap tbody td{vertical-align:top;padding:4px 7px;border-bottom:1px solid #EFF2F6}
-.rmap tbody td:not(.rmap-m):not(:last-child){border-right:1px solid #F4F7FA}
-.rmap tbody tr:last-child td{border-bottom:none}
-.rmap td.rmap-m{color:var(--muted);font-weight:700;text-align:right;font-size:10px;padding-top:9px;white-space:nowrap}
-.rmap-chip{display:block;margin:4px 0;padding:5px 10px;border-radius:9px;font-weight:600;line-height:1.3;color:#1E2A36;word-break:break-word}
-.rmap-ic{margin-right:5px}
-.rmap-legwrap{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:14px;padding-top:12px;border-top:1px solid #EFF2F6}
-.rmap-leg{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap}
+/* roadmap do BP — timeline por ano (estilo infográfico): faixa de anos + linhas verticais + ícones circulares */
+.tl-wrap{margin:2px 0}
+.tl-band,.tl-cols{display:grid;grid-template-columns:repeat(var(--n),1fr);min-width:680px}
+.tl-band{background:linear-gradient(100deg,#123A5C 0%,#2B6187 55%,#4C87AC 100%);border-radius:12px 12px 0 0;padding:13px 0 20px}
+.tl-band-yr{color:#fff;font-size:19px;font-weight:800;padding-left:14px;position:relative}
+.tl-band-yr::after{content:'';position:absolute;left:17px;bottom:-10px;width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid #2B6187;transform:translateX(-50%)}
+.tl-cols{padding-top:18px}
+.tl-col{position:relative;padding:0 10px 6px 0}
+.tl-col::before{content:'';position:absolute;left:17px;top:-18px;bottom:12px;width:2px;background:#D6DEE7}
+.tl-ev{position:relative;display:flex;gap:9px;align-items:flex-start;margin-bottom:13px}
+.tl-ic{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff;border:2px solid #E2E7EE;box-shadow:0 1px 3px rgba(19,32,46,.12);z-index:1}
+.tl-txt{font-size:11px;line-height:1.3;padding-top:2px}
+.tl-txt .mo{display:block;font-weight:800;color:var(--accent2);font-size:9px;text-transform:uppercase;letter-spacing:.04em}
+.tl-txt b{display:block;color:var(--ink);font-size:11.5px}
+.tl-txt .det{display:block;color:var(--muted);font-size:10.5px}
+.tl-empty{color:var(--muted);font-size:12px;padding:4px 0 0 26px}
 .mtbl th.proj,.mtbl td.proj{background:#F7F5FB}
 .mtbl th.proj{color:var(--accent2)}
 .cli-sec{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--card)}
@@ -4507,7 +4510,7 @@ const RMAP_T={
 // extrai os marcos do modelo (reagem a premissas/switch). Retorna [{y,m,type,text}].
 function roadmapEvents(){
   const num=x=>typeof x==="number"?x:0, n=DB.meses.length, cut=DB.cutoffIdx, evs=[];
-  const push=(k,type,text)=>{ const pr=DB.meses[k].ym.split("-"); evs.push({y:+pr[0], m:+pr[1], type, text}); };
+  const push=(k,type,title,detail)=>{ const pr=DB.meses[k].ym.split("-"); evs.push({y:+pr[0], m:+pr[1], type, title, detail:detail||""}); };
   // capacidade / novos projetos — varre desde jan do ANO-BASE (inclui degraus JÁ REALIZADOS de 2026, ex.: RN
   // fev/26, PR jul/26). "Novo projeto" só p/ planta que ainda não está online na data-base (cap≈0 no corte).
   const baseY=+DB.meses[cut].ym.slice(0,4); let startK=0; for(let k=0;k<n;k++){ if(+DB.meses[k].ym.slice(0,4)>=baseY){ startK=k; break; } }
@@ -4516,23 +4519,23 @@ function roadmapEvents(){
     const isFuture=((g[cut]||0)+(c[cut]||0))<1000;                                  // AR/SAL: entram depois da data-base
     let prev=startK>0?((g[startK-1]||0)+(c[startK-1]||0)):0, firstDone=false;
     for(let k=startK;k<n;k++){ const cur=(g[k]||0)+(c[k]||0), d=cur-prev;
-      if(isFuture && !firstDone && cur>1000){ firstDone=true; push(k,"projeto",nm+" online (+"+fmt(cur/1e3,0)+" mil m³/d)"); }
-      else if(d>=10000){ push(k,"capacidade",nm+" +"+fmt(d/1e3,0)+" mil m³/d"); }
+      if(isFuture && !firstDone && cur>1000){ firstDone=true; push(k,"projeto",nm,"projeto online · +"+fmt(cur/1e3,0)+" mil m³/d"); }
+      else if(d>=10000){ push(k,"capacidade",nm,"+"+fmt(d/1e3,0)+" mil m³/d"); }
       prev=cur; } }
   // dívida (emissões e amortizações grandes)
   const de=dividaEngine();
   for(let k=cut+1;k<n;k++){ const ds=num(de.desemb[k]), am=-num(de.amort[k]);
-    if(ds>=50e6) push(k,"emissao","Emissão de dívida R$"+fmt(ds/1e6,0)+" mi");
-    if(am>=50e6) push(k,"amort","Amortização R$"+fmt(am/1e6,0)+" mi"); }
-  // clientes com volume relevante (pico ≥ 15 mil m³/d), no 1º mês de rampa; plano na etiqueta (nomes se repetem entre plantas)
+    if(ds>=50e6) push(k,"emissao","Emissão de dívida","R$ "+fmt(ds/1e6,0)+" mi");
+    if(am>=50e6) push(k,"amort","Amortização de dívida","R$ "+fmt(am/1e6,0)+" mi"); }
+  // clientes com volume relevante (pico ≥ 15 mil m³/d), no 1º mês de rampa; planta na etiqueta (nomes se repetem)
   const cl=[]; for(const cc of DB.clientes){ if(!plantOn(cc.planta)) continue; const v=volClienteSerie(cc);
     let f=-1,pk=0; for(let k=cut+1;k<n;k++){ if((v[k]||0)>pk)pk=v[k]; if(f<0&&(v[k]||0)>3000)f=k; }
     if(f>=0&&pk>=15000) cl.push({f,pk,nome:cc.nome,pl:CAP_PLANTA[cc.planta]}); }
-  cl.sort((a,b)=>b.pk-a.pk); for(const cc of cl.slice(0,20)) push(cc.f,"cliente",cc.nome+" · "+cc.pl+" ("+fmt(cc.pk/1e3,0)+" mil m³/d)");
+  cl.sort((a,b)=>b.pk-a.pk); for(const cc of cl.slice(0,20)) push(cc.f,"cliente",cc.nome+" · "+cc.pl, fmt(cc.pk/1e3,0)+" mil m³/d");
   // aporte, dividendos, breakeven
-  const ap=aporteMinimoEngine(); for(let k=cut+1;k<n;k++){ if(num(ap.aporte[k])>1e5){ push(k,"aporte","1º aporte de capital"); break; } }
-  const dv=dividendosSerie().div; for(let k=cut+1;k<n;k++){ if(num(dv[k])>1e5){ push(k,"dividendo","Início dos dividendos"); break; } }
-  const be=dashOutputs().breakevenYm; if(be){ const pr=be.split("-"); evs.push({y:+pr[0], m:+pr[1], type:"breakeven", text:"Breakeven do FCFE"}); }
+  const ap=aporteMinimoEngine(); for(let k=cut+1;k<n;k++){ if(num(ap.aporte[k])>1e5){ push(k,"aporte","1º aporte de capital",""); break; } }
+  const dv=dividendosSerie().div; for(let k=cut+1;k<n;k++){ if(num(dv[k])>1e5){ push(k,"dividendo","Início dos dividendos",""); break; } }
+  const be=dashOutputs().breakevenYm; if(be){ const pr=be.split("-"); evs.push({y:+pr[0], m:+pr[1], type:"breakeven", title:"Breakeven do FCFE", detail:""}); }
   return evs;
 }
 function renderRoadmapHTML(){
@@ -4540,17 +4543,19 @@ function renderRoadmapHTML(){
   const cols=[]; for(let y=baseY;y<baseY+5;y++) cols.push(y);   // 5 anos
   const CATCH=baseY+5, ncol=cols.length+1, MES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const colOf=y=> y<baseY?-1 : (y>=CATCH?cols.length : y-baseY);
-  const grid={}; for(const e of evs){ const ci=colOf(e.y); if(ci<0) continue; (grid[ci+"_"+e.m]=grid[ci+"_"+e.m]||[]).push(e); }
-  const chip=e=>{ const t=RMAP_T[e.type]||RMAP_T.capacidade, yr=(colOf(e.y)===cols.length)?" <b>'"+String(e.y).slice(2)+"</b>":"";
-    return `<span class="rmap-chip" style="background:${t.bg}"><span class="rmap-ic">${t.ic}</span>${e.text}${yr}</span>`; };
-  const head='<tr><th class="rmap-mcol"></th>'+cols.map(y=>`<th>${y}</th>`).join('')+`<th class="rmap-catch">${CATCH}+</th></tr>`;
-  let body='';
-  for(let m=1;m<=12;m++){ let row=`<tr><td class="rmap-m">${MES[m-1]}</td>`;
-    for(let ci=0;ci<ncol;ci++){ row+=`<td>${(grid[ci+"_"+m]||[]).map(chip).join('')}</td>`; }
-    body+=row+'</tr>'; }
+  const byCol=Array.from({length:ncol},()=>[]);
+  for(const e of evs){ const ci=colOf(e.y); if(ci>=0) byCol[ci].push(e); }
+  byCol.forEach(a=>a.sort((x,y)=> x.y-y.y || x.m-y.m));
+  const yrLabel=i=> i<cols.length ? cols[i] : (CATCH+'+');
+  const band=byCol.map((_,i)=>`<div class="tl-band-yr">${yrLabel(i)}</div>`).join('');
+  const card=e=>{ const t=RMAP_T[e.type]||RMAP_T.capacidade;
+    const mo=MES[e.m-1]+(colOf(e.y)===cols.length?" '"+String(e.y).slice(2):"");
+    return `<div class="tl-ev"><span class="tl-ic" style="background:${t.bg};border-color:${t.c}">${t.ic}</span>`
+      +`<div class="tl-txt"><span class="mo">${mo}</span><b>${e.title}</b>${e.detail?`<span class="det">${e.detail}</span>`:''}</div></div>`; };
+  const colsHtml=byCol.map(a=>`<div class="tl-col">${a.length?a.map(card).join(''):'<div class="tl-empty">—</div>'}</div>`).join('');
   return `<h3 class="msub">Roadmap do Business Plan — próximos 5 anos</h3>`
-    +`<div class="card"><div class="psub" style="margin:0 0 8px">Marcos por mês/ano extraídos do modelo (reagem às premissas e ao switch de plantas): novos projetos, adições de capacidade, clientes âncora, emissões/amortizações de dívida, aporte, dividendos e breakeven. A coluna <b>${CATCH}+</b> agrega os eventos de ${CATCH} em diante (com o ano no chip).</div>`
-    +`<div style="overflow-x:auto"><table class="rmap"><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
+    +`<div class="card"><div class="psub" style="margin:0 0 12px">Marcos por ano (o mês fica na etiqueta), extraídos do modelo — reagem às premissas e ao switch de plantas: novos projetos, adições de capacidade, clientes, dívida, aporte, dividendos e breakeven. A coluna <b>${CATCH}+</b> agrega os eventos de ${CATCH} em diante.</div>`
+    +`<div class="tl-wrap" style="--n:${ncol}"><div style="overflow-x:auto"><div class="tl-band">${band}</div><div class="tl-cols">${colsHtml}</div></div></div></div>`;
 }
 function renderDashboard(){
   const cut=DB.cutoffIdx, MM=c=>fmt((c?c.v:0)/1e6,0);
