@@ -790,8 +790,7 @@ async function tryFetch(){
     DB = parseWorkbook(buf); return true;
   }catch(e){ return false; }
 }
-// fallback p/ file:// (duplo-clique): navegador bloqueia fetch do xlsx irmão, mas
-// permite carregar o espelho gnlink-bp-historico.js (base64) via <script>.
+// fallback p/ file:// (duplo-clique): fetch do xlsx é bloqueado → carrega o espelho .js (base64) via <script>.
 function b64ToBuf(b64){ const bin=atob(b64), n=bin.length, u=new Uint8Array(n);
   for(let i=0;i<n;i++) u[i]=bin.charCodeAt(i); return u.buffer; }
 function tryEmbedded(){
@@ -1214,9 +1213,8 @@ function receitaComp(regiao){
   return {gnl,gnc,aluguel,outros,servico,total};
 }
 
-/* ==================================================== motor de custo do gás (D)
-   Custo do gás (R$/mês) = Σ_planta [volume(com molécula) × dias × custo_molécula].
-   custo_molécula[planta] é driver macro extraído (Variável 254-259 com piso/teto). = */
+/* motor de custo do gás (D): custo (R$/mês) = Σ_planta [volume(com molécula) × dias × custo_molécula].
+   custo_molécula da própria planta (Variável 254-259, piso/teto). */
 /* motor da MOLÉCULA (item 4b): custo_molécula[p] = componente-base × FATOR de reajuste (IPCA/Brent/Dólar).
    FATOR reproduzido ao vivo (reage a Brent/IPCA/Dólar); componente-base (custo-base × descontos) = premissa.
    Config em Variável 184-232 (LET recursivo). Ver MECANICAS.md. */
