@@ -416,6 +416,7 @@ const gAtivo = () => G.volMult!==1 || G.precoMult!==1 || G.molMult!==1;
 let DB = null;              // base histórica parseada
 const charts = {};          // registry de Chart.js p/ destruir no re-render
 let _uopPending=null;       // desenho pendente dos gráficos de Fontes & Usos (Dashboard não tem callback de draw)
+let _dcfPending=null;       // desenho pendente dos gráficos da aba DCF (ponte + tornado)
 
 /* ---------------------------------------------------------------- utils ---- */
 const $ = (s,r=document)=>r.querySelector(s);
@@ -920,7 +921,7 @@ function render(opts){
   }
   if(aba.id==="roadmap"){ _setMain(html + renderRoadmapHTML()); return; }
   if(aba.id==="balanco"){ _setMain(html + renderBalanco()); return; }
-  if(aba.id==="dcf"){ _setMain(html + renderDCF()); return; }
+  if(aba.id==="dcf"){ _dcfPending=null; _setMain(html + renderDCF()); if(_dcfPending){ _dcfPending(); _dcfPending=null; } return; }
   if(aba.id==="acionistas"){ const r=renderAcionistas(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
   if(aba.id==="capex"){ const r=renderCapex(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
   if(aba.id==="divida"){ const r=renderDivida(); _setMain(html+r.html); if(r.draw) r.draw(); return; }
@@ -2879,16 +2880,17 @@ function _mcSel(id, val, opts, onch){
   return `<select id="${id}" onchange="${onch}" style="font-family:inherit;font-size:12px;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%">`
     + opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`).join('') + '</select>';
 }
-// Painel da cobertura do caixa mínimo (na aba DCF; dirige o Equity Value). 3 modos (Consolidated!C31 do modelo
-// 09.07): APORTE de capital (Equity, C31="N", default), DÍVIDA rolling (C31="Y") ou NENHUM.
+// Painel da cobertura do caixa mínimo (na aba DCF; dirige o Equity Value). 2 modos (Consolidated!C31 do modelo
+// 09.07): APORTE de capital (Equity, C31="N", default) ou DÍVIDA rolling (C31="Y").
 function minCashDebtPanelHTML(){
   const C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0, e=caixaBalancoEngine();
-  const mode=state.minCashMode||'aporte';
+  if(state.minCashMode==='none'||!state.minCashMode) state.minCashMode='aporte';   // "Nenhum" removido (equivale a aporte)
+  const mode=state.minCashMode;
   const byY=(serie,how)=>{ const by={}; for(let k=cut+1;k<n;k++){ const y=+DB.meses[k].ym.slice(0,4);
     if(how==="last") by[y]=num(serie[k]); else by[y]=(by[y]||0)+num(serie[k]); } return by; };
   const seg=(v,l)=>`<button class="${mode===v?'badge-ok':'badge-wip'}" onclick="setMinCashMode('${v}')" style="cursor:pointer;border-style:solid;margin-left:5px">${l}</button>`;
   let h='<div class="premcard"><div class="ph"><b>Cobertura do caixa mínimo</b><span>'
-    + seg('aporte','Aporte (equity)') + seg('debt','Dívida rolling') + seg('none','Nenhum') + '</span></div>';
+    + seg('aporte','Aporte (equity)') + seg('debt','Dívida rolling') + '</span></div>';
   const row=(lbl,inner)=>`<div class="prow" style="display:block"><label style="display:block;margin-bottom:3px">${lbl}</label>${inner}</div>`;
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">';
   h+=premCtrl("Meses de custos fixos","meses", C.mincash_months||3, v=>{ DB.dcfConst.mincash_months=+v; }, {dec:0,min:0,max:12,step:1});
@@ -3270,6 +3272,54 @@ function footballFieldHTML(){
   return `<h3 class="msub">Football field de valuation</h3>`
     +`<div class="card"><div class="ffield">${rows}</div></div>`;
 }
+// waterfall Equity Value → Enterprise Value (Equity + Dívida bruta − Caixa)
+function drawPonteChart(eqV, gdV, caV, evV){
+  const cv=$("#cPonte"); if(!cv) return;
+  const mi=v=>v/1e6, eq=mi(eqV), gd=mi(gdV), ca=mi(caV), e=mi(evV);
+  const labels=["Equity Value","(+) Dívida bruta","(−) Caixa","Enterprise Value"];
+  const data=[[0,eq],[eq,eq+gd],[eq+gd-ca,eq+gd],[0,e]];
+  const cols=["#3D4A5C","#2E7D4F","#B23A3A","#13202E"], disp=[eq,gd,-ca,e];
+  charts.ponte=new Chart(cv,{type:"bar",data:{labels,datasets:[{data,backgroundColor:cols,borderWidth:0,borderRadius:3,
+    datalabels:{anchor:"end",align:"end",clamp:true,color:"#33424F",font:{size:11,weight:"bold"},
+      formatter:(v,c)=>{ const d=disp[c.dataIndex]; return (d<0?"−":"")+"R$ "+fmt(Math.abs(d),0); }}}]},
+    plugins:(window.ChartDataLabels?[window.ChartDataLabels]:[]),
+    options:{responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:20}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>"R$ "+fmt(disp[c.dataIndex],0)+" mi"}}},
+      scales:{x:{grid:{display:false},ticks:{color:"#33424F",font:{size:11,weight:"600"}}},
+              y:{beginAtZero:true,grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A"},title:{display:true,text:"R$ mi"}}}}});
+}
+// tornado: sensibilidade do Equity Value @Ke às premissas (varia cada uma ±, mantém as outras na base)
+function tornadoData(){
+  const C=DB.dcfConst, base=vplMensal(genConsMensal());
+  function keVpl(ke){ const s=C.ke_real; C.ke_real=ke; const v=vplMensal(genConsMensal()); C.ke_real=s; return v; }
+  function gVpl(key,val){ const s=G[key]; G[key]=val; clearAllCaches(); const v=vplMensal(genConsMensal()); G[key]=s; clearAllCaches(); return v; }
+  const rows=[
+    {label:"Ke real (10% ↔ 15%)", a:keVpl(0.10), b:keVpl(0.15)},
+    {label:"Volume (±10%)", a:gVpl("volMult",1.1), b:gVpl("volMult",0.9)},
+    {label:"Preço de venda (±5%)", a:gVpl("precoMult",1.05), b:gVpl("precoMult",0.95)},
+    {label:"Custo da molécula (±10%)", a:gVpl("molMult",0.9), b:gVpl("molMult",1.1)},
+  ];
+  rows.forEach(r=>{ r.lo=Math.min(r.a,r.b); r.hi=Math.max(r.a,r.b); r.span=r.hi-r.lo; });
+  rows.sort((x,y)=>y.span-x.span);
+  return {base, rows};
+}
+function drawTornado(){
+  const cv=$("#cTornado"); if(!cv) return;
+  const T=tornadoData(), mi=v=>v/1e6, base=mi(T.base);
+  const labels=T.rows.map(r=>r.label), data=T.rows.map(r=>[mi(r.lo),mi(r.hi)]);
+  const baseLine={id:"baseLine",afterDatasetsDraw:(ch)=>{ const x=ch.scales.x.getPixelForValue(base), a=ch.chartArea, ctx=ch.ctx;
+    ctx.save(); ctx.strokeStyle="#B23A3A"; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(x,a.top); ctx.lineTo(x,a.bottom); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle="#B23A3A"; ctx.font="700 10px 'DM Sans'"; ctx.textAlign="center";
+    ctx.fillText("base R$ "+fmt(base,0)+" mi", x, a.top-4); ctx.restore(); }};
+  charts.tornado=new Chart(cv,{type:"bar",data:{labels,datasets:[{data,backgroundColor:"#4880A8",borderWidth:0,borderRadius:3,barPercentage:0.7}]},
+    plugins:[baseLine],
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:18,right:16,left:6}},
+      plugins:{legend:{display:false},datalabels:{display:false},
+        tooltip:{callbacks:{label:c=>{const a=c.dataset.data[c.dataIndex];return "R$ "+fmt(a[0],0)+" – "+fmt(a[1],0)+" mi";}}}},
+      scales:{x:{grid:{color:"#EEF1F5"},ticks:{color:"#5C6B7A",callback:v=>fmtNum(v)},title:{display:true,text:"Equity Value (R$ mi)"}},
+              y:{grid:{display:false},ticks:{color:"#33424F",font:{size:11,weight:"600"}}}}}});
+}
 function renderDCF(){
   const dcf=dcfConsolidado(), ev=evParts(), C=DB.dcfConst||{}, cut=DB.cutoffIdx, n=DB.meses.length, num=x=>typeof x==="number"?x:0;
   const anos=dcf.anos, gy=dcfConsGenLive(), e=caixaBalancoEngine();
@@ -3315,13 +3365,10 @@ function renderDCF(){
   t+='</tbody></table></div>';
   h+='<h3 class="msub">Fluxo de caixa consolidado &amp; desconto (R$ MM/ano)</h3>'+t;
   h+='<h3 class="msub">Ponte Equity Value → Enterprise Value</h3>';
-  const br=(lbl,val,bold)=>`<tr class="${bold?'tot':''}"><td class="l">${lbl}</td><td style="text-align:right">${val}</td></tr>`;
-  h+='<div class="tblwrap" style="max-width:480px"><table class="mtbl"><thead><tr><th class="l">R$ MM</th><th style="text-align:right">Valor</th></tr></thead><tbody>';
-  h+=br("Equity Value @Ke", fmt(dcf.vpl/1e6,0), true);
-  h+=br("(+) Dívida Bruta ("+fmtMesY(DB.meses[cut].ym)+")", fmt(ev.grossDebt/1e6,0));
-  h+=br("(−) Caixa ("+fmtMesY(DB.meses[cut].ym)+")", fmt(-ev.cash/1e6,0));
-  h+=br("(=) Enterprise Value", fmt(ev.ev/1e6,0), true);
-  h+='</tbody></table></div>';
+  h+='<div class="card" style="max-width:560px"><div class="chart-box" style="height:280px"><canvas id="cPonte"></canvas></div></div>';
+  h+='<h3 class="msub">Tornado — sensibilidade do Equity Value</h3>';
+  h+='<div class="card"><div class="chart-box" style="height:210px"><canvas id="cTornado"></canvas></div></div>';
+  _dcfPending=(function(eqV,gdV,caV,evV){ return ()=>{ drawPonteChart(eqV,gdV,caV,evV); drawTornado(); }; })(dcf.vpl, ev.grossDebt, ev.cash, ev.ev);
   h+='<h3 class="msub">Valuation por múltiplo de EBITDA (saída)</h3>';
   h+='<div class="premcard"><div class="ph"><b>Premissas de saída</b></div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">';
