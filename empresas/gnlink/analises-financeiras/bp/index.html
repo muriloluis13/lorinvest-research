@@ -3307,7 +3307,7 @@ function footballFieldData(){
     {label:"DCF FCFF @ WACC", sub:"WACC — a construir", placeholder:true},
     {label:"DCF Dividendos @ Ke", sub:"Ke real "+fmtPct(KL,0)+"–"+fmtPct(KH,0), low:mi(divVpl(KH)), high:mi(divVpl(KL)), color:"#4880A8"},
     {label:"Saída por múltiplo de EBITDA", sub:"9,0x–12,0x · saída "+fmtMesY(state.exitYm), low:mi(exitEq(9)), high:mi(exitEq(12)), color:"#2E7D4F"},
-    {label:"Custo de construção (reposição)", sub:"R$ "+fmt(mi(capexOper),0)+" mi ÷ "+fmt(capOper/1e3,0)+" mil m³/d × "+fmt(capAll/1e3,0)+" mil m³/d − dívida líq.", point:mi(constrVal), color:"#C55A17"},
+    {label:"Custo de construção (reposição)", sub:"", point:mi(constrVal), color:"#C55A17"},
   ];
   let vmax=0; for(const r of rows){ if(r.high!=null&&r.high>vmax)vmax=r.high; if(r.point!=null&&r.point>vmax)vmax=r.point; }
   const xmax=Math.max(200,Math.ceil(vmax*1.1/100)*100);
