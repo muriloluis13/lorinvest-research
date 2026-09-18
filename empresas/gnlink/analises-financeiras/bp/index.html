@@ -3716,13 +3716,10 @@ const OPEX_MECH = {
     {k:"assistencia",nome:"Assistência técnica (por planta)",mec:"ceil(volume GNL da planta ÷ 5.000) × R$ 1.500 × op × IPCA. (Suprimida em 2028; Terminal PE não tem.)",portado:true}]},
 };
 const OCATS = ["gas","liquefacao","compressao","terminal","sga","distribuicao","regas"];
-
-/* ------------------------------------------------ aba OPEX (custos, D-2) --- */
 function costCatSerie(reg, cat){ return cat==="gas" ? gasAgg(reg) : opexCatAgg(reg, cat); }
 function renderOpex(){
   const reg=state.regiao, ocat=state.ocat;
   let h=subtabsHTML();
-  // barra de sub-abas por categoria
   h+='<div class="subtabs" id="ocatbar" style="margin-top:-4px">';
   h+=`<button data-oc="" class="${ocat===""?'on':''}">Visão geral</button>`;
   for(const c of OCATS) h+=`<button data-oc="${c}" class="${ocat===c?'on':''}">${OPEX_MECH[c].label}</button>`;
@@ -3741,18 +3738,16 @@ function renderOpexOverview(reg, h){
   const gas2027=anoSum(s.gas)["2027"]?.v||0; h+=kpi("Gás / custo total", fmt(100*gas2027/(yTot["2027"]?.v||1),0)+"%", "2027");
   h+='</div>';
 
-  // ---- dois gráficos "à la Petrobras" (período selecionável: NTM + anos) ----
-  const od=opexViewData(reg);   // {ks, perLbl, cpv, hold, tot, cats{}, ger[], comp[]}
+  // dois gráficos "à la Petrobras" (período selecionável: NTM + anos)
+  const od=opexViewData(reg);
   h+='<div class="card">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">';
   h+='<h4 style="margin:0">OPEX — '+regName(reg)+' · <span style="color:var(--accent2)">'+od.perLbl+'</span> (R$ MM)</h4>';
   h+='<div><span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:8px">Período</span>'+opexPerBar()+'</div>';
   h+='</div>';
-  // gráfico 1: Visão Societária × Visão Gerencial (mesmo total, duas leituras)
   h+='<div style="font-size:12.5px;font-weight:700;color:var(--muted);margin:2px 0 6px">Visão societária × visão gerencial — mesmo total, R$ '+MM(od.tot)+' MM</div>';
   h+=opexTwoViewHTML(od, MM);
   h+='</div>';
-  // gráfico 2: composição por atividade (barras horizontais com os VALORES nas pontas)
   h+='<div class="card"><h4>Composição por atividade — '+regName(reg)+' · '+od.perLbl+' (R$ MM)</h4>'
     +'<div class="chart-box" style="height:'+(70+od.comp.length*34)+'px"><canvas id="cOpexComp"></canvas></div></div>';
 
@@ -3782,7 +3777,6 @@ function opexPerLabel(){
   const ks=opexPerMonths(); if(!ks.length) return "NTM";
   return "NTM ("+fmtMes(DB.meses[ks[0]].ym)+"–"+fmtMes(DB.meses[ks[ks.length-1]].ym)+")";
 }
-// soma de uma série mensal sobre os meses do período
 function _sumMeses(serie, ks){ let s=0; for(const k of ks) if(typeof serie[k]==="number") s+=serie[k]; return s; }
 // dados dos dois gráficos: as 7 categorias do custo operacional (sempre positivas), somadas no período.
 // A SG&A da holding vive na aba Holding (e é negativa na banda de ramp 2026-27) → fica fora destes gráficos.
@@ -3806,12 +3800,10 @@ function opexViewData(reg){
     {lbl:"Regás", v:cats.regas, col:COST_PAL.regas},
     {lbl:"SG&A planta", v:cats.sga, col:COST_PAL.sga},
   ].filter(x=>x.v>0.05e6);
-  // composição por atividade (gráfico 2): as 7 categorias, ordenado desc
   const comp=COST_ORDER.map(c=>({lbl:COST_LABEL[c], v:cats[c], col:COST_PAL[c]})).filter(x=>x.v>0);
   comp.sort((a,b)=>b.v-a.v);
   return {ks, perLbl:opexPerLabel(), tot, cats, soc, ger, comp};
 }
-// gráfico 1: duas barras horizontais proporcionais (societária × gerencial), rótulo à esquerda
 function opexTwoViewHTML(od, MM){
   const T=od.tot||1;
   const soc=od.soc;
@@ -3822,12 +3814,10 @@ function opexTwoViewHTML(od, MM){
   h+=`<div class="tvw-row"><div class="tvw-lbl"><b>Visão Societária</b><span>R$ ${MM(od.tot)} MM</span></div><div class="tvw-bar">${soc.map(seg).join('')}</div></div>`;
   h+=`<div class="tvw-row"><div class="tvw-lbl"><b>Visão Gerencial</b><span>R$ ${MM(od.tot)} MM</span></div><div class="tvw-bar">${od.ger.map(seg).join('')}</div></div>`;
   h+='</div>';
-  // legenda (societária + gerencial, sem repetir cores)
   const lg=soc.concat(od.ger);
   h+='<div class="tvw-lg">'+lg.map(x=>`<i><s style="background:${x.col}"></s>${x.lbl}</i>`).join('')+'</div>';
   return h;
 }
-// gráfico 2: barras horizontais com os VALORES (R$ MM) nas pontas (em vez dos nomes)
 function drawOpexComp(od){
   const cv=$("#cOpexComp"); if(!cv) return;
   const labels=od.comp.map(x=>x.lbl), data=od.comp.map(x=>x.v/1e6), cols=od.comp.map(x=>x.col);
