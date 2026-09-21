@@ -105,6 +105,8 @@ h3.msub{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(-
 .mkpi.k-exit{background:#EDF5EF;border-color:#CBE2D2}
 .mkpi.k-exit .val{color:var(--green)}
 .mkpi.k-exit .split{border-top-color:#CBE2D2}
+/* card consolidado sozinho na linha: não estica a largura toda */
+.mkpi.k-solo{max-width:400px}
 /* cards / charts */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);margin:12px 0}
 .card h4{font-size:14px;font-weight:700;margin-bottom:10px}
@@ -968,9 +970,9 @@ function renderMacro(){
     const end = s.vals[s.vals.length-1];
     const pct = /a\.m\./.test(s.unidade);
     const fm = v => v==null?'—':(pct?fmtPct(v):fmt(v,2));
-    h += `<div class="mkpi"><div class="cap">${s.label}</div>
-          <div class="val">${fm(last)}</div>
-          <div class="sub">${s.unidade} · últ. real. · proj. dez/38 <b>${fm(end)}</b></div></div>`;
+    h += kpiX(s.label, fm(last)+'<span class="vtag">últ. real.</span>',
+          kRow("Proj. dez/38", fm(end)),
+          s.unidade);
   }
   h += '</div>';
   h += '<div class="card"><h4>Séries macro — Realizado + Projeção <span style="font-size:11px;color:var(--muted);font-weight:500">(tracejado = premissa projetada, na planilha)</span></h4><div class="chart-box"><canvas id="cMacroRates"></canvas></div></div>';
@@ -1755,10 +1757,10 @@ function renderReceita(){
   const yTot=anoSum(rc.total), ks=Object.keys(yTot).sort();
   let h = subtabsHTML();
   h += '<div class="mkpis">';
-  h += kpi("Receita Líq. 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado",null,MECH.receita_liquida);
-  h += kpi("Receita Líq. 2030 (R$ MM)", MM(yTot["2030"]?.v||0), "projetado",null,MECH.receita_liquida);
-  h += kpi("Receita Líq. "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "fim do horizonte",null,MECH.receita_liquida);
-  h += kpi("Receita atual (últ. realizado)", MM((rc.total[cut]||0)*12), "R$ MM anualizado · "+fmtMes(DB.meses[cut].ym),null,MECH.receita_liquida);
+  h += kpiX("Receita Líquida projetada (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0)+'<span class="vtag">'+ks[ks.length-1]+'</span>',
+      kRow("Proj. 2027", MM(yTot["2027"]?.v||0))+kRow("Proj. 2030", MM(yTot["2030"]?.v||0)),
+      "R$ MM/ano · fim do horizonte no destaque",null,MECH.receita_liquida);
+  h += kpi("Receita atual (anualizada)", MM((rc.total[cut]||0)*12), "R$ MM · últ. realizado × 12 · "+fmtMes(DB.meses[cut].ym),null,MECH.receita_liquida);
   h += '</div>';
   h += '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
      + '<h4 style="margin:0">Receita Líquida — '+regName(reg)+' · por '+(REVDIMS.find(d=>d[0]===state.revdim)[1])+' (R$ MM)</h4>'
@@ -1831,11 +1833,12 @@ function renderVolume(){
   const kUtil=util.reduce((bi,v,i)=> (v!=null && (util[bi]==null||v>util[bi]))?i:bi, 0);
   let h=subtabsHTML();
   h+='<div class="mkpis">';
-  h+=kpi("Volume atual (últ. realizado)", fmt(tot[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
-  h+=kpi("Capacidade instalada (atual)", fmt(cap[cut],0), "m³/dia · "+fmtMes(DB.meses[cut].ym));
-  h+=kpi("Utilização atual", util[cut]!=null?fmtPct(util[cut],0):"—", "volume ÷ capacidade");
-  h+=kpi("Pico de volume projetado", fmt(tot[kMax],0), "m³/dia · "+fmtMes(DB.meses[kMax].ym),null,MECH.volume);
-  h+=kpi("Utilização máx. projetada", util[kUtil]!=null?fmtPct(util[kUtil],0):"—", "em "+fmtMes(DB.meses[kUtil].ym));
+  h+=kpiX("Volume (m³/dia)", fmt(tot[cut],0)+'<span class="vtag">atual</span>',
+      kRow("Capacidade instalada", fmt(cap[cut],0))+kRow("Pico projetado · "+fmtMes(DB.meses[kMax].ym), fmt(tot[kMax],0)),
+      "últ. realizado · "+fmtMes(DB.meses[cut].ym),null,MECH.volume);
+  h+=kpiX("Utilização", (util[cut]!=null?fmtPct(util[cut],0):"—")+'<span class="vtag">atual</span>',
+      kRow("Máx. projetada · "+fmtMes(DB.meses[kUtil].ym), util[kUtil]!=null?fmtPct(util[kUtil],0):"—"),
+      "volume ÷ capacidade");
   h+='</div>';
   h+=premCapacidadePanel(reg);   // premissas da curva de capacidade — logo abaixo dos cards de output
   const dim=state.voldim||"produto";
@@ -2106,7 +2109,9 @@ function renderClientes(){
   const pk=concomPeak(filtered);
   const pkMes=pk.ym?fmtMes(pk.ym):"—";
   h += '<div class="mkpis">';
-  h += kpi("Clientes ativos no pico", fmt(pk.nAt,0), `${pk.nGNL} GNL · ${pk.nGNC} GNC · ${pkMes} · de ${filtered.length} no book`);
+  h += kpiX("Clientes ativos no pico", fmt(pk.nAt,0)+`<span class="vtag">${pkMes}</span>`,
+      kRow("GNL", fmt(pk.nGNL,0))+kRow("GNC", fmt(pk.nGNC,0)),
+      `de ${filtered.length} no book`);
   h += kpi("Volume máx concomitante (m³/d)", fmt(pk.vol,0), `pico em ${pkMes} · soma dos clientes ativos`);
   h += kpi("Preço médio ponderado", pmed!=null?("R$ "+fmt(pmed,2)):"—", "R$/m³ · pond. pelo volume de pico");
   h += '</div>';
@@ -2339,9 +2344,9 @@ function renderHolding(){
   let h=`<div class="pglead"><b>SG&A da Holding (matriz)</b> — overhead corporativo rateado, por fórmula viva: Pessoal (rampa de headcount), Administrativo/Comunicação/Serviço (base 2026 × IPCA), Viagens (com elasticidade ao volume) e Opex ERP. Entra no EBITDA (EBITDA = Resultado Operacional + SG&A holding).</div>`;
   h+=premHoldingPanel();
   h+='<div class="mkpis">';
-  h+=kpi("SG&A holding 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
-  h+=kpi("SG&A holding 2030 (R$ MM)", MM(yTot["2030"]?.v||0), "");
-  h+=kpi("SG&A holding "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
+  h+=kpiX("SG&A holding (R$ MM/ano)", MM(yTot[ks[ks.length-1]]?.v||0)+'<span class="vtag">'+ks[ks.length-1]+'</span>',
+      kRow("2027", MM(yTot["2027"]?.v||0))+kRow("2030", MM(yTot["2030"]?.v||0)),
+      "overhead corporativo · fórmula viva","k-solo");
   h+='</div>';
   h+='<div class="card"><h4>SG&A da holding — por componente (R$ MM, custo positivo)</h4><div class="chart-box"><canvas id="cHold"></canvas></div></div>';
   const rows=HOLD_SUB.map(s=>({lbl:HOLD_LABEL[s], serie:HC.comp[s], d:1}))
@@ -2356,8 +2361,9 @@ function renderHolding(){
   const hPeak=Math.max(...hSaldo.map(num)), hJurosTot=hJuros.slice(cut+1).reduce((s,v)=>s+num(v),0);
   h+='<h3 class="msub">Estrutura de capital da holding</h3>';
   h+='<div class="mkpis">';
-  h+=kpi("Dívida da holding — pico","R$ "+fmt(hPeak/1e6,0)+" mi","saldo máximo dos instrumentos da holding",null,MECH.vpl);
-  h+=kpi("Juros da holding (projeção)","R$ "+fmt(hJurosTot/1e6,0)+" mi","despesa de juros acumulada (competência)",null,MECH.vpl);
+  h+=kpiX("Dívida da holding (R$ mi)","R$ "+fmt(hPeak/1e6,0)+" mi"+'<span class="vtag">pico</span>',
+      kRow("Juros acumulados (proj.)", "R$ "+fmt(hJurosTot/1e6,0)+" mi"),
+      "saldo máx. dos instrumentos · juros em competência",null,MECH.vpl);
   h+=kpi("Amortização intangível holding","≈ "+Math.round(((DB.capex&&DB.capex.holdlife)||120)/12)+" anos","vida do pool de intangível",null,MECH.depreciacao);
   h+='</div>';
   h+='<div class="premcard"><div class="ph"><b>Premissas de estrutura de capital da holding</b></div>';
@@ -3157,8 +3163,9 @@ function renderBalanco(){
   const lastK=n-1, lastY=DB.meses[lastK].ym.slice(0,4);   // saldo de fim de horizonte (dez/38)
   let h='';
   h+='<div class="mkpis">';
-  h+=kpi("Total de Ativos "+lastY+" (R$ MM)", fmt(totAtivoS[lastK]/1e6,0), "saldo no fim do horizonte");
-  h+=kpi("Caixa "+lastY+" (R$ MM)", fmt(caixaS[lastK]/1e6,0), _apo?"saldo de caixa (com aporte)":"saldo de caixa");
+  h+=kpiX("Balanço "+lastY+" (R$ MM)", fmt(totAtivoS[lastK]/1e6,0)+'<span class="vtag">ativos</span>',
+      kRow("Caixa", fmt(caixaS[lastK]/1e6,0)),
+      "saldo no fim do horizonte"+(_apo?" · com aporte":""),"k-solo");
   h+='</div>';
   const L={how:"last",d:1,div:1e6};
   const gb=k=>DB.balanco[k]||[], num=x=>typeof x==="number"?x:0, imob=imobilizadoSerie();
@@ -3395,10 +3402,12 @@ function dcfFCFF(){
 function renderCustoCapital(){
   const D=costOfCapitalData(), rows=D.rows, ys=rows.map(r=>r.y), r0=rows[0], rl=rows[rows.length-1];
   let h='<div class="mkpis">';
-  h+=kpi("Ke real (a.a.)", fmtPct(D.keReal,1), "constante · parte real do custo de equity");
-  h+=kpi("Ke nominal "+r0.y, fmtPct(r0.keNom,1), "real + inflação ("+fmtPct(r0.ipca,1)+")");
-  h+=kpi("WACC contábil "+r0.y, fmtPct(r0.wacc,1), "D/V "+fmtPct(r0.dv,0)+" · E/V "+fmtPct(r0.ev,0));
-  h+=kpi("WACC-alvo (médio)", fmtPct(rows.reduce((s,r)=>s+r.waccT,0)/(rows.length||1),1), "estrutura-alvo D/V "+fmtPct(D.dvTgt,0)+" · desconto do FCFF");
+  h+=kpiX("Ke — custo de equity", fmtPct(D.keReal,1)+'<span class="vtag">real</span>',
+      kRow("Ke nominal "+r0.y, fmtPct(r0.keNom,1)),
+      "constante · nominal = real + inflação ("+fmtPct(r0.ipca,1)+")");
+  h+=kpiX("WACC", fmtPct(rows.reduce((s,r)=>s+r.waccT,0)/(rows.length||1),1)+'<span class="vtag">alvo médio</span>',
+      kRow("Contábil "+r0.y, fmtPct(r0.wacc,1)),
+      "alvo (D/V "+fmtPct(D.dvTgt,0)+") desconta o FCFF · contábil pela estrutura do ano");
   h+='</div>';
   h+='<div class="premcard"><div class="ph"><b>Premissas de custo de capital</b><span class="hspace"></span><button class="btn-reset" onclick="resetCoc()">restaurar</button></div>';
   h+='<div class="premgrid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">';
@@ -3453,8 +3462,9 @@ function renderDCF(){
   const kdPos=(C.kd_pre||0)*(1-(C.ir||0)), ke=C.ke||dcf.Ke||0;
   let h='';
   h+='<div class="mkpis">';
-  h+=kpi("Equity Value @Ke", "R$ "+fmt(dcf.vpl/1e6,0)+" mi", "fluxos futuros descontados ao mês · Ke real "+fmtPct(dcf.keReal,1),null,MECH.vpl);
-  h+=kpi("Enterprise Value", "R$ "+fmt(ev.ev/1e6,0)+" mi", "Equity + Dívida Líquida",null,MECH.vpl);
+  h+=kpiX("Enterprise Value · DCF", "R$ "+fmt(ev.ev/1e6,0)+" mi",
+      kRow("Equity Value @Ke", fmt(ev.equity/1e6,0))+kRow("(+) Dívida líquida", fmt((ev.grossDebt-ev.cash)/1e6,0)),
+      "Ke real "+fmtPct(dcf.keReal,1)+" · fluxos descontados ao mês","k-dcf",MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
   const xv=exitValuation();
   if(xv.ok) h+=kpi("Implied EV/EBITDA "+(xv.exitYear||''), fmt(xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída)");
@@ -3465,9 +3475,9 @@ function renderDCF(){
     const waccAvg=coc2.rows.reduce((s,r)=>s+r.waccT,0)/(coc2.rows.length||1);
     h+='<h3 class="msub">Valuation por FCFF @ WACC-alvo</h3>';
     h+='<div class="mkpis">';
-    h+=kpi("Enterprise Value (FCFF)", "R$ "+fmt(ff.ev/1e6,0)+" mi", "FCFF descontado ao WACC-alvo");
-    h+=kpi("(−) Dívida líquida", "R$ "+fmt(ff.netDebt/1e6,0)+" mi", "dívida bruta − caixa · base "+fmtMesY(DB.meses[cut].ym));
-    h+=kpi("Equity Value (FCFF)", "R$ "+fmt(ff.equity/1e6,0)+" mi", "EV − dívida líquida · FCFE @Ke = R$ "+fmt(dcf.vpl/1e6,0)+" mi");
+    h+=kpiX("Enterprise Value · FCFF", "R$ "+fmt(ff.ev/1e6,0)+" mi",
+        kRow("Equity Value (FCFF)", fmt(ff.equity/1e6,0))+kRow("(+) Dívida líquida", fmt(ff.netDebt/1e6,0)),
+        "FCFF @ WACC-alvo · FCFE @Ke = R$ "+fmt(dcf.vpl/1e6,0)+" mi · base "+fmtMesY(DB.meses[cut].ym),"k-exit",MECH.vpl);
     h+=kpi("WACC-alvo (médio)", fmtPct(waccAvg,1), "estrutura-alvo D/V "+fmtPct(coc2.dvTgt,0));
     h+='</div>';
     const fcffByY={}, fcdByY={};
@@ -3556,8 +3566,9 @@ function renderCapex(){
   h+='<div class="mkpis">';
   const totInv=invCons.slice(cut+1).reduce((s,v)=>s+num(v),0);
   h+=kpi("CapEx total (projeção)","R$ "+fmt(totInv/1e6,0)+" mi","investimento futuro (> "+fmtMes(DB.meses[cut].ym)+")",null,MECH.depreciacao);
-  h+=kpi("Depreciação "+lastY+" (R$ MM)", yrMM(yDep[lastY],0), "vintages de "+LIFE+" meses",null,MECH.depreciacao);
-  h+=kpi("Imobilizado líquido "+lastY+" (R$ MM)", fmt(imob[lastK]/1e6,0), "saldo no fim do horizonte",null,MECH.depreciacao);
+  h+=kpiX("Imobilizado "+lastY+" (R$ MM)", fmt(imob[lastK]/1e6,0)+'<span class="vtag">líquido</span>',
+      kRow("Depreciação "+lastY, yrMM(yDep[lastY],0)),
+      "saldo fim do horizonte · vintages de "+LIFE+" meses",null,MECH.depreciacao);
   h+='</div>';
   h+='<div class="card"><h4>CapEx, depreciação e imobilizado líquido — Consolidado (R$ MM/ano)</h4><div class="chart-box"><canvas id="cCapex"></canvas></div></div>';
   const _yInv=anoSum(invCons), _yDep=anoSum(dep.map(v=>-num(v))), _yImob=anoLast(imob),
@@ -3606,8 +3617,9 @@ function renderDivida(){
   let h='';
   h+='<div class="mkpis">';
   const peak=Math.max(...saldo.map(v=>num(v)));
-  h+=kpi("Dívida — pico do saldo","R$ "+fmt(peak/1e6,0)+" mi","saldo devedor máximo",null,MECH.vpl);
-  h+=kpi("Dívida ("+fmtMesY(DB.meses[cut].ym)+")","R$ "+fmt(saldo[cut]/1e6,0)+" mi","saldo no último realizado",null,MECH.vpl);
+  h+=kpiX("Dívida — saldo (R$ mi)","R$ "+fmt(peak/1e6,0)+" mi"+'<span class="vtag">pico</span>',
+      kRow("Último realizado · "+fmtMesY(DB.meses[cut].ym), "R$ "+fmt(saldo[cut]/1e6,0)+" mi"),
+      "saldo devedor máximo × atual",null,MECH.vpl);
   h+=kpi("Juros (total projeção)","R$ "+fmt(totJuros/1e6,0)+" mi", "despesa de juros acumulada (competência)",null,MECH.vpl);
   h+='</div>';
   h+='<div class="card"><h4>Saldo devedor, desembolsos e amortização — Consolidado (R$ MM/ano)</h4><div class="chart-box"><canvas id="cDivida"></canvas></div></div>';
@@ -3695,9 +3707,9 @@ function renderResumo(){
     const yr=anoSum(rev), yc=anoSum(ct), yk=anoSum(contrib), ks=Object.keys(yr).sort();
     h+=`<div class="pglead"><b>Contribuição operacional</b> de ${regName(reg)} = Receita GNL+GNC − custo total.</div>`;
     h+='<div class="mkpis">';
-    h+=kpi("Receita 2030 (R$ MM)", fmt((yr["2030"]?.v||0)/1e6,1), "GNL+GNC");
-    h+=kpi("Custo total 2030 (R$ MM)", fmt((yc["2030"]?.v||0)/1e6,1), "");
-    h+=kpi("Contribuição 2030 (R$ MM)", fmt((yk["2030"]?.v||0)/1e6,1), "receita − custo");
+    h+=kpiX("Contribuição 2030 (R$ MM)", fmt((yk["2030"]?.v||0)/1e6,1)+'<span class="vtag">2030</span>',
+        kRow("Receita GNL+GNC", fmt((yr["2030"]?.v||0)/1e6,1))+kRow("(−) Custo total", fmt((yc["2030"]?.v||0)/1e6,1),"minus"),
+        "receita − custo","k-solo");
     h+='</div>';
     h+='<div class="card"><h4>Contribuição operacional — '+regName(reg)+' (R$ MM/ano)</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
     return {html:h, draw:()=>drawContrib(ks,yr,yc,yk)};
@@ -3715,10 +3727,12 @@ function renderResumo(){
   const lastReal = ks.filter(has).slice(-1)[0];
   let h2='';
   h2+='<div class="mkpis">';
-  h2+=kpi("EBITDA 2030 (R$ MM)", yrMM(eb["2030"],0), "margem "+mgTxt("2030"), "", MECH.ebitda);
-  h2+=kpi("Lucro Líq. 2030 (R$ MM)", yrMM(ll["2030"],0), "após deprec./juros/impostos", "", MECH.lucro_liquido);
-  h2+=kpi("Lucro Líq. 2035 (R$ MM)", yrMM(ll["2035"],0), "", "", MECH.lucro_liquido);
-  h2+=kpi("EBITDA "+lastReal+" (R$ MM)", yrMM(eb[lastReal],0), "último ano c/ realizado");
+  h2+=kpiX("EBITDA (R$ MM)", yrMM(eb["2030"],0)+'<span class="vtag">2030</span>',
+      kRow("Margem 2030", mgTxt("2030"))+kRow(lastReal+" (últ. real.)", yrMM(eb[lastReal],0)),
+      "RO + SG&A holding · fórmula viva","",MECH.ebitda);
+  h2+=kpiX("Lucro Líquido (R$ MM)", yrMM(ll["2030"],0)+'<span class="vtag">2030</span>',
+      kRow("2035", yrMM(ll["2035"],0)),
+      "após deprec./juros/impostos","",MECH.lucro_liquido);
   h2+='</div>';
   h2+='<div class="card"><h4>Receita Líquida × EBITDA × Margem — Consolidado</h4><div class="chart-box"><canvas id="cResumo"></canvas></div></div>';
   // DRE anual
@@ -3841,8 +3855,9 @@ function renderOpexOverview(reg, h){
   const s=costSeries(reg), tot=custoTotal(reg), MM=v=>fmt(v/1e6,1);
   const yTot=anoSum(tot), ks=Object.keys(yTot).sort();
   h+='<div class="mkpis">';
-  h+=kpi("Custo total 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado",null,MECH.custo_total);
-  h+=kpi("Custo total "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "",null,MECH.custo_total);
+  h+=kpiX("Custo total (R$ MM/ano)", MM(yTot[ks[ks.length-1]]?.v||0)+'<span class="vtag">'+ks[ks.length-1]+'</span>',
+      kRow("2027", MM(yTot["2027"]?.v||0)),
+      "fim do horizonte no destaque",null,MECH.custo_total);
   const gas2027=anoSum(s.gas)["2027"]?.v||0; h+=kpi("Gás / custo total", fmt(100*gas2027/(yTot["2027"]?.v||1),0)+"%", "2027");
   h+='</div>';
 
@@ -3947,8 +3962,9 @@ function renderOpexCat(reg, cat, h){
   h+=`<div class="pglead"><b>${M.label}</b> — ${regName(reg)}. Detalhe por sub-linha e a mecânica de cada uma.</div>`;
   if(PREM_OPEX[cat]) h+=PREM_OPEX[cat](reg);          // painel de premissas literais editáveis
   h+='<div class="mkpis">';
-  h+=kpi(M.label+" 2027 (R$ MM)", MM(yTot["2027"]?.v||0), "projetado");
-  h+=kpi(M.label+" "+ks[ks.length-1]+" (R$ MM)", MM(yTot[ks[ks.length-1]]?.v||0), "");
+  h+=kpiX(M.label+" (R$ MM/ano)", MM(yTot[ks[ks.length-1]]?.v||0)+'<span class="vtag">'+ks[ks.length-1]+'</span>',
+      kRow("2027", MM(yTot["2027"]?.v||0)),
+      "fim do horizonte no destaque","k-solo");
   h+='</div>';
   h+='<div class="card"><h4>'+M.label+' — mensal (R$ MM'+(comps?', por sub-linha empilhada':'')+')</h4><div class="chart-box"><canvas id="cOcat"></canvas></div></div>';
   // detalhe por sub-linha: mecânica + (se portado) valores anuais
@@ -3972,8 +3988,9 @@ function renderOpexCat(reg, cat, h){
     const mol=moleculaMedia(reg), cut=DB.cutoffIdx;
     h+='<h3 class="msub">Custo da molécula (R$/m³) — driver do gás</h3>';
     h+='<div class="mkpis">';
-    h+=kpi("Molécula (últ. realizado)", mol[cut]!=null?fmt(mol[cut],3):"—", "R$/m³ · médio ponderado · "+fmtMes(DB.meses[cut].ym),null,MECH.molecula);
-    h+=kpi("Molécula (dez/38)", mol[mol.length-1]!=null?fmt(mol[mol.length-1],3):"—", "R$/m³",null,MECH.molecula);
+    h+=kpiX("Molécula (R$/m³)", (mol[cut]!=null?fmt(mol[cut],3):"—")+'<span class="vtag">atual</span>',
+        kRow("Proj. dez/38", mol[mol.length-1]!=null?fmt(mol[mol.length-1],3):"—"),
+        "médio ponderado · "+fmtMes(DB.meses[cut].ym),"k-solo",MECH.molecula);
     h+='</div>';
     h+='<div class="card"><h4>Custo da molécula — '+regName(reg)+' (R$/m³)</h4><div class="chart-box"><canvas id="cMol"></canvas></div></div>';
     const molRows=DB.regioes.map(r=>({lbl:r.nome, serie:moleculaLive(r.id)||[], how:"avg", div:1, d:3, tip:MECH.molecula}))
@@ -4520,8 +4537,9 @@ function renderAcionistas(){
   const emY=k=>(k>=0&&k<n)?fmtMesY(DB.meses[k].ym):"—";
   let h='';
   h+='<div class="mkpis">';
-  h+=kpi("Equity Value @DCF (R$ mi)", M(a.eqDCF), "fluxos futuros descontados ao Ke",null,MECH.vpl);
-  h+=kpi("Equity Value @saída (R$ mi)", M(a.eqExit), a.exitYm?("múltiplo de EBITDA · "+fmtMesY(a.exitYm)):"",null,MECH.vpl);
+  h+=kpiX("Equity Value (R$ mi)", M(a.eqDCF)+'<span class="vtag">@DCF</span>',
+      kRow("@saída"+(a.exitYm?" · "+fmtMesY(a.exitYm):""), M(a.eqExit)),
+      "DCF @Ke · saída por múltiplo de EBITDA",null,MECH.vpl);
   h+=kpi("Equity Needs (R$ mi)", M(a.aporteFut), "aporte de capital na projeção");
   h+='</div>';
   h+='<h3 class="msub">Cap table (fato societário)</h3>';
