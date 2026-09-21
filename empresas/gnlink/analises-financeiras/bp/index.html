@@ -92,6 +92,19 @@ h3.msub{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(-
 .mkpi .val{font-size:21px;font-weight:800;margin-top:4px;letter-spacing:-.4px}
 .mkpi .sub{font-size:10.5px;color:var(--muted);margin-top:2px}
 .mkpi.k-red .val{color:var(--accent3)}
+/* breakdown multi-linha dentro de um KPI (padrão do dashboard de exposição) */
+.mkpi .vtag{font-size:9.5px;font-weight:700;color:var(--muted);margin-left:7px;letter-spacing:.04em;text-transform:uppercase;vertical-align:2px}
+.mkpi .split{margin-top:9px;font-size:11px;color:#46566A;display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:7px}
+.mkpi .split span{display:flex;justify-content:space-between;gap:8px}
+.mkpi .split b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.mkpi .split span.minus b{color:var(--muted);font-weight:600}
+/* acentos suaves p/ os dois cartões de valuation (DCF × saída), no espírito k-lor/k-copa */
+.mkpi.k-dcf{background:#EEF3F9;border-color:#CFDDEC}
+.mkpi.k-dcf .val{color:#28477E}
+.mkpi.k-dcf .split{border-top-color:#CFDDEC}
+.mkpi.k-exit{background:#EDF5EF;border-color:#CBE2D2}
+.mkpi.k-exit .val{color:var(--green)}
+.mkpi.k-exit .split{border-top-color:#CBE2D2}
 /* cards / charts */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);margin:12px 0}
 .card h4{font-size:14px;font-weight:700;margin-bottom:10px}
@@ -1933,6 +1946,9 @@ function drawRev(rc){
               y:{stacked:true,ticks:{color:"#5C6B7A"},grid:{color:"#EEF1F5"},title:{display:true,text:"R$ MM/"+perUnit()}}}}});
 }
 function kpi(cap,val,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`; }
+// KPI com breakdown multi-linha (val = headline; split = componentes rotulados) — padrão dos cards do dashboard de exposição
+function kpiX(cap,val,split,sub,cls,hlp){ return `<div class="mkpi ${cls||''}"><div class="cap">${cap}${help(hlp)}</div><div class="val">${val}</div>`+(split?`<div class="split">${split}</div>`:'')+`<div class="sub"${split?' style="margin-top:5px"':''}>${sub||''}</div></div>`; }
+const kRow=(l,v,c)=>`<span class="${c||''}">${l} <b>${v}</b></span>`;   // uma linha do split
 
 // cores por categoria de dimensão (projeto usa a cor da planta; senão cicla a paleta)
 const VOL_PROJCOL={"Paraná":"#16283C","Bahia":"#C55A17","Rio Grande do Norte":"#4880A8","Terminal PE":"#55677C","Argentina":"#2E7D4F","Projeto SAL":"#7FC6A2","Outro":"#8C9BAB"};
@@ -4655,15 +4671,19 @@ function renderDashboard(){
   let h='';
   h+='<div class="mkpis">';
   const _dcf=dcfConsolidado(), _ev=evParts(), cutM=fmtMesY(DB.meses[_ev.cut].ym), _netDebt=_ev.grossDebt-_ev.cash;
-  h+=kpi("Enterprise Value", "R$ "+fmt(_ev.ev/1e6,0)+" mi", "Equity Value + Dívida Líquida · base "+cutM,null,MECH.vpl);
-  h+=kpi("Dívida Líquida", "R$ "+fmt(_netDebt/1e6,0)+" mi", "Dívida Bruta ("+fmt(_ev.grossDebt/1e6,0)+") − Caixa ("+fmt(_ev.cash/1e6,0)+") · base "+cutM,null,MECH.vpl);
-  h+=kpi("Equity Value @Ke", "R$ "+fmt(_ev.equity/1e6,0)+" mi", "fluxos futuros descontados ao mês · Ke real "+fmtPct((DB.dcfConst&&DB.dcfConst.ke_real)||0.12,1),null,MECH.vpl);
-  h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
+  const MI=x=>fmt(x/1e6,0), _keDcf=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
+  // Valuation por DCF (@Ke): EV, Dívida Líquida e Equity Value num único card
+  h+=kpiX("Enterprise Value · DCF", "R$ "+MI(_ev.ev)+" mi",
+      kRow("Equity Value @Ke", MI(_ev.equity))+kRow("(+) Dívida líquida", MI(_netDebt)),
+      "Ke real "+fmtPct(_keDcf,1)+" · base "+cutM,"k-dcf",MECH.vpl);
+  // Valuation por saída de múltiplo de EBITDA: EV, Dívida Líquida e Equity Value num único card
   const _xv=exitValuation();
   if(_xv.ok){
-    h+=kpi("Implied EV/EBITDA "+(_xv.exitYear||''), fmt(_xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída "+fmtMesY(_xv.exitYm)+")");
-    h+=kpi("Equity Value — saída", "R$ "+fmt(_xv.equityExit/1e6,0)+" mi", "EV "+fmt(_xv.evExit/1e6,0)+" mi ("+fmt(_xv.mult,1)+"× EBITDA, saída "+fmtMesY(_xv.exitYm)+") − Dív. Líq.");
+    h+=kpiX("Enterprise Value · Saída EBITDA", "R$ "+MI(_xv.evExit)+" mi",
+        kRow("Equity Value — saída", MI(_xv.equityExit))+kRow("(+) Dívida líquida", MI(_xv.netDebt)),
+        fmt(_xv.mult,1)+"× EBITDA · saída "+fmtMesY(_xv.exitYm)+" · EV/EBITDA implícito "+fmt(_xv.impliedEvEbitda,1)+"×","k-exit",MECH.vpl);
   }
+  h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   const _en=equityNeeds();
   h+=kpi("Equity Needs (R$ mi)", fmt(_en.total/1e6,0), (_en.firstYm?"1º aporte "+fmtMesY(_en.firstYm)+" · ":"")+"aporte de capital na projeção (p/ caixa mínimo)");
@@ -4673,18 +4693,27 @@ function renderDashboard(){
   const pct1=v=>v==null?"n.a.":fmtPct(v,1), moicX=v=>v==null?"—":fmt(v,2)+"x", anos=v=>v==null?"—":fmt(v,1)+" anos";
   h+='<h3 class="msub" style="margin-top:4px">Retorno aos acionistas &amp; estrutura de capital</h3>';
   h+='<div class="mkpis">';
-  h+=kpi("Hankoe IRR", pct1(_do.hankoeIRR), "TIR @saída (com prêmio Copa)",null,MECH.tir);
-  h+=kpi("Copa IRR", pct1(_do.copaIRR), "TIR @saída (recebe o prêmio)",null,MECH.tir);
-  h+=kpi("Hankoe MOIC", moicX(_do.hankoeMOIC), "múltiplo @saída");
-  h+=kpi("Copa MOIC", moicX(_do.copaMOIC), "múltiplo @saída");
-  h+=kpi("Equity Duration", anos(_do.eqDur), "Macaulay dos dividendos (Ke)");
-  h+=kpi("Dividendos (projeção)", "R$ "+fmt(_do.divTotal/1e6,0)+" mi", "distribuídos aos acionistas (09.07)");
-  h+=kpi("Debt Duration", anos(_do.debtDur), "Macaulay do serviço da dívida");
-  h+=kpi("Debt IRR", pct1(_do.debtIRR), "yield efetivo da dívida");
-  h+=kpi("Time to breakeven", anos(_do.timeToBE), "até o FCFE acumulado virar +");
-  h+=kpi("Breakeven month", _do.breakevenYm?fmtMesY(_do.breakevenYm):"—", "FCFE acumulado ≥ 0");
-  h+=kpi("Max Debt (R$ mi)", fmt(_do.maxDebt/1e6,0), "dívida bruta máx. (próx. 10 anos)");
-  h+=kpi("Avg. ND/EBITDA", moicX(_do.ndEbitda), "dívida líquida ÷ EBITDA · próx. 10 anos");
+  const ndX=v=>v==null?"—":fmt(v,2)+"x";
+  // TIR (IRR) — acionistas & dívida num único card
+  h+=kpiX("TIR (IRR)", pct1(_do.hankoeIRR)+'<span class="vtag">Hankoe</span>',
+      kRow("Copa · acionista", pct1(_do.copaIRR))+kRow("Dívida · Debt IRR", pct1(_do.debtIRR)),
+      "@saída · Copa recebe o prêmio · yield efetivo da dívida",null,MECH.tir);
+  // MOIC — acionistas num único card
+  h+=kpiX("MOIC", moicX(_do.hankoeMOIC)+'<span class="vtag">Hankoe</span>',
+      kRow("Copa · acionista", moicX(_do.copaMOIC)),
+      "múltiplo do capital @saída");
+  // Duration — equity & dívida num único card
+  h+=kpiX("Duration", anos(_do.eqDur)+'<span class="vtag">Equity</span>',
+      kRow("Dívida · serviço", anos(_do.debtDur)),
+      "Macaulay · equity nos dividendos (Ke), dívida no serviço",null,MECH.vpl);
+  // Breakeven — mês + tempo num único card
+  h+=kpiX("Breakeven do FCFE", _do.breakevenYm?fmtMesY(_do.breakevenYm):"—",
+      kRow("Tempo até breakeven", anos(_do.timeToBE)),
+      "mês em que o FCFE acumulado vira ≥ 0");
+  // Alavancagem — dívida máx. + ND/EBITDA num único card
+  h+=kpiX("Alavancagem", "R$ "+fmt(_do.maxDebt/1e6,0)+" mi"+'<span class="vtag">Max Debt</span>',
+      kRow("Avg. ND/EBITDA", ndX(_do.ndEbitda)),
+      "dívida bruta máx. · dívida líq./EBITDA médio · próx. 10 anos");
   h+='</div>';
   h+=plantSwitchHTML();   // switch de cenário: ligar/desligar plantas (cascateia por todo o consolidado)
   const _keR=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
