@@ -3465,7 +3465,7 @@ function renderDCF(){
   h+=kpiX("Enterprise Value · FCFE", "R$ "+fmt(ev.ev/1e6,0)+" mi",
       kRow("Equity Value @Ke", fmt(ev.equity/1e6,0))+kRow("(+) Dívida líquida", fmt((ev.grossDebt-ev.cash)/1e6,0)),
       "FCFE @ Ke real "+fmtPct(dcf.keReal,1)+" · fluxos descontados ao mês","k-dcf",MECH.vpl);
-  h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
+  h+=kpi("TIR (FCFE)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
   const xv=exitValuation();
   if(xv.ok) h+=kpi("Implied EV/EBITDA "+(xv.exitYear||''), fmt(xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída)");
   h+='</div>';
@@ -4701,7 +4701,7 @@ function renderDashboard(){
         kRow("Equity Value — saída", MI(_xv.equityExit))+kRow("(+) Dívida líquida", MI(_xv.netDebt)),
         fmt(_xv.mult,1)+"× EBITDA · saída "+fmtMesY(_xv.exitYm)+" · EV/EBITDA implícito "+fmt(_xv.impliedEvEbitda,1)+"×","k-exit",MECH.vpl);
   }
-  h+=kpi("TIR (DCF)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
+  h+=kpi("TIR (FCFE)", _dcf.tir!=null?fmt(_dcf.tir*100,1)+"%":"n.a.", _dcf.tir!=null?"do fluxo de caixa livre":"consolidado sem troca de sinal (ver por projeto)",null,MECH.tir);
   h+=kpi("EBITDA 2030 (R$ MM)", MM(yEB["2030"]), "RO − SG&A holding (fórmula)",null,MECH.ebitda);
   const _en=equityNeeds();
   h+=kpi("Equity Needs (R$ mi)", fmt(_en.total/1e6,0), (_en.firstYm?"1º aporte "+fmtMesY(_en.firstYm)+" · ":"")+"aporte de capital na projeção (p/ caixa mínimo)");
