@@ -3462,9 +3462,9 @@ function renderDCF(){
   const kdPos=(C.kd_pre||0)*(1-(C.ir||0)), ke=C.ke||dcf.Ke||0;
   let h='';
   h+='<div class="mkpis">';
-  h+=kpiX("Enterprise Value · DCF", "R$ "+fmt(ev.ev/1e6,0)+" mi",
+  h+=kpiX("Enterprise Value · FCFE", "R$ "+fmt(ev.ev/1e6,0)+" mi",
       kRow("Equity Value @Ke", fmt(ev.equity/1e6,0))+kRow("(+) Dívida líquida", fmt((ev.grossDebt-ev.cash)/1e6,0)),
-      "Ke real "+fmtPct(dcf.keReal,1)+" · fluxos descontados ao mês","k-dcf",MECH.vpl);
+      "FCFE @ Ke real "+fmtPct(dcf.keReal,1)+" · fluxos descontados ao mês","k-dcf",MECH.vpl);
   h+=kpi("TIR (DCF)", dcf.tir!=null?fmt(dcf.tir*100,1)+"%":"n.a.", "da geração de caixa consolidada",null,MECH.tir);
   const xv=exitValuation();
   if(xv.ok) h+=kpi("Implied EV/EBITDA "+(xv.exitYear||''), fmt(xv.impliedEvEbitda,1)+"x", "EV do DCF ÷ PV do EBITDA (LTM na saída)");
@@ -4691,9 +4691,9 @@ function renderDashboard(){
   const _dcf=dcfConsolidado(), _ev=evParts(), cutM=fmtMesY(DB.meses[_ev.cut].ym), _netDebt=_ev.grossDebt-_ev.cash;
   const MI=x=>fmt(x/1e6,0), _keDcf=(DB.dcfConst&&DB.dcfConst.ke_real)||0.12;
   // Valuation por DCF (@Ke): EV, Dívida Líquida e Equity Value num único card
-  h+=kpiX("Enterprise Value · DCF", "R$ "+MI(_ev.ev)+" mi",
+  h+=kpiX("Enterprise Value · FCFE", "R$ "+MI(_ev.ev)+" mi",
       kRow("Equity Value @Ke", MI(_ev.equity))+kRow("(+) Dívida líquida", MI(_netDebt)),
-      "Ke real "+fmtPct(_keDcf,1)+" · base "+cutM,"k-dcf",MECH.vpl);
+      "FCFE @ Ke real "+fmtPct(_keDcf,1)+" · base "+cutM,"k-dcf",MECH.vpl);
   // Valuation por saída de múltiplo de EBITDA: EV, Dívida Líquida e Equity Value num único card
   const _xv=exitValuation();
   if(_xv.ok){
