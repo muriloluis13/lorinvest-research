@@ -1406,3 +1406,26 @@ window.ORG = [
  {x:1062,y:736,w:152,h:64,t:'Wave Nickel S.A.',s:'42.099.568/0001-51 · Brasil',p:'100,00%',k:'lite'},
  {x:1224,y:736,w:152,h:64,t:'Wave Aluminium S.A.',s:'33.564.013/0001-42 · Brasil',p:'100,00%',k:'lite'}
 ];
+
+// ============================================================================
+// Novos negócios — fonte única dos projetos em avaliação, por empresa.
+// Consumido pela aba "Novos Negócios" de cada empresa e pela seção
+// "Análises & Projetos" (repositório com todos os projetos numa tela só).
+// Campos: title · note (texto do card na aba da empresa) · linkTitle/meta (item
+// do link) · href. Projeto sem href aparece como "Em construção".
+// ============================================================================
+window.NOVOS_NEGOCIOS = [
+  {empresa:"Akron", projetos:[
+    {title:"Chilli Beans", note:"Tese de New Money na Chilli Beans, rede de óculos líder no Brasil em crise de liquidez e alavancagem.", linkTitle:"Guia de Investimento — Chilli Beans", meta:"Crise e passivo, racional da adesão ao New Money e retorno por cenário", href:"empresas/akron/chilli-beans/index.html"}
+  ]},
+  {empresa:"GNLink", projetos:[
+    {title:"Barra Bonita Óleo & Gás", note:"Projeto de óleo e gás em avaliação (Project Belenus). Modelo financeiro, reservas e dossiê disponíveis.", linkTitle:"Modelo & Análise — Barra Bonita Óleo & Gás", meta:"Reservas, produção, valuation e estruturação do projeto", href:"empresas/gnlink/analises-projetos/bbog-model/index.html"},
+    {title:"Projeto Argentina"},
+    {title:"Projeto SAL"}
+  ]},
+  {empresa:"Norsul", projetos:[
+    {title:"Mar Azul"},
+    {title:"Arco Norte"},
+    {title:"Elcano"}
+  ]}
+];

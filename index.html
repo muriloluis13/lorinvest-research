@@ -1109,8 +1109,14 @@
     .analise-title { font-size: 13px; font-weight: 600; color: var(--accent-3); }
     .analise-title::after { content: " ↗"; font-size: 10px; opacity: .7; }
     .analise-meta { font-size: 11.5px; color: #55677C; }
+    /* Projeto ainda sem entregável: mesmo item da lista, sem link. */
+    .analise-item.is-wip { cursor: default; background: var(--bg-card); border-style: dashed; }
+    .analise-item.is-wip:hover { background: var(--bg-card); border-color: var(--line); }
+    .analise-item.is-wip .analise-title { color: #33424F; }
+    .analise-item.is-wip .analise-title::after { content: none; }
+    .analise-item.is-wip .tag { flex: none; white-space: nowrap; }
     .analise-date { font-size: 11.5px; font-weight: 600; color: #33424F; white-space: nowrap; background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; }
-    /* Setores & Macro — um card por setor, com as análises da área agrupadas dentro. */
+    /* Teses Setoriais — um card por setor, com as análises da área agrupadas dentro. */
     .set-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; align-items: start; }
     .set-kicker { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 3px; }
     .set-sub { font-size: 11.5px; color: #55677C; line-height: 1.5; }
@@ -1275,7 +1281,7 @@
        Carregada no <head> para estar disponível ANTES de qualquer script inline
        que a consome (organograma, Panorama, aba Empresas). -->
   <!-- ?v= força o browser a buscar a versão nova quando os dados mudam -->
-  <script src="data/empresas.js?v=2026-07-27h"></script>
+  <script src="data/empresas.js?v=2026-09-25a"></script>
 </head>
 <body>
   <script>
@@ -1409,8 +1415,8 @@
         <path d="M2.6 20.6h18.8"/>
         <path d="M7.6 7.4h3.8M7.6 11.4h3.8M7.6 15.4h3.8"/>
       </symbol>
-      <!-- Setores & Macro -->
-      <symbol id="ic-nav-sectors" viewBox="0 0 24 24">
+      <!-- Macro -->
+      <symbol id="ic-nav-macro" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="8.6"/>
         <path d="M3.4 12h17.2"/>
         <path d="M12 3.4a13.2 13.2 0 0 1 0 17.2 13.2 13.2 0 0 1 0-17.2z"/>
@@ -1421,24 +1427,10 @@
         <path d="M13.6 3.4v5.2H19"/>
         <path d="M8.6 16.6v-3M12 16.6v-5.2M15.4 16.6v-2"/>
       </symbol>
-      <!-- Teses & Exits -->
+      <!-- Teses Setoriais -->
       <symbol id="ic-nav-thesis" viewBox="0 0 24 24">
         <path d="M5.4 21.4V3.2"/>
         <path d="M5.4 4.4h11.9l-2.2 4.2 2.2 4.2H5.4"/>
-      </symbol>
-      <!-- Base de Conhecimento -->
-      <symbol id="ic-nav-knowledge" viewBox="0 0 24 24">
-        <path d="M5 4.6A2 2 0 0 1 7 2.6h12v16H7a2 2 0 0 0-2 2z"/>
-        <path d="M5 20.6a2 2 0 0 1 2-2h12"/>
-      </symbol>
-      <!-- Ferramentas Interativas -->
-      <symbol id="ic-nav-tools" viewBox="0 0 24 24">
-        <path d="M3.4 6.6h9.2M18.6 6.6h2"/>
-        <path d="M3.4 12h3.2M12.6 12h8"/>
-        <path d="M3.4 17.4h9.2M18.6 17.4h2"/>
-        <circle cx="15.6" cy="6.6" r="2"/>
-        <circle cx="9.6" cy="12" r="2"/>
-        <circle cx="15.6" cy="17.4" r="2"/>
       </symbol>
     </defs>
   </svg>
@@ -1468,13 +1460,9 @@
         <button class="sidebar-link" data-section-target="company" title="Empresas"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-company"/></svg><span class="snav-label">Empresas</span></button>
 
         <div class="grp"><i style="background:#E23A2E"></i><span>Inteligência</span></div>
-        <button class="sidebar-link" data-section-target="sectors" title="Setores &amp; Macro"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-sectors"/></svg><span class="snav-label">Setores &amp; Macro</span></button>
+        <button class="sidebar-link" data-section-target="macro" title="Macro"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-macro"/></svg><span class="snav-label">Macro</span></button>
+        <button class="sidebar-link" data-section-target="sectors" title="Teses Setoriais"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-thesis"/></svg><span class="snav-label">Teses Setoriais</span></button>
         <button class="sidebar-link" data-section-target="projects" title="Análises &amp; Projetos"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-projects"/></svg><span class="snav-label">Análises &amp; Projetos</span></button>
-        <button class="sidebar-link" data-section-target="thesis" title="Teses &amp; Exits"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-thesis"/></svg><span class="snav-label">Teses &amp; Exits</span></button>
-
-        <div class="grp"><i style="background:#6B8299"></i><span>Recursos</span></div>
-        <button class="sidebar-link" data-section-target="knowledge" title="Base de Conhecimento"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-knowledge"/></svg><span class="snav-label">Base de Conhecimento</span></button>
-        <button class="sidebar-link" data-section-target="tools" title="Ferramentas Interativas"><svg class="snav-ic" aria-hidden="true"><use href="#ic-nav-tools"/></svg><span class="snav-label">Ferramentas Interativas</span></button>
       </nav>
 
     </aside>
@@ -2945,40 +2933,9 @@
 
           </div>
           <div class="emp-panel" data-emp="novos-negocios">
-            <!-- ===== Novos negócios ===== -->
+            <!-- ===== Novos negócios — renderizado de window.NOVOS_NEGOCIOS (data/empresas.js) ===== -->
             <div class="section-title" style="margin: 2px 0 14px;">Novos negócios</div>
-            <div class="row-2">
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">Barra Bonita Óleo &amp; Gás</div>
-                  <span class="tag-soft tag">Novo negócio</span>
-                </div>
-                <div class="card-body">
-                  <p class="card-note">Projeto de óleo e gás em avaliação (Project Belenus). Modelo financeiro, reservas e dossiê disponíveis.</p>
-                  <div class="analise-list">
-                    <a class="analise-item" href="empresas/gnlink/analises-projetos/bbog-model/index.html" target="_blank" rel="noopener">
-                      <div class="analise-info">
-                        <span class="analise-title">Modelo &amp; Análise — Barra Bonita Óleo &amp; Gás</span>
-                        <span class="analise-meta">Reservas, produção, valuation e estruturação do projeto</span>
-                      </div>
-                      <span class="analise-date">Abrir</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">Projeto Argentina</div>
-                  <span class="tag-yellow tag">Em construção</span>
-                </div>
-                <div class="card-body">
-                  <div class="placeholder-chart" style="min-height: 120px;">
-                    🚧 Em construção<br />Conteúdo será disponibilizado em breve.
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            <div id="nnGNLink"></div>
           </div>
           <div class="emp-panel" data-emp="oferta">
             <!-- ===== Oferta GNL — capacidade por planta (CI GNLink Dez/25 — slide 5) ===== -->
@@ -4290,11 +4247,11 @@
           </div>
         </section>
 
-        <!-- Setores & Macro -->
-        <section class="section" id="section-sectors">
+        <!-- Macro -->
+        <section class="section" id="section-macro">
           <div class="section-title-row">
             <div>
-              <div class="section-title">Setores &amp; Macro</div>
+              <div class="section-title">Macro</div>
             </div>
           </div>
 
@@ -4606,14 +4563,17 @@
               .catch(function(e){ msg.textContent='Não foi possível carregar o Focus ('+e.message+').'; });
           })();
           </script>
+        </section>
 
-          <div class="section-title-row" style="margin-top: 18px;">
+        <!-- Teses Setoriais -->
+        <section class="section" id="section-sectors">
+          <div class="section-title-row">
             <div>
-              <div class="section-title">Análises setoriais</div>
+              <div class="section-title">Teses Setoriais</div>
             </div>
           </div>
 
-          <div class="set-grid" style="margin-top: 10px;">
+          <div class="set-grid">
 
             <div class="card">
               <div class="card-header">
@@ -4697,84 +4657,66 @@
 
           </div>
         </section>
+        <!-- Análises & Projetos — repositório com os novos negócios de todas as empresas.
+             Renderizado de window.NOVOS_NEGOCIOS (data/empresas.js), a mesma fonte das
+             abas "Novos Negócios" de cada empresa. -->
         <section class="section" id="section-projects">
           <div class="section-title-row">
             <div>
               <div class="section-title">An&#225;lises &amp; Projetos</div>
             </div>
           </div>
+          <div class="set-grid" id="nnRepo"></div>
+          <script>
+          (function(){
+            var DATA = window.NOVOS_NEGOCIOS || [];
+            function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+            function projetosDe(empresa){
+              for(var i=0;i<DATA.length;i++){ if(DATA[i].empresa===empresa) return DATA[i].projetos||[]; }
+              return [];
+            }
+            function linkItem(p, title){
+              return '<a class="analise-item" href="'+esc(p.href)+'" target="_blank" rel="noopener">'
+                +'<div class="analise-info"><span class="analise-title">'+esc(title)+'</span>'
+                +(p.meta?'<span class="analise-meta">'+esc(p.meta)+'</span>':'')+'</div>'
+                +'<span class="analise-date">Abrir</span></a>';
+            }
 
-          <div class="row-full">
-            <div class="card">
-              <div class="card-body">
-                <div class="e2-dev">
-                  <div class="ic">&#128679;</div>
-                  <div class="t">Em desenvolvimento&#8230;</div>
-                  <div class="s">O pipeline de projetos e os entreg&#225;veis ser&#227;o alimentados pelo reposit&#243;rio de documentos da &#225;rea.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="section" id="section-thesis">
-          <div class="section-title-row">
-            <div>
-              <div class="section-title">Teses &amp; Exits</div>
-            </div>
-          </div>
+            // Aba "Novos Negócios" de uma empresa: um card por projeto. '' se a empresa não tem projetos.
+            window.renderNovosNegocios = function(empresa){
+              var ps = projetosDe(empresa);
+              if(!ps.length) return '';
+              return '<div class="row-2">'+ps.map(function(p){
+                var body = p.href
+                  ? (p.note?'<p class="card-note">'+esc(p.note)+'</p>':'')+'<div class="analise-list">'+linkItem(p, p.linkTitle||p.title)+'</div>'
+                  : '<div class="placeholder-chart" style="min-height: 120px;">🚧 Em construção<br />Conteúdo será disponibilizado em breve.</div>';
+                var tag = p.href ? '<span class="tag-soft tag">Novo negócio</span>' : '<span class="tag-yellow tag">Em construção</span>';
+                return '<div class="card"><div class="card-header"><div class="card-title">'+esc(p.title)+'</div>'+tag+'</div>'
+                  +'<div class="card-body">'+body+'</div></div>';
+              }).join('')+'</div>';
+            };
 
-          <div class="row-full">
-            <div class="card">
-              <div class="card-body">
-                <div class="e2-dev">
-                  <div class="ic">&#128679;</div>
-                  <div class="t">Em desenvolvimento&#8230;</div>
-                  <div class="s">A tese de investimento e a prepara&#231;&#227;o de exit ser&#227;o montadas a partir dos materiais reais de cada investida.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="section" id="section-knowledge">
-          <div class="section-title-row">
-            <div>
-              <div class="section-title">Base de Conhecimento</div>
-            </div>
-          </div>
-          <div class="row-full">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Base de Conhecimento</div></div>
-              <div class="card-body">
-                <p class="card-note">➜ Seção reconstruída após perda de dados. Reconecte com o repositório (SharePoint/Notion) e os playbooks da área.</p>
-              </div>
-            </div>
-          </div>
-        </section>
+            // Repositório (Análises & Projetos): um card por empresa com todos os projetos dela.
+            var repo = document.getElementById('nnRepo');
+            if(repo) repo.innerHTML = DATA.map(function(g){
+              var ps = g.projetos||[];
+              var items = ps.map(function(p){
+                if(p.href) return linkItem(p, p.title);
+                return '<div class="analise-item is-wip"><div class="analise-info"><span class="analise-title">'+esc(p.title)+'</span>'
+                  +'<span class="analise-meta">Conteúdo será disponibilizado em breve</span></div>'
+                  +'<span class="tag-yellow tag">Em construção</span></div>';
+              }).join('');
+              return '<div class="card"><div class="card-header"><div><div class="set-kicker">Empresa</div>'
+                +'<div class="card-title">'+esc(g.empresa)+'</div></div>'
+                +'<span class="card-chip">'+ps.length+(ps.length===1?' projeto':' projetos')+'</span></div>'
+                +'<div class="card-body"><div class="analise-list">'+items+'</div></div></div>';
+            }).join('');
 
-        <!-- Ferramentas Interativas -->
-        <section class="section" id="section-tools">
-          <div class="section-title-row">
-            <div>
-              <div class="section-title">Ferramentas Interativas</div>
-            </div>
-          </div>
-          <div class="row-full">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Ferramentas Interativas</div></div>
-              <div class="card-body">
-                <p class="card-note">Simuladores e calculadoras interativas de apoio à decisão.</p>
-                <div class="analise-list">
-                  <a class="analise-item" href="ferramentas/comprar-vs-alugar/index.html" target="_blank" rel="noopener">
-                    <div class="analise-info">
-                      <span class="analise-title">Comprar vs. Alugar — Simulador Pessoal</span>
-                      <span class="analise-meta">Trade-off patrimonial pessoa física: financiamento imobiliário (linhas reais de mercado) vs. alugar e investir a diferença, com escada de carreira, custos, FGTS e sensibilidade</span>
-                    </div>
-                    <span class="analise-date">Set 2026</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+            // GNLink tem workspace estático: preenche o painel dela aqui.
+            var gn = document.getElementById('nnGNLink');
+            if(gn) gn.innerHTML = window.renderNovosNegocios('GNLink');
+          })();
+          </script>
         </section>
       </div>
     </main>
@@ -5296,6 +5238,7 @@
       else if(e2tab==='governanca' && d) main=renderGov(e2co,d);
       else if(e2tab==='opex' && d && d.operacional) main=renderOperacional(e2co,d);
       else if(e2tab==='resultados' && d && d.financeiro) main=renderResultados(e2co,d);
+      else if(e2tab==='novos-negocios' && window.renderNovosNegocios) main=window.renderNovosNegocios(e2co);
       var extra=renderAnalises(d,e2tab);
       if(!main) main = extra ? '' : renderDev(e2co, labelOf(e2tab));
       bodyEl.innerHTML = main + extra;
@@ -6484,6 +6427,7 @@
     }
 
     .tag-soft { background: #FFF5E8; color: #B8641B; border-color: #F1D9B9; }
+    .tag-yellow { background: #FEF7E0; color: #9A7B0A; border-color: #F0DA94; }
     .tag-risk, .metric-chip.neg { background: #FFF0F0; color: #D9322C; border-color: #F2D1D1; }
 
     .kpi-tile,
@@ -6575,11 +6519,9 @@
       'section-overview':  { label: 'Panorama',                 icon: 'ic-nav-overview',  accent: '#2E63A7' },
       'section-portfolio': { label: 'Portfólio',                icon: 'ic-nav-portfolio', accent: '#278786' },
       'section-company':   { label: 'Empresas',                 icon: 'ic-nav-company',   accent: '#19724E' },
-      'section-sectors':   { label: 'Setores & Macro',          icon: 'ic-nav-sectors',   accent: '#D93A32' },
-      'section-projects':  { label: 'Análises & Projetos',      icon: 'ic-nav-projects',  accent: '#6A6FB2' },
-      'section-thesis':    { label: 'Teses & Exits',            icon: 'ic-nav-thesis',    accent: '#D97828' },
-      'section-knowledge': { label: 'Base de Conhecimento',     icon: 'ic-nav-knowledge', accent: '#48688B' },
-      'section-tools':     { label: 'Ferramentas Interativas',  icon: 'ic-nav-tools',     accent: '#5B64C5' }
+      'section-macro':     { label: 'Macro',                    icon: 'ic-nav-macro',     accent: '#D93A32' },
+      'section-sectors':   { label: 'Teses Setoriais',          icon: 'ic-nav-thesis',    accent: '#D97828' },
+      'section-projects':  { label: 'Análises & Projetos',      icon: 'ic-nav-projects',  accent: '#6A6FB2' }
     };
 
     function iconNode(className, symbol){
