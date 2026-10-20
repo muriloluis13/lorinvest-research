@@ -1407,10 +1407,10 @@ function renderEmp(){
         .cxorg-sconn.c3 .b{left:16.67%;right:16.67%}
         .cxorg-sconn.c3 .v1{left:calc(16.67% - .7px)}.cxorg-sconn.c3 .v2{left:calc(50% - .7px)}.cxorg-sconn.c3 .v3{left:calc(83.33% - .7px)}
         /* switch direta / indireta */
-        .cxorg-mode{display:flex;justify-content:center;margin:0 0 16px}
-        .cxorg-tgl{display:inline-flex;gap:4px;background:#EEF2F7;border:1px solid var(--line);border-radius:10px;padding:4px}
-        .cxorg-tgl button{border:none;background:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s}
-        .cxorg-tgl button.on{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(19,32,46,.12)}
+        .cxorg-mode{display:flex;justify-content:flex-end;margin:-6px 0 8px}
+        .cxorg-tgl{display:inline-flex;gap:2px;background:#F3F5F8;border:1px solid var(--line);border-radius:7px;padding:2px}
+        .cxorg-tgl button{border:none;background:none;font:inherit;font-size:10.5px;font-weight:600;color:#8A97A5;padding:3px 9px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s}
+        .cxorg-tgl button.on{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(19,32,46,.1)}
         /* modo direto x indireto: mesma fileira de cards, troca o conjunto exibido */
         .cxorg-share .v-ind{display:none}
         .cxorg-share.ind .v-ind{display:block}
@@ -1461,8 +1461,8 @@ function renderEmp(){
           .cxorg-share-row.r3{grid-template-columns:repeat(3,1fr)}
           .cxorg-share-row.r5{grid-template-columns:repeat(2,1fr)}
           .cxorg-share-row.r5 .cxorg-sh:last-child{grid-column:1/-1;max-width:50%;justify-self:center}
-          .cxorg-tgl{width:100%}
-          .cxorg-tgl button{flex:1;padding:7px 8px;font-size:12px}
+          .cxorg-mode{margin:0 0 8px}
+          .cxorg-tgl button{padding:3px 8px}
           .cxorg-head{flex-direction:column;align-items:center;gap:8px;min-height:0}
           .cxorg-brand{align-self:center}
           .cxorg-brand-logo{height:52px}
