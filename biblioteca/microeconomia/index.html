@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microeconomia — Guia comparativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F7FC;--card:#FFFFFF;--ink:#071A49;--muted:#55709B;--accent:#173F7A;--accent2:#2E63A7;--accent3:#E23A2E;
+  --line:#DCE6F2;--chip:#EDF3FA;
+  --shadow:0 8px 24px rgba(18,54,102,.075),0 1px 2px rgba(18,54,102,.04);
+  --sam:#2E63A7;--mcg:#D9822B;--bes:#7A4FD1;--kup:#1B9B66;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);font-size:14.5px;line-height:1.45;font-variant-numeric:tabular-nums lining-nums;
+  background:radial-gradient(circle at 78% 6%,rgba(92,151,217,.12),transparent 28rem),linear-gradient(180deg,#F8FBFF 0,#F3F7FC 34rem,#F6F9FD 100%)}
+button{font-family:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-bottom:1px solid #DCE7F3;box-shadow:0 3px 18px rgba(18,54,102,.07)}
+.hwrap{max-width:1680px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+#navToggle{width:38px;height:36px;padding:0;background:#fff;border:1px solid #D7E4F1;border-radius:9px;color:#234E88;font-size:0;display:grid;place-items:center;box-shadow:0 2px 7px rgba(18,54,102,.04)}
+#navToggle::before{content:'';width:15px;height:12px;background:linear-gradient(to bottom,currentColor 0 2px,transparent 2px 5px,currentColor 5px 7px,transparent 7px 10px,currentColor 10px 12px);border-radius:2px}
+#navToggle:hover{background:#F2F5F8}
+.logo img{height:30px;width:auto;display:block}
+.hsep{width:1px;height:26px;background:#DDE7F1}
+.htitle{font-size:15px;font-weight:700;color:#071A49;letter-spacing:-.2px;line-height:1.16}
+.hsub{margin-top:5px;font-size:10.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#6078A0;white-space:nowrap}
+.hspace{flex:1}
+.mob-tab{display:none}
+.hbooks{display:flex;gap:6px;flex-wrap:wrap}
+.hbooks span{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#274D85;background:#F5F8FC;border:1px solid #DFE8F3;border-radius:999px;padding:4px 10px}
+.hbooks i{width:8px;height:8px;border-radius:50%}
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 66px)}
+.maincol{flex:1;min-width:0;overflow-x:clip}
+#sidebar{width:216px;flex:none;position:sticky;top:var(--hh,60px);align-self:flex-start;max-height:calc(100vh - var(--hh,60px));overflow-y:auto;padding:8px 8px 26px;border-right:1px solid #DCE7F2;background:linear-gradient(180deg,rgba(249,252,255,.94),rgba(241,247,253,.94));transition:width .18s ease,padding .18s ease}
+body.snav-collapsed #sidebar{width:0;padding:0;overflow:hidden;border-right:none}
+#navlist .grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#58729A;padding:13px 10px 5px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+#navlist .grp i{width:7px;height:7px;border-radius:2px;flex:none}
+#navlist button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;border-left:2.5px solid transparent;font-size:12.5px;font-weight:600;color:#42618F;padding:7px 11px;border-radius:0 7px 7px 0;white-space:nowrap;transition:background .12s,color .12s}
+#navlist .nav-ic{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#navlist button:hover{background:#EAF2FC;color:#113D7D}
+#navlist button.on{background:linear-gradient(90deg,#EDF4FD,#DDEBFB);color:#0D3777;font-weight:700;border-left-color:#E53028}
+main{padding:17px 24px 54px;max-width:1440px;margin:0 auto}
+.panel{display:none}.panel.on{display:block}
+.breadcrumb{margin:0 2px 16px;font-size:12px;color:#617CA5;display:flex;align-items:center;gap:9px}
+.breadcrumb i{width:7px;height:7px;border-right:1.5px solid #5475A2;border-top:1.5px solid #5475A2;transform:rotate(45deg)}
+.breadcrumb b{color:#173C72}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px;min-width:0}
+.card h2{font-size:14.5px;font-weight:700;line-height:1.2;letter-spacing:-.2px;color:#071A49;margin-bottom:3px}
+.card .cap{font-size:12.5px;line-height:1.5;color:#55709B;margin-bottom:12px}
+.card .lead{font-size:14px;line-height:1.6;color:#405E8A;margin:2px 0 12px}
+.section-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+.section-head .title-icon{width:44px;height:44px;display:grid;place-items:center;flex:none;border-radius:10px;background:#F0F5FB;color:#194A8F}
+.section-head .title-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.section-head .head-copy{min-width:0;flex:1}.section-head .cap{margin:5px 0 0}
+.section-head .tag{font-size:10px;font-weight:600;color:#5A7397;background:#EEF3F9;padding:5px 11px;border-radius:999px;white-space:nowrap}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.row31{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.row13{display:grid;grid-template-columns:1fr 1.6fr;gap:16px}
+svg{display:block;width:100%;height:auto}
+#tip{position:fixed;z-index:99;pointer-events:none;background:#13202E;color:#fff;font-size:11.5px;padding:8px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;max-width:330px;line-height:1.5}
+#tip b{color:#fff}
+
+/* hero + faixa */
+.overview-hero{min-height:112px;margin-bottom:15px;padding:20px 22px;border:1px solid #DCE6F2;border-radius:13px;background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 52%,rgba(230,240,250,.62) 100%);box-shadow:var(--shadow);display:flex;align-items:center;gap:22px;position:relative;overflow:hidden}
+.overview-hero::before{content:'';position:absolute;right:-45px;bottom:-78px;width:490px;height:165px;border:20px solid rgba(91,128,164,.13);border-left-width:40px;border-radius:48% 0 0 0;transform:skewX(-15deg)}
+.hero-logo{width:128px;height:88px;display:grid;place-items:center;flex:none;border:1px solid #DDE6F0;border-radius:11px;background:#fff;box-shadow:0 5px 16px rgba(25,56,96,.07)}
+.hero-copy{position:relative;z-index:1;max-width:820px}.hero-copy h1{font-size:24px;line-height:1.15;letter-spacing:-.6px}.hero-copy p{margin-top:8px;font-size:12.8px;line-height:1.55;color:#46638E}
+.overview-strip{display:grid;grid-template-columns:repeat(5,1fr) 1.35fr;padding:8px 10px;background:#fff;border:1px solid #DCE6F2;border-radius:13px;box-shadow:var(--shadow);margin-bottom:16px}
+.overview-strip .m{padding:9px 16px;border-left:1px solid #DDE6F0;min-width:0}
+.overview-strip .m:first-child{border-left:0;background:linear-gradient(135deg,#EEF4FD,#E3EDFA);border-radius:9px}
+.overview-strip .l{font-size:10px;color:#55709B;white-space:nowrap}
+.overview-strip .v{margin-top:4px;font-size:17px;font-weight:700;line-height:1.12;letter-spacing:-.2px;color:#071A49;white-space:nowrap}
+.overview-strip .s{font-size:10px;color:#6A82A4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* um-liner por livro */
+.oneliners{display:flex;flex-direction:column}
+.ol{display:grid;grid-template-columns:38px 1fr;gap:12px;padding:13px 2px;border-top:1px solid var(--line);cursor:pointer;border-radius:8px;transition:background .12s}
+.ol:first-child{border-top:none}
+.ol:hover{background:#F6F9FD}
+.ol .ini{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px}
+.ol .bt{font-size:13px;font-weight:700;color:var(--ink)}
+.ol .bt small{font-weight:600;color:var(--muted);font-size:11px;margin-left:5px}
+.ol .bd{font-size:12px;color:#4A6690;line-height:1.48;margin-top:2px}
+.ol .side{display:inline-block;margin-top:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+
+/* famílias */
+.fam{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fam>div{padding:16px 18px;position:relative}
+.fam>div+div{border-left:1px dashed #CFDCEA}
+.fam .fk{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6A82A4}
+.fam .fn{font-size:17px;font-weight:800;letter-spacing:-.3px;margin:5px 0 4px;color:#0A2455}
+.fam .fq{font-size:12.5px;color:#4A6690;line-height:1.5;font-style:italic}
+.fam .fb{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.fam .fb span{font-size:11px;font-weight:700;color:#fff;padding:3px 10px;border-radius:999px}
+.fam .fx{font-size:11.5px;color:#55709B;margin-top:9px;line-height:1.45}
+.fam-arrow{display:flex;align-items:center;gap:10px;margin:12px 4px 0;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6A82A4}
+.fam-arrow .bar{flex:1;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--sam),var(--mcg) 30%,var(--bes) 55%,var(--kup))}
+
+/* subtabs */
+.subtabs{display:flex;width:max-content;max-width:100%;gap:5px;margin-bottom:17px;padding:5px;border:1px solid #D8E4F0;border-radius:12px;background:#EAF1F9;overflow-x:auto;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtabs button{border:none;background:none;font-size:13px;font-weight:700;color:#59749B;padding:8px 17px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+.subtabs button i{width:8px;height:8px;border-radius:50%}
+.subtabs button:hover{color:var(--accent2);background:rgba(255,255,255,.48)}
+.subtabs button.on{color:var(--accent);background:#fff;box-shadow:0 3px 10px rgba(18,54,102,.09)}
+
+/* ficha do livro */
+.bookhead{display:grid;grid-template-columns:118px 1fr;gap:20px;align-items:center}
+.cover{width:118px;height:156px;border-radius:5px 10px 10px 5px;position:relative;overflow:hidden;color:#fff;padding:14px 12px 12px 18px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 10px 22px rgba(18,54,102,.2)}
+.cover::before{content:'';position:absolute;left:0;top:0;bottom:0;width:8px;background:rgba(0,0,0,.18)}
+.cover .ct{font-size:13px;font-weight:800;line-height:1.15;letter-spacing:-.2px}
+.cover .ca{font-size:9.5px;opacity:.85;line-height:1.3}
+.cover .ce{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.bookhead h1{font-size:22px;letter-spacing:-.5px;line-height:1.15}
+.bookhead .bsub{font-size:12.5px;color:#55709B;margin-top:3px}
+.bookhead .bq{margin-top:12px;font-size:15px;line-height:1.45;color:#0A2455;font-weight:600}
+.bookhead .bq::before{content:'Pergunta-mestra';display:block;font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#6A82A4;margin-bottom:3px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px 18px}
+.kv .k{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kv .v{font-size:12.8px;font-weight:600;margin-top:2px;color:#13305F;line-height:1.4}
+.meters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.meter{border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:linear-gradient(145deg,#fff,#F6F9FD)}
+.meter .n{font-size:24px;font-weight:800;letter-spacing:-.6px;color:#0A2455}
+.meter .l{font-size:11px;color:#5C769C}
+/* espinha dorsal */
+.spine{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.spine .sp{font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:8px;color:#0A2455;border:1px solid transparent;white-space:nowrap}
+.spine .ar{color:#9AB0CC;font-size:12px}
+.spines{display:flex;flex-direction:column;gap:14px}
+.spines .row{display:grid;grid-template-columns:118px 1fr;gap:12px;align-items:start}
+.spines .who{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:7px;padding-top:5px}
+.spines .who i{width:9px;height:9px;border-radius:50%}
+.glegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px}
+.glegend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;font-weight:600}
+.glegend i{width:11px;height:11px;border-radius:3px}
+/* sumário navegável */
+.toc details{border-top:1px solid var(--line)}
+.toc details:first-child{border-top:none}
+.toc summary{list-style:none;cursor:pointer;padding:11px 4px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:#0A2455}
+.toc summary::-webkit-details-marker{display:none}
+.toc summary .chev{width:8px;height:8px;border-right:2px solid #7C93B5;border-bottom:2px solid #7C93B5;transform:rotate(-45deg);transition:transform .15s;flex:none;margin-left:2px}
+.toc details[open]>summary .chev{transform:rotate(45deg)}
+.toc summary .cnt{margin-left:auto;font-size:10.5px;font-weight:700;color:#6A82A4;background:#EEF3F9;border-radius:999px;padding:2px 9px}
+.toc .chs{padding:0 4px 12px 22px;display:grid;gap:8px}
+.toc .ch{padding:9px 12px;border-radius:9px;background:#F7FAFD;border:1px solid #E5EDF6}
+.toc .ch .cht{font-size:12.6px;font-weight:700;color:#13305F}
+.toc .ch .cha{font-size:11px;color:#6A82A4;font-style:italic;margin-top:1px}
+.toc .ch .chs2{font-size:11.3px;color:#55709B;margin-top:4px;line-height:1.5}
+.toc .ch .tg{display:inline-flex;gap:4px;margin-left:6px;vertical-align:1px}
+.toc .ch .tg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.tocsearch{width:100%;max-width:340px;padding:8px 12px;border:1px solid #D7E4F1;border-radius:9px;font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;margin-bottom:8px}
+.tocsearch:focus{outline:2px solid #BFD5F0;border-color:#9FBDE3}
+mark{background:#FFE9A8;color:inherit;border-radius:3px;padding:0 1px}
+
+/* tabelas */
+.twrap{overflow-x:auto;border:1px solid #E0E8F2;border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:12px;background:#fff}
+th{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E769A;text-align:left;padding:9px 10px;border-bottom:1px solid #D8E3EF;background:#F2F6FB;white-space:nowrap}
+td{font-size:12px;padding:9px 10px;border-bottom:1px solid #E5ECF4;vertical-align:top;color:#23406D;line-height:1.45}
+tbody tr:hover{background:#F6FAFE}
+td.l{font-weight:700;color:#0A2455;white-space:nowrap}
+
+/* heatmap */
+.hmtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.chipbtn{border:1px solid #D7E4F1;background:#fff;color:#42618F;font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+.chipbtn i{width:9px;height:9px;border-radius:3px}
+.chipbtn.on{background:#0A2455;color:#fff;border-color:#0A2455}
+.hm{width:100%;border-collapse:separate;border-spacing:3px}
+.hm th{background:none;border:none;text-align:center;padding:4px 4px 8px;font-size:11px;letter-spacing:0;text-transform:none;color:#0A2455;font-weight:800}
+.hm th .bd{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.hm td{border:none;padding:0;background:none;vertical-align:middle}
+.hm td.tn{padding:7px 10px 7px 2px;font-size:12.3px;font-weight:600;color:#13305F;white-space:normal;min-width:230px}
+.hm td.tn .gdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:8px;vertical-align:1px}
+.hm tr.gh td{padding:12px 2px 4px;font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#6A82A4}
+.hm .cell{height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;cursor:pointer;transition:transform .1s,box-shadow .1s;min-width:86px;padding:0 6px;text-align:center;line-height:1.15}
+.hm .cell:hover{transform:scale(1.04);box-shadow:0 4px 12px rgba(18,54,102,.18)}
+.hm .cell.sel{outline:2.5px solid #0A2455;outline-offset:1px}
+.hm .cell.z{color:#B4C2D3;font-weight:600}
+.hm td.dv{width:64px;text-align:center}
+.hm .dvb{height:6px;border-radius:999px;background:#E8EFF7;position:relative;overflow:hidden;margin:0 6px}
+.hm .dvb i{position:absolute;left:0;top:0;bottom:0;background:#E23A2E;border-radius:999px}
+.scale{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px;align-items:center}
+.scale span{display:inline-flex;align-items:center;gap:6px}
+.scale i{width:22px;height:14px;border-radius:4px;display:inline-block;background:#2E63A7}
+.detail{position:sticky;top:calc(var(--hh,60px) + 12px)}
+.detail .dh{font-size:16px;font-weight:800;letter-spacing:-.3px;color:#0A2455;margin:2px 0 4px}
+.detail .dg{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.drow{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.drow .bn{font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px}
+.drow .bn i{width:8px;height:8px;border-radius:50%}
+.drow .dots{display:flex;gap:3px;margin-top:5px}
+.drow .dots b{width:9px;height:9px;border-radius:50%;background:#E3EBF5;display:inline-block}
+.drow .dc{font-size:12px;color:#405E8A;line-height:1.45}
+.drow .dc .ref{font-weight:700;color:#0A2455}
+.simgrid{display:grid;grid-template-columns:72px repeat(4,1fr);gap:4px;font-size:11px}
+.simgrid .h{font-weight:800;color:#0A2455;text-align:center;padding:4px 0}
+.simgrid .r{font-weight:800;color:#0A2455;display:flex;align-items:center}
+.simgrid .c{height:40px;border-radius:7px;display:grid;place-items:center;font-weight:800;font-size:12px}
+
+/* espectros */
+.spec{display:flex;flex-direction:column}
+.srow{padding:14px 2px 16px;border-top:1px solid var(--line)}
+.srow:first-child{border-top:none}
+.srow .sn{font-size:12.5px;font-weight:800;color:#0A2455;margin-bottom:9px;display:flex;justify-content:space-between;gap:10px}
+.srow .sn small{font-size:11px;color:#6A82A4;font-weight:600}
+.strack{position:relative;height:30px}
+.strack .ln{position:absolute;left:0;right:0;top:14px;height:3px;border-radius:3px;background:linear-gradient(90deg,#DCE7F4,#EEF3F9 50%,#DCE7F4)}
+.strack .tk{position:absolute;top:9px;width:1px;height:13px;background:#C9D7E8}
+.strack .pt{position:absolute;top:4px;width:22px;height:22px;margin-left:-11px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(18,54,102,.25);display:grid;place-items:center;color:#fff;font-size:9px;font-weight:800;transition:opacity .15s,transform .15s;cursor:default}
+.strack .pt:hover{transform:scale(1.18);z-index:5}
+.spec.focus .pt{opacity:.18}
+.spec.focus .pt.hl{opacity:1;transform:scale(1.12)}
+.sends{display:flex;justify-content:space-between;font-size:10.5px;color:#6A82A4;font-weight:600;margin-top:4px;gap:20px}
+.sends span:last-child{text-align:right}
+.verd{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.vcard{border-radius:12px;padding:16px 17px;border:1px solid var(--line);background:#fff}
+.vcard .vh{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800;color:#0A2455}
+.vcard .vh i{width:10px;height:10px;border-radius:50%}
+.vcard .vto{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.2;margin:10px 0 10px}
+.vcard .vl{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6A82A4;margin-top:10px}
+.vcard p{font-size:12px;color:#405E8A;line-height:1.5;margin-top:3px}
+
+/* semelhanças */
+.core{display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:center}
+.ring{position:relative;width:210px;height:210px;margin:auto}
+.ringc{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ringc .n{font-size:40px;font-weight:800;letter-spacing:-1.5px;color:#0A2455;line-height:1}
+.ringc .l{font-size:11px;color:#55709B;margin-top:4px;max-width:120px}
+.tchips{display:flex;flex-wrap:wrap;gap:7px}
+.tchip{font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;color:#13305F;display:inline-flex;align-items:center;gap:7px}
+.tchip i{width:8px;height:8px;border-radius:2px}
+.ideas{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.idea{border:1px solid #DCE6F1;border-radius:12px;padding:15px 16px;background:linear-gradient(145deg,#fff,#F7FAFE)}
+.idea .in{font-size:22px;font-weight:800;color:#C8D6E8;letter-spacing:-.5px;line-height:1}
+.idea b{display:block;font-size:13.3px;color:#0A2455;margin:7px 0 4px;line-height:1.3}
+.idea p{font-size:12px;color:#55709B;line-height:1.5}
+.idea .who{display:flex;gap:4px;margin-top:10px}
+.idea .who span{font-size:10px;font-weight:800;color:#fff;border-radius:5px;padding:2px 7px}
+.idea .who span.off{background:#E6EDF5!important;color:#A2B3C8}
+.pairs{display:flex;flex-direction:column}
+.pair{display:grid;grid-template-columns:190px 1fr 46px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.pair:first-child{border-top:none}
+.pair .pn{font-size:12.3px;font-weight:700;color:#13305F;display:flex;align-items:center;gap:5px}
+.pair .pn i{width:8px;height:8px;border-radius:50%}
+.pair .pb{height:10px;border-radius:999px;background:#EDF3FA;overflow:hidden}
+.pair .pb i{display:block;height:100%;border-radius:999px}
+.pair .pv{font-size:13px;font-weight:800;color:#0A2455;text-align:right}
+.twins{display:grid;grid-template-columns:1fr 70px 1fr;gap:0;align-items:stretch}
+.twins .tc{padding:4px 2px}
+.twins .tc h3{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.twins .tc h3 i{width:9px;height:9px;border-radius:50%}
+.twins .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9AB0CC;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:center;gap:6px}
+.twins .mid .eq{width:46px;height:46px;border-radius:50%;background:#EEF3F9;display:grid;place-items:center;font-size:20px;color:#55709B;font-weight:800}
+.tl{list-style:none;display:flex;flex-direction:column;gap:7px}
+.tl li{font-size:12.3px;color:#33507C;line-height:1.45;padding:8px 11px;border-radius:9px;background:#F6F9FD}
+.tl li b{color:#0A2455}
+
+/* diferenças: 4 lentes */
+.lens{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.lcol{border-radius:12px;padding:15px 15px 16px;border:1px solid transparent}
+.lcol .lh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lcol .lb{font-size:12.5px;font-weight:800}
+.lcol .lr{font-size:10px;font-weight:700;color:#55709B;background:rgba(255,255,255,.75);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.lcol .lq{font-size:13.3px;font-weight:800;color:#0A2455;line-height:1.3;margin:10px 0 7px}
+.lcol p{font-size:12px;color:#3E5B86;line-height:1.52}
+.lcol .lt{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.lcol .lt span{font-size:10.5px;font-weight:600;color:#33507C;background:rgba(255,255,255,.8);border-radius:6px;padding:3px 7px}
+.bottomline{margin-top:14px;display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border-radius:11px;background:#0A2455;color:#fff}
+.bottomline .bl{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#9DB8E0;white-space:nowrap;padding-top:2px}
+.bottomline p{font-size:13px;line-height:1.5}
+.excl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.excl>div{padding:15px 16px}
+.excl>div+div{border-left:1px solid var(--line)}
+.excl .eh{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.excl .eh i{width:9px;height:9px;border-radius:50%}
+.excl ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.excl li{font-size:12px;color:#33507C;line-height:1.4}
+.excl li b{display:block;color:#0A2455;font-size:12.3px}
+.excl li small{color:#6A82A4}
+
+/* qual ler */
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px}
+.qbtn{text-align:left;border:1px solid #D7E4F1;background:#fff;border-radius:11px;padding:11px 13px;font-size:12.6px;font-weight:700;color:#13305F;line-height:1.35;display:flex;gap:10px;align-items:flex-start;transition:background .12s,border-color .12s}
+.qbtn .qn{font-size:10px;font-weight:800;color:#8FA6C6;padding-top:2px;min-width:16px}
+.qbtn:hover{border-color:#9FBDE3;background:#F6FAFE}
+.qbtn.on{background:#0A2455;border-color:#0A2455;color:#fff}
+.qbtn.on .qn{color:#9DB8E0}
+.qres{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.qr{border-radius:12px;padding:14px 15px;background:#fff;border:1px solid var(--line);position:relative}
+.qr .qh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.qr .qh b{font-size:12.5px;display:flex;align-items:center;gap:7px}
+.qr .qh b i{width:9px;height:9px;border-radius:50%}
+.qr .pri{font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px}
+.qr .qc{font-size:15px;font-weight:800;color:#0A2455;margin:9px 0 5px;letter-spacing:-.2px}
+.qr p{font-size:12px;color:#405E8A;line-height:1.5}
+.qr.none{background:#F7F9FC;border-style:dashed}
+.qr.none .qc{color:#A2B3C8}
+/* trilha */
+.tml{position:relative;margin:6px 0 2px;padding-left:30px}
+.tml::before{content:'';position:absolute;left:8px;top:6px;bottom:12px;width:2px;background:#D7E3EF}
+.tmn{position:relative;padding-bottom:18px}
+.tmn:last-child{padding-bottom:0}
+.tmn::before{content:'';position:absolute;left:-30px;top:1px;width:18px;height:18px;border-radius:50%;background:#fff;border:3.5px solid var(--pc,#3D4A5C);box-sizing:border-box}
+.tmn .th{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.tmn .ty{font-size:14px;font-weight:800;color:#0A2455;letter-spacing:-.3px}
+.tmn .tt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--pc)}
+.tmn .td{font-size:12.3px;color:#55709B;margin-top:3px;line-height:1.5}
+.blist{list-style:none;margin:6px 0 0}
+.blist li{position:relative;padding-left:24px;margin-bottom:10px;font-size:12.6px;line-height:1.52;color:#405D88}
+.blist li::before{content:'';position:absolute;left:3px;top:6px;width:9px;height:9px;border-radius:50%;background:#2E63A7;box-shadow:0 0 0 4px #E6EEF9}
+.blist li b{color:#0A2455}
+footer{max-width:1680px;margin:0 auto;padding:16px 22px 34px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line)}
+footer b{letter-spacing:.1em;color:var(--accent)}
+
+@media(max-width:1180px){.overview-strip{grid-template-columns:repeat(3,minmax(0,1fr))}.overview-strip .m:nth-child(4){border-left:0}.verd,.lens,.qres,.excl{grid-template-columns:1fr 1fr}.excl>div:nth-child(3){border-left:0}.excl>div:nth-child(n+3){border-top:1px solid var(--line)}.meters{grid-template-columns:1fr 1fr}}
+@media(max-width:980px){.row2,.row31,.row13,.row31[style]{grid-template-columns:minmax(0,1fr)!important}.fam{grid-template-columns:1fr}.fam>div+div{border-left:0;border-top:1px dashed #CFDCEA}.detail{position:static}.core{grid-template-columns:1fr}.twins{grid-template-columns:1fr}.twins .mid{flex-direction:row;padding:10px 0}}
+@media(max-width:860px){
+  #sidebar{position:fixed;left:0;top:var(--hh,60px);z-index:60;background:#fff;box-shadow:3px 0 16px rgba(19,32,46,.14);height:calc(100vh - var(--hh,60px));max-height:none}
+  header{background:var(--bg);border-bottom:none;box-shadow:none}
+  .hsep,.hbooks{display:none}
+  .hwrap>div:not(.logo){display:none}
+  .mob-tab{display:block;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:700;color:var(--ink)}
+  .logo{margin-left:auto}.logo img{height:24px}
+  main{padding:14px 16px 42px}
+  .overview-hero{padding:16px;gap:14px}.hero-logo{display:none}.hero-copy h1{font-size:21px}
+  .bookhead{grid-template-columns:1fr}.cover{width:100%;height:auto;min-height:96px;border-radius:10px}
+  .spines .row{grid-template-columns:1fr}
+}
+@media(max-width:620px){.overview-strip{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.overview-strip .v{white-space:normal}.overview-hero::before{display:none}.overview-strip .m:nth-child(odd){border-left:0}.overview-strip .m:nth-child(4){border-left:1px solid #DDE6F0}.verd,.lens,.qres,.excl{grid-template-columns:1fr}.excl>div+div{border-left:0;border-top:1px solid var(--line)}.section-head .tag{display:none}.meters{grid-template-columns:1fr 1fr}.pair{grid-template-columns:1fr 46px}.pair .pb{grid-column:1/-1;grid-row:2}.simgrid{grid-template-columns:56px repeat(4,1fr)}}
+
+/* ===== cinco livros ===== */
+.verd,.lens,.qres,.excl{grid-template-columns:repeat(5,minmax(0,1fr))}
+.simgrid{grid-template-columns:72px repeat(5,1fr)}
+.hm .cell{min-width:78px}
+.lcol .lh{flex-direction:column;align-items:flex-start;gap:5px}.lcol .lr{white-space:normal;line-height:1.35}
+@media(max-width:1180px){.verd,.lens,.qres,.excl{grid-template-columns:1fr 1fr}.excl>div:nth-child(odd){border-left:0}.excl>div:nth-child(n+3){border-top:1px solid var(--line)}}
+@media(max-width:620px){.verd,.lens,.qres,.excl{grid-template-columns:1fr}.excl>div+div{border-left:0;border-top:1px solid var(--line)}.simgrid{grid-template-columns:56px repeat(5,1fr)}}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="ic-over" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></symbol>
+  <symbol id="ic-books" viewBox="0 0 24 24"><path d="M4 19.5V5a1.5 1.5 0 0 1 1.5-1.5H8v16H5.5A1.5 1.5 0 0 1 4 19.5ZM8 3.5h4v16H8M12 6.2l3.6-1 3.9 14.3-3.6 1Z"/></symbol>
+  <symbol id="ic-map" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="5" height="5" rx="1"/><rect x="9.5" y="3.5" width="5" height="5" rx="1"/><rect x="15.5" y="3.5" width="5" height="5" rx="1"/><rect x="3.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><rect x="3.5" y="15.5" width="5" height="5" rx="1"/></symbol>
+  <symbol id="ic-side" viewBox="0 0 24 24"><path d="M3.5 7h17M3.5 12h17M3.5 17h17"/><circle cx="8" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="ic-same" viewBox="0 0 24 24"><circle cx="9" cy="12" r="5.8"/><circle cx="15" cy="12" r="5.8"/></symbol>
+  <symbol id="ic-diff" viewBox="0 0 24 24"><path d="M12 3.5v17M5 8l-2.5 5.5h5L5 8ZM19 8l-2.5 5.5h5L19 8ZM5 8h14M8.5 20.5h7"/></symbol>
+  <symbol id="ic-use" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5M8.5 11h5M11 8.5v5"/></symbol>
+  <symbol id="ic-method" viewBox="0 0 24 24"><path d="M5 4.6A2 2 0 0 1 7 2.6h12v16H7a2 2 0 0 0-2 2z"/><path d="M5 20.6a2 2 0 0 1 2-2h12"/></symbol>
+</defs></svg>
+<header>
+  <div class="hwrap">
+    <button id="navToggle" title="Mostrar/ocultar seções">☰</button>
+    <span id="mobTab" class="mob-tab" aria-live="polite"></span>
+    <div class="logo"><img src="data:image/png;base64,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" alt="Lorinvest"></div>
+    <span class="hsep"></span>
+    <div><div class="htitle">Microeconomia: cinco manuais</div>
+    <div class="hsub">Biblioteca · Guia comparativo</div></div>
+    <div class="hspace"></div>
+    <div class="hbooks" id="hbooks"></div>
+  </div>
+</header>
+<div class="layout">
+  <aside id="sidebar"><div id="navlist"></div></aside>
+  <div class="maincol">
+  <main>
+    <section class="panel on" id="p-over"></section>
+    <section class="panel" id="p-books"></section>
+    <section class="panel" id="p-map"></section>
+    <section class="panel" id="p-side"></section>
+    <section class="panel" id="p-same"></section>
+    <section class="panel" id="p-diff"></section>
+    <section class="panel" id="p-use"></section>
+    <section class="panel" id="p-method"></section>
+  </main>
+  </div>
+</div>
+<footer>
+  <b>LORINVEST</b> · Guia de leitura comparada, elaborado a partir dos sumários, prefácios e aberturas de capítulo dos cinco livros (PDFs da biblioteca pessoal; dois são escaneados e tiveram o sumário lido das páginas digitalizadas). As notas de cobertura e as posições nos espectros são julgamento analítico, não medida objetiva. Ver aba Metodologia.
+</footer>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TOC={"bb":[{"p":"Part 1 · Introduction to Microeconomics","c":[{"t":"1. Analyzing Economic Problems","s":["Why Study Microeconomics?","Three Key Analytical Tools","Positive and Normative Analysis"]},{"t":"2. Demand and Supply Analysis","s":["Demand, Supply, and Market Equilibrium","Price Elasticity of Demand","Other Elasticities","Elasticity in the Long Run versus the Short Run","Back-of-the-Envelope Calculations"]}]},{"p":"Part 2 · Consumer Theory","c":[{"t":"3. Consumer Preferences and the Concept of Utility","s":["Representations of Preferences","Utility Functions","Special Preferences"]},{"t":"4. Consumer Choice","s":["The Budget Constraint","Optimal Choice","Consumer Choice with Composite Goods","Revealed Preference"]},{"t":"5. The Theory of Demand","s":["Optimal Choice and Demand","Change in the Price of a Good: Substitution Effect and Income Effect","Change in the Price of a Good: The Concept of Consumer Surplus","Market Demand","The Choice of Labor and Leisure","Consumer Price Indices"]}]},{"p":"Part 3 · Production and Cost Theory","c":[{"t":"6. Inputs and Production Functions","s":["Introduction to Inputs and Production Functions","Production Functions with a Single Input","Production Functions with More Than One Input","Substitutability among Inputs","Returns to Scale","Technological Progress"]},{"t":"7. Costs and Cost Minimization","s":["Cost Concepts for Decision Making","The Cost-Minimization Problem","Comparative Statics Analysis of the Cost-Minimization Problem","Short-Run Cost Minimization"]},{"t":"8. Cost Curves","s":["Long-Run Cost Curves","Short-Run Cost Curves","Special Topics in Cost","Estimating Cost Functions"]}]},{"p":"Part 4 · Perfect Competition","c":[{"t":"9. Perfectly Competitive Markets","s":["What Is Perfect Competition?","Profit Maximization by a Price-Taking Firm","How the Market Price Is Determined: Short-Run Equilibrium","How the Market Price Is Determined: Long-Run Equilibrium","Economic Rent and Producer Surplus"]},{"t":"10. Competitive Markets: Applications","s":["The Invisible Hand, Excise Taxes and Subsidies","Price Ceilings and Floors","Production Quotas","Price Supports in the Agricultural Sector","Import Quotas and Tariffs"]}]},{"p":"Part 5 · Market Power","c":[{"t":"11. Monopoly and Monopsony","s":["Profit Maximization by a Monopolist","The Importance of Price Elasticity of Demand","Comparative Statics for Monopolists","Monopoly with Multiple Plants and Markets","The Welfare Economics of Monopoly","Why Do Monopoly Markets Exist?","Monopsony"]},{"t":"12. Capturing Surplus","s":["Capturing Surplus","First-Degree Price Discrimination: Making the Most from Each Consumer","Second-Degree Price Discrimination: Quantity Discounts","Third-Degree Price Discrimination: Different Prices for Different Market Segments","Tying (Tie-In Sales)","Advertising"]}]},{"p":"Part 6 · Imperfect Competition and Strategic Behavior","c":[{"t":"13. Market Structure and Competition","s":["Describing and Measuring Market Structure","Oligopoly with Homogeneous Products","Dominant Firm Markets","Oligopoly with Horizontally Differentiated Products","Monopolistic Competition"]},{"t":"14. Game Theory and Strategic Behavior","s":["The Concept of Nash Equilibrium","The Repeated Prisoners’ Dilemma","Sequential-Move Games and Strategic Moves"]}]},{"p":"Part 7 · Special Topics","c":[{"t":"15. Risk and Information","s":["Describing Risky Outcomes","Evaluating Risky Outcomes","Bearing and Eliminating Risk","Analyzing Risky Decisions","Auctions"]},{"t":"16. General Equilibrium Theory","s":["General Equilibrium Analysis: Two Markets","General Equilibrium Analysis: Many Markets","General Equilibrium Analysis: Comparative Statics","The Efficiency of Competitive Markets","Gains from Free Trade"]},{"t":"17. Externalities and Public Goods","s":["Introduction","Externalities","Public Goods"]}]}],"nic":[{"p":"Part One · Introduction","c":[{"t":"1. Economic Models","s":["Theoretical Models","Verification of Economic Models","General Features of Economic Models","Development of the Economic Theory of Value","Modern Developments"]},{"t":"2. Mathematics for Microeconomics","s":["Maximization of a Function of One Variable","Functions of Several Variables","Maximization of Functions of Several Variables","The Envelope Theorem","Constrained Maximization","Envelope Theorem in Constrained Maximization Problems","Inequality Constraints","Second-Order Conditions and Curvature","Homogeneous Functions","Integration","Dynamic Optimization","Mathematical Statistics"]}]},{"p":"Part Two · Choice and Demand","c":[{"t":"3. Preferences and Utility","s":["Axioms of Rational Choice","Utility","Trades and Substitution","The Mathematics of Indifference Curves","Utility Functions for Specific Preferences","The Many-Good Case"]},{"t":"4. Utility Maximization and Choice","s":["An Initial Survey","The Two-Good Case: A Graphical Analysis","The n-Good Case","Indirect Utility Function","The Lump Sum Principle","Expenditure Minimization","Properties of Expenditure Functions"]},{"t":"5. Income and Substitution Effects","s":["Demand Functions","Changes in Income","Changes in a Good's Price","The Individual’s Demand Curve","Compensated (Hicksian) Demand Curves and Functions","A Mathematical Development of Response to Price Changes","Demand Elasticities","Consumer Surplus","Revealed Preference and the Substitution Effect"]},{"t":"6. Demand Relationships among Goods","s":["The Two-Good Case","Substitutes and Complements","Net (Hicksian) Substitutes and Complements","Substitutability with Many Goods","Composite Commodities","Home Production, Attributes of Goods, and Implicit Prices"]}]},{"p":"Part Three · Uncertainty and Strategy","c":[{"t":"7. Uncertainty","s":["Mathematical Statistics","Fair Gambles and the Expected Utility Hypothesis","Expected Utility","The von Neumann–Morgenstern Theorem","Risk Aversion","Measuring Risk Aversion","Methods for Reducing Uncertainty and Risk","Insurance","Diversification","Flexibility","Information","The State-Preference Approach to Choice under Uncertainty","Asymmetry of Information"]},{"t":"8. Game Theory","s":["Basic Concepts","Prisoners' Dilemma","Nash Equilibrium","Mixed Strategies","Existence of Equilibrium","Continuum of Actions","Sequential Games","Repeated Games","Incomplete Information","Simultaneous Bayesian Games","Signaling Games","Experimental Games","Evolutionary Games and Learning"]}]},{"p":"Part Four · Production and Supply","c":[{"t":"9. Production Functions","s":["Marginal Productivity","Isoquant Maps and the Rate of Technical Substitution","Returns to Scale","The Elasticity of Substitution","Four Simple Production Functions","Technical Progress"]},{"t":"10. Cost Functions","s":["Definitions of Costs","Cost-Minimizing Input Choices","Cost Functions","Cost Functions and Shifts in Cost Curves","Shephard’s Lemma and the Elasticity of Substitution","Short-Run, Long-Run Distinction"]},{"t":"11. Profit Maximization","s":["The Nature and Behavior of Firms","Profit Maximization","Marginal Revenue","Short-Run Supply by a Price-Taking Firm","Profit Functions","Profit Maximization and Input Demand"]}]},{"p":"Part Five · Competitive Markets","c":[{"t":"12. The Partial Equilibrium Competitive Model","s":["Market Demand","Timing of the Supply Response","Pricing in the Very Short Run","Short-Run Price Determination","Shifts in Supply and Demand Curves: A Graphical Analysis","Mathematical Model of Market Equilibrium","Long-Run Analysis","Long-Run Equilibrium: Constant Cost Case","Shape of the Long-Run Supply Curve","Long-Run Elasticity of Supply","Comparative Statics Analysis of Long-Run Equilibrium","Producer Surplus in the Long Run","Economic Efficiency and Welfare Analysis","Price Controls and Shortages","Tax Incidence Analysis"]},{"t":"13. General Equilibrium and Welfare","s":["Perfectly Competitive Price System","A Graphical Model of General Equilibrium with Two Goods","Comparative Statics Analysis","General Equilibrium Modeling and Factor Prices","A Mathematical Model of Exchange","A Mathematical Model of Production and Exchange","Computable General Equilibrium Models"]}]},{"p":"Part Six · Market Power","c":[{"t":"14. Monopoly","s":["Barriers to Entry","Profit Maximization and Output Choice","Monopoly and Resource Allocation","Monopoly, Product Quality, and Durability","Price Discrimination","Second-Degree Price Discrimination through Price Schedules","Regulation of Monopoly","Dynamic Views of Monopoly"]},{"t":"15. Imperfect Competition","s":["Short-Run Decisions: Pricing and Output","Bertrand Model","Cournot Model","Capacity Constraints","Product Differentiation","Tacit Collusion","Longer-Run Decisions: Investment, Entry, and Exit","Strategic Entry Deterrence","Signaling","How Many Firms Enter?","Innovation"]}]},{"p":"Part Seven · Pricing in Input Markets","c":[{"t":"16. Labor Markets","s":["Allocation of Time","A Mathematical Analysis of Labor Supply","Market Supply Curve for Labor","Labor Market Equilibrium","Wage Variation","Monopsony in the Labor Market","Labor Unions"]},{"t":"17. Capital and Time","s":["Capital and the Rate of Return","Determining the Rate of Return","The Firm's Demand for Capital","Present Discounted Value Approach to Investment Decisions","Natural Resource Pricing","Present Discounted Value","Continuous Time"]}]},{"p":"Part Eight · Market Failure","c":[{"t":"18. Asymmetric Information","s":["Complex Contracts as a Response to Asymmetric Information","Principal-Agent Model","Hidden Actions","Owner-Manager Relationship","Moral Hazard in Insurance","Hidden Types","Nonlinear Pricing","Adverse Selection in Insurance","Market Signaling","Auctions"]},{"t":"19. Externalities and Public Goods","s":["Defining Externalities","Externalities and Allocative Inefficiency","Solutions to the Externality Problem","Attributes of Public Goods","Public Goods and Resource Allocation","Lindahl Pricing of Public Goods","Voting and Resource Allocation","A Simple Political Model","Voting Mechanisms"]}]}],"ace":[{"p":"Part I · Introduction to Economics","c":[{"t":"1. The Principles and Practice of Economics","s":["The Scope of Economics","Three Principles of Economics","The First Principle of Economics: Optimization","The Second Principle of Economics: Equilibrium","The Third Principle of Economics: Empiricism","Is Economics Good for You?"]},{"t":"2. Economic Methods and Economic Questions","s":["The Scientific Method","Causation and Correlation","Economic Questions and Answers"]},{"t":"3. Optimization: Doing the Best You Can","s":["Two Kinds of Optimization: A Matter of Focus","Optimization in Levels","Optimization in Differences: Marginal Analysis"]},{"t":"4. Demand, Supply, and Equilibrium","s":["Markets","How Do Buyers Behave?","How Do Sellers Behave?","Supply and Demand in Equilibrium","What Would Happen If the Government Tried to Dictate the Price of Gasoline?"]}]},{"p":"Part II · Foundations of Microeconomics","c":[{"t":"5. Consumers and Incentives","s":["The Buyer’s Problem","Putting It All Together","From the Buyer’s Problem to the Demand Curve","Consumer Surplus","Demand Elasticities"]},{"t":"6. Sellers and Incentives","s":["Sellers in a Perfectly Competitive Market","The Seller’s Problem","From the Seller’s Problem to the Supply Curve","Producer Surplus","From the Short Run to the Long Run","From the Firm to the Market: Long-Run Competitive Equilibrium"]},{"t":"7. Perfect Competition and the Invisible Hand","s":["Perfect Competition and Efficiency","Extending the Reach of the Invisible Hand: From the Individual to the Firm","Extending the Reach of the Invisible Hand: Allocation of Resources Across Industries","Prices Guide the Invisible Hand","Equity and Efficiency"]},{"t":"8. Trade","s":["The Production Possibilities Curve","The Basis for Trade: Comparative Advantage","Trade Between States","Trade Between Countries","Arguments Against Free Trade"]},{"t":"9. Externalities and Public Goods","s":["Externalities","Private Solutions to Externalities","Government Solutions to Externalities","Public Goods","Common Pool Resource Goods"]},{"t":"10. The Government in the Economy: Taxation and Regulation","s":["Taxation and Government Spending","Regulation","Government Failures","Equity Versus Efficiency","Consumer Sovereignty"]},{"t":"11. Markets for Factors of Production","s":["The Competitive Labor Market","The Supply of Labor: Your Labor-Leisure Trade-off","Wage Inequality","The Market for Other Factors"]}]},{"p":"Part III · Market Structure","c":[{"t":"12. Monopoly","s":["Introducing a New Market","Sources of Market Power","The Monopolist’s Problem","Choosing the Optimal Quantity","The “Broken” Invisible Hand: The Cost of Monopoly","Restoring Efficiency","Government Policy Toward Monopoly"]},{"t":"13. Game Theory and Strategic Play","s":["Simultaneous Move Games","Nash Equilibrium","Applications of Nash Equilibria","How Do People Actually Play Games?","Extensive-Form Games"]},{"t":"14. Oligopoly and Monopolistic Competition","s":["Two More Market Structures","Oligopoly","Monopolistic Competition","The “Broken” Invisible Hand","Summing Up: Four Market Structures"]}]},{"p":"Part IV · Extending the Microeconomic Toolbox","c":[{"t":"15. Trade-offs Involving Time and Risk","s":["Modeling Time and Risk","The Time Value of Money","Time Preferences","Probability and Risk","Risk Preferences"]},{"t":"16. The Economics of Information","s":["Asymmetric Information","Hidden Actions: Markets with Moral Hazard","Government Policy in a World of Asymmetric Information"]},{"t":"17. Auctions and Bargaining","s":["Auctions","Bargaining"]},{"t":"18. Social Economics","s":["The Economics of Charity","The Economics of Trust and Revenge","How Others Influence Our Decisions"]}]}],"pin":[{"p":"Parte I · Introdução: mercados e preços","c":[{"t":"1. Aspectos preliminares","s":["Os temas da microeconomia","O que é um mercado?","Preços reais versus preços nominais","Por que estudar microeconomia?"]},{"t":"2. Os fundamentos da oferta e da demanda","s":["Oferta e demanda","O mecanismo de mercado","Mudanças no equilíbrio do mercado","Elasticidades da oferta e da demanda","Elasticidades de curto prazo versus de longo prazo","Compreendendo e prevendo os efeitos das modificações nas condições de mercado","Efeitos da intervenção governamental: controle de preços"]}]},{"p":"Parte II · Produtores, consumidores e mercados competitivos","c":[{"t":"3. Comportamento do consumidor","s":["Preferências do consumidor","Restrições orçamentárias","A escolha por parte do consumidor","Preferência revelada","Utilidade marginal e escolha por parte do consumidor","Índices de custo de vida"]},{"t":"4. Demanda individual e demanda de mercado","s":["Demanda individual","Efeito renda e efeito substituição","Demanda de mercado","Excedente do consumidor","Externalidades de difusão (de rede)","Estimativa empírica da demanda","Apêndice: teoria da demanda, tratamento algébrico"]},{"t":"5. Comportamento do consumidor e incerteza","s":["Descrição do risco","Preferências em relação ao risco","Redução do risco","Demanda por ativos de risco","Economia comportamental"]},{"t":"6. Produção","s":["Tecnologia de produção","Produção com um insumo variável (trabalho)","Produção com dois insumos variáveis","Rendimentos de escala"]},{"t":"7. Custos da produção","s":["Medição de custos: quais custos considerar?","Custos no curto prazo","Custos no longo prazo","Curvas de custo no longo prazo versus no curto prazo","Produção com dois produtos: economias de escopo","Mudanças dinâmicas nos custos: a curva de aprendizagem","Estimativa e previsão de custos","Apêndice: teoria de produção e custo, tratamento algébrico"]},{"t":"8. Maximização de lucros e oferta competitiva","s":["Mercados perfeitamente competitivos","Maximização de lucros","Receita marginal, custo marginal e maximização de lucros","Escolha do nível de produção no curto prazo","Curva da oferta da empresa competitiva no curto prazo","Curva da oferta de mercado no curto prazo","Escolha do nível de produção no longo prazo","Curva da oferta do setor no longo prazo"]},{"t":"9. Análise de mercados competitivos","s":["Ganhos e perdas de políticas governamentais: excedentes","Eficiência de um mercado competitivo","Preços mínimos","Suporte de preços e quotas de produção","Quotas e tarifas de importação","Impacto de um imposto ou de um subsídio"]}]},{"p":"Parte III · Estrutura de mercado e estratégia competitiva","c":[{"t":"10. Poder de mercado: monopólio e monopsônio","s":["Monopólio","Poder de monopólio","Fontes do poder de monopólio","Custos sociais do poder de monopólio","Monopsônio","Poder de monopsônio","Limitação do poder de mercado: a legislação antitruste","Apêndice: legislação antitruste no Brasil (Gesner Oliveira)"]},{"t":"11. Determinação de preços e poder de mercado","s":["Captura do excedente do consumidor","Discriminação de preço","Discriminação intertemporal e preço de pico","Tarifa em duas partes","Venda em pacote","Propaganda","Apêndice: preços de transferência na empresa integrada verticalmente"]},{"t":"12. Competição monopolística e oligopólio","s":["Competição monopolística","Oligopólio (Cournot, Stackelberg)","Concorrência de preços (Bertrand)","Concorrência versus acordo: o dilema dos prisioneiros","Implicações para a determinação de preços oligopolistas","Cartéis"]},{"t":"13. Teoria dos jogos e estratégia competitiva","s":["Jogos e decisões estratégicas","Estratégias dominantes","Retomando o equilíbrio de Nash","Jogos repetitivos","Jogos sequenciais","Ameaças, compromissos e credibilidade","Desencorajamento à entrada","Leilões"]},{"t":"14. Mercado para fatores de produção","s":["Mercados competitivos de fatores","Equilíbrio em um mercado competitivo de fatores","Mercado de fatores com poder de monopsônio","Mercado de fatores com poder de monopólio"]},{"t":"15. Investimento, tempo e mercados de capitais","s":["Estoques versus fluxos","Valor presente descontado","Valor de um título","Critério do valor presente líquido","Ajustes para riscos (CAPM)","Decisões de investimento dos consumidores","Investimentos em capital humano","Decisões de produção intertemporal: recursos esgotáveis","Como são determinadas as taxas de juros?"]}]},{"p":"Parte IV · Informação, falhas de mercado e o papel do governo","c":[{"t":"16. Equilíbrio geral e eficiência econômica","s":["Análise de equilíbrio geral","Eficiência nas trocas","Equidade e eficiência","Eficiência na produção","Os ganhos obtidos a partir do livre comércio","A eficiência nos mercados competitivos","Por que os mercados falham"]},{"t":"17. Mercados com informações assimétricas","s":["Incerteza quanto à qualidade e o mercado de lemons","Sinalização de mercado","Risco moral","O problema da relação agente-principal","Incentivos aos administradores de uma empresa integrada","Salário de eficiência"]},{"t":"18. Externalidades e bens públicos","s":["Externalidades","Formas de corrigir falhas de mercado","Externalidades e direito de propriedade (Coase)","Recursos de propriedade comum","Bens públicos","Preferências privadas por bens públicos"]}]},{"p":"Apêndice","c":[{"t":"Os fundamentos da regressão","s":["Estimativa","Testes estatísticos","A qualidade do ajuste","Previsões econômicas"]}]}],"mwg":[{"p":"Part One · Individual Decision Making","c":[{"t":"1. Preference and Choice","s":["Preference Relations","Choice Rules","The Relationship between Preference Relations and Choice Rules"]},{"t":"2. Consumer Choice","s":["Commodities","The Consumption Set","Competitive Budgets","Demand Functions and Comparative Statics","The Weak Axiom of Revealed Preference and the Law of Demand"]},{"t":"3. Classical Demand Theory","s":["Preference Relations: Basic Properties","Preference and Utility","The Utility Maximization Problem","The Expenditure Minimization Problem","Duality: A Mathematical Introduction","Relationships between Demand, Indirect Utility, and Expenditure Functions","Integrability","Welfare Evaluation of Economic Changes","The Strong Axiom of Revealed Preference"]},{"t":"4. Aggregate Demand","s":["Aggregate Demand and Aggregate Wealth","Aggregate Demand and the Weak Axiom","Aggregate Demand and the Existence of a Representative Consumer"]},{"t":"5. Production","s":["Production Sets","Profit Maximization and Cost Minimization","The Geometry of Cost and Supply in the Single-Output Case","Aggregation","Efficient Production","Remarks on the Objectives of the Firm","Appendix: The Linear Activity Model"]},{"t":"6. Choice Under Uncertainty","s":["Expected Utility Theory","Money Lotteries and Risk Aversion","Comparison of Payoff Distributions in Terms of Return and Risk","State-dependent Utility","Subjective Probability Theory"]}]},{"p":"Part Two · Game Theory","c":[{"t":"7. Basic Elements of Noncooperative Games","s":["What Is a Game?","The Extensive Form Representation of a Game","Strategies and the Normal Form Representation","Randomized Choices"]},{"t":"8. Simultaneous-Move Games","s":["Dominant and Dominated Strategies","Rationalizable Strategies","Nash Equilibrium","Games of Incomplete Information: Bayesian Nash Equilibrium","The Possibility of Mistakes: Trembling-Hand Perfection"]},{"t":"9. Dynamic Games","s":["Sequential Rationality, Backward Induction, and Subgame Perfection","Beliefs and Sequential Rationality","Reasonable Beliefs and Forward Induction","Appendix: Finite and Infinite Horizon Bilateral Bargaining"]}]},{"p":"Part Three · Market Equilibrium and Market Failure","c":[{"t":"10. Competitive Markets","s":["Pareto Optimality and Competitive Equilibria","Partial Equilibrium Competitive Analysis","The Fundamental Welfare Theorems in a Partial Equilibrium Context","Welfare Analysis in the Partial Equilibrium Model","Free-Entry and Long-Run Competitive Equilibria"]},{"t":"11. Externalities and Public Goods","s":["A Simple Bilateral Externality","Public Goods","Multilateral Externalities","Private Information and Second-Best Solutions"]},{"t":"12. Market Power","s":["Monopoly Pricing","Static Models of Oligopoly","Repeated Interaction","Entry","The Competitive Limit","Strategic Precommitments to Affect Future Competition","Appendix: Repeated Games and the Folk Theorem","Appendix: Strategic Entry Deterrence and Accommodation"]},{"t":"13. Adverse Selection, Signaling, and Screening","s":["Informational Asymmetries and Adverse Selection","Signaling","Screening"]},{"t":"14. The Principal-Agent Problem","s":["Hidden Actions (Moral Hazard)","Hidden Information (and Monopolistic Screening)","Hidden Actions and Hidden Information: Hybrid Models"]}]},{"p":"Part Four · General Equilibrium","c":[{"t":"15. General Equilibrium Theory: Some Examples","s":["Pure Exchange: The Edgeworth Box","The One-Consumer, One-Producer Economy","The 2 × 2 Production Model","General Versus Partial Equilibrium Theory"]},{"t":"16. Equilibrium and Its Basic Welfare Properties","s":["The Basic Model and Definitions","The First Fundamental Theorem of Welfare Economics","The Second Fundamental Theorem of Welfare Economics","Pareto Optimality and Social Welfare Optima","First-Order Conditions for Pareto Optimality","Some Applications"]},{"t":"17. The Positive Theory of Equilibrium","s":["Equilibrium: Definitions and Basic Equations","Existence of Walrasian Equilibrium","Local Uniqueness and the Index Theorem","Anything Goes: The Sonnenschein–Mantel–Debreu Theorem","Uniqueness of Equilibria","Comparative Statics Analysis","Tâtonnement Stability","Large Economies and Nonconvexities"]},{"t":"18. Some Foundations for Competitive Equilibria","s":["Core and Equilibria","Noncooperative Foundations of Walrasian Equilibria","The Limits to Redistribution","Equilibrium and the Marginal Productivity Principle","Appendix: Cooperative Game Theory"]},{"t":"19. General Equilibrium Under Uncertainty","s":["A Market Economy with Contingent Commodities","Arrow–Debreu Equilibrium","Sequential Trade","Asset Markets","Incomplete Markets","Firm Behavior under Uncertainty","Imperfect Information"]},{"t":"20. Equilibrium and Time","s":["Intertemporal Utility","Intertemporal Production and Efficiency","Equilibrium: The One-Consumer Case","Stationary Paths, Interest Rates, and Golden Rules","Dynamics","Equilibrium: Several Consumers","Overlapping Generations","Nonequilibrium Dynamics: Tâtonnement and Learning"]}]},{"p":"Part Five · Welfare Economics and Incentives","c":[{"t":"21. Social Choice Theory","s":["Social Preferences over Two Alternatives","The General Case: Arrow’s Impossibility Theorem","Some Possibility Results: Restricted Domains","Social Choice Functions"]},{"t":"22. Elements of Welfare Economics and Axiomatic Bargaining","s":["Utility Possibility Sets","Social Welfare Functions and Social Optima","Invariance Properties of Social Welfare Functions","The Axiomatic Bargaining Approach","Coalitional Bargaining: The Shapley Value"]},{"t":"23. Incentives and Mechanism Design","s":["The Mechanism Design Problem","Dominant Strategy Implementation","Bayesian Implementation","Participation Constraints","Optimal Bayesian Mechanisms"]}]},{"p":"Mathematical Appendix","c":[{"t":"Mathematical Appendix","s":["Matrix Notation for Derivatives","Homogeneous Functions and Euler’s Formula","Concave and Quasiconcave Functions","Matrices: Negative (Semi)Definiteness","The Implicit Function Theorem","Continuous Functions and Compact Sets","Convex Sets and Separating Hyperplanes","Correspondences","Fixed Point Theorems","Unconstrained and Constrained Maximization","The Envelope Theorem","Linear Programming","Dynamic Programming"]}]}]};
+
+// ---------- livros (ordem = escada de rigor) ----------
+const BOOKS=[
+ {id:'ace',ini:'A',short:'Acemoglu',color:'#D9822B',soft:'#FCF1E6',level:'Princípios',lv:1,
+  title:'Microeconomics',sub:'Global Edition',
+  authors:'Daron Acemoglu, David Laibson & John A. List (MIT, Harvard, Chicago)',ed:'1ª ed. global · Pearson · 2016 (EUA 2015)',pages:507,chapters:18,blocks:'4 partes · 18 capítulos',
+  school:'Microeconomia neoclássica com forte peso de evidência empírica, experimentos e economia comportamental',
+  reader:'Primeiro curso de graduação; quem quer intuição e evidência antes da matemática',
+  math:'Baixa: gráficos e aritmética; otimização "em níveis" e "em diferenças" sem cálculo',
+  cases:'Abre cada capítulo com uma pergunta e responde com dados ("Evidence-Based Economics"); boxes "Choice & Consequence" e "Letting the Data Speak"',
+  tone:'Três princípios: otimização, equilíbrio e empirismo. A economia como ciência que testa hipóteses',
+  q:'Como as pessoas realmente decidem, e como sabemos disso pelos dados?',
+  one:'Introdução moderna e empírica: trata causalidade, experimentos e comportamento como parte do núcleo, não como apêndice.',
+  side:'Evidência e comportamento',
+  spine:[['Princípios e método','g1'],['Causalidade e dados','g1'],['Otimização','g1'],['Oferta e demanda','g1'],['Consumidor','g2'],['Vendedor','g3'],['Mão invisível','g4'],['Comércio','g4'],['Externalidades e bens públicos','g8'],['Tributação e regulação','g8'],['Mercados de fatores','g7'],['Monopólio','g5'],['Jogos','g5'],['Oligopólio','g5'],['Tempo e risco','g6'],['Informação','g6'],['Leilões e barganha','g6'],['Economia social','g8']]},
+ {id:'pin',ini:'P',short:'Pindyck',color:'#2E63A7',soft:'#EAF1FB',level:'Intermediário aplicado',lv:2,
+  title:'Microeconomia',sub:'Edição em português',
+  authors:'Robert S. Pindyck & Daniel L. Rubinfeld (MIT, Berkeley)',ed:'6ª ed. · Pearson Prentice Hall Brasil · 2006',pages:670,chapters:18,blocks:'4 partes · 18 capítulos + apêndice de regressão',
+  school:'Microeconomia neoclássica intermediária, orientada a aplicações de negócios e política',
+  reader:'Graduação intermediária, MBA e profissionais que aplicam micro no trabalho',
+  math:'Média: gráficos e álgebra no corpo; cálculo em apêndices de capítulo',
+  cases:'Centenas de "Exemplos" com empresas e mercados reais; apêndice sobre antitruste no Brasil (Gesner Oliveira)',
+  tone:'Aplicado: cada ferramenta vem com um exemplo numérico de mercado real',
+  q:'Como usar a teoria do consumidor, da firma e dos mercados para decisões de negócio e de política?',
+  one:'O intermediário clássico e o mais aplicado dos cinco: forte em preço, custos, poder de mercado e estratégia, com exemplos de mercado reais.',
+  side:'Aplicação a negócios',
+  spine:[['Mercados e preços','g1'],['Oferta e demanda','g1'],['Consumidor','g2'],['Demanda','g2'],['Incerteza','g6'],['Produção','g3'],['Custos','g3'],['Oferta competitiva','g4'],['Mercados competitivos','g4'],['Monopólio e monopsônio','g5'],['Preço com poder de mercado','g5'],['Oligopólio','g5'],['Jogos','g5'],['Fatores','g7'],['Investimento e capital','g7'],['Equilíbrio geral','g4'],['Informação assimétrica','g6'],['Externalidades','g8']]},
+ {id:'bb',ini:'B',short:'Besanko',color:'#1B9B66',soft:'#E7F5EE',level:'Intermediário com cálculo',lv:3,
+  title:'Microeconomics',sub:'',
+  authors:'David Besanko & Ronald R. Braeutigam (Northwestern)',ed:'4ª ed. · Wiley · 2011',pages:822,chapters:17,blocks:'7 partes · 17 capítulos',
+  school:'Microeconomia neoclássica intermediária, com ênfase em otimização com restrição, equilíbrio e estática comparativa',
+  reader:'Graduação intermediária com cálculo; pós em políticas públicas e MBA (o prefácio sugere um roteiro)',
+  math:'Média-alta: cálculo usado no texto de forma gradual; dualidade e Shephard em apêndice',
+  cases:'"Learning-By-Doing Exercises" resolvidos passo a passo e aberturas com casos (milho, HiSense, cigarros)',
+  tone:'Didático-analítico: três ferramentas (otimização com restrição, equilíbrio, estática comparativa) aplicadas tema a tema',
+  q:'Como resolver, passo a passo, os problemas de otimização do consumidor e da firma e ver o que muda quando os parâmetros mudam?',
+  one:'O intermediário mais "mão na massa": explica cada conta e é o mais detalhado em produção e custos.',
+  side:'Ferramenta passo a passo',
+  spine:[['Três ferramentas','g1'],['Oferta e demanda','g1'],['Preferências','g2'],['Escolha','g2'],['Demanda','g2'],['Produção','g3'],['Minimização de custo','g3'],['Curvas de custo','g3'],['Concorrência perfeita','g4'],['Aplicações','g4'],['Monopólio e monopsônio','g5'],['Captura de excedente','g5'],['Estrutura de mercado','g5'],['Jogos','g5'],['Risco e informação','g6'],['Equilíbrio geral','g4'],['Externalidades','g8']]},
+ {id:'nic',ini:'N',short:'Nicholson',color:'#7A4FD1',soft:'#F1ECFC',level:'Intermediário-avançado',lv:4,
+  title:'Microeconomic Theory',sub:'Basic Principles and Extensions',
+  authors:'Walter Nicholson & Christopher Snyder (Amherst, Dartmouth)',ed:'11ª ed. · South-Western/Cengage · 2012',pages:782,chapters:19,blocks:'8 partes · 19 capítulos, cada um com "Extensions"',
+  school:'Microeconomia neoclássica formal, com teoria dos jogos e informação integradas',
+  reader:'Graduação avançada e mestrado; ponte para o Mas-Colell',
+  math:'Alta: capítulo inteiro de matemática (Lagrange, envelope, programação dinâmica, estatística)',
+  cases:'Exemplos numéricos e "Extensions" com aplicações empíricas e modelos mais gerais (translog, portfólio, orçamento em dois estágios)',
+  tone:'Formal, mas didático: deriva os resultados e mostra a aplicação logo em seguida',
+  q:'Quais são as derivações formais por trás da micro intermediária, e como elas se generalizam?',
+  one:'A ponte entre o intermediário e a pós: usa cálculo de verdade, integra jogos e informação e prepara para o Mas-Colell.',
+  side:'Ponte para a pós',
+  spine:[['Modelos','g1'],['Matemática','g1'],['Preferências','g2'],['Maximização','g2'],['Renda e substituição','g2'],['Relações entre bens','g2'],['Incerteza','g6'],['Jogos','g5'],['Produção','g3'],['Custos','g3'],['Lucro','g3'],['Equilíbrio parcial','g4'],['Equilíbrio geral','g4'],['Monopólio','g5'],['Concorrência imperfeita','g5'],['Trabalho','g7'],['Capital e tempo','g7'],['Informação assimétrica','g6'],['Externalidades','g8']]},
+ {id:'mwg',ini:'MW',short:'Mas-Colell',color:'#C0392B',soft:'#FBECEA',level:'Pós-graduação',lv:5,
+  title:'Microeconomic Theory',sub:'',
+  authors:'Andreu Mas-Colell, Michael D. Whinston & Jerry R. Green (Harvard)',ed:'1ª ed. · Oxford University Press · 1995',pages:994,chapters:23,blocks:'5 partes · 23 capítulos + apêndice matemático',
+  school:'Teoria microeconômica axiomática: decisão individual, jogos, equilíbrio geral, bem-estar e mecanismos',
+  reader:'Doutorado (primeiro ano) e pesquisadores; referência de consulta',
+  math:'Muito alta: teoremas e provas, topologia, convexidade, pontos fixos',
+  cases:'Quase nenhum caso real; exemplos estilizados para ilustrar teoremas',
+  tone:'Axiomático: parte de relações de preferência e prova sob que condições os resultados valem',
+  q:'Sob que hipóteses os resultados da micro são verdadeiros, e o que acontece quando elas falham?',
+  one:'A referência da pós: prova os teoremas que os outros quatro usam, e vai muito além em equilíbrio geral, bem-estar e mecanismos.',
+  side:'Teoria axiomática',
+  spine:[['Preferência e escolha','g2'],['Escolha do consumidor','g2'],['Demanda clássica','g2'],['Demanda agregada','g2'],['Produção','g3'],['Incerteza','g6'],['Jogos','g5'],['Jogos simultâneos','g5'],['Jogos dinâmicos','g5'],['Mercados competitivos','g4'],['Externalidades','g8'],['Poder de mercado','g5'],['Seleção adversa','g6'],['Agente-principal','g6'],['Equilíbrio geral (6 cap.)','g4'],['Escolha social','g4'],['Bem-estar e barganha','g4'],['Mecanismos','g6']]}
+];
+const BK={};BOOKS.forEach(b=>BK[b.id]=b);
+const ORDER=['ace','pin','bb','nic','mwg'];
+
+// ---------- grupos de temas ----------
+const G={
+ g1:{n:'Método e fundamentos',c:'#5C6B7A',bg:'#EEF1F5'},
+ g2:{n:'Consumidor e demanda',c:'#2A8C9E',bg:'#E4F3F5'},
+ g3:{n:'Produção e custos',c:'#8C6D3F',bg:'#F4EEE5'},
+ g4:{n:'Mercados competitivos e bem-estar',c:'#2F7FBF',bg:'#E6F0FA'},
+ g5:{n:'Poder de mercado e jogos',c:'#D0453A',bg:'#FBEAE8'},
+ g6:{n:'Incerteza, informação e mecanismos',c:'#4B6584',bg:'#E9EEF5'},
+ g7:{n:'Fatores, tempo e capital',c:'#C79A15',bg:'#FBF4DE'},
+ g8:{n:'Falhas de mercado e governo',c:'#9B5D8C',bg:'#F5EAF2'}
+};
+// [grupo, tema, {livro:[nota 0-3, referência, comentário]}]
+// 3 = eixo (vários capítulos ou tema estruturante) · 2 = capítulo dedicado · 1 = seção ou trecho · 0 = não trata
+const T=[
+ ['g1','Método: modelos, causalidade e evidência',{ace:[3,'Cap. 1–2','Método científico, correlação × causalidade, experimentos naturais; cada capítulo responde uma pergunta com dados.'],pin:[1,'Cap. 1','Teorias e modelos, análise positiva × normativa.'],bb:[1,'Cap. 1','Três ferramentas analíticas; análise positiva × normativa.'],nic:[2,'Cap. 1','O que são modelos, como verificá-los e a história da teoria do valor.'],mwg:[0,'—','Vai direto aos axiomas.']}],
+ ['g1','Ferramental matemático',{ace:[1,'Cap. 3','Otimização "em níveis" e "em diferenças" (análise marginal) sem cálculo.'],pin:[1,'Ap. cap. 4 e 7','Tratamento algébrico de demanda e custo em apêndices.'],bb:[2,'Cap. 1 + apêndices','Otimização com restrição desde o cap. 1; matemática da escolha e dualidade em apêndices.'],nic:[3,'Cap. 2 + Extensions','Capítulo inteiro: Lagrange, envelope, condições de 2ª ordem, homogeneidade, programação dinâmica, estatística.'],mwg:[3,'Apêndice M.A–M.N','Concavidade, hiperplanos separadores, correspondências, pontos fixos, programação linear e dinâmica.']}],
+ ['g1','Oferta, demanda e elasticidades',{ace:[2,'Cap. 4, 5.5','Mercado competitivo, disposição a pagar e a aceitar, elasticidades.'],pin:[3,'Cap. 2, 4','Mecanismo de mercado, elasticidades de curto e longo prazo, previsão de efeitos.'],bb:[3,'Cap. 2, 5','Equilíbrio, elasticidades e contas de guardanapo ("back-of-the-envelope").'],nic:[1,'Cap. 5, 12','Elasticidades como derivadas e equilíbrio parcial.'],mwg:[1,'Cap. 10.C','Equilíbrio parcial como caso particular.']}],
+ ['g1','Estimação empírica (demanda e custos)',{ace:[2,'Cap. 2 + boxes','Dados e experimentos como prova; "Letting the Data Speak".'],pin:[2,'Cap. 4.6, 7.7, Ap.','Estimativa de demanda e de custos e apêndice de regressão.'],bb:[1,'Cap. 8.4','Estimação de funções de custo.'],nic:[1,'Extensions','Formas funcionais estimáveis (translog, participação no orçamento).'],mwg:[0,'—','']}],
+ ['g2','Preferências e utilidade',{ace:[1,'Cap. 5 + Ap.','Curvas de indiferença em apêndice; foco no "problema do comprador".'],pin:[2,'Cap. 3','Cestas, curvas de indiferença, TMS, utilidade marginal.'],bb:[2,'Cap. 3','Representações de preferência, funções de utilidade, preferências especiais.'],nic:[2,'Cap. 3','Axiomas de escolha racional e matemática das curvas de indiferença.'],mwg:[3,'Cap. 1, 3','Relações de preferência, regras de escolha, existência de função utilidade.']}],
+ ['g2','Escolha, renda/substituição e dualidade',{ace:[1,'Cap. 5','Efeitos de preço e renda sobre a escolha, de forma gráfica.'],pin:[2,'Cap. 4 + Ap.','Efeito renda e substituição, Giffen; dualidade em apêndice.'],bb:[2,'Cap. 4–5','Escolha ótima, solução de canto, efeitos renda e substituição.'],nic:[3,'Cap. 4–6','Utilidade indireta, minimização de dispêndio, Slutsky, demanda hicksiana, bens compostos.'],mwg:[3,'Cap. 2–3','Demanda walrasiana, dualidade, relações entre demanda, utilidade indireta e dispêndio, integrabilidade.']}],
+ ['g2','Preferência revelada',{ace:[0,'—',''],pin:[1,'Cap. 3.4','Intuição gráfica.'],bb:[1,'Cap. 4.4','Teste de consistência das escolhas.'],nic:[1,'Cap. 5','Preferência revelada e efeito substituição.'],mwg:[3,'Cap. 1.D, 2.F, 3.J','Axioma fraco e forte e a lei da demanda: base da teoria.']}],
+ ['g2','Excedente e medidas de bem-estar',{ace:[1,'Cap. 5.4','Excedente do consumidor como área.'],pin:[1,'Cap. 4.4','Excedente do consumidor e demanda.'],bb:[2,'Cap. 5.3','Excedente, variação compensatória e equivalente.'],nic:[1,'Cap. 5','Excedente e avaliação de mudanças de preço.'],mwg:[2,'Cap. 3.I','Avaliação de bem-estar de mudanças econômicas.']}],
+ ['g2','Demanda agregada e efeitos de rede',{ace:[1,'Cap. 4','Soma das demandas individuais.'],pin:[2,'Cap. 4.3, 4.5','Demanda de mercado e externalidades de difusão (bandwagon e snob).'],bb:[1,'Cap. 5.4','Demanda de mercado.'],nic:[0,'—',''],mwg:[2,'Cap. 4','Agregação, axioma fraco agregado e consumidor representativo.']}],
+ ['g2','Índices de custo de vida',{ace:[0,'—',''],pin:[1,'Cap. 3.6','Laspeyres, Paasche, índices encadeados.'],bb:[1,'Cap. 5.6','Índices de preço ao consumidor.'],nic:[1,'Cap. 5 (Ext.)','Avaliação de índices de preço.'],mwg:[0,'—','']}],
+ ['g3','Produção e retornos de escala',{ace:[1,'Cap. 6','Como insumos viram produto, dentro do problema do vendedor.'],pin:[2,'Cap. 6','Função de produção, insumos variáveis, rendimentos de escala.'],bb:[2,'Cap. 6','Substituibilidade, elasticidade de substituição, progresso técnico.'],nic:[2,'Cap. 9','Produtividade marginal, isoquantas, elasticidade de substituição, progresso técnico.'],mwg:[2,'Cap. 5','Conjuntos de produção, agregação e produção eficiente.']}],
+ ['g3','Custos e minimização de custo',{ace:[1,'Cap. 6','Curvas de custo introdutórias.'],pin:[2,'Cap. 7','Custos econômicos e irreversíveis, curto e longo prazo.'],bb:[3,'Cap. 7–8','Minimização de custo com estática comparativa, curvas de custo de longo e curto prazo.'],nic:[2,'Cap. 10','Funções de custo, deslocamentos, curto × longo prazo.'],mwg:[1,'Cap. 5.C–D','Minimização de custo e geometria do custo.']}],
+ ['g3','Dualidade, lema de Shephard e função lucro',{ace:[0,'—',''],pin:[1,'Ap. cap. 7','Dualidade em apêndice algébrico.'],bb:[1,'Ap. cap. 8','Lema de Shephard e dualidade.'],nic:[2,'Cap. 10–11','Lema de Shephard, funções lucro e demanda de insumos.'],mwg:[2,'Cap. 5','Maximização de lucro e minimização de custo em conjuntos de produção.']}],
+ ['g3','Escopo, aprendizado e custos na prática',{ace:[0,'—',''],pin:[2,'Cap. 7.5–7.7','Economias de escopo, curva de aprendizagem e previsão de custos.'],bb:[1,'Cap. 8.3','Tópicos especiais de custo (escopo, aprendizado).'],nic:[0,'—',''],mwg:[0,'—','']}],
+ ['g4','Concorrência perfeita (curto e longo prazo)',{ace:[2,'Cap. 6–7','Oferta, entrada e saída e a mão invisível.'],pin:[2,'Cap. 8','Maximização de lucro e oferta competitiva.'],bb:[2,'Cap. 9','Mercados perfeitamente competitivos.'],nic:[2,'Cap. 11–12','Maximização de lucro e modelo competitivo de equilíbrio parcial.'],mwg:[2,'Cap. 10','Ótimo de Pareto e equilíbrio competitivo em equilíbrio parcial.']}],
+ ['g4','Intervenção: impostos, preços máximos, quotas',{ace:[2,'Cap. 4.5, 10','Controle de preços e governo na economia.'],pin:[2,'Cap. 9','Preços mínimos, suporte de preços, quotas, tarifas, impostos e subsídios.'],bb:[2,'Cap. 10','Impostos, tetos e pisos, quotas, suporte agrícola, tarifas.'],nic:[1,'Cap. 12','Controle de preços e incidência tributária.'],mwg:[0,'—','']}],
+ ['g4','Comércio e vantagem comparativa',{ace:[2,'Cap. 8','Fronteira de possibilidades, vantagem comparativa, ganhadores e perdedores.'],pin:[1,'Cap. 9.5, 16.5','Tarifas e ganhos do livre comércio.'],bb:[1,'Cap. 10.5, 16.5','Quotas e ganhos do livre comércio.'],nic:[1,'Cap. 13','Comércio em equilíbrio geral.'],mwg:[0,'—','']}],
+ ['g4','Equilíbrio geral e teoremas do bem-estar',{ace:[1,'Cap. 7','Mão invisível e alocação entre indústrias.'],pin:[2,'Cap. 16','Caixa de Edgeworth, eficiência nas trocas e na produção.'],bb:[2,'Cap. 16','Equilíbrio geral com dois e muitos mercados, eficiência.'],nic:[2,'Cap. 13','Modelos gráfico e matemático, equilíbrio geral computável.'],mwg:[3,'Cap. 15–18','Teoremas do bem-estar, existência, unicidade, Sonnenschein-Mantel-Debreu, núcleo.']}],
+ ['g4','Equilíbrio sob incerteza e no tempo',{ace:[0,'—',''],pin:[0,'—',''],bb:[0,'—',''],nic:[1,'Cap. 7','Abordagem de preferência por estados.'],mwg:[3,'Cap. 19–20','Arrow-Debreu, mercados incompletos, gerações sobrepostas.']}],
+ ['g4','Escolha social e economia do bem-estar',{ace:[1,'Cap. 7.5, 10','Equidade × eficiência.'],pin:[1,'Cap. 16.3','Equidade e eficiência.'],bb:[0,'—',''],nic:[1,'Cap. 19','Votação e alocação de recursos.'],mwg:[3,'Cap. 21–22','Teorema de Arrow, funções de bem-estar social, barganha axiomática, valor de Shapley.']}],
+ ['g5','Monopólio e monopsônio',{ace:[2,'Cap. 12','Fontes de poder, custo do monopólio e política.'],pin:[2,'Cap. 10','Poder de monopólio e de monopsônio, custos sociais, antitruste.'],bb:[2,'Cap. 11','Monopólio com várias plantas e mercados, monopsônio.'],nic:[2,'Cap. 14','Barreiras, qualidade e durabilidade, regulação, visões dinâmicas.'],mwg:[1,'Cap. 12.B','Precificação de monopólio.']}],
+ ['g5','Discriminação de preço e captura de excedente',{ace:[1,'Cap. 12','Restaurar eficiência com discriminação.'],pin:[2,'Cap. 11','1º, 2º e 3º grau, preço de pico, tarifa em duas partes, pacote, propaganda.'],bb:[2,'Cap. 12','Discriminação de 1º, 2º e 3º grau, venda casada, propaganda.'],nic:[1,'Cap. 14','Discriminação e tabelas de preço.'],mwg:[1,'Cap. 14.C','Screening monopolista.']}],
+ ['g5','Oligopólio (Cournot, Bertrand, Stackelberg)',{ace:[1,'Cap. 14','Quatro estruturas de mercado em visão geral.'],pin:[2,'Cap. 12','Cournot, Stackelberg, Bertrand, dilema dos prisioneiros, cartéis.'],bb:[2,'Cap. 13','Produtos homogêneos e diferenciados, firma dominante, concorrência monopolística.'],nic:[2,'Cap. 15','Bertrand, Cournot, restrição de capacidade, conluio tácito.'],mwg:[2,'Cap. 12.C–D','Modelos estáticos de oligopólio e interação repetida.']}],
+ ['g5','Teoria dos jogos (Nash, sequenciais, repetidos)',{ace:[2,'Cap. 13','Jogos simultâneos, Nash e como as pessoas jogam de fato.'],pin:[2,'Cap. 13','Estratégias dominantes, Nash, mistas, repetidos, sequenciais.'],bb:[2,'Cap. 14','Nash, dilema repetido, jogos sequenciais e movimentos estratégicos.'],nic:[2,'Cap. 8','Nash, mistas, existência, sequenciais, repetidos.'],mwg:[3,'Cap. 7–9','Forma extensiva e normal, racionalizáveis, perfeição em subjogos.']}],
+ ['g5','Jogos de informação incompleta',{ace:[0,'—',''],pin:[0,'—',''],bb:[0,'—',''],nic:[1,'Cap. 8','Jogos bayesianos e de sinalização, jogos experimentais e evolucionários.'],mwg:[3,'Cap. 8.E–9.D','Nash bayesiano, trembling-hand, crenças e racionalidade sequencial, forward induction.']}],
+ ['g5','Entrada e compromisso estratégico',{ace:[0,'—',''],pin:[1,'Cap. 13.6–13.7','Ameaças, compromissos, desencorajamento à entrada.'],bb:[1,'Cap. 14.3','Movimentos estratégicos.'],nic:[2,'Cap. 15','Investimento, entrada e saída, dissuasão estratégica, número de firmas, inovação.'],mwg:[2,'Cap. 12.E–G','Entrada, pré-compromissos estratégicos, dissuasão e acomodação.']}],
+ ['g5','Antitruste',{ace:[1,'Cap. 12','Política do governo frente ao monopólio.'],pin:[2,'Cap. 10.7 + Ap.','Legislação antitruste (EUA e Europa) e apêndice sobre o Brasil.'],bb:[0,'—',''],nic:[1,'Cap. 14','Regulação de monopólio.'],mwg:[0,'—','']}],
+ ['g6','Escolha sob incerteza e aversão ao risco',{ace:[1,'Cap. 15','Probabilidade e preferências de risco.'],pin:[2,'Cap. 5','Risco, preferências, diversificação, seguros, ativos de risco.'],bb:[2,'Cap. 15','Descrever, avaliar, suportar e eliminar risco.'],nic:[2,'Cap. 7','Utilidade esperada, von Neumann-Morgenstern, medidas de aversão, portfólio.'],mwg:[2,'Cap. 6','Utilidade esperada, loterias, dominância estocástica, probabilidade subjetiva.']}],
+ ['g6','Economia comportamental',{ace:[3,'Cap. 3, 13, 18 + boxes','Viés, autocontrole e experimentos em todo o livro.'],pin:[1,'Cap. 5.5','Pontos de referência, senso de justiça, leis da probabilidade.'],bb:[0,'—',''],nic:[1,'Cap. 8','Jogos experimentais.'],mwg:[0,'—','']}],
+ ['g6','Informação assimétrica (seleção adversa, sinalização)',{ace:[2,'Cap. 16','Informação assimétrica e política pública.'],pin:[2,'Cap. 17','Lemons, sinalização, garantias.'],bb:[1,'Cap. 15','Risco e informação.'],nic:[2,'Cap. 18','Tipos ocultos, preço não linear, seleção adversa em seguros, sinalização.'],mwg:[2,'Cap. 13','Seleção adversa, sinalização e screening.']}],
+ ['g6','Agente-principal e risco moral',{ace:[1,'Cap. 16','Ações ocultas e risco moral.'],pin:[1,'Cap. 17.3–17.6','Risco moral, agente-principal, incentivos a gestores, salário de eficiência.'],bb:[0,'—',''],nic:[2,'Cap. 18','Modelo agente-principal, relação dono-gestor, risco moral em seguros.'],mwg:[2,'Cap. 14','Ações ocultas, informação oculta e modelos híbridos.']}],
+ ['g6','Leilões e barganha',{ace:[2,'Cap. 17','Leilões e barganha.'],pin:[1,'Cap. 13.8','Tipos de leilão, valor privado e comum.'],bb:[1,'Cap. 15.5','Leilões.'],nic:[1,'Cap. 18','Leilões.'],mwg:[2,'Cap. 9 Ap., 22.E–F','Barganha bilateral, barganha axiomática, valor de Shapley.']}],
+ ['g6','Desenho de mecanismos',{ace:[0,'—',''],pin:[0,'—',''],bb:[0,'—',''],nic:[1,'Cap. 18','Contratos complexos como resposta à assimetria.'],mwg:[2,'Cap. 23','Implementação em estratégias dominantes e bayesiana, mecanismos ótimos.']}],
+ ['g7','Mercados de fatores (trabalho, monopsônio)',{ace:[2,'Cap. 11','Mercado de trabalho, oferta de trabalho, desigualdade salarial.'],pin:[2,'Cap. 14','Mercados de fatores competitivos, com monopsônio e com monopólio.'],bb:[1,'Cap. 5.5, 11.7','Trabalho e lazer; monopsônio.'],nic:[2,'Cap. 16','Oferta de trabalho, variação salarial, monopsônio, sindicatos.'],mwg:[0,'—','']}],
+ ['g7','Tempo, juros, VPL e capital',{ace:[2,'Cap. 15','Valor do dinheiro no tempo e preferências temporais.'],pin:[2,'Cap. 15','Valor presente, títulos, VPL, CAPM, capital humano, juros.'],bb:[1,'Ap. cap. 4','Valor do dinheiro no tempo.'],nic:[2,'Cap. 17','Taxa de retorno, demanda por capital, VPL, tempo contínuo.'],mwg:[1,'Cap. 20','Utilidade intertemporal e taxas de juros em equilíbrio.']}],
+ ['g7','Recursos esgotáveis',{ace:[0,'—',''],pin:[1,'Cap. 15.8','Produção intertemporal de recurso esgotável.'],bb:[0,'—',''],nic:[1,'Cap. 17','Preço de recursos naturais.'],mwg:[0,'—','']}],
+ ['g8','Externalidades e Coase',{ace:[2,'Cap. 9','Soluções privadas (Coase) e de governo (comando e controle, mercado).'],pin:[2,'Cap. 18','Padrões, taxas, permissões transferíveis, direitos de propriedade.'],bb:[2,'Cap. 17','Externalidades e instrumentos de correção.'],nic:[2,'Cap. 19','Ineficiência e soluções.'],mwg:[2,'Cap. 11','Externalidade bilateral e multilateral, segundo-melhor com informação privada.']}],
+ ['g8','Bens públicos e recursos comuns',{ace:[2,'Cap. 9','Bens públicos, carona, tragédia dos comuns.'],pin:[2,'Cap. 18','Recursos de propriedade comum, bens públicos, preferências privadas.'],bb:[1,'Cap. 17.3','Bens públicos.'],nic:[1,'Cap. 19','Bens públicos, preço de Lindahl, votação.'],mwg:[1,'Cap. 11.C','Bens públicos.']}],
+ ['g8','Tributação e falhas de governo',{ace:[2,'Cap. 10','Tributação, regulação, falhas de governo, soberania do consumidor.'],pin:[1,'Cap. 9.6','Impacto de imposto ou subsídio.'],bb:[1,'Cap. 10.1','Impostos e subsídios.'],nic:[1,'Cap. 12','Incidência tributária.'],mwg:[0,'—','']}],
+ ['g8','Economia social (caridade, confiança, normas)',{ace:[2,'Cap. 18','Caridade, confiança e vingança, influência social.'],pin:[0,'—',''],bb:[0,'—',''],nic:[0,'—',''],mwg:[0,'—','']}]
+];
+
+// ---------- espectros ----------
+const SPEC=[
+ ['Nível','Primeiro curso','Doutorado',{ace:1,pin:3.5,bb:4.5,nic:6.5,mwg:10}],
+ ['Formalização','Gráfica e intuitiva','Axiomática, com provas',{ace:1.5,pin:3,bb:4.5,nic:6.5,mwg:10}],
+ ['Teoria × evidência','Evidência empírica','Teoria pura',{ace:1,pin:3.5,bb:4.5,nic:6.5,mwg:9.5}],
+ ['Hipótese de racionalidade','Comportamental','Racionalidade estrita',{ace:2.5,pin:6,bb:7.5,nic:6.5,mwg:9}],
+ ['Equilíbrio','Parcial (um mercado)','Geral (toda a economia)',{ace:3,pin:4,bb:4,nic:5,mwg:8.5}],
+ ['Uso','Negócios e política','Abstração e pesquisa',{ace:2.5,pin:2,bb:3,nic:6,mwg:9}],
+ ['Informação e incentivos','Tópico periférico','Tema central',{ace:6,pin:5,bb:3.5,nic:6.5,mwg:9}],
+ ['Contexto dos exemplos','EUA e global','Brasil',{ace:1,pin:4,bb:1,nic:1,mwg:.5}]
+];
+
+// ---------- mesmo tema, cinco lentes ----------
+const LENS=[
+ {k:'cons',n:'Consumidor',t:['Preferências e utilidade','Escolha, renda/substituição e dualidade','Preferência revelada'],
+  ace:['Quanto você paga?','O "problema do comprador": gostos, preços e orçamento, com disposição a pagar e muito dado sobre como as pessoas reagem a preço.',['Disposição a pagar','Gráfico']],
+  pin:['Como a escolha vira demanda?','Curvas de indiferença, restrição, escolha, preferência revelada, Giffen, curva de Engel e índices de custo de vida.',['Indiferença','Engel','Custo de vida']],
+  bb:['Como resolver o problema?','Mesmo conteúdo do Pindyck, mas resolvendo cada conta: soluções de canto, cesta composta, variação compensatória e equivalente.',['Solução de canto','VC e VE']],
+  nic:['Qual é a estrutura matemática?','Lagrange, função utilidade indireta e de dispêndio, equação de Slutsky, demanda hicksiana, bens compostos.',['Slutsky','Hicks','Dualidade']],
+  mwg:['De quais axiomas tudo isso sai?','Parte de relações de preferência e regras de escolha; axioma fraco, integrabilidade e agregação.',['Axiomas','Integrabilidade','Agregação']],
+  bl:'É o mesmo problema nos cinco. Acemoglu começa pela intuição e pelos dados e Mas-Colell termina nos axiomas; o capítulo de cada um é um degrau da mesma escada.'},
+ {k:'firm',n:'Firma e custos',t:['Custos e minimização de custo','Dualidade, lema de Shephard e função lucro','Escopo, aprendizado e custos na prática'],
+  ace:['Quanto produzir?','O "problema do vendedor": custos, receita e lucro total (não por unidade), entrada e saída.',['Lucro total','Entrada e saída']],
+  pin:['Quais custos importam?','Custos econômicos × contábeis, irreversíveis, escopo, curva de aprendizagem e estimação de custos.',['Custo irreversível','Escopo','Aprendizado']],
+  bb:['Como o custo responde aos preços?','Minimização de custo com estática comparativa, curvas de longo e curto prazo e estimação de funções de custo.',['Estática comparativa','Curvas de custo']],
+  nic:['Qual a função de custo?','Funções de custo e de lucro, lema de Shephard, demanda de insumos, função translog.',['Shephard','Translog']],
+  mwg:['O que é uma firma?','Conjuntos de produção, maximização de lucro, agregação e uma discussão sobre os objetivos da firma.',['Conjunto de produção','Agregação']],
+  bl:'Pindyck e Besanko são os mais úteis para custo na prática; Nicholson e Mas-Colell dão a dualidade que justifica os atalhos.'},
+ {k:'game',n:'Estratégia e oligopólio',t:['Oligopólio (Cournot, Bertrand, Stackelberg)','Teoria dos jogos (Nash, sequenciais, repetidos)','Jogos de informação incompleta','Entrada e compromisso estratégico'],
+  ace:['Como as pessoas jogam de fato?','Nash e jogos sequenciais, com experimentos que mostram onde a teoria acerta e onde erra.',['Experimentos','Nash']],
+  pin:['Como competir?','Cournot, Stackelberg, Bertrand, cartéis, ameaças críveis, desencorajamento à entrada e leilões.',['Cartéis','Credibilidade','Entrada']],
+  bb:['Quem tem poder na estrutura?','Oligopólio homogêneo e diferenciado, firma dominante, dilema repetido e movimentos estratégicos.',['Firma dominante','Diferenciação']],
+  nic:['E com informação incompleta?','Jogos bayesianos e de sinalização, restrições de capacidade, conluio tácito, dissuasão e quantas firmas entram.',['Bayesiano','Capacidade','Conluio tácito']],
+  mwg:['Qual equilíbrio é razoável?','Racionalizáveis, Nash bayesiano, trembling-hand, crenças, forward induction e folk theorem.',['Refinamentos','Folk theorem']],
+  bl:'Para aplicar a um setor, Pindyck e Besanko bastam; Nicholson é o primeiro a tratar informação incompleta, e Mas-Colell refina o conceito de equilíbrio.'},
+ {k:'info',n:'Incerteza e informação',t:['Escolha sob incerteza e aversão ao risco','Informação assimétrica (seleção adversa, sinalização)','Agente-principal e risco moral','Desenho de mecanismos'],
+  ace:['Risco e informação como incentivos','Preferências de risco, informação assimétrica e risco moral, com política pública.',['Risco moral','Política']],
+  pin:['Como o mercado lida com risco?','Diversificação, seguros, CAPM, lemons, sinalização, agente-principal, salário de eficiência.',['Lemons','CAPM','Seguros']],
+  bb:['Avaliar e eliminar risco','Descrição, avaliação e eliminação do risco, decisões arriscadas e leilões.',['Árvore de decisão','Leilões']],
+  nic:['Contratos como resposta','Modelo agente-principal, dono-gestor, preço não linear, seleção adversa em seguros.',['Contratos','Preço não linear']],
+  mwg:['O que é implementável?','Seleção adversa, screening, agente-principal e desenho de mecanismos com restrições de participação.',['Screening','Mecanismos']],
+  bl:'Para contratos, earnouts e incentivos de gestão, Nicholson cap. 18 e Mas-Colell cap. 13–14 são a base formal; Pindyck dá a intuição.'},
+ {k:'ge',n:'Equilíbrio geral e bem-estar',t:['Equilíbrio geral e teoremas do bem-estar','Equilíbrio sob incerteza e no tempo','Escolha social e economia do bem-estar'],
+  ace:['A mão invisível','Eficiência do mercado competitivo e alocação entre indústrias, sem formalizar o equilíbrio geral.',['Mão invisível']],
+  pin:['Eficiência em toda a economia','Caixa de Edgeworth, eficiência nas trocas e na produção, equidade e por que os mercados falham.',['Edgeworth','Falhas']],
+  bb:['Muitos mercados ao mesmo tempo','Equilíbrio geral com dois e muitos mercados, estática comparativa e ganhos de comércio.',['Estática comparativa']],
+  nic:['Do gráfico ao modelo computável','Modelos gráfico e matemático e equilíbrio geral computável.',['CGE']],
+  mwg:['Quando o equilíbrio existe, é único, é estável?','Seis capítulos: teoremas do bem-estar, existência, SMD, núcleo, Arrow-Debreu, gerações sobrepostas, Arrow.',['Existência','SMD','Arrow-Debreu']],
+  bl:'É onde Mas-Colell mais se separa: o equilíbrio geral, que nos outros é um capítulo, nele é metade do livro.'},
+ {k:'gov',n:'Falhas de mercado e governo',t:['Externalidades e Coase','Bens públicos e recursos comuns','Tributação e falhas de governo','Antitruste'],
+  ace:['O governo também falha','Externalidades, bens públicos, tragédia dos comuns, tributação e falhas de governo.',['Falhas de governo','Comuns']],
+  pin:['Que instrumento usar?','Padrões × taxas × permissões transferíveis, Coase, recursos comuns e antitruste (com o Brasil).',['Permissões','Antitruste BR']],
+  bb:['Corrigir a externalidade','Instrumentos de correção e bens públicos.',['Instrumentos']],
+  nic:['E a política?','Externalidades, preço de Lindahl e modelos de votação.',['Lindahl','Votação']],
+  mwg:['O segundo-melhor','Externalidades bilaterais e multilaterais e soluções de segundo-melhor com informação privada.',['Segundo-melhor']],
+  bl:'Acemoglu e Pindyck são os mais úteis para regulação ambiental e de mercado; Pindyck é o único com antitruste brasileiro.'}
+];
+
+// ---------- só neste livro ----------
+const EXCL={
+ ace:[['Causalidade × correlação e experimentos naturais','Cap. 2'],['Economia social: caridade, confiança, vingança','Cap. 18'],['Falhas de governo e soberania do consumidor','Cap. 10'],['Uma pergunta respondida com dados por capítulo','Todos']],
+ pin:[['Legislação antitruste no Brasil','Ap. cap. 10'],['Externalidades de rede (bandwagon e snob)','Cap. 4.5'],['Preço de transferência na firma integrada','Ap. cap. 11'],['CAPM, capital humano e taxas de juros','Cap. 15'],['Salário de eficiência','Cap. 17.6']],
+ bb:[['Learning-by-doing resolvido passo a passo','Todos'],['Contas de guardanapo','Cap. 2.5'],['Estática comparativa da minimização de custo','Cap. 7.3'],['Monopólio com várias plantas e mercados','Cap. 11.4'],['Suporte de preços agrícolas','Cap. 10.4']],
+ nic:[['Capítulo inteiro de matemática','Cap. 2'],['"Extensions" ao fim de cada capítulo','Todos'],['Jogos experimentais e evolucionários','Cap. 8'],['Equilíbrio geral computável','Cap. 13'],['Votação e preço de Lindahl','Cap. 19']],
+ mwg:[['Teorema de Arrow e escolha social','Cap. 21'],['Existência, unicidade e Sonnenschein-Mantel-Debreu','Cap. 17'],['Arrow-Debreu, mercados incompletos, gerações sobrepostas','Cap. 19–20'],['Desenho de mecanismos','Cap. 23'],['Núcleo, valor de Shapley, barganha axiomática','Cap. 18, 22']]
+};
+
+// ---------- qual ler para quê ----------
+const Q=[
+ {q:'Revisar o básico rápido (oferta, demanda, elasticidade)',r:{ace:[1,'Cap. 1–4','Intuição e exemplos, leitura rápida.'],pin:[1,'Cap. 2','Elasticidades de curto e longo prazo e efeitos de mudanças de mercado.'],bb:[2,'Cap. 2','Inclui contas de guardanapo.'],nic:[3,'Cap. 5','Versão formal.'],mwg:[0,'—','Não é o objetivo do livro.']}},
+ {q:'Estimar demanda ou elasticidade com dados',r:{pin:[1,'Cap. 4.6 + Ap.','Estimativa empírica da demanda e fundamentos de regressão.'],ace:[1,'Cap. 2','Causalidade, experimentos e armadilhas dos dados.'],bb:[2,'Cap. 2.5','Calibrar elasticidades com poucos dados.'],nic:[3,'Extensions','Formas funcionais.'],mwg:[0,'—','Não trata.']}},
+ {q:'Entender curva de custo e escala mínima eficiente',r:{bb:[1,'Cap. 7–8','Minimização de custo, curvas de longo e curto prazo.'],pin:[1,'Cap. 7','Custos irreversíveis, escopo, aprendizado, estimação.'],nic:[2,'Cap. 10','Funções de custo e Shephard.'],ace:[3,'Cap. 6','Introdução.'],mwg:[3,'Cap. 5','Teoria da produção.']}},
+ {q:'Modelar um oligopólio com poucos players',r:{pin:[1,'Cap. 12–13','Cournot, Stackelberg, Bertrand, cartéis, entrada.'],bb:[1,'Cap. 13–14','Homogêneos, diferenciados, firma dominante.'],nic:[2,'Cap. 15','Capacidade, conluio tácito, dissuasão.'],mwg:[2,'Cap. 12','Versão rigorosa com jogos repetidos.'],ace:[3,'Cap. 14','Visão geral.']}},
+ {q:'Política de preço: discriminação, duas partes, pacote',r:{pin:[1,'Cap. 11','Os três graus, preço de pico, duas partes, pacote.'],bb:[1,'Cap. 12','Captura de excedente e venda casada.'],nic:[2,'Cap. 14','Tabelas de preço.'],ace:[3,'Cap. 12','Discriminação como fonte de eficiência.'],mwg:[3,'Cap. 14.C','Screening.']}},
+ {q:'Decidir sob risco (utilidade esperada, seguro, portfólio)',r:{pin:[1,'Cap. 5','Risco, diversificação, seguros, ativos de risco.'],nic:[1,'Cap. 7','Utilidade esperada e portfólio.'],bb:[2,'Cap. 15','Decisões arriscadas.'],mwg:[2,'Cap. 6','Fundamentos axiomáticos.'],ace:[3,'Cap. 15','Introdução.']}},
+ {q:'Desenhar contratos e incentivos com informação assimétrica',r:{nic:[1,'Cap. 18','Agente-principal, dono-gestor, preço não linear.'],mwg:[1,'Cap. 13–14, 23','Screening, agente-principal, mecanismos.'],pin:[2,'Cap. 17','Lemons, sinalização, incentivos a gestores.'],ace:[3,'Cap. 16','Intuição.'],bb:[3,'Cap. 15','Só de passagem.']}},
+ {q:'Entender um leilão (concessão, energia, capacidade)',r:{ace:[1,'Cap. 17','Leilões e barganha.'],pin:[2,'Cap. 13.8','Valor privado e comum, maximização da receita.'],nic:[2,'Cap. 18','Leilões com informação.'],mwg:[2,'Cap. 23','Teoria dos mecanismos.'],bb:[3,'Cap. 15.5','Introdução.']}},
+ {q:'Externalidades, regulação ambiental e carbono',r:{pin:[1,'Cap. 18','Padrões, taxas e permissões transferíveis.'],ace:[1,'Cap. 9','Coase, comando e controle, instrumentos de mercado.'],bb:[2,'Cap. 17','Instrumentos de correção.'],nic:[2,'Cap. 19','Lindahl e votação.'],mwg:[3,'Cap. 11','Segundo-melhor.']}},
+ {q:'Efeito de imposto, subsídio ou controle de preço',r:{bb:[1,'Cap. 10','Impostos, pisos e tetos, quotas, tarifas.'],pin:[1,'Cap. 9','Excedentes e políticas.'],ace:[2,'Cap. 10','Tributação e falhas de governo.'],nic:[2,'Cap. 12','Incidência tributária.'],mwg:[0,'—','Não trata.']}},
+ {q:'Tempo, juros, VPL e decisão de investimento',r:{pin:[1,'Cap. 15','VPL, títulos, CAPM, recursos esgotáveis.'],nic:[2,'Cap. 17','Demanda por capital e VPL.'],ace:[2,'Cap. 15','Valor do dinheiro no tempo.'],bb:[3,'Ap. cap. 4','Valor do dinheiro no tempo.'],mwg:[3,'Cap. 20','Equilíbrio intertemporal.']}},
+ {q:'Vieses comportamentais de consumidores e gestores',r:{ace:[1,'Cap. 3, 13, 18','Comportamento e experimentos em todo o livro.'],pin:[2,'Cap. 5.5','Economia comportamental.'],nic:[3,'Cap. 8','Jogos experimentais.'],bb:[0,'—','Não trata.'],mwg:[0,'—','Não trata.']}},
+ {q:'Base formal para mestrado, doutorado ou paper',r:{mwg:[1,'Livro inteiro','A referência da pós.'],nic:[1,'Cap. 2 + Extensions','Ponte com o ferramental matemático.'],bb:[3,'Apêndices','Cálculo em nível intermediário.'],pin:[0,'—','Não é o objetivo.'],ace:[0,'—','Não é o objetivo.']}}
+];
+const PRI={1:['Leitura principal','#0A2455','#fff'],2:['Complementar','#DDE8F6','#173F7A'],3:['De passagem','#EEF2F7','#6A82A4'],0:['Não cobre','#F1F3F6','#A2B3C8']};
+
+// ---------- utilidades ----------
+const tip=$('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.display='block';moveTip(e);}
+function moveTip(e){const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-10),y=Math.min(e.clientY+14,innerHeight-tip.offsetHeight-10);tip.style.left=x+'px';tip.style.top=y+'px';}
+function hideTip(){tip.style.display='none';}
+document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]');if(el)showTip(e,el.getAttribute('data-tip'));});
+document.addEventListener('mousemove',e=>{if(tip.style.display==='block'&&e.target.closest('[data-tip]'))moveTip(e);});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))hideTip();});
+const mix=(hex,a)=>`color-mix(in srgb, ${hex} ${Math.round(a*100)}%, #fff)`;
+const head=(ic,h,cap,tag)=>`<div class="section-head"><span class="title-icon"><svg viewBox="0 0 24 24">${ic}</svg></span><div class="head-copy"><h2>${h}</h2>${cap?`<div class="cap">${cap}</div>`:''}</div>${tag?`<span class="tag">${tag}</span>`:''}</div>`;
+const IC={
+ target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 12 20 4M16 4h4v4"/>',
+ list:'<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+ fam:'<circle cx="6" cy="8" r="3"/><circle cx="18" cy="8" r="3"/><circle cx="12" cy="16" r="3"/><path d="M8.5 9.5 10.5 14M15.5 9.5 13.5 14"/>',
+ stairs:'<path d="M3 20h4v-4h4v-4h4V8h4V4h2"/>',
+ spine:'<path d="M3 12h4l2-5 3 10 2-5h7"/>',
+ book:'<path d="M5 4.6A2 2 0 0 1 7 2.6h12v16H7a2 2 0 0 0-2 2z"/><path d="M5 20.6a2 2 0 0 1 2-2h12"/>',
+ grid:'<rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/>',
+ sim:'<circle cx="9" cy="12" r="5.8"/><circle cx="15" cy="12" r="5.8"/>',
+ scale:'<path d="M12 3.5v17M5 8l-2.5 5.5h5L5 8ZM19 8l-2.5 5.5h5L19 8ZM5 8h14"/>',
+ star:'<path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8Z"/>',
+ route:'<circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="6" r="2.4"/><path d="M8.4 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.6"/>',
+ info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.2"/>'
+};
+
+// ---------- derivados ----------
+const N=ORDER.length;
+const score=(t,id)=>t[2][id][0];
+const COMMON=T.filter(t=>ORDER.every(id=>score(t,id)>=1));
+function cos(a,b){let d=0,na=0,nb=0;T.forEach(t=>{const x=score(t,a),y=score(t,b);d+=x*y;na+=x*x;nb+=y*y;});return d/Math.sqrt(na*nb);}
+const PAIRS=[];ORDER.forEach((a,i)=>ORDER.slice(i+1).forEach(b=>PAIRS.push([a,b,cos(a,b)])));PAIRS.sort((x,y)=>y[2]-x[2]);
+const totPages=BOOKS.reduce((s,b)=>s+b.pages,0),totCh=BOOKS.reduce((s,b)=>s+b.chapters,0);
+const pct=v=>Math.round(v*100)+'%';
+
+// ---------- abas ----------
+const GROUPS=[['vis','Visão','#2E63A7'],['cmp','Comparação','#E23A2E'],['uso','Uso','#1B9B66']];
+const TABS=[['p-over','Visão geral','vis','ic-over'],['p-books','Os cinco livros','vis','ic-books'],['p-map','Mapa de temas','cmp','ic-map'],['p-side','Para que lado vai','cmp','ic-side'],['p-same','Semelhanças','cmp','ic-same'],['p-diff','Diferenças','cmp','ic-diff'],['p-use','Qual ler para quê','uso','ic-use'],['p-method','Metodologia','uso','ic-method']];
+let curTab=0;
+function renderTabs(){
+  let html='',last=null;const gm={};GROUPS.forEach(g=>gm[g[0]]=g);
+  TABS.forEach((t,i)=>{if(t[2]!==last){const g=gm[t[2]];html+=`<div class="grp"><i style="background:${g[2]}"></i>${g[1]}</div>`;last=t[2];}
+    html+=`<button class="${i===curTab?'on':''}" data-tab="${i}"><svg class="nav-ic" aria-hidden="true"><use href="#${t[3]}"/></svg><span>${t[1]}</span></button>`;});
+  $('navlist').innerHTML=html;
+}
+function setTab(i,noScroll){curTab=i;renderTabs();$('mobTab').textContent=TABS[i][1];TABS.forEach((t,j)=>$(t[0]).classList.toggle('on',j===i));
+  if(innerWidth<=860)document.body.classList.add('snav-collapsed');if(!noScroll)window.scrollTo({top:0,behavior:'smooth'});
+  try{history.replaceState(null,'','#'+TABS[i][0].slice(2));}catch(e){}}
+const goTab=id=>setTab(TABS.findIndex(t=>t[0]===id));
+const crumb=s=>`<div class="breadcrumb"><span>Home</span><i></i><span>Biblioteca</span><i></i><b>${s}</b></div>`;
+
+// ---------- 1. visão geral ----------
+function stairs(){
+  const W=660,H=380,L=30,B=48,sw=118,base=H-B;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans,system-ui,sans-serif">`;
+  s+=`<line x1="${L}" y1="${base}" x2="${W-14}" y2="${base}" stroke="#C9D7E8" stroke-width="1.5"/>`;
+  ORDER.forEach((id,i)=>{const b=BK[id],x=L+i*(sw+6),h=96+i*50,y=base-h;
+    const t=`<b>${b.short}</b> · ${esc(b.level)}<br>${esc(b.one)}<br><span style="opacity:.75">Clique para abrir a ficha</span>`;
+    s+=`<g data-book="${id}" data-tip="${esc(t)}" style="cursor:pointer">`;
+    s+=`<rect x="${x}" y="${y}" width="${sw}" height="${h}" rx="9" fill="${b.soft}" stroke="${mix(b.color,.35)}"/>`;
+    s+=`<rect x="${x}" y="${y}" width="${sw}" height="6" rx="3" fill="${b.color}"/>`;
+    s+=`<circle cx="${x+24}" cy="${y+32}" r="15" fill="${b.color}"/><text x="${x+24}" y="${y+36.5}" text-anchor="middle" font-size="${b.ini.length>1?10.5:13}" font-weight="800" fill="#fff">${b.ini}</text>`;
+    s+=`<text x="${x+46}" y="${y+30}" font-size="12.5" font-weight="800" fill="#0A2455">${b.short}</text>`;
+    s+=`<text x="${x+46}" y="${y+44}" font-size="9.5" fill="#55709B">${b.pages} p. · ${b.chapters} cap.</text>`;
+    const lv=b.level.replace('Intermediário-','Intermediário- ').replace(/^(\S+) /,'$1|').split('|');
+    lv.forEach((ln,k)=>{s+=`<text x="${x+12}" y="${y+70+k*13}" font-size="9.5" font-weight="700" fill="${b.color}" letter-spacing=".03em">${esc(ln.trim().toUpperCase())}</text>`;});
+    s+=`<text x="${x+sw/2}" y="${base+18}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6A82A4">degrau ${i+1}</text></g>`;});
+  s+=`<text x="${L}" y="${H-6}" font-size="11" font-weight="700" fill="#55709B">← Intuição, gráficos e dados</text><text x="${W-14}" y="${H-6}" text-anchor="end" font-size="11" font-weight="700" fill="#55709B">Axiomas e provas →</text>`;
+  return s+'</svg>';
+}
+function renderOver(){
+  const M=(l,v,s)=>`<div class="m"><div class="l">${l}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:''}</div>`;
+  const tw=PAIRS[0];
+  const strip=`<div class="overview-strip">${M('Livros comparados',N,'do primeiro curso ao doutorado')}${M('Páginas (PDF)',totPages.toLocaleString('pt-BR'),'de 507 a 994 por livro')}${M('Capítulos',totCh,'sem contar apêndices')}${M('Temas mapeados',T.length,'em '+Object.keys(G).length+' grupos')}${M('Núcleo comum',COMMON.length+' temas','tratados pelos 5')}${M('Par mais parecido',BK[tw[0]].short+' ~ '+BK[tw[1]].short,'similaridade '+pct(tw[2]))}</div>`;
+  const ols=ORDER.map(id=>{const b=BK[id];return `<div class="ol" data-book="${id}"><div class="ini" style="background:${b.color};font-size:${b.ini.length>1?11:14}px">${b.ini}</div><div><div class="bt">${b.short} <small>${esc(b.title)} · ${esc(b.ed.split('·')[0])}</small></div><div class="bd">${esc(b.one)}</div><span class="side" style="background:${b.soft};color:${b.color}">Vai para o lado: ${b.side}</span></div></div>`;}).join('');
+  const fam=`<div class="fam">
+   <div><div class="fk">Grupo 1 · Introdutório</div><div class="fn">Micro com evidência</div><div class="fq">"Como as pessoas decidem, e como sabemos disso?"</div><div class="fb"><span style="background:${BK.ace.color}">Acemoglu</span></div><div class="fx">Princípios ensinados como ciência empírica: cada ideia vem com um teste nos dados e um olhar comportamental.</div></div>
+   <div><div class="fk">Grupo 2 · Intermediário</div><div class="fn">O núcleo da graduação</div><div class="fq">"Como funcionam consumidor, firma e mercados, e como aplicar?"</div><div class="fb"><span style="background:${BK.pin.color}">Pindyck</span><span style="background:${BK.bb.color}">Besanko</span></div><div class="fx">Mesmo programa, estilos diferentes: Pindyck pelos exemplos de mercado, Besanko pela resolução passo a passo.</div></div>
+   <div><div class="fk">Grupo 3 · Teoria formal</div><div class="fn">Micro avançada</div><div class="fq">"Quais são as bases formais, e sob que hipóteses valem?"</div><div class="fb"><span style="background:${BK.nic.color}">Nicholson</span><span style="background:${BK.mwg.color}">Mas-Colell</span></div><div class="fx">Nicholson deriva com cálculo e serve de ponte; Mas-Colell prova com axiomas e vai até equilíbrio geral, escolha social e mecanismos.</div></div>
+  </div><div class="fam-arrow"><span>Intuição</span><span class="bar" style="background:linear-gradient(90deg,${ORDER.map((id,i)=>BK[id].color+' '+Math.round(i/(N-1)*100)+'%').join(',')})"></span><span>Rigor formal</span></div>`;
+  $('p-over').innerHTML=`${crumb('Microeconomia: cinco manuais')}
+  <div class="overview-hero"><div class="hero-logo"><svg viewBox="0 0 96 64" width="96">${ORDER.map((id,i)=>`<rect x="${6+i*17}" y="${48-i*9}" width="15" height="${10+i*9}" rx="2" fill="${BK[id].color}"/>`).join('')}<rect x="2" y="58" width="92" height="3" rx="1.5" fill="#C9D7E8"/></svg></div>
+   <div class="hero-copy"><h1>Cinco manuais, uma escada de rigor</h1><p>Comparação de <b>Microeconomics</b> (Acemoglu, Laibson &amp; List), <b>Microeconomia</b> (Pindyck &amp; Rubinfeld), <b>Microeconomics</b> (Besanko &amp; Braeutigam), <b>Microeconomic Theory</b> (Nicholson &amp; Snyder) e <b>Microeconomic Theory</b> (Mas-Colell, Whinston &amp; Green). O conteúdo é quase o mesmo; o que muda é o degrau: do primeiro curso, com dados, ao doutorado, com axiomas.</p></div></div>
+  ${strip}
+  <div class="row31">
+   <div class="card">${head(IC.stairs,'A escada','Cada degrau é um livro, do mais intuitivo ao mais formal. Passe o mouse para ver o resumo e clique para abrir a ficha.')}${stairs()}</div>
+   <div class="card">${head(IC.list,'Em uma frase','Clique num livro para abrir a ficha completa.')}<div class="oneliners">${ols}</div></div>
+  </div>
+  <div class="card">${head(IC.fam,'Três grupos, cinco livros','Os cinco cobrem o mesmo programa de micro. Eles se separam pelo nível e pelo que cada um trata como prova: o dado, o exemplo, a conta ou o teorema.')}${fam}</div>`;
+  $('p-over').querySelectorAll('[data-book]').forEach(el=>el.addEventListener('click',()=>{hideTip();openBook(el.dataset.book);}));
+}
+
+// ---------- 2. os livros ----------
+let curBook='ace';
+function chapterTags(id,title){
+  const m=title.match(/^(\d+)\./);if(!m)return '';const n=+m[1];const gs=new Set();
+  T.forEach(t=>{const r=t[2][id][1];if(t[2][id][0]<1||!/Cap/.test(r))return;const nums=[];const rest=r.replace(/(\d+)\s*[–-]\s*(\d+)/g,(a,x,y)=>{for(let k=+x;k<=+y;k++)nums.push(k);return '';});rest.replace(/Cap\.?\s*([\d.,\s]+)/g,(a,lst)=>{lst.split(/[,\s]+/).forEach(v=>{if(v)nums.push(parseInt(v,10));});return a;});if(nums.includes(n))gs.add(t[0]);});
+  return gs.size?`<span class="tg">${[...gs].map(g=>`<i style="background:${G[g].c}" data-tip="${esc(G[g].n)}"></i>`).join('')}</span>`:'';
+}
+function tocHTML(id,filter){
+  const data=TOC[id];
+  const f=(filter||'').trim().toLowerCase();
+  const hl=s=>{const e=esc(s);if(!f)return e;const i=s.toLowerCase().indexOf(f);if(i<0)return e;return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+f.length))+'</mark>'+esc(s.slice(i+f.length));};
+  let html='';
+  data.forEach((p,pi)=>{
+    const chs=p.c.filter(c=>!f||(c.t+' '+c.s.join(' ')).toLowerCase().includes(f));
+    if(!chs.length)return;
+    html+=`<details ${f||pi<1?'open':''}><summary><span class="chev"></span>${esc(p.p)}<span class="cnt">${chs.length} cap.</span></summary><div class="chs">${chs.map(c=>`<div class="ch"><div class="cht">${hl(c.t)}${chapterTags(id,c.t)}</div>${c.s.length?`<div class="chs2">${c.s.map(hl).join(' · ')}</div>`:''}</div>`).join('')}</div></details>`;
+  });
+  return html||'<div class="cap" style="padding:12px 4px">Nenhum capítulo com esse termo.</div>';
+}
+function spineHTML(b){return `<div class="spine">${b.spine.map((s,i)=>`${i?'<span class="ar">›</span>':''}<span class="sp" style="background:${G[s[1]].bg};border-color:${mix(G[s[1]].c,.25)}">${esc(s[0])}</span>`).join('')}</div>`;}
+function renderBooks(){
+  const tabs=ORDER.map(id=>`<button data-bk="${id}" class="${curBook===id?'on':''}"><i style="background:${BK[id].color}"></i>${BK[id].short}</button>`).join('')+`<button data-bk="all" class="${curBook==='all'?'on':''}">Lado a lado</button>`;
+  let body='';
+  if(curBook==='all'){
+    const rows=[['Título',b=>`<b>${esc(b.title)}</b>${b.sub?'<br>'+esc(b.sub):''}`],['Autores',b=>esc(b.authors)],['Edição',b=>esc(b.ed)],['Degrau',b=>`${b.lv} · ${esc(b.level)}`],['Tamanho',b=>`${b.pages} páginas · ${esc(b.blocks)}`],['Pergunta-mestra',b=>esc(b.q)],['Escola',b=>esc(b.school)],['Leitor',b=>esc(b.reader)],['Formalização',b=>esc(b.math)],['Casos',b=>esc(b.cases)],['Tom',b=>esc(b.tone)]];
+    body=`<div class="card">${head(IC.grid,'Fichas lado a lado','As mesmas onze perguntas para cada livro.')}<div class="twrap"><table><thead><tr><th></th>${ORDER.map(id=>`<th><span style="color:${BK[id].color}">●</span> ${BK[id].short}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td class="l">${r[0]}</td>${ORDER.map(id=>`<td style="min-width:210px;white-space:normal">${r[1](BK[id])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
+    <div class="card">${head(IC.spine,'A espinha dorsal de cada livro','Os quatro primeiros seguem a ordem consumidor → firma → mercados → falhas. Mas-Colell põe jogos antes de mercados e dedica metade do livro a equilíbrio geral e bem-estar.')}<div class="spines">${ORDER.map(id=>`<div class="row"><div class="who" style="color:${BK[id].color}"><i style="background:${BK[id].color}"></i>${BK[id].short}</div>${spineHTML(BK[id])}</div>`).join('')}</div>
+    <div class="glegend">${Object.values(G).map(g=>`<span><i style="background:${g.bg};border:1px solid ${mix(g.c,.35)}"></i>${g.n}</span>`).join('')}</div></div>`;
+  }else{
+    const b=BK[curBook];
+    const cov=T.filter(t=>score(t,b.id)>=1).length,ax=T.filter(t=>score(t,b.id)===3).length;
+    const uniq=T.filter(t=>score(t,b.id)>=2&&ORDER.filter(o=>o!==b.id).every(o=>score(t,o)<=1)).length;
+    body=`<div class="card"><div class="bookhead"><div class="cover" style="background:linear-gradient(160deg,${b.color},${mix(b.color,.7).replace('#fff','#0A2455')})"><div class="ce">${esc(b.ed.split('·')[0])}</div><div class="ct">${esc(b.title)}</div><div class="ca">${esc(b.authors.split('(')[0].split(',')[0].split('&')[0])}</div></div>
+      <div><h1>${esc(b.title)}</h1><div class="bsub">${b.sub?esc(b.sub)+' · ':''}${esc(b.authors)}</div><div class="bq">${esc(b.q)}</div></div></div></div>
+     <div class="meters" style="margin-bottom:16px">
+      <div class="meter"><div class="n">${b.lv}<span style="font-size:14px;color:#8FA6C6"> / ${N}</span></div><div class="l">degrau da escada · ${esc(b.level)}</div></div>
+      <div class="meter"><div class="n">${b.pages}</div><div class="l">páginas · ${esc(b.blocks)}</div></div>
+      <div class="meter"><div class="n">${cov}<span style="font-size:14px;color:#8FA6C6"> / ${T.length}</span></div><div class="l">temas do mapa que o livro trata</div></div>
+      <div class="meter"><div class="n">${ax}</div><div class="l">temas que são eixo do livro${uniq?` · ${uniq} em que se destaca sozinho`:''}</div></div>
+     </div>
+     <div class="row13">
+      <div class="card">${head(IC.book,'Ficha')}<div class="kv" style="grid-template-columns:1fr">
+        <div><div class="k">Edição</div><div class="v">${esc(b.ed)}</div></div>
+        <div><div class="k">Escola</div><div class="v">${esc(b.school)}</div></div>
+        <div><div class="k">Para quem</div><div class="v">${esc(b.reader)}</div></div>
+        <div><div class="k">Formalização</div><div class="v">${esc(b.math)}</div></div>
+        <div><div class="k">Casos e exemplos</div><div class="v">${esc(b.cases)}</div></div>
+        <div><div class="k">Tom</div><div class="v">${esc(b.tone)}</div></div></div>
+        <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#173F7A;margin:18px 0 9px">Espinha dorsal</h3>${spineHTML(b)}</div>
+      <div class="card">${head(IC.list,'Sumário navegável','Partes, capítulos e seções extraídos do PDF. Os quadradinhos ao lado do capítulo indicam o grupo de temas do mapa.')}<input class="tocsearch" id="tocq" placeholder="Buscar no sumário (ex.: Nash, custo, equilibrium)"><div class="toc" id="tocbox">${tocHTML(b.id,'')}</div></div>
+     </div>`;
+  }
+  $('p-books').innerHTML=`${crumb('Os cinco livros')}<div class="subtabs" id="bktabs">${tabs}</div>${body}`;
+  $('bktabs').querySelectorAll('button').forEach(x=>x.addEventListener('click',()=>{curBook=x.dataset.bk;renderBooks();}));
+  const q=$('tocq');if(q)q.addEventListener('input',()=>{$('tocbox').innerHTML=tocHTML(curBook,q.value);});
+}
+function openBook(id){curBook=id;renderBooks();goTab('p-books');}
+
+// ---------- 3. mapa de temas ----------
+let hmGroup='all',hmSort='book',hmSel=null;
+function cellBg(id,v){if(!v)return '#F3F6FA';return [null,mix(BK[id].color,.18),mix(BK[id].color,.5),BK[id].color][v];}
+function cellFg(id,v){return v===3?'#fff':v===2?'#0A2455':v===1?'#33507C':'#B4C2D3';}
+function variance(t){const xs=ORDER.map(id=>score(t,id)),m=xs.reduce((a,b)=>a+b,0)/N;return xs.reduce((a,b)=>a+(b-m)*(b-m),0)/N;}
+function renderDetail(){
+  const box=$('hmdetail');if(!box)return;
+  if(hmSel===null){box.innerHTML=`${head(IC.info,'Clique numa célula','O detalhe mostra, para o tema escolhido, onde cada livro trata do assunto e com que profundidade.')}<div class="cap" style="margin-top:4px">Escala: <b>3</b> eixo do livro (vários capítulos ou tema estruturante) · <b>2</b> capítulo dedicado · <b>1</b> seção ou trecho · <b>0</b> não trata.</div>`;return;}
+  const t=T[hmSel];
+  box.innerHTML=`<div class="dg" style="color:${G[t[0]].c}">${G[t[0]].n}</div><div class="dh">${esc(t[1])}</div>`+ORDER.map(id=>{const [v,r,c]=t[2][id];return `<div class="drow"><div><div class="bn" style="color:${BK[id].color}"><i style="background:${BK[id].color}"></i>${BK[id].short}</div><div class="dots">${[1,2,3].map(k=>`<b style="${k<=v?'background:'+BK[id].color:''}"></b>`).join('')}</div></div><div class="dc">${v?`<span class="ref">${esc(r)}</span> · ${esc(c)}`:esc(c||'Não trata do tema.')}</div></div>`;}).join('');
+}
+function renderMap(){
+  let idx=T.map((t,i)=>i).filter(i=>hmGroup==='all'||T[i][0]===hmGroup);
+  if(hmSort==='div')idx.sort((a,b)=>variance(T[b])-variance(T[a]));
+  else if(ORDER.includes(hmSort))idx.sort((a,b)=>score(T[b],hmSort)-score(T[a],hmSort)||a-b);
+  const maxV=Math.max(...T.map(variance));
+  let rows='',lastG=null;
+  idx.forEach(i=>{const t=T[i];
+    if(hmSort==='book'&&t[0]!==lastG){rows+=`<tr class="gh"><td colspan="${N+2}"><span style="color:${G[t[0]].c}">■</span> ${G[t[0]].n}</td></tr>`;lastG=t[0];}
+    rows+=`<tr><td class="tn"><span class="gdot" style="background:${G[t[0]].c}"></span>${esc(t[1])}</td>${ORDER.map(id=>{const [v,r]=t[2][id];return `<td><div class="cell${v?'':' z'}${hmSel===i?' sel':''}" data-i="${i}" style="background:${cellBg(id,v)};color:${cellFg(id,v)}">${v?esc(r):'—'}</div></td>`;}).join('')}<td class="dv"><div class="dvb" data-tip="Divergência entre os livros: ${variance(t).toFixed(2).replace('.',',')}"><i style="width:${variance(t)/maxV*100}%"></i></div></td></tr>`;});
+  const gchips=[['all','Todos','#0A2455']].concat(Object.entries(G).map(([k,g])=>[k,g.n,g.c])).map(([k,n,c])=>`<button class="chipbtn${hmGroup===k?' on':''}" data-g="${k}">${k!=='all'?`<i style="background:${c}"></i>`:''}${n}</button>`).join('');
+  const sorts=[['book','Por grupo'],['div','Maior divergência']].concat(ORDER.map(id=>[id,'Mais forte em '+BK[id].short])).map(([k,n])=>`<button class="chipbtn${hmSort===k?' on':''}" data-s="${k}">${n}</button>`).join('');
+  const sim=`<div class="simgrid">${'<div></div>'+ORDER.map(id=>`<div class="h" style="color:${BK[id].color}">${BK[id].ini}</div>`).join('')}${ORDER.map(a=>`<div class="r" style="color:${BK[a].color}">${BK[a].short}</div>${ORDER.map(b=>{const v=a===b?1:cos(a,b);const op=(v-.4)/.6;return `<div class="c" data-tip="${BK[a].short} × ${BK[b].short}: similaridade de cobertura ${pct(v)}" style="background:${a===b?'#F1F4F8':mix('#0A2455',Math.max(.08,op*.85))};color:${a===b?'#A2B3C8':(op>.45?'#fff':'#0A2455')}">${a===b?'—':pct(v)}</div>`;}).join('')}`).join('')}</div>`;
+  $('p-map').innerHTML=`${crumb('Mapa de temas')}
+  <div class="card">${head(IC.grid,'Quem cobre o quê, e com que profundidade',`${T.length} temas em ${Object.keys(G).length} grupos. Cada célula traz o capítulo em que o tema aparece; a intensidade da cor indica a profundidade. A barra vermelha à direita mede o quanto os livros divergem no tema.`)}
+   <div class="hmtools">${gchips}</div><div class="hmtools" style="margin-top:-4px"><span style="font-size:10.5px;font-weight:700;color:#6A82A4;letter-spacing:.05em;text-transform:uppercase;margin-right:2px">Ordenar</span>${sorts}</div></div>
+  <div class="row31" style="grid-template-columns:1.9fr 1fr">
+   <div class="card"><div class="twrap" style="border:none"><table class="hm"><thead><tr><th></th>${ORDER.map(id=>`<th><span class="bd" style="background:${BK[id].color}"></span>${BK[id].short}</th>`).join('')}<th style="font-size:9.5px;color:#6A82A4">Diverg.</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="scale"><span>Profundidade:</span>${[0,1,2,3].map(v=>`<span><i style="background:${v?mix('#2E63A7',[0,.18,.5,1][v]):'#F3F6FA'}"></i>${['não trata','seção','capítulo','eixo'][v]}</span>`).join('')}</div></div>
+   <div><div class="card detail" id="hmdetail"></div>
+    <div class="card">${head(IC.sim,'Quão parecidos são?',`Similaridade (cosseno) entre os perfis de cobertura dos ${T.length} temas. 100% significaria cobrir os mesmos temas na mesma profundidade.`)}${sim}</div></div>
+  </div>`;
+  $('p-map').querySelectorAll('[data-g]').forEach(x=>x.addEventListener('click',()=>{hmGroup=x.dataset.g;renderMap();}));
+  $('p-map').querySelectorAll('[data-s]').forEach(x=>x.addEventListener('click',()=>{hmSort=x.dataset.s;renderMap();}));
+  $('p-map').querySelectorAll('.cell').forEach(x=>x.addEventListener('click',()=>{hmSel=+x.dataset.i;$('p-map').querySelectorAll('.cell').forEach(c=>c.classList.toggle('sel',+c.dataset.i===hmSel));renderDetail();if(innerWidth<=980)$('hmdetail').scrollIntoView({behavior:'smooth',block:'start'});}));
+  renderDetail();
+}
+
+// ---------- 4. para que lado vai ----------
+let specFocus=null;
+const VERD={
+ ace:{to:'Para o lado da evidência e do comportamento',best:'Ganhar intuição rápida, entender causalidade e experimentos, ver onde as pessoas fogem do modelo racional.',not:'Cálculo, dualidade, equilíbrio geral formal, oligopólio detalhado.'},
+ pin:{to:'Para o lado da aplicação a negócios',best:'Preço, custos, poder de mercado, oligopólio, investimento; consultar em português com exemplos reais.',not:'Derivações formais, jogos de informação incompleta, mecanismos.'},
+ bb:{to:'Para o lado da conta passo a passo',best:'Resolver problemas de consumidor e firma, custos e estática comparativa, impostos e quotas.',not:'Informação assimétrica e agente-principal, comportamento, antitruste.'},
+ nic:{to:'Para o lado da formalização com aplicação',best:'Aprender o ferramental matemático, jogos bayesianos, agente-principal, capital e trabalho com rigor.',not:'Casos de negócio, contexto brasileiro, intuição sem cálculo.'},
+ mwg:{to:'Para o lado da teoria axiomática',best:'Pesquisa e pós: equilíbrio geral, bem-estar, escolha social, refinamentos de jogos, mecanismos.',not:'Aplicações, dados, custos na prática, qualquer leitura rápida.'}
+};
+function renderSide(){
+  const leg=ORDER.map(id=>`<button class="chipbtn${specFocus===id?' on':''}" data-f="${id}" style="${specFocus===id?`background:${BK[id].color};border-color:${BK[id].color}`:''}"><i style="background:${BK[id].color};border-radius:50%"></i>${BK[id].short}</button>`).join('')+`<button class="chipbtn${specFocus===null?' on':''}" data-f="">Todos</button>`;
+  const rows=SPEC.map(([n,l,r,v])=>{
+    const ord=ORDER.slice().sort((a,b)=>v[a]-v[b]);let prevX=-99;
+    const pts=ord.map(id=>{let x=v[id]*10;if(x-prevX<2.4)x=prevX+2.4;prevX=x;
+      return `<span class="pt${specFocus===id?' hl':''}" style="left:${Math.max(2,Math.min(98,x))}%;background:${BK[id].color};font-size:${BK[id].ini.length>1?7.5:9}px" data-tip="<b>${BK[id].short}</b> · ${esc(n)}: ${String(v[id]).replace('.',',')} / 10">${BK[id].ini}</span>`;}).join('');
+    const spread=Math.max(...ORDER.map(id=>v[id]))-Math.min(...ORDER.map(id=>v[id]));
+    return `<div class="srow"><div class="sn">${esc(n)}<small>distância entre extremos: ${spread.toFixed(1).replace('.',',')}</small></div><div class="strack"><span class="ln"></span>${[0,25,50,75,100].map(p=>`<span class="tk" style="left:${p}%"></span>`).join('')}${pts}</div><div class="sends"><span>${esc(l)}</span><span>${esc(r)}</span></div></div>`;}).join('');
+  const verd=ORDER.map(id=>{const b=BK[id],x=VERD[id];return `<div class="vcard" style="background:linear-gradient(160deg,${b.soft},#fff 60%)"><div class="vh"><i style="background:${b.color}"></i>${b.short}</div><div class="vto" style="color:${b.color}">${x.to}</div><div class="vl">Melhor para</div><p>${x.best}</p><div class="vl">Não espere</div><p>${x.not}</p></div>`;}).join('');
+  $('p-side').innerHTML=`${crumb('Para que lado vai')}
+  <div class="card">${head(IC.scale,'Oito réguas, cinco livros','Posição de 0 a 10 em cada dimensão (julgamento a partir de sumário, prefácio e abertura dos capítulos). Clique num livro para destacá-lo.')}
+   <div class="hmtools">${leg}</div><div class="spec${specFocus?' focus':''}">${rows}</div></div>
+  <div class="card">${head(IC.target,'O veredito: para que lado cada um puxa')}<div class="verd">${verd}</div></div>`;
+  $('p-side').querySelectorAll('[data-f]').forEach(x=>x.addEventListener('click',()=>{specFocus=x.dataset.f||null;renderSide();}));
+}
+
+// ---------- 5. semelhanças ----------
+function ringSVG(){
+  const n=T.length,R=92,r0=70,cx=105,cy=105;let s=`<svg viewBox="0 0 210 210">`;
+  T.forEach((t,i)=>{const a0=(i/n)*Math.PI*2-Math.PI/2,a1=((i+1)/n)*Math.PI*2-Math.PI/2-.025;
+    const p=(r,a)=>[cx+r*Math.cos(a),cy+r*Math.sin(a)];const [x0,y0]=p(R,a0),[x1,y1]=p(R,a1),[x2,y2]=p(r0,a1),[x3,y3]=p(r0,a0);
+    const on=COMMON.includes(t);
+    s+=`<path d="M${x0},${y0} A${R},${R} 0 0 1 ${x1},${y1} L${x2},${y2} A${r0},${r0} 0 0 0 ${x3},${y3} Z" fill="${on?G[t[0]].c:'#E6EDF5'}" data-tip="${esc(t[1])}${on?' · tratado pelos 5':' · fora do núcleo comum'}"/>`;});
+  return s+'</svg>';
+}
+function renderSame(){
+  const chips=COMMON.map(t=>`<span class="tchip" style="background:${G[t[0]].bg}"><i style="background:${G[t[0]].c}"></i>${esc(t[1])}</span>`).join('');
+  const IDEAS=[
+   ['O mesmo programa','Consumidor, firma, mercados competitivos, poder de mercado e falhas de mercado aparecem nos cinco, quase na mesma ordem.',ORDER],
+   ['Otimização e equilíbrio como pilares','Acemoglu fala em otimização, equilíbrio e empirismo; Besanko em otimização com restrição, equilíbrio e estática comparativa. Os outros três usam a mesma dupla.',ORDER],
+   ['Teoria dos jogos virou obrigatória','Os cinco têm capítulo de jogos, com Nash e jogos sequenciais; vai de um capítulo (Acemoglu) a três (Mas-Colell).',ORDER],
+   ['Informação assimétrica no núcleo','Seleção adversa e sinalização (Akerlof, Spence) estão nos cinco, com profundidade crescente na escada.',ORDER],
+   ['Externalidades e Coase','Todos tratam externalidades e a solução por direitos de propriedade; quatro discutem instrumentos de política.',ORDER],
+   ['Excedente como régua de bem-estar','Excedente do consumidor e do produtor é a métrica comum para avaliar políticas e poder de mercado.',ORDER],
+   ['Utilidade esperada para o risco','O tratamento do risco parte de utilidade esperada e aversão ao risco em todos.',ORDER],
+   ['Equilíbrio geral, com pesos muito diferentes','Quatro dedicam ao menos um capítulo; Acemoglu fica na mão invisível; Mas-Colell dedica seis.',['pin','bb','nic','mwg']]
+  ];
+  const ideas=IDEAS.map((x,i)=>`<div class="idea"><div class="in">${String(i+1).padStart(2,'0')}</div><b>${x[0]}</b><p>${x[1]}</p><div class="who">${ORDER.map(id=>`<span class="${x[2].includes(id)?'':'off'}" style="background:${BK[id].color}">${BK[id].short}</span>`).join('')}</div></div>`).join('');
+  const pairs=PAIRS.map(([a,b,v])=>`<div class="pair"><div class="pn"><i style="background:${BK[a].color}"></i>${BK[a].short}<span style="color:#A2B3C8">×</span><i style="background:${BK[b].color}"></i>${BK[b].short}</div><div class="pb"><i style="width:${v*100}%;background:linear-gradient(90deg,${BK[a].color},${BK[b].color})"></i></div><div class="pv">${pct(v)}</div></div>`).join('');
+  $('p-same').innerHTML=`${crumb('Semelhanças')}
+  <div class="card">${head(IC.sim,'O núcleo comum',`Dos ${T.length} temas do mapa, ${COMMON.length} são tratados pelos cinco livros, em alguma profundidade. É o programa clássico de micro, do consumidor às falhas de mercado.`)}
+   <div class="core"><div class="ring">${ringSVG()}<div class="ringc"><div><div class="n">${COMMON.length}<span style="font-size:18px;color:#A2B3C8">/${T.length}</span></div><div class="l">temas tratados pelos cinco</div></div></div></div><div class="tchips">${chips}</div></div></div>
+  <div class="card">${head(IC.star,'Oito pontos em comum')}<div class="ideas">${ideas}</div></div>
+  <div class="row2">
+   <div class="card">${head(IC.scale,'Quem se parece com quem','Similaridade de cobertura entre cada par de livros, do mais parecido ao menos parecido.')}<div class="pairs">${pairs}</div>
+    <div class="cap" style="margin:12px 0 0">Os dois intermediários (Pindyck e Besanko) formam o par mais próximo, e a similaridade cai à medida que os livros se afastam na escada. Acemoglu e Mas-Colell, os extremos, são os mais distantes.</div></div>
+   <div class="card">${head(IC.fam,'Os dois intermediários','Pindyck e Besanko cobrem quase o mesmo programa. O que muda é o estilo e o que cada um acrescenta.')}
+    <div class="twins"><div class="tc"><h3 style="color:${BK.pin.color}"><i style="background:${BK.pin.color}"></i>Pindyck acrescenta</h3><ul class="tl"><li><b>Exemplos de mercado real</b> em todo capítulo, e edição em português</li><li><b>Antitruste no Brasil</b>, externalidades de rede e preço de transferência</li><li><b>Informação assimétrica, CAPM e capital humano</b> em capítulos próprios</li></ul></div>
+     <div class="mid"><div class="eq">≈</div>mesmo programa</div>
+     <div class="tc"><h3 style="color:${BK.bb.color}"><i style="background:${BK.bb.color}"></i>Besanko acrescenta</h3><ul class="tl"><li><b>Cálculo no texto</b>, com "learning-by-doing" resolvido passo a passo</li><li><b>Custos em dois capítulos</b>, com estática comparativa e Shephard</li><li><b>Impostos, quotas e suporte de preços</b> com mais detalhe</li></ul></div></div></div>
+  </div>`;
+}
+
+// ---------- 6. diferenças ----------
+let curLens='cons';
+function renderDiff(){
+  const L=LENS.find(x=>x.k===curLens);
+  const tabs=LENS.map(x=>`<button data-l="${x.k}" class="${x.k===curLens?'on':''}">${x.n}</button>`).join('');
+  const refs=id=>{const ts=T.filter(t=>L.t.includes(t[1]));const r=ts.filter(t=>score(t,id)>0).map(t=>t[2][id][1]);return [...new Set(r)].join(' · ')||'não trata';};
+  const cols=ORDER.map(id=>{const b=BK[id],[q,p,tags]=L[id];return `<div class="lcol" style="background:${b.soft};border-color:${mix(b.color,.18)}"><div class="lh"><span class="lb" style="color:${b.color}">${b.short}</span><span class="lr">${esc(refs(id))}</span></div><div class="lq">${esc(q)}</div><p>${esc(p)}</p><div class="lt">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div></div>`;}).join('');
+  const excl=ORDER.map(id=>`<div><div class="eh" style="color:${BK[id].color}"><i style="background:${BK[id].color}"></i>Só no ${BK[id].short}</div><ul>${EXCL[id].map(([n,r])=>`<li><b>${esc(n)}</b><small>${esc(r)}</small></li>`).join('')}</ul></div>`).join('');
+  const top=T.slice().sort((a,b)=>variance(b)-variance(a)).slice(0,7);
+  const div=top.map(t=>`<tr><td class="l" style="white-space:normal">${esc(t[1])}</td>${ORDER.map(id=>{const v=score(t,id);return `<td style="text-align:center"><span style="display:inline-block;width:26px;height:18px;border-radius:5px;background:${cellBg(id,v)};color:${cellFg(id,v)};font-size:10.5px;font-weight:800;line-height:18px">${v}</span></td>`;}).join('')}</tr>`).join('');
+  $('p-diff').innerHTML=`${crumb('Diferenças')}
+  <div class="card">${head(IC.scale,'Mesmo tema, cinco lentes','Escolha um tema. Cada coluna mostra a pergunta que o livro faz sobre ele e como responde.')}
+   <div class="subtabs" id="lenstabs">${tabs}</div><div class="lens">${cols}</div><div class="bottomline"><span class="bl">A diferença</span><p>${esc(L.bl)}</p></div></div>
+  <div class="card">${head(IC.star,'O que só um deles tem','Conteúdos com capítulo ou seção própria em um livro e ausentes, ou só de passagem, nos outros quatro.')}<div class="excl">${excl}</div></div>
+  <div class="card">${head(IC.grid,'Onde eles mais divergem','Os sete temas com maior dispersão de profundidade (0 a 3).')}<div class="twrap"><table><thead><tr><th>Tema</th>${ORDER.map(id=>`<th style="text-align:center;color:${BK[id].color}">${BK[id].short}</th>`).join('')}</tr></thead><tbody>${div}</tbody></table></div>
+    <div class="cap" style="margin:12px 0 0">As divergências se concentram nas duas pontas da escada: comportamento, evidência e economia social (Acemoglu) e equilíbrio geral, escolha social, jogos de informação incompleta e mecanismos (Mas-Colell).</div></div>`;
+  $('lenstabs').querySelectorAll('button').forEach(x=>x.addEventListener('click',()=>{curLens=x.dataset.l;renderDiff();}));
+}
+
+// ---------- 7. qual ler para quê ----------
+let curQ=0;
+function renderUse(){
+  const qb=Q.map((x,i)=>`<button class="qbtn${i===curQ?' on':''}" data-q="${i}"><span class="qn">${String(i+1).padStart(2,'0')}</span>${esc(x.q)}</button>`).join('');
+  const r=Q[curQ].r;const ord=ORDER.slice().sort((a,b)=>(r[a][0]||9)-(r[b][0]||9));
+  const res=ord.map(id=>{const [p,c,w]=r[id],pr=PRI[p];return `<div class="qr${p?'':' none'}"><div class="qh"><b style="color:${BK[id].color}"><i style="background:${BK[id].color}"></i>${BK[id].short}</b><span class="pri" style="background:${pr[1]};color:${pr[2]}">${pr[0]}</span></div><div class="qc">${esc(c)}</div><p>${esc(w)}</p></div>`;}).join('');
+  const steps=[
+   ['Acemoglu','Cap. 1–3','ace','Método, causalidade e otimização: como pensar um problema econômico e como testá-lo nos dados.'],
+   ['Pindyck','Cap. 2, 4, 7','pin','Demanda, elasticidades e custos: o que entra nas premissas de um modelo.'],
+   ['Pindyck','Cap. 10–13','pin','Poder de mercado, preço, oligopólio e jogos: a base para ler a competição de um setor.'],
+   ['Besanko','Cap. 7–8, 10','bb','Custos e intervenção do governo resolvidos passo a passo, para quando precisar fazer a conta.'],
+   ['Nicholson','Cap. 7, 15, 18','nic','Risco, concorrência imperfeita e informação com rigor: entrada, capacidade, agente-principal.'],
+   ['Mas-Colell','Cap. 13–14, 23','mwg','Só quando precisar de rigor de pós: screening, agente-principal e desenho de mecanismos.']
+  ];
+  $('p-use').innerHTML=`${crumb('Qual ler para quê')}
+  <div class="card">${head(IC.target,'Tenho uma pergunta. Qual livro abro?','Perguntas típicas de quem aplica micro no trabalho ou estuda para a pós. Escolha uma para ver a leitura principal e a complementar.')}<div class="qgrid">${qb}</div></div>
+  <div class="card">${head(IC.list,esc(Q[curQ].q),'Ordenado da leitura principal para a menos relevante.')}<div class="qres">${res}</div></div>
+  <div class="row2">
+   <div class="card">${head(IC.route,'Trilha sugerida para o analista','Uma ordem de leitura que sobe a escada só até onde o problema exige.')}<div class="tml">${steps.map((s,i)=>`<div class="tmn" style="--pc:${BK[s[2]].color}"><div class="th"><span class="ty">${i+1}. ${s[0]}</span><span class="tt">${s[1]}</span></div><div class="td">${s[3]}</div></div>`).join('')}</div></div>
+   <div class="card">${head(IC.info,'Se der para ler só um')}<ul class="blist">
+    <li><b>Para aplicar micro no trabalho:</b> Pindyck. É o mais aplicado, está em português e tem antitruste no Brasil.</li>
+    <li><b>Para fazer as contas com segurança:</b> Besanko &amp; Braeutigam. Resolve cada problema passo a passo, com cálculo.</li>
+    <li><b>Para entender evidência e comportamento:</b> Acemoglu. É o único que trata causalidade e vieses como núcleo.</li>
+    <li><b>Para mestrado ou como ponte para a pós:</b> Nicholson. Rigor com cálculo, sem a abstração do Mas-Colell.</li>
+    <li><b>Para doutorado e pesquisa:</b> Mas-Colell. É a referência; os outros quatro não substituem.</li>
+   </ul></div>
+  </div>`;
+  $('p-use').querySelectorAll('[data-q]').forEach(x=>x.addEventListener('click',()=>{curQ=+x.dataset.q;renderUse();}));
+}
+
+// ---------- 8. metodologia ----------
+function renderMethod(){
+  const src=[['Acemoglu','Microeconomics (Acemoglu).pdf','507','Texto extraído do PDF; o índice embutido só tem marcadores de página, então capítulos e seções vieram do sumário impresso.'],
+   ['Pindyck','Microeconomia (Pindyck).pdf','670','PDF escaneado, sem camada de texto: o sumário foi lido das páginas digitalizadas.'],
+   ['Besanko','Microeconomics (Besanko).pdf','822','Índice embutido do PDF (153 entradas) e sumário resumido.'],
+   ['Nicholson','Microeconomic Theory (Nicholson).pdf','782','Índice embutido do PDF (272 entradas); "Extensions", resumos e problemas foram removidos do sumário.'],
+   ['Mas-Colell','Microeconomic Theory (Mas-Collel).pdf','994','PDF escaneado, sem camada de texto: o sumário foi lido das páginas digitalizadas.']];
+  $('p-method').innerHTML=`${crumb('Metodologia')}
+  <div class="card">${head(IC.book,'Fontes','PDFs em OneDrive › Downloads › Accounting › Finance › Livros › Economics › Microeconomics.')}<div class="twrap"><table><thead><tr><th>Livro</th><th>Arquivo</th><th>Páginas</th><th>Como o sumário foi extraído</th></tr></thead><tbody>${src.map(r=>`<tr><td class="l">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td style="white-space:normal;min-width:260px">${r[3]}</td></tr>`).join('')}</tbody></table></div></div>
+  <div class="row2">
+   <div class="card">${head(IC.grid,'Como ler o mapa de temas')}<ul class="blist">
+    <li><b>3 · eixo:</b> o tema ocupa vários capítulos ou estrutura o livro.</li>
+    <li><b>2 · capítulo:</b> há um capítulo (ou bloco de seções) dedicado.</li>
+    <li><b>1 · seção:</b> aparece como seção, trecho ou apêndice.</li>
+    <li><b>0 · não trata:</b> sem tratamento identificável no sumário.</li>
+    <li><b>Similaridade:</b> cosseno entre os vetores de profundidade (${T.length} temas) de cada par de livros.</li></ul></div>
+   <div class="card">${head(IC.info,'Limites')}<ul class="blist">
+    <li>As notas vêm do sumário, do prefácio e das aberturas de capítulo, não da leitura integral: um tema tratado dentro de um capítulo sobre outro assunto pode estar subestimado.</li>
+    <li>As posições nas réguas são julgamento analítico e servem para comparar os livros entre si, não como medida absoluta.</li>
+    <li>Edições: Acemoglu 1ª global (2016), Pindyck 6ª brasileira (2006), Besanko &amp; Braeutigam 4ª (2011), Nicholson &amp; Snyder 11ª (2012), Mas-Colell (1995). Edições mais novas podem ter mudado capítulos.</li></ul></div>
+  </div>`;
+}
+
+// ---------- init ----------
+$('hbooks').innerHTML=ORDER.map(id=>`<span><i style="background:${BK[id].color}"></i>${BK[id].short}</span>`).join('');
+renderTabs();renderOver();renderBooks();renderMap();renderSide();renderSame();renderDiff();renderUse();renderMethod();
+$('navlist').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b)setTab(+b.dataset.tab);});
+$('navToggle').addEventListener('click',()=>document.body.classList.toggle('snav-collapsed'));
+if(innerWidth<=860)document.body.classList.add('snav-collapsed');
+function setHH(){document.documentElement.style.setProperty('--hh',document.querySelector('header').offsetHeight+'px');}
+setHH();addEventListener('resize',setHH);
+const h0=location.hash.slice(1);const i0=TABS.findIndex(t=>t[0]==='p-'+h0);setTab(i0>=0?i0:0,true);
+</script>
+</body>
+</html>
